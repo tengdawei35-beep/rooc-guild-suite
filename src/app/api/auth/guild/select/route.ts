@@ -8,16 +8,15 @@ import {
   verifyGuildSelectionToken,
 } from "@/lib/guild-selection";
 
-export async function GET(request: Request) {
+export async function POST(request: Request) {
   const appUrl = process.env.APP_URL;
   const url = new URL(request.url);
-  const guildId = url.searchParams.get("guildId");
   const cookieStore = await cookies();
   const token = cookieStore.get(GUILD_SELECTION_COOKIE)?.value;
   const selection = token ? verifyGuildSelectionToken(token) : null;
   const baseUrl = appUrl ? new URL(appUrl) : url.origin;
 
-  if (!selection || !guildId) {
+  if (!selection) {
     cookieStore.set(GUILD_SELECTION_COOKIE, "", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -27,6 +26,13 @@ export async function GET(request: Request) {
     });
 
     return NextResponse.redirect(new URL("/login?error=authentication_failed", baseUrl));
+  }
+
+  const formData = await request.formData();
+  const guildId = formData.get("guildId");
+
+  if (typeof guildId !== "string" || !guildId) {
+    return NextResponse.redirect(new URL("/guild/select", baseUrl));
   }
 
   const membership = await prisma.guildMembership.findUnique({
