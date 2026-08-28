@@ -44,11 +44,11 @@ export async function POST(
     // Saving a preferred roster changes guild configuration.
     // Only roles with rosters.edit may perform this action.
     //
-    // Current intended roles:
+    // Current role mapping:
     //
     // ADMIN   -> allowed
     // MANAGER -> allowed
-    // OFFICER -> denied
+    // OFFICER -> allowed
     // MEMBER  -> denied
     //
     // =========================================================
