@@ -399,7 +399,9 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   User: 'User',
   Guild: 'Guild',
+  GuildMembership: 'GuildMembership',
   GuildMember: 'GuildMember',
+  MemberLeave: 'MemberLeave',
   Resource: 'Resource',
   ReservedAllocation: 'ReservedAllocation',
   RotationState: 'RotationState',
@@ -407,7 +409,17 @@ export const ModelName = {
   AllocationResult: 'AllocationResult',
   ResourceResult: 'ResourceResult',
   BidPage: 'BidPage',
-  BidSlot: 'BidSlot'
+  BidSlot: 'BidSlot',
+  Event: 'Event',
+  EventParticipation: 'EventParticipation',
+  Roster: 'Roster',
+  RosterParty: 'RosterParty',
+  RosterMember: 'RosterMember',
+  Raid: 'Raid',
+  RaidParty: 'RaidParty',
+  PreferredRoster: 'PreferredRoster',
+  PreferredRosterParty: 'PreferredRosterParty',
+  PreferredRosterMember: 'PreferredRosterMember'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -423,7 +435,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "guild" | "guildMember" | "resource" | "reservedAllocation" | "rotationState" | "allocationRun" | "allocationResult" | "resourceResult" | "bidPage" | "bidSlot"
+    modelProps: "user" | "guild" | "guildMembership" | "guildMember" | "memberLeave" | "resource" | "reservedAllocation" | "rotationState" | "allocationRun" | "allocationResult" | "resourceResult" | "bidPage" | "bidSlot" | "event" | "eventParticipation" | "roster" | "rosterParty" | "rosterMember" | "raid" | "raidParty" | "preferredRoster" | "preferredRosterParty" | "preferredRosterMember"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -575,6 +587,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    GuildMembership: {
+      payload: Prisma.$GuildMembershipPayload<ExtArgs>
+      fields: Prisma.GuildMembershipFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.GuildMembershipFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildMembershipPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.GuildMembershipFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildMembershipPayload>
+        }
+        findFirst: {
+          args: Prisma.GuildMembershipFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildMembershipPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.GuildMembershipFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildMembershipPayload>
+        }
+        findMany: {
+          args: Prisma.GuildMembershipFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildMembershipPayload>[]
+        }
+        create: {
+          args: Prisma.GuildMembershipCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildMembershipPayload>
+        }
+        createMany: {
+          args: Prisma.GuildMembershipCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.GuildMembershipCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildMembershipPayload>[]
+        }
+        delete: {
+          args: Prisma.GuildMembershipDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildMembershipPayload>
+        }
+        update: {
+          args: Prisma.GuildMembershipUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildMembershipPayload>
+        }
+        deleteMany: {
+          args: Prisma.GuildMembershipDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.GuildMembershipUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.GuildMembershipUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildMembershipPayload>[]
+        }
+        upsert: {
+          args: Prisma.GuildMembershipUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildMembershipPayload>
+        }
+        aggregate: {
+          args: Prisma.GuildMembershipAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateGuildMembership>
+        }
+        groupBy: {
+          args: Prisma.GuildMembershipGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GuildMembershipGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.GuildMembershipCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GuildMembershipCountAggregateOutputType> | number
+        }
+      }
+    }
     GuildMember: {
       payload: Prisma.$GuildMemberPayload<ExtArgs>
       fields: Prisma.GuildMemberFieldRefs
@@ -646,6 +732,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.GuildMemberCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.GuildMemberCountAggregateOutputType> | number
+        }
+      }
+    }
+    MemberLeave: {
+      payload: Prisma.$MemberLeavePayload<ExtArgs>
+      fields: Prisma.MemberLeaveFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MemberLeaveFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MemberLeavePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MemberLeaveFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MemberLeavePayload>
+        }
+        findFirst: {
+          args: Prisma.MemberLeaveFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MemberLeavePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MemberLeaveFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MemberLeavePayload>
+        }
+        findMany: {
+          args: Prisma.MemberLeaveFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MemberLeavePayload>[]
+        }
+        create: {
+          args: Prisma.MemberLeaveCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MemberLeavePayload>
+        }
+        createMany: {
+          args: Prisma.MemberLeaveCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.MemberLeaveCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MemberLeavePayload>[]
+        }
+        delete: {
+          args: Prisma.MemberLeaveDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MemberLeavePayload>
+        }
+        update: {
+          args: Prisma.MemberLeaveUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MemberLeavePayload>
+        }
+        deleteMany: {
+          args: Prisma.MemberLeaveDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MemberLeaveUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.MemberLeaveUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MemberLeavePayload>[]
+        }
+        upsert: {
+          args: Prisma.MemberLeaveUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MemberLeavePayload>
+        }
+        aggregate: {
+          args: Prisma.MemberLeaveAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMemberLeave>
+        }
+        groupBy: {
+          args: Prisma.MemberLeaveGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MemberLeaveGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MemberLeaveCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MemberLeaveCountAggregateOutputType> | number
         }
       }
     }
@@ -1241,6 +1401,746 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Event: {
+      payload: Prisma.$EventPayload<ExtArgs>
+      fields: Prisma.EventFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EventFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EventFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventPayload>
+        }
+        findFirst: {
+          args: Prisma.EventFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EventFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventPayload>
+        }
+        findMany: {
+          args: Prisma.EventFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventPayload>[]
+        }
+        create: {
+          args: Prisma.EventCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventPayload>
+        }
+        createMany: {
+          args: Prisma.EventCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.EventCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventPayload>[]
+        }
+        delete: {
+          args: Prisma.EventDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventPayload>
+        }
+        update: {
+          args: Prisma.EventUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventPayload>
+        }
+        deleteMany: {
+          args: Prisma.EventDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EventUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.EventUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventPayload>[]
+        }
+        upsert: {
+          args: Prisma.EventUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventPayload>
+        }
+        aggregate: {
+          args: Prisma.EventAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEvent>
+        }
+        groupBy: {
+          args: Prisma.EventGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EventGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EventCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EventCountAggregateOutputType> | number
+        }
+      }
+    }
+    EventParticipation: {
+      payload: Prisma.$EventParticipationPayload<ExtArgs>
+      fields: Prisma.EventParticipationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EventParticipationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventParticipationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EventParticipationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventParticipationPayload>
+        }
+        findFirst: {
+          args: Prisma.EventParticipationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventParticipationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EventParticipationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventParticipationPayload>
+        }
+        findMany: {
+          args: Prisma.EventParticipationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventParticipationPayload>[]
+        }
+        create: {
+          args: Prisma.EventParticipationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventParticipationPayload>
+        }
+        createMany: {
+          args: Prisma.EventParticipationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.EventParticipationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventParticipationPayload>[]
+        }
+        delete: {
+          args: Prisma.EventParticipationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventParticipationPayload>
+        }
+        update: {
+          args: Prisma.EventParticipationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventParticipationPayload>
+        }
+        deleteMany: {
+          args: Prisma.EventParticipationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EventParticipationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.EventParticipationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventParticipationPayload>[]
+        }
+        upsert: {
+          args: Prisma.EventParticipationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventParticipationPayload>
+        }
+        aggregate: {
+          args: Prisma.EventParticipationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEventParticipation>
+        }
+        groupBy: {
+          args: Prisma.EventParticipationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EventParticipationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EventParticipationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EventParticipationCountAggregateOutputType> | number
+        }
+      }
+    }
+    Roster: {
+      payload: Prisma.$RosterPayload<ExtArgs>
+      fields: Prisma.RosterFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RosterFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RosterPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RosterFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RosterPayload>
+        }
+        findFirst: {
+          args: Prisma.RosterFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RosterPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RosterFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RosterPayload>
+        }
+        findMany: {
+          args: Prisma.RosterFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RosterPayload>[]
+        }
+        create: {
+          args: Prisma.RosterCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RosterPayload>
+        }
+        createMany: {
+          args: Prisma.RosterCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.RosterCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RosterPayload>[]
+        }
+        delete: {
+          args: Prisma.RosterDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RosterPayload>
+        }
+        update: {
+          args: Prisma.RosterUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RosterPayload>
+        }
+        deleteMany: {
+          args: Prisma.RosterDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RosterUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.RosterUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RosterPayload>[]
+        }
+        upsert: {
+          args: Prisma.RosterUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RosterPayload>
+        }
+        aggregate: {
+          args: Prisma.RosterAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRoster>
+        }
+        groupBy: {
+          args: Prisma.RosterGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RosterGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RosterCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RosterCountAggregateOutputType> | number
+        }
+      }
+    }
+    RosterParty: {
+      payload: Prisma.$RosterPartyPayload<ExtArgs>
+      fields: Prisma.RosterPartyFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RosterPartyFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RosterPartyPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RosterPartyFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RosterPartyPayload>
+        }
+        findFirst: {
+          args: Prisma.RosterPartyFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RosterPartyPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RosterPartyFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RosterPartyPayload>
+        }
+        findMany: {
+          args: Prisma.RosterPartyFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RosterPartyPayload>[]
+        }
+        create: {
+          args: Prisma.RosterPartyCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RosterPartyPayload>
+        }
+        createMany: {
+          args: Prisma.RosterPartyCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.RosterPartyCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RosterPartyPayload>[]
+        }
+        delete: {
+          args: Prisma.RosterPartyDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RosterPartyPayload>
+        }
+        update: {
+          args: Prisma.RosterPartyUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RosterPartyPayload>
+        }
+        deleteMany: {
+          args: Prisma.RosterPartyDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RosterPartyUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.RosterPartyUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RosterPartyPayload>[]
+        }
+        upsert: {
+          args: Prisma.RosterPartyUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RosterPartyPayload>
+        }
+        aggregate: {
+          args: Prisma.RosterPartyAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRosterParty>
+        }
+        groupBy: {
+          args: Prisma.RosterPartyGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RosterPartyGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RosterPartyCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RosterPartyCountAggregateOutputType> | number
+        }
+      }
+    }
+    RosterMember: {
+      payload: Prisma.$RosterMemberPayload<ExtArgs>
+      fields: Prisma.RosterMemberFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RosterMemberFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RosterMemberPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RosterMemberFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RosterMemberPayload>
+        }
+        findFirst: {
+          args: Prisma.RosterMemberFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RosterMemberPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RosterMemberFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RosterMemberPayload>
+        }
+        findMany: {
+          args: Prisma.RosterMemberFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RosterMemberPayload>[]
+        }
+        create: {
+          args: Prisma.RosterMemberCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RosterMemberPayload>
+        }
+        createMany: {
+          args: Prisma.RosterMemberCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.RosterMemberCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RosterMemberPayload>[]
+        }
+        delete: {
+          args: Prisma.RosterMemberDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RosterMemberPayload>
+        }
+        update: {
+          args: Prisma.RosterMemberUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RosterMemberPayload>
+        }
+        deleteMany: {
+          args: Prisma.RosterMemberDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RosterMemberUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.RosterMemberUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RosterMemberPayload>[]
+        }
+        upsert: {
+          args: Prisma.RosterMemberUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RosterMemberPayload>
+        }
+        aggregate: {
+          args: Prisma.RosterMemberAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRosterMember>
+        }
+        groupBy: {
+          args: Prisma.RosterMemberGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RosterMemberGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RosterMemberCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RosterMemberCountAggregateOutputType> | number
+        }
+      }
+    }
+    Raid: {
+      payload: Prisma.$RaidPayload<ExtArgs>
+      fields: Prisma.RaidFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RaidFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RaidPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RaidFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RaidPayload>
+        }
+        findFirst: {
+          args: Prisma.RaidFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RaidPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RaidFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RaidPayload>
+        }
+        findMany: {
+          args: Prisma.RaidFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RaidPayload>[]
+        }
+        create: {
+          args: Prisma.RaidCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RaidPayload>
+        }
+        createMany: {
+          args: Prisma.RaidCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.RaidCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RaidPayload>[]
+        }
+        delete: {
+          args: Prisma.RaidDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RaidPayload>
+        }
+        update: {
+          args: Prisma.RaidUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RaidPayload>
+        }
+        deleteMany: {
+          args: Prisma.RaidDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RaidUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.RaidUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RaidPayload>[]
+        }
+        upsert: {
+          args: Prisma.RaidUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RaidPayload>
+        }
+        aggregate: {
+          args: Prisma.RaidAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRaid>
+        }
+        groupBy: {
+          args: Prisma.RaidGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RaidGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RaidCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RaidCountAggregateOutputType> | number
+        }
+      }
+    }
+    RaidParty: {
+      payload: Prisma.$RaidPartyPayload<ExtArgs>
+      fields: Prisma.RaidPartyFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RaidPartyFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RaidPartyPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RaidPartyFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RaidPartyPayload>
+        }
+        findFirst: {
+          args: Prisma.RaidPartyFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RaidPartyPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RaidPartyFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RaidPartyPayload>
+        }
+        findMany: {
+          args: Prisma.RaidPartyFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RaidPartyPayload>[]
+        }
+        create: {
+          args: Prisma.RaidPartyCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RaidPartyPayload>
+        }
+        createMany: {
+          args: Prisma.RaidPartyCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.RaidPartyCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RaidPartyPayload>[]
+        }
+        delete: {
+          args: Prisma.RaidPartyDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RaidPartyPayload>
+        }
+        update: {
+          args: Prisma.RaidPartyUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RaidPartyPayload>
+        }
+        deleteMany: {
+          args: Prisma.RaidPartyDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RaidPartyUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.RaidPartyUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RaidPartyPayload>[]
+        }
+        upsert: {
+          args: Prisma.RaidPartyUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RaidPartyPayload>
+        }
+        aggregate: {
+          args: Prisma.RaidPartyAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRaidParty>
+        }
+        groupBy: {
+          args: Prisma.RaidPartyGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RaidPartyGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RaidPartyCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RaidPartyCountAggregateOutputType> | number
+        }
+      }
+    }
+    PreferredRoster: {
+      payload: Prisma.$PreferredRosterPayload<ExtArgs>
+      fields: Prisma.PreferredRosterFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PreferredRosterFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreferredRosterPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PreferredRosterFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreferredRosterPayload>
+        }
+        findFirst: {
+          args: Prisma.PreferredRosterFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreferredRosterPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PreferredRosterFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreferredRosterPayload>
+        }
+        findMany: {
+          args: Prisma.PreferredRosterFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreferredRosterPayload>[]
+        }
+        create: {
+          args: Prisma.PreferredRosterCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreferredRosterPayload>
+        }
+        createMany: {
+          args: Prisma.PreferredRosterCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PreferredRosterCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreferredRosterPayload>[]
+        }
+        delete: {
+          args: Prisma.PreferredRosterDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreferredRosterPayload>
+        }
+        update: {
+          args: Prisma.PreferredRosterUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreferredRosterPayload>
+        }
+        deleteMany: {
+          args: Prisma.PreferredRosterDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PreferredRosterUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PreferredRosterUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreferredRosterPayload>[]
+        }
+        upsert: {
+          args: Prisma.PreferredRosterUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreferredRosterPayload>
+        }
+        aggregate: {
+          args: Prisma.PreferredRosterAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePreferredRoster>
+        }
+        groupBy: {
+          args: Prisma.PreferredRosterGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PreferredRosterGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PreferredRosterCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PreferredRosterCountAggregateOutputType> | number
+        }
+      }
+    }
+    PreferredRosterParty: {
+      payload: Prisma.$PreferredRosterPartyPayload<ExtArgs>
+      fields: Prisma.PreferredRosterPartyFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PreferredRosterPartyFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreferredRosterPartyPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PreferredRosterPartyFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreferredRosterPartyPayload>
+        }
+        findFirst: {
+          args: Prisma.PreferredRosterPartyFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreferredRosterPartyPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PreferredRosterPartyFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreferredRosterPartyPayload>
+        }
+        findMany: {
+          args: Prisma.PreferredRosterPartyFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreferredRosterPartyPayload>[]
+        }
+        create: {
+          args: Prisma.PreferredRosterPartyCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreferredRosterPartyPayload>
+        }
+        createMany: {
+          args: Prisma.PreferredRosterPartyCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PreferredRosterPartyCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreferredRosterPartyPayload>[]
+        }
+        delete: {
+          args: Prisma.PreferredRosterPartyDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreferredRosterPartyPayload>
+        }
+        update: {
+          args: Prisma.PreferredRosterPartyUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreferredRosterPartyPayload>
+        }
+        deleteMany: {
+          args: Prisma.PreferredRosterPartyDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PreferredRosterPartyUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PreferredRosterPartyUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreferredRosterPartyPayload>[]
+        }
+        upsert: {
+          args: Prisma.PreferredRosterPartyUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreferredRosterPartyPayload>
+        }
+        aggregate: {
+          args: Prisma.PreferredRosterPartyAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePreferredRosterParty>
+        }
+        groupBy: {
+          args: Prisma.PreferredRosterPartyGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PreferredRosterPartyGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PreferredRosterPartyCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PreferredRosterPartyCountAggregateOutputType> | number
+        }
+      }
+    }
+    PreferredRosterMember: {
+      payload: Prisma.$PreferredRosterMemberPayload<ExtArgs>
+      fields: Prisma.PreferredRosterMemberFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PreferredRosterMemberFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreferredRosterMemberPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PreferredRosterMemberFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreferredRosterMemberPayload>
+        }
+        findFirst: {
+          args: Prisma.PreferredRosterMemberFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreferredRosterMemberPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PreferredRosterMemberFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreferredRosterMemberPayload>
+        }
+        findMany: {
+          args: Prisma.PreferredRosterMemberFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreferredRosterMemberPayload>[]
+        }
+        create: {
+          args: Prisma.PreferredRosterMemberCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreferredRosterMemberPayload>
+        }
+        createMany: {
+          args: Prisma.PreferredRosterMemberCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PreferredRosterMemberCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreferredRosterMemberPayload>[]
+        }
+        delete: {
+          args: Prisma.PreferredRosterMemberDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreferredRosterMemberPayload>
+        }
+        update: {
+          args: Prisma.PreferredRosterMemberUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreferredRosterMemberPayload>
+        }
+        deleteMany: {
+          args: Prisma.PreferredRosterMemberDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PreferredRosterMemberUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PreferredRosterMemberUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreferredRosterMemberPayload>[]
+        }
+        upsert: {
+          args: Prisma.PreferredRosterMemberUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PreferredRosterMemberPayload>
+        }
+        aggregate: {
+          args: Prisma.PreferredRosterMemberAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePreferredRosterMember>
+        }
+        groupBy: {
+          args: Prisma.PreferredRosterMemberGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PreferredRosterMemberGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PreferredRosterMemberCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PreferredRosterMemberCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1303,20 +2203,70 @@ export const GuildScalarFieldEnum = {
 export type GuildScalarFieldEnum = (typeof GuildScalarFieldEnum)[keyof typeof GuildScalarFieldEnum]
 
 
+export const GuildMembershipScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  guildId: 'guildId',
+  role: 'role',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type GuildMembershipScalarFieldEnum = (typeof GuildMembershipScalarFieldEnum)[keyof typeof GuildMembershipScalarFieldEnum]
+
+
 export const GuildMemberScalarFieldEnum = {
   id: 'id',
   guildId: 'guildId',
   userId: 'userId',
   displayName: 'displayName',
+  characterName: 'characterName',
+  job: 'job',
   active: 'active',
   eligible: 'eligible',
   priority: 'priority',
   remarks: 'remarks',
+  pdef: 'pdef',
+  mdef: 'mdef',
+  pvpDamageBonus: 'pvpDamageBonus',
+  pvpDamageReduction: 'pvpDamageReduction',
+  pdmgPercent: 'pdmgPercent',
+  mdmgPercent: 'mdmgPercent',
+  pdmgReductionPercent: 'pdmgReductionPercent',
+  mdmgReductionPercent: 'mdmgReductionPercent',
+  critRes: 'critRes',
+  ignorePdef: 'ignorePdef',
+  ignoreMdef: 'ignoreMdef',
+  damageVsMedium: 'damageVsMedium',
+  damageReductionVsMedium: 'damageReductionVsMedium',
+  damageVsSmall: 'damageVsSmall',
+  damageReductionVsSmall: 'damageReductionVsSmall',
+  damageVsDemiHuman: 'damageVsDemiHuman',
+  damageReductionVsDemiHuman: 'damageReductionVsDemiHuman',
+  damageVsBrute: 'damageVsBrute',
+  damageReductionVsBrute: 'damageReductionVsBrute',
+  equipmentPdefPercent: 'equipmentPdefPercent',
+  equipmentMdefPercent: 'equipmentMdefPercent',
+  patk: 'patk',
+  matk: 'matk',
+  hp: 'hp',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type GuildMemberScalarFieldEnum = (typeof GuildMemberScalarFieldEnum)[keyof typeof GuildMemberScalarFieldEnum]
+
+
+export const MemberLeaveScalarFieldEnum = {
+  id: 'id',
+  memberId: 'memberId',
+  date: 'date',
+  reason: 'reason',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MemberLeaveScalarFieldEnum = (typeof MemberLeaveScalarFieldEnum)[keyof typeof MemberLeaveScalarFieldEnum]
 
 
 export const ResourceScalarFieldEnum = {
@@ -1326,6 +2276,7 @@ export const ResourceScalarFieldEnum = {
   type: 'type',
   total: 'total',
   perPlayerLimit: 'perPlayerLimit',
+  hardCap: 'hardCap',
   active: 'active',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -1362,6 +2313,7 @@ export type RotationStateScalarFieldEnum = (typeof RotationStateScalarFieldEnum)
 export const AllocationRunScalarFieldEnum = {
   id: 'id',
   guildId: 'guildId',
+  eventId: 'eventId',
   status: 'status',
   rotationIndexBefore: 'rotationIndexBefore',
   rotationIndexAfter: 'rotationIndexAfter',
@@ -1420,6 +2372,127 @@ export const BidSlotScalarFieldEnum = {
 } as const
 
 export type BidSlotScalarFieldEnum = (typeof BidSlotScalarFieldEnum)[keyof typeof BidSlotScalarFieldEnum]
+
+
+export const EventScalarFieldEnum = {
+  id: 'id',
+  guildId: 'guildId',
+  type: 'type',
+  date: 'date',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EventScalarFieldEnum = (typeof EventScalarFieldEnum)[keyof typeof EventScalarFieldEnum]
+
+
+export const EventParticipationScalarFieldEnum = {
+  id: 'id',
+  eventId: 'eventId',
+  memberId: 'memberId',
+  available: 'available',
+  remarks: 'remarks',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EventParticipationScalarFieldEnum = (typeof EventParticipationScalarFieldEnum)[keyof typeof EventParticipationScalarFieldEnum]
+
+
+export const RosterScalarFieldEnum = {
+  id: 'id',
+  eventId: 'eventId',
+  name: 'name',
+  generationMode: 'generationMode',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RosterScalarFieldEnum = (typeof RosterScalarFieldEnum)[keyof typeof RosterScalarFieldEnum]
+
+
+export const RosterPartyScalarFieldEnum = {
+  id: 'id',
+  rosterId: 'rosterId',
+  partyNumber: 'partyNumber',
+  battlefield: 'battlefield',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RosterPartyScalarFieldEnum = (typeof RosterPartyScalarFieldEnum)[keyof typeof RosterPartyScalarFieldEnum]
+
+
+export const RosterMemberScalarFieldEnum = {
+  id: 'id',
+  partyId: 'partyId',
+  memberId: 'memberId',
+  slotNumber: 'slotNumber',
+  guildPercentile: 'guildPercentile',
+  tankScore: 'tankScore',
+  tankPercentile: 'tankPercentile',
+  dpsScore: 'dpsScore',
+  dpsPercentile: 'dpsPercentile',
+  pvpScore: 'pvpScore',
+  pvpPercentile: 'pvpPercentile',
+  createdAt: 'createdAt'
+} as const
+
+export type RosterMemberScalarFieldEnum = (typeof RosterMemberScalarFieldEnum)[keyof typeof RosterMemberScalarFieldEnum]
+
+
+export const RaidScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RaidScalarFieldEnum = (typeof RaidScalarFieldEnum)[keyof typeof RaidScalarFieldEnum]
+
+
+export const RaidPartyScalarFieldEnum = {
+  id: 'id',
+  raidId: 'raidId',
+  partyId: 'partyId',
+  createdAt: 'createdAt'
+} as const
+
+export type RaidPartyScalarFieldEnum = (typeof RaidPartyScalarFieldEnum)[keyof typeof RaidPartyScalarFieldEnum]
+
+
+export const PreferredRosterScalarFieldEnum = {
+  id: 'id',
+  guildId: 'guildId',
+  type: 'type',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PreferredRosterScalarFieldEnum = (typeof PreferredRosterScalarFieldEnum)[keyof typeof PreferredRosterScalarFieldEnum]
+
+
+export const PreferredRosterPartyScalarFieldEnum = {
+  id: 'id',
+  preferredRosterId: 'preferredRosterId',
+  battlefield: 'battlefield',
+  partyNumber: 'partyNumber',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PreferredRosterPartyScalarFieldEnum = (typeof PreferredRosterPartyScalarFieldEnum)[keyof typeof PreferredRosterPartyScalarFieldEnum]
+
+
+export const PreferredRosterMemberScalarFieldEnum = {
+  id: 'id',
+  preferredRosterPartyId: 'preferredRosterPartyId',
+  memberId: 'memberId',
+  slotNumber: 'slotNumber',
+  createdAt: 'createdAt'
+} as const
+
+export type PreferredRosterMemberScalarFieldEnum = (typeof PreferredRosterMemberScalarFieldEnum)[keyof typeof PreferredRosterMemberScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1498,6 +2571,20 @@ export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaM
 
 
 /**
+ * Reference to a field of type 'UserRole'
+ */
+export type EnumUserRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UserRole'>
+    
+
+
+/**
+ * Reference to a field of type 'UserRole[]'
+ */
+export type ListEnumUserRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UserRole[]'>
+    
+
+
+/**
  * Reference to a field of type 'Boolean'
  */
 export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
@@ -1515,6 +2602,20 @@ export type EnumMemberPriorityFieldRefInput<$PrismaModel> = FieldRefInputType<$P
  * Reference to a field of type 'MemberPriority[]'
  */
 export type ListEnumMemberPriorityFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MemberPriority[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Float'
+ */
+export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+    
+
+
+/**
+ * Reference to a field of type 'Float[]'
+ */
+export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
     
 
 
@@ -1589,16 +2690,44 @@ export type ListEnumBidPageTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$
 
 
 /**
- * Reference to a field of type 'Float'
+ * Reference to a field of type 'EventType'
  */
-export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+export type EnumEventTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EventType'>
     
 
 
 /**
- * Reference to a field of type 'Float[]'
+ * Reference to a field of type 'EventType[]'
  */
-export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+export type ListEnumEventTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EventType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'RosterGenerationMode'
+ */
+export type EnumRosterGenerationModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RosterGenerationMode'>
+    
+
+
+/**
+ * Reference to a field of type 'RosterGenerationMode[]'
+ */
+export type ListEnumRosterGenerationModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RosterGenerationMode[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Battlefield'
+ */
+export type EnumBattlefieldFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Battlefield'>
+    
+
+
+/**
+ * Reference to a field of type 'Battlefield[]'
+ */
+export type ListEnumBattlefieldFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Battlefield[]'>
     
 
 /**
@@ -1754,7 +2883,9 @@ export type PrismaClientOptions = PrismaClientOptionsWithAccelerateUrl | PrismaC
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   guild?: Prisma.GuildOmit
+  guildMembership?: Prisma.GuildMembershipOmit
   guildMember?: Prisma.GuildMemberOmit
+  memberLeave?: Prisma.MemberLeaveOmit
   resource?: Prisma.ResourceOmit
   reservedAllocation?: Prisma.ReservedAllocationOmit
   rotationState?: Prisma.RotationStateOmit
@@ -1763,6 +2894,16 @@ export type GlobalOmitConfig = {
   resourceResult?: Prisma.ResourceResultOmit
   bidPage?: Prisma.BidPageOmit
   bidSlot?: Prisma.BidSlotOmit
+  event?: Prisma.EventOmit
+  eventParticipation?: Prisma.EventParticipationOmit
+  roster?: Prisma.RosterOmit
+  rosterParty?: Prisma.RosterPartyOmit
+  rosterMember?: Prisma.RosterMemberOmit
+  raid?: Prisma.RaidOmit
+  raidParty?: Prisma.RaidPartyOmit
+  preferredRoster?: Prisma.PreferredRosterOmit
+  preferredRosterParty?: Prisma.PreferredRosterPartyOmit
+  preferredRosterMember?: Prisma.PreferredRosterMemberOmit
 }
 
 /* Types for Logging */

@@ -27,6 +27,7 @@ export type AggregateAllocationRun = {
 export type AllocationRunMinAggregateOutputType = {
   id: string | null
   guildId: string | null
+  eventId: string | null
   status: $Enums.AllocationRunStatus | null
   errorMessage: string | null
   createdAt: Date | null
@@ -36,6 +37,7 @@ export type AllocationRunMinAggregateOutputType = {
 export type AllocationRunMaxAggregateOutputType = {
   id: string | null
   guildId: string | null
+  eventId: string | null
   status: $Enums.AllocationRunStatus | null
   errorMessage: string | null
   createdAt: Date | null
@@ -45,6 +47,7 @@ export type AllocationRunMaxAggregateOutputType = {
 export type AllocationRunCountAggregateOutputType = {
   id: number
   guildId: number
+  eventId: number
   status: number
   rotationIndexBefore: number
   rotationIndexAfter: number
@@ -58,6 +61,7 @@ export type AllocationRunCountAggregateOutputType = {
 export type AllocationRunMinAggregateInputType = {
   id?: true
   guildId?: true
+  eventId?: true
   status?: true
   errorMessage?: true
   createdAt?: true
@@ -67,6 +71,7 @@ export type AllocationRunMinAggregateInputType = {
 export type AllocationRunMaxAggregateInputType = {
   id?: true
   guildId?: true
+  eventId?: true
   status?: true
   errorMessage?: true
   createdAt?: true
@@ -76,6 +81,7 @@ export type AllocationRunMaxAggregateInputType = {
 export type AllocationRunCountAggregateInputType = {
   id?: true
   guildId?: true
+  eventId?: true
   status?: true
   rotationIndexBefore?: true
   rotationIndexAfter?: true
@@ -160,6 +166,7 @@ export type AllocationRunGroupByArgs<ExtArgs extends runtime.Types.Extensions.In
 export type AllocationRunGroupByOutputType = {
   id: string
   guildId: string
+  eventId: string | null
   status: $Enums.AllocationRunStatus
   rotationIndexBefore: runtime.JsonValue | null
   rotationIndexAfter: runtime.JsonValue | null
@@ -192,6 +199,7 @@ export type AllocationRunWhereInput = {
   NOT?: Prisma.AllocationRunWhereInput | Prisma.AllocationRunWhereInput[]
   id?: Prisma.StringFilter<"AllocationRun"> | string
   guildId?: Prisma.StringFilter<"AllocationRun"> | string
+  eventId?: Prisma.StringNullableFilter<"AllocationRun"> | string | null
   status?: Prisma.EnumAllocationRunStatusFilter<"AllocationRun"> | $Enums.AllocationRunStatus
   rotationIndexBefore?: Prisma.JsonNullableFilter<"AllocationRun">
   rotationIndexAfter?: Prisma.JsonNullableFilter<"AllocationRun">
@@ -199,6 +207,7 @@ export type AllocationRunWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"AllocationRun"> | Date | string
   completedAt?: Prisma.DateTimeNullableFilter<"AllocationRun"> | Date | string | null
   guild?: Prisma.XOR<Prisma.GuildScalarRelationFilter, Prisma.GuildWhereInput>
+  event?: Prisma.XOR<Prisma.EventNullableScalarRelationFilter, Prisma.EventWhereInput> | null
   allocationResults?: Prisma.AllocationResultListRelationFilter
   resourceResults?: Prisma.ResourceResultListRelationFilter
   bidPages?: Prisma.BidPageListRelationFilter
@@ -207,6 +216,7 @@ export type AllocationRunWhereInput = {
 export type AllocationRunOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   guildId?: Prisma.SortOrder
+  eventId?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   rotationIndexBefore?: Prisma.SortOrderInput | Prisma.SortOrder
   rotationIndexAfter?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -214,6 +224,7 @@ export type AllocationRunOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   guild?: Prisma.GuildOrderByWithRelationInput
+  event?: Prisma.EventOrderByWithRelationInput
   allocationResults?: Prisma.AllocationResultOrderByRelationAggregateInput
   resourceResults?: Prisma.ResourceResultOrderByRelationAggregateInput
   bidPages?: Prisma.BidPageOrderByRelationAggregateInput
@@ -225,6 +236,7 @@ export type AllocationRunWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.AllocationRunWhereInput[]
   NOT?: Prisma.AllocationRunWhereInput | Prisma.AllocationRunWhereInput[]
   guildId?: Prisma.StringFilter<"AllocationRun"> | string
+  eventId?: Prisma.StringNullableFilter<"AllocationRun"> | string | null
   status?: Prisma.EnumAllocationRunStatusFilter<"AllocationRun"> | $Enums.AllocationRunStatus
   rotationIndexBefore?: Prisma.JsonNullableFilter<"AllocationRun">
   rotationIndexAfter?: Prisma.JsonNullableFilter<"AllocationRun">
@@ -232,6 +244,7 @@ export type AllocationRunWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"AllocationRun"> | Date | string
   completedAt?: Prisma.DateTimeNullableFilter<"AllocationRun"> | Date | string | null
   guild?: Prisma.XOR<Prisma.GuildScalarRelationFilter, Prisma.GuildWhereInput>
+  event?: Prisma.XOR<Prisma.EventNullableScalarRelationFilter, Prisma.EventWhereInput> | null
   allocationResults?: Prisma.AllocationResultListRelationFilter
   resourceResults?: Prisma.ResourceResultListRelationFilter
   bidPages?: Prisma.BidPageListRelationFilter
@@ -240,6 +253,7 @@ export type AllocationRunWhereUniqueInput = Prisma.AtLeast<{
 export type AllocationRunOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   guildId?: Prisma.SortOrder
+  eventId?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   rotationIndexBefore?: Prisma.SortOrderInput | Prisma.SortOrder
   rotationIndexAfter?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -257,6 +271,7 @@ export type AllocationRunScalarWhereWithAggregatesInput = {
   NOT?: Prisma.AllocationRunScalarWhereWithAggregatesInput | Prisma.AllocationRunScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"AllocationRun"> | string
   guildId?: Prisma.StringWithAggregatesFilter<"AllocationRun"> | string
+  eventId?: Prisma.StringNullableWithAggregatesFilter<"AllocationRun"> | string | null
   status?: Prisma.EnumAllocationRunStatusWithAggregatesFilter<"AllocationRun"> | $Enums.AllocationRunStatus
   rotationIndexBefore?: Prisma.JsonNullableWithAggregatesFilter<"AllocationRun">
   rotationIndexAfter?: Prisma.JsonNullableWithAggregatesFilter<"AllocationRun">
@@ -274,6 +289,7 @@ export type AllocationRunCreateInput = {
   createdAt?: Date | string
   completedAt?: Date | string | null
   guild: Prisma.GuildCreateNestedOneWithoutAllocationRunsInput
+  event?: Prisma.EventCreateNestedOneWithoutAllocationRunsInput
   allocationResults?: Prisma.AllocationResultCreateNestedManyWithoutAllocationRunInput
   resourceResults?: Prisma.ResourceResultCreateNestedManyWithoutAllocationRunInput
   bidPages?: Prisma.BidPageCreateNestedManyWithoutAllocationRunInput
@@ -282,6 +298,7 @@ export type AllocationRunCreateInput = {
 export type AllocationRunUncheckedCreateInput = {
   id?: string
   guildId: string
+  eventId?: string | null
   status?: $Enums.AllocationRunStatus
   rotationIndexBefore?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   rotationIndexAfter?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -302,6 +319,7 @@ export type AllocationRunUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   guild?: Prisma.GuildUpdateOneRequiredWithoutAllocationRunsNestedInput
+  event?: Prisma.EventUpdateOneWithoutAllocationRunsNestedInput
   allocationResults?: Prisma.AllocationResultUpdateManyWithoutAllocationRunNestedInput
   resourceResults?: Prisma.ResourceResultUpdateManyWithoutAllocationRunNestedInput
   bidPages?: Prisma.BidPageUpdateManyWithoutAllocationRunNestedInput
@@ -310,6 +328,7 @@ export type AllocationRunUpdateInput = {
 export type AllocationRunUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   guildId?: Prisma.StringFieldUpdateOperationsInput | string
+  eventId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAllocationRunStatusFieldUpdateOperationsInput | $Enums.AllocationRunStatus
   rotationIndexBefore?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   rotationIndexAfter?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -324,6 +343,7 @@ export type AllocationRunUncheckedUpdateInput = {
 export type AllocationRunCreateManyInput = {
   id?: string
   guildId: string
+  eventId?: string | null
   status?: $Enums.AllocationRunStatus
   rotationIndexBefore?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   rotationIndexAfter?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -345,6 +365,7 @@ export type AllocationRunUpdateManyMutationInput = {
 export type AllocationRunUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   guildId?: Prisma.StringFieldUpdateOperationsInput | string
+  eventId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAllocationRunStatusFieldUpdateOperationsInput | $Enums.AllocationRunStatus
   rotationIndexBefore?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   rotationIndexAfter?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -366,6 +387,7 @@ export type AllocationRunOrderByRelationAggregateInput = {
 export type AllocationRunCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   guildId?: Prisma.SortOrder
+  eventId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   rotationIndexBefore?: Prisma.SortOrder
   rotationIndexAfter?: Prisma.SortOrder
@@ -377,6 +399,7 @@ export type AllocationRunCountOrderByAggregateInput = {
 export type AllocationRunMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   guildId?: Prisma.SortOrder
+  eventId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   errorMessage?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -386,6 +409,7 @@ export type AllocationRunMaxOrderByAggregateInput = {
 export type AllocationRunMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   guildId?: Prisma.SortOrder
+  eventId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   errorMessage?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -489,6 +513,48 @@ export type AllocationRunUpdateOneRequiredWithoutBidPagesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.AllocationRunUpdateToOneWithWhereWithoutBidPagesInput, Prisma.AllocationRunUpdateWithoutBidPagesInput>, Prisma.AllocationRunUncheckedUpdateWithoutBidPagesInput>
 }
 
+export type AllocationRunCreateNestedManyWithoutEventInput = {
+  create?: Prisma.XOR<Prisma.AllocationRunCreateWithoutEventInput, Prisma.AllocationRunUncheckedCreateWithoutEventInput> | Prisma.AllocationRunCreateWithoutEventInput[] | Prisma.AllocationRunUncheckedCreateWithoutEventInput[]
+  connectOrCreate?: Prisma.AllocationRunCreateOrConnectWithoutEventInput | Prisma.AllocationRunCreateOrConnectWithoutEventInput[]
+  createMany?: Prisma.AllocationRunCreateManyEventInputEnvelope
+  connect?: Prisma.AllocationRunWhereUniqueInput | Prisma.AllocationRunWhereUniqueInput[]
+}
+
+export type AllocationRunUncheckedCreateNestedManyWithoutEventInput = {
+  create?: Prisma.XOR<Prisma.AllocationRunCreateWithoutEventInput, Prisma.AllocationRunUncheckedCreateWithoutEventInput> | Prisma.AllocationRunCreateWithoutEventInput[] | Prisma.AllocationRunUncheckedCreateWithoutEventInput[]
+  connectOrCreate?: Prisma.AllocationRunCreateOrConnectWithoutEventInput | Prisma.AllocationRunCreateOrConnectWithoutEventInput[]
+  createMany?: Prisma.AllocationRunCreateManyEventInputEnvelope
+  connect?: Prisma.AllocationRunWhereUniqueInput | Prisma.AllocationRunWhereUniqueInput[]
+}
+
+export type AllocationRunUpdateManyWithoutEventNestedInput = {
+  create?: Prisma.XOR<Prisma.AllocationRunCreateWithoutEventInput, Prisma.AllocationRunUncheckedCreateWithoutEventInput> | Prisma.AllocationRunCreateWithoutEventInput[] | Prisma.AllocationRunUncheckedCreateWithoutEventInput[]
+  connectOrCreate?: Prisma.AllocationRunCreateOrConnectWithoutEventInput | Prisma.AllocationRunCreateOrConnectWithoutEventInput[]
+  upsert?: Prisma.AllocationRunUpsertWithWhereUniqueWithoutEventInput | Prisma.AllocationRunUpsertWithWhereUniqueWithoutEventInput[]
+  createMany?: Prisma.AllocationRunCreateManyEventInputEnvelope
+  set?: Prisma.AllocationRunWhereUniqueInput | Prisma.AllocationRunWhereUniqueInput[]
+  disconnect?: Prisma.AllocationRunWhereUniqueInput | Prisma.AllocationRunWhereUniqueInput[]
+  delete?: Prisma.AllocationRunWhereUniqueInput | Prisma.AllocationRunWhereUniqueInput[]
+  connect?: Prisma.AllocationRunWhereUniqueInput | Prisma.AllocationRunWhereUniqueInput[]
+  update?: Prisma.AllocationRunUpdateWithWhereUniqueWithoutEventInput | Prisma.AllocationRunUpdateWithWhereUniqueWithoutEventInput[]
+  updateMany?: Prisma.AllocationRunUpdateManyWithWhereWithoutEventInput | Prisma.AllocationRunUpdateManyWithWhereWithoutEventInput[]
+  deleteMany?: Prisma.AllocationRunScalarWhereInput | Prisma.AllocationRunScalarWhereInput[]
+}
+
+export type AllocationRunUncheckedUpdateManyWithoutEventNestedInput = {
+  create?: Prisma.XOR<Prisma.AllocationRunCreateWithoutEventInput, Prisma.AllocationRunUncheckedCreateWithoutEventInput> | Prisma.AllocationRunCreateWithoutEventInput[] | Prisma.AllocationRunUncheckedCreateWithoutEventInput[]
+  connectOrCreate?: Prisma.AllocationRunCreateOrConnectWithoutEventInput | Prisma.AllocationRunCreateOrConnectWithoutEventInput[]
+  upsert?: Prisma.AllocationRunUpsertWithWhereUniqueWithoutEventInput | Prisma.AllocationRunUpsertWithWhereUniqueWithoutEventInput[]
+  createMany?: Prisma.AllocationRunCreateManyEventInputEnvelope
+  set?: Prisma.AllocationRunWhereUniqueInput | Prisma.AllocationRunWhereUniqueInput[]
+  disconnect?: Prisma.AllocationRunWhereUniqueInput | Prisma.AllocationRunWhereUniqueInput[]
+  delete?: Prisma.AllocationRunWhereUniqueInput | Prisma.AllocationRunWhereUniqueInput[]
+  connect?: Prisma.AllocationRunWhereUniqueInput | Prisma.AllocationRunWhereUniqueInput[]
+  update?: Prisma.AllocationRunUpdateWithWhereUniqueWithoutEventInput | Prisma.AllocationRunUpdateWithWhereUniqueWithoutEventInput[]
+  updateMany?: Prisma.AllocationRunUpdateManyWithWhereWithoutEventInput | Prisma.AllocationRunUpdateManyWithWhereWithoutEventInput[]
+  deleteMany?: Prisma.AllocationRunScalarWhereInput | Prisma.AllocationRunScalarWhereInput[]
+}
+
 export type AllocationRunCreateWithoutGuildInput = {
   id?: string
   status?: $Enums.AllocationRunStatus
@@ -497,6 +563,7 @@ export type AllocationRunCreateWithoutGuildInput = {
   errorMessage?: string | null
   createdAt?: Date | string
   completedAt?: Date | string | null
+  event?: Prisma.EventCreateNestedOneWithoutAllocationRunsInput
   allocationResults?: Prisma.AllocationResultCreateNestedManyWithoutAllocationRunInput
   resourceResults?: Prisma.ResourceResultCreateNestedManyWithoutAllocationRunInput
   bidPages?: Prisma.BidPageCreateNestedManyWithoutAllocationRunInput
@@ -504,6 +571,7 @@ export type AllocationRunCreateWithoutGuildInput = {
 
 export type AllocationRunUncheckedCreateWithoutGuildInput = {
   id?: string
+  eventId?: string | null
   status?: $Enums.AllocationRunStatus
   rotationIndexBefore?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   rotationIndexAfter?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -547,6 +615,7 @@ export type AllocationRunScalarWhereInput = {
   NOT?: Prisma.AllocationRunScalarWhereInput | Prisma.AllocationRunScalarWhereInput[]
   id?: Prisma.StringFilter<"AllocationRun"> | string
   guildId?: Prisma.StringFilter<"AllocationRun"> | string
+  eventId?: Prisma.StringNullableFilter<"AllocationRun"> | string | null
   status?: Prisma.EnumAllocationRunStatusFilter<"AllocationRun"> | $Enums.AllocationRunStatus
   rotationIndexBefore?: Prisma.JsonNullableFilter<"AllocationRun">
   rotationIndexAfter?: Prisma.JsonNullableFilter<"AllocationRun">
@@ -564,6 +633,7 @@ export type AllocationRunCreateWithoutAllocationResultsInput = {
   createdAt?: Date | string
   completedAt?: Date | string | null
   guild: Prisma.GuildCreateNestedOneWithoutAllocationRunsInput
+  event?: Prisma.EventCreateNestedOneWithoutAllocationRunsInput
   resourceResults?: Prisma.ResourceResultCreateNestedManyWithoutAllocationRunInput
   bidPages?: Prisma.BidPageCreateNestedManyWithoutAllocationRunInput
 }
@@ -571,6 +641,7 @@ export type AllocationRunCreateWithoutAllocationResultsInput = {
 export type AllocationRunUncheckedCreateWithoutAllocationResultsInput = {
   id?: string
   guildId: string
+  eventId?: string | null
   status?: $Enums.AllocationRunStatus
   rotationIndexBefore?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   rotationIndexAfter?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -606,6 +677,7 @@ export type AllocationRunUpdateWithoutAllocationResultsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   guild?: Prisma.GuildUpdateOneRequiredWithoutAllocationRunsNestedInput
+  event?: Prisma.EventUpdateOneWithoutAllocationRunsNestedInput
   resourceResults?: Prisma.ResourceResultUpdateManyWithoutAllocationRunNestedInput
   bidPages?: Prisma.BidPageUpdateManyWithoutAllocationRunNestedInput
 }
@@ -613,6 +685,7 @@ export type AllocationRunUpdateWithoutAllocationResultsInput = {
 export type AllocationRunUncheckedUpdateWithoutAllocationResultsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   guildId?: Prisma.StringFieldUpdateOperationsInput | string
+  eventId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAllocationRunStatusFieldUpdateOperationsInput | $Enums.AllocationRunStatus
   rotationIndexBefore?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   rotationIndexAfter?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -632,6 +705,7 @@ export type AllocationRunCreateWithoutResourceResultsInput = {
   createdAt?: Date | string
   completedAt?: Date | string | null
   guild: Prisma.GuildCreateNestedOneWithoutAllocationRunsInput
+  event?: Prisma.EventCreateNestedOneWithoutAllocationRunsInput
   allocationResults?: Prisma.AllocationResultCreateNestedManyWithoutAllocationRunInput
   bidPages?: Prisma.BidPageCreateNestedManyWithoutAllocationRunInput
 }
@@ -639,6 +713,7 @@ export type AllocationRunCreateWithoutResourceResultsInput = {
 export type AllocationRunUncheckedCreateWithoutResourceResultsInput = {
   id?: string
   guildId: string
+  eventId?: string | null
   status?: $Enums.AllocationRunStatus
   rotationIndexBefore?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   rotationIndexAfter?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -674,6 +749,7 @@ export type AllocationRunUpdateWithoutResourceResultsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   guild?: Prisma.GuildUpdateOneRequiredWithoutAllocationRunsNestedInput
+  event?: Prisma.EventUpdateOneWithoutAllocationRunsNestedInput
   allocationResults?: Prisma.AllocationResultUpdateManyWithoutAllocationRunNestedInput
   bidPages?: Prisma.BidPageUpdateManyWithoutAllocationRunNestedInput
 }
@@ -681,6 +757,7 @@ export type AllocationRunUpdateWithoutResourceResultsInput = {
 export type AllocationRunUncheckedUpdateWithoutResourceResultsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   guildId?: Prisma.StringFieldUpdateOperationsInput | string
+  eventId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAllocationRunStatusFieldUpdateOperationsInput | $Enums.AllocationRunStatus
   rotationIndexBefore?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   rotationIndexAfter?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -700,6 +777,7 @@ export type AllocationRunCreateWithoutBidPagesInput = {
   createdAt?: Date | string
   completedAt?: Date | string | null
   guild: Prisma.GuildCreateNestedOneWithoutAllocationRunsInput
+  event?: Prisma.EventCreateNestedOneWithoutAllocationRunsInput
   allocationResults?: Prisma.AllocationResultCreateNestedManyWithoutAllocationRunInput
   resourceResults?: Prisma.ResourceResultCreateNestedManyWithoutAllocationRunInput
 }
@@ -707,6 +785,7 @@ export type AllocationRunCreateWithoutBidPagesInput = {
 export type AllocationRunUncheckedCreateWithoutBidPagesInput = {
   id?: string
   guildId: string
+  eventId?: string | null
   status?: $Enums.AllocationRunStatus
   rotationIndexBefore?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   rotationIndexAfter?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -742,6 +821,7 @@ export type AllocationRunUpdateWithoutBidPagesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   guild?: Prisma.GuildUpdateOneRequiredWithoutAllocationRunsNestedInput
+  event?: Prisma.EventUpdateOneWithoutAllocationRunsNestedInput
   allocationResults?: Prisma.AllocationResultUpdateManyWithoutAllocationRunNestedInput
   resourceResults?: Prisma.ResourceResultUpdateManyWithoutAllocationRunNestedInput
 }
@@ -749,6 +829,7 @@ export type AllocationRunUpdateWithoutBidPagesInput = {
 export type AllocationRunUncheckedUpdateWithoutBidPagesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   guildId?: Prisma.StringFieldUpdateOperationsInput | string
+  eventId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAllocationRunStatusFieldUpdateOperationsInput | $Enums.AllocationRunStatus
   rotationIndexBefore?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   rotationIndexAfter?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -759,8 +840,63 @@ export type AllocationRunUncheckedUpdateWithoutBidPagesInput = {
   resourceResults?: Prisma.ResourceResultUncheckedUpdateManyWithoutAllocationRunNestedInput
 }
 
+export type AllocationRunCreateWithoutEventInput = {
+  id?: string
+  status?: $Enums.AllocationRunStatus
+  rotationIndexBefore?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  rotationIndexAfter?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  errorMessage?: string | null
+  createdAt?: Date | string
+  completedAt?: Date | string | null
+  guild: Prisma.GuildCreateNestedOneWithoutAllocationRunsInput
+  allocationResults?: Prisma.AllocationResultCreateNestedManyWithoutAllocationRunInput
+  resourceResults?: Prisma.ResourceResultCreateNestedManyWithoutAllocationRunInput
+  bidPages?: Prisma.BidPageCreateNestedManyWithoutAllocationRunInput
+}
+
+export type AllocationRunUncheckedCreateWithoutEventInput = {
+  id?: string
+  guildId: string
+  status?: $Enums.AllocationRunStatus
+  rotationIndexBefore?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  rotationIndexAfter?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  errorMessage?: string | null
+  createdAt?: Date | string
+  completedAt?: Date | string | null
+  allocationResults?: Prisma.AllocationResultUncheckedCreateNestedManyWithoutAllocationRunInput
+  resourceResults?: Prisma.ResourceResultUncheckedCreateNestedManyWithoutAllocationRunInput
+  bidPages?: Prisma.BidPageUncheckedCreateNestedManyWithoutAllocationRunInput
+}
+
+export type AllocationRunCreateOrConnectWithoutEventInput = {
+  where: Prisma.AllocationRunWhereUniqueInput
+  create: Prisma.XOR<Prisma.AllocationRunCreateWithoutEventInput, Prisma.AllocationRunUncheckedCreateWithoutEventInput>
+}
+
+export type AllocationRunCreateManyEventInputEnvelope = {
+  data: Prisma.AllocationRunCreateManyEventInput | Prisma.AllocationRunCreateManyEventInput[]
+  skipDuplicates?: boolean
+}
+
+export type AllocationRunUpsertWithWhereUniqueWithoutEventInput = {
+  where: Prisma.AllocationRunWhereUniqueInput
+  update: Prisma.XOR<Prisma.AllocationRunUpdateWithoutEventInput, Prisma.AllocationRunUncheckedUpdateWithoutEventInput>
+  create: Prisma.XOR<Prisma.AllocationRunCreateWithoutEventInput, Prisma.AllocationRunUncheckedCreateWithoutEventInput>
+}
+
+export type AllocationRunUpdateWithWhereUniqueWithoutEventInput = {
+  where: Prisma.AllocationRunWhereUniqueInput
+  data: Prisma.XOR<Prisma.AllocationRunUpdateWithoutEventInput, Prisma.AllocationRunUncheckedUpdateWithoutEventInput>
+}
+
+export type AllocationRunUpdateManyWithWhereWithoutEventInput = {
+  where: Prisma.AllocationRunScalarWhereInput
+  data: Prisma.XOR<Prisma.AllocationRunUpdateManyMutationInput, Prisma.AllocationRunUncheckedUpdateManyWithoutEventInput>
+}
+
 export type AllocationRunCreateManyGuildInput = {
   id?: string
+  eventId?: string | null
   status?: $Enums.AllocationRunStatus
   rotationIndexBefore?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   rotationIndexAfter?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -777,6 +913,7 @@ export type AllocationRunUpdateWithoutGuildInput = {
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  event?: Prisma.EventUpdateOneWithoutAllocationRunsNestedInput
   allocationResults?: Prisma.AllocationResultUpdateManyWithoutAllocationRunNestedInput
   resourceResults?: Prisma.ResourceResultUpdateManyWithoutAllocationRunNestedInput
   bidPages?: Prisma.BidPageUpdateManyWithoutAllocationRunNestedInput
@@ -784,6 +921,7 @@ export type AllocationRunUpdateWithoutGuildInput = {
 
 export type AllocationRunUncheckedUpdateWithoutGuildInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  eventId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAllocationRunStatusFieldUpdateOperationsInput | $Enums.AllocationRunStatus
   rotationIndexBefore?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   rotationIndexAfter?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -797,6 +935,57 @@ export type AllocationRunUncheckedUpdateWithoutGuildInput = {
 
 export type AllocationRunUncheckedUpdateManyWithoutGuildInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  eventId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumAllocationRunStatusFieldUpdateOperationsInput | $Enums.AllocationRunStatus
+  rotationIndexBefore?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  rotationIndexAfter?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
+export type AllocationRunCreateManyEventInput = {
+  id?: string
+  guildId: string
+  status?: $Enums.AllocationRunStatus
+  rotationIndexBefore?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  rotationIndexAfter?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  errorMessage?: string | null
+  createdAt?: Date | string
+  completedAt?: Date | string | null
+}
+
+export type AllocationRunUpdateWithoutEventInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumAllocationRunStatusFieldUpdateOperationsInput | $Enums.AllocationRunStatus
+  rotationIndexBefore?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  rotationIndexAfter?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  guild?: Prisma.GuildUpdateOneRequiredWithoutAllocationRunsNestedInput
+  allocationResults?: Prisma.AllocationResultUpdateManyWithoutAllocationRunNestedInput
+  resourceResults?: Prisma.ResourceResultUpdateManyWithoutAllocationRunNestedInput
+  bidPages?: Prisma.BidPageUpdateManyWithoutAllocationRunNestedInput
+}
+
+export type AllocationRunUncheckedUpdateWithoutEventInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  guildId?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumAllocationRunStatusFieldUpdateOperationsInput | $Enums.AllocationRunStatus
+  rotationIndexBefore?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  rotationIndexAfter?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  allocationResults?: Prisma.AllocationResultUncheckedUpdateManyWithoutAllocationRunNestedInput
+  resourceResults?: Prisma.ResourceResultUncheckedUpdateManyWithoutAllocationRunNestedInput
+  bidPages?: Prisma.BidPageUncheckedUpdateManyWithoutAllocationRunNestedInput
+}
+
+export type AllocationRunUncheckedUpdateManyWithoutEventInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  guildId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAllocationRunStatusFieldUpdateOperationsInput | $Enums.AllocationRunStatus
   rotationIndexBefore?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   rotationIndexAfter?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -857,6 +1046,7 @@ export type AllocationRunCountOutputTypeCountBidPagesArgs<ExtArgs extends runtim
 export type AllocationRunSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   guildId?: boolean
+  eventId?: boolean
   status?: boolean
   rotationIndexBefore?: boolean
   rotationIndexAfter?: boolean
@@ -864,6 +1054,7 @@ export type AllocationRunSelect<ExtArgs extends runtime.Types.Extensions.Interna
   createdAt?: boolean
   completedAt?: boolean
   guild?: boolean | Prisma.GuildDefaultArgs<ExtArgs>
+  event?: boolean | Prisma.AllocationRun$eventArgs<ExtArgs>
   allocationResults?: boolean | Prisma.AllocationRun$allocationResultsArgs<ExtArgs>
   resourceResults?: boolean | Prisma.AllocationRun$resourceResultsArgs<ExtArgs>
   bidPages?: boolean | Prisma.AllocationRun$bidPagesArgs<ExtArgs>
@@ -873,6 +1064,7 @@ export type AllocationRunSelect<ExtArgs extends runtime.Types.Extensions.Interna
 export type AllocationRunSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   guildId?: boolean
+  eventId?: boolean
   status?: boolean
   rotationIndexBefore?: boolean
   rotationIndexAfter?: boolean
@@ -880,11 +1072,13 @@ export type AllocationRunSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   createdAt?: boolean
   completedAt?: boolean
   guild?: boolean | Prisma.GuildDefaultArgs<ExtArgs>
+  event?: boolean | Prisma.AllocationRun$eventArgs<ExtArgs>
 }, ExtArgs["result"]["allocationRun"]>
 
 export type AllocationRunSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   guildId?: boolean
+  eventId?: boolean
   status?: boolean
   rotationIndexBefore?: boolean
   rotationIndexAfter?: boolean
@@ -892,11 +1086,13 @@ export type AllocationRunSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   createdAt?: boolean
   completedAt?: boolean
   guild?: boolean | Prisma.GuildDefaultArgs<ExtArgs>
+  event?: boolean | Prisma.AllocationRun$eventArgs<ExtArgs>
 }, ExtArgs["result"]["allocationRun"]>
 
 export type AllocationRunSelectScalar = {
   id?: boolean
   guildId?: boolean
+  eventId?: boolean
   status?: boolean
   rotationIndexBefore?: boolean
   rotationIndexAfter?: boolean
@@ -905,9 +1101,10 @@ export type AllocationRunSelectScalar = {
   completedAt?: boolean
 }
 
-export type AllocationRunOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "guildId" | "status" | "rotationIndexBefore" | "rotationIndexAfter" | "errorMessage" | "createdAt" | "completedAt", ExtArgs["result"]["allocationRun"]>
+export type AllocationRunOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "guildId" | "eventId" | "status" | "rotationIndexBefore" | "rotationIndexAfter" | "errorMessage" | "createdAt" | "completedAt", ExtArgs["result"]["allocationRun"]>
 export type AllocationRunInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   guild?: boolean | Prisma.GuildDefaultArgs<ExtArgs>
+  event?: boolean | Prisma.AllocationRun$eventArgs<ExtArgs>
   allocationResults?: boolean | Prisma.AllocationRun$allocationResultsArgs<ExtArgs>
   resourceResults?: boolean | Prisma.AllocationRun$resourceResultsArgs<ExtArgs>
   bidPages?: boolean | Prisma.AllocationRun$bidPagesArgs<ExtArgs>
@@ -915,15 +1112,18 @@ export type AllocationRunInclude<ExtArgs extends runtime.Types.Extensions.Intern
 }
 export type AllocationRunIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   guild?: boolean | Prisma.GuildDefaultArgs<ExtArgs>
+  event?: boolean | Prisma.AllocationRun$eventArgs<ExtArgs>
 }
 export type AllocationRunIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   guild?: boolean | Prisma.GuildDefaultArgs<ExtArgs>
+  event?: boolean | Prisma.AllocationRun$eventArgs<ExtArgs>
 }
 
 export type $AllocationRunPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "AllocationRun"
   objects: {
     guild: Prisma.$GuildPayload<ExtArgs>
+    event: Prisma.$EventPayload<ExtArgs> | null
     allocationResults: Prisma.$AllocationResultPayload<ExtArgs>[]
     resourceResults: Prisma.$ResourceResultPayload<ExtArgs>[]
     bidPages: Prisma.$BidPagePayload<ExtArgs>[]
@@ -931,6 +1131,7 @@ export type $AllocationRunPayload<ExtArgs extends runtime.Types.Extensions.Inter
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     guildId: string
+    eventId: string | null
     status: $Enums.AllocationRunStatus
     rotationIndexBefore: runtime.JsonValue | null
     rotationIndexAfter: runtime.JsonValue | null
@@ -1332,6 +1533,7 @@ readonly fields: AllocationRunFieldRefs;
 export interface Prisma__AllocationRunClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   guild<T extends Prisma.GuildDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.GuildDefaultArgs<ExtArgs>>): Prisma.Prisma__GuildClient<runtime.Types.Result.GetResult<Prisma.$GuildPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  event<T extends Prisma.AllocationRun$eventArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AllocationRun$eventArgs<ExtArgs>>): Prisma.Prisma__EventClient<runtime.Types.Result.GetResult<Prisma.$EventPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   allocationResults<T extends Prisma.AllocationRun$allocationResultsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AllocationRun$allocationResultsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AllocationResultPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   resourceResults<T extends Prisma.AllocationRun$resourceResultsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AllocationRun$resourceResultsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ResourceResultPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   bidPages<T extends Prisma.AllocationRun$bidPagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AllocationRun$bidPagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BidPagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -1366,6 +1568,7 @@ export interface Prisma__AllocationRunClient<T, Null = never, ExtArgs extends ru
 export interface AllocationRunFieldRefs {
   readonly id: Prisma.FieldRef<"AllocationRun", 'String'>
   readonly guildId: Prisma.FieldRef<"AllocationRun", 'String'>
+  readonly eventId: Prisma.FieldRef<"AllocationRun", 'String'>
   readonly status: Prisma.FieldRef<"AllocationRun", 'AllocationRunStatus'>
   readonly rotationIndexBefore: Prisma.FieldRef<"AllocationRun", 'Json'>
   readonly rotationIndexAfter: Prisma.FieldRef<"AllocationRun", 'Json'>
@@ -1770,6 +1973,25 @@ export type AllocationRunDeleteManyArgs<ExtArgs extends runtime.Types.Extensions
    * Limit how many AllocationRuns to delete.
    */
   limit?: number
+}
+
+/**
+ * AllocationRun.event
+ */
+export type AllocationRun$eventArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Event
+   */
+  select?: Prisma.EventSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Event
+   */
+  omit?: Prisma.EventOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EventInclude<ExtArgs> | null
+  where?: Prisma.EventWhereInput
 }
 
 /**

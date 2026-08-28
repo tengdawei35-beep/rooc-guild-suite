@@ -19,6 +19,16 @@ export const MemberPriority = {
 export type MemberPriority = (typeof MemberPriority)[keyof typeof MemberPriority]
 
 
+export const UserRole = {
+  LEADER: 'LEADER',
+  COUNCIL: 'COUNCIL',
+  OFFICER: 'OFFICER',
+  MEMBER: 'MEMBER'
+} as const
+
+export type UserRole = (typeof UserRole)[keyof typeof UserRole]
+
+
 export const ResourceType = {
   FEATHER: 'FEATHER',
   CARD: 'CARD'
@@ -42,3 +52,27 @@ export const BidPageType = {
 } as const
 
 export type BidPageType = (typeof BidPageType)[keyof typeof BidPageType]
+
+
+export const EventType = {
+  GUILD_LEAGUE: 'GUILD_LEAGUE',
+  EMPERIUM_OVERRUN: 'EMPERIUM_OVERRUN'
+} as const
+
+export type EventType = (typeof EventType)[keyof typeof EventType]
+
+
+export const Battlefield = {
+  BATTLEFIELD_1: 'BATTLEFIELD_1',
+  BATTLEFIELD_2: 'BATTLEFIELD_2'
+} as const
+
+export type Battlefield = (typeof Battlefield)[keyof typeof Battlefield]
+
+
+export const RosterGenerationMode = {
+  MANUAL: 'MANUAL',
+  AUTOMATIC: 'AUTOMATIC'
+} as const
+
+export type RosterGenerationMode = (typeof RosterGenerationMode)[keyof typeof RosterGenerationMode]

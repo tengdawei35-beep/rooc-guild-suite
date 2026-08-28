@@ -20,8 +20,64 @@ export type GuildMemberModel = runtime.Types.Result.DefaultSelection<Prisma.$Gui
 
 export type AggregateGuildMember = {
   _count: GuildMemberCountAggregateOutputType | null
+  _avg: GuildMemberAvgAggregateOutputType | null
+  _sum: GuildMemberSumAggregateOutputType | null
   _min: GuildMemberMinAggregateOutputType | null
   _max: GuildMemberMaxAggregateOutputType | null
+}
+
+export type GuildMemberAvgAggregateOutputType = {
+  pdef: number | null
+  mdef: number | null
+  pvpDamageBonus: number | null
+  pvpDamageReduction: number | null
+  pdmgPercent: number | null
+  mdmgPercent: number | null
+  pdmgReductionPercent: number | null
+  mdmgReductionPercent: number | null
+  critRes: number | null
+  ignorePdef: number | null
+  ignoreMdef: number | null
+  damageVsMedium: number | null
+  damageReductionVsMedium: number | null
+  damageVsSmall: number | null
+  damageReductionVsSmall: number | null
+  damageVsDemiHuman: number | null
+  damageReductionVsDemiHuman: number | null
+  damageVsBrute: number | null
+  damageReductionVsBrute: number | null
+  equipmentPdefPercent: number | null
+  equipmentMdefPercent: number | null
+  patk: number | null
+  matk: number | null
+  hp: number | null
+}
+
+export type GuildMemberSumAggregateOutputType = {
+  pdef: number | null
+  mdef: number | null
+  pvpDamageBonus: number | null
+  pvpDamageReduction: number | null
+  pdmgPercent: number | null
+  mdmgPercent: number | null
+  pdmgReductionPercent: number | null
+  mdmgReductionPercent: number | null
+  critRes: number | null
+  ignorePdef: number | null
+  ignoreMdef: number | null
+  damageVsMedium: number | null
+  damageReductionVsMedium: number | null
+  damageVsSmall: number | null
+  damageReductionVsSmall: number | null
+  damageVsDemiHuman: number | null
+  damageReductionVsDemiHuman: number | null
+  damageVsBrute: number | null
+  damageReductionVsBrute: number | null
+  equipmentPdefPercent: number | null
+  equipmentMdefPercent: number | null
+  patk: number | null
+  matk: number | null
+  hp: number | null
 }
 
 export type GuildMemberMinAggregateOutputType = {
@@ -29,10 +85,36 @@ export type GuildMemberMinAggregateOutputType = {
   guildId: string | null
   userId: string | null
   displayName: string | null
+  characterName: string | null
+  job: string | null
   active: boolean | null
   eligible: boolean | null
   priority: $Enums.MemberPriority | null
   remarks: string | null
+  pdef: number | null
+  mdef: number | null
+  pvpDamageBonus: number | null
+  pvpDamageReduction: number | null
+  pdmgPercent: number | null
+  mdmgPercent: number | null
+  pdmgReductionPercent: number | null
+  mdmgReductionPercent: number | null
+  critRes: number | null
+  ignorePdef: number | null
+  ignoreMdef: number | null
+  damageVsMedium: number | null
+  damageReductionVsMedium: number | null
+  damageVsSmall: number | null
+  damageReductionVsSmall: number | null
+  damageVsDemiHuman: number | null
+  damageReductionVsDemiHuman: number | null
+  damageVsBrute: number | null
+  damageReductionVsBrute: number | null
+  equipmentPdefPercent: number | null
+  equipmentMdefPercent: number | null
+  patk: number | null
+  matk: number | null
+  hp: number | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -42,10 +124,36 @@ export type GuildMemberMaxAggregateOutputType = {
   guildId: string | null
   userId: string | null
   displayName: string | null
+  characterName: string | null
+  job: string | null
   active: boolean | null
   eligible: boolean | null
   priority: $Enums.MemberPriority | null
   remarks: string | null
+  pdef: number | null
+  mdef: number | null
+  pvpDamageBonus: number | null
+  pvpDamageReduction: number | null
+  pdmgPercent: number | null
+  mdmgPercent: number | null
+  pdmgReductionPercent: number | null
+  mdmgReductionPercent: number | null
+  critRes: number | null
+  ignorePdef: number | null
+  ignoreMdef: number | null
+  damageVsMedium: number | null
+  damageReductionVsMedium: number | null
+  damageVsSmall: number | null
+  damageReductionVsSmall: number | null
+  damageVsDemiHuman: number | null
+  damageReductionVsDemiHuman: number | null
+  damageVsBrute: number | null
+  damageReductionVsBrute: number | null
+  equipmentPdefPercent: number | null
+  equipmentMdefPercent: number | null
+  patk: number | null
+  matk: number | null
+  hp: number | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -55,25 +163,131 @@ export type GuildMemberCountAggregateOutputType = {
   guildId: number
   userId: number
   displayName: number
+  characterName: number
+  job: number
   active: number
   eligible: number
   priority: number
   remarks: number
+  pdef: number
+  mdef: number
+  pvpDamageBonus: number
+  pvpDamageReduction: number
+  pdmgPercent: number
+  mdmgPercent: number
+  pdmgReductionPercent: number
+  mdmgReductionPercent: number
+  critRes: number
+  ignorePdef: number
+  ignoreMdef: number
+  damageVsMedium: number
+  damageReductionVsMedium: number
+  damageVsSmall: number
+  damageReductionVsSmall: number
+  damageVsDemiHuman: number
+  damageReductionVsDemiHuman: number
+  damageVsBrute: number
+  damageReductionVsBrute: number
+  equipmentPdefPercent: number
+  equipmentMdefPercent: number
+  patk: number
+  matk: number
+  hp: number
   createdAt: number
   updatedAt: number
   _all: number
 }
 
 
+export type GuildMemberAvgAggregateInputType = {
+  pdef?: true
+  mdef?: true
+  pvpDamageBonus?: true
+  pvpDamageReduction?: true
+  pdmgPercent?: true
+  mdmgPercent?: true
+  pdmgReductionPercent?: true
+  mdmgReductionPercent?: true
+  critRes?: true
+  ignorePdef?: true
+  ignoreMdef?: true
+  damageVsMedium?: true
+  damageReductionVsMedium?: true
+  damageVsSmall?: true
+  damageReductionVsSmall?: true
+  damageVsDemiHuman?: true
+  damageReductionVsDemiHuman?: true
+  damageVsBrute?: true
+  damageReductionVsBrute?: true
+  equipmentPdefPercent?: true
+  equipmentMdefPercent?: true
+  patk?: true
+  matk?: true
+  hp?: true
+}
+
+export type GuildMemberSumAggregateInputType = {
+  pdef?: true
+  mdef?: true
+  pvpDamageBonus?: true
+  pvpDamageReduction?: true
+  pdmgPercent?: true
+  mdmgPercent?: true
+  pdmgReductionPercent?: true
+  mdmgReductionPercent?: true
+  critRes?: true
+  ignorePdef?: true
+  ignoreMdef?: true
+  damageVsMedium?: true
+  damageReductionVsMedium?: true
+  damageVsSmall?: true
+  damageReductionVsSmall?: true
+  damageVsDemiHuman?: true
+  damageReductionVsDemiHuman?: true
+  damageVsBrute?: true
+  damageReductionVsBrute?: true
+  equipmentPdefPercent?: true
+  equipmentMdefPercent?: true
+  patk?: true
+  matk?: true
+  hp?: true
+}
+
 export type GuildMemberMinAggregateInputType = {
   id?: true
   guildId?: true
   userId?: true
   displayName?: true
+  characterName?: true
+  job?: true
   active?: true
   eligible?: true
   priority?: true
   remarks?: true
+  pdef?: true
+  mdef?: true
+  pvpDamageBonus?: true
+  pvpDamageReduction?: true
+  pdmgPercent?: true
+  mdmgPercent?: true
+  pdmgReductionPercent?: true
+  mdmgReductionPercent?: true
+  critRes?: true
+  ignorePdef?: true
+  ignoreMdef?: true
+  damageVsMedium?: true
+  damageReductionVsMedium?: true
+  damageVsSmall?: true
+  damageReductionVsSmall?: true
+  damageVsDemiHuman?: true
+  damageReductionVsDemiHuman?: true
+  damageVsBrute?: true
+  damageReductionVsBrute?: true
+  equipmentPdefPercent?: true
+  equipmentMdefPercent?: true
+  patk?: true
+  matk?: true
+  hp?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -83,10 +297,36 @@ export type GuildMemberMaxAggregateInputType = {
   guildId?: true
   userId?: true
   displayName?: true
+  characterName?: true
+  job?: true
   active?: true
   eligible?: true
   priority?: true
   remarks?: true
+  pdef?: true
+  mdef?: true
+  pvpDamageBonus?: true
+  pvpDamageReduction?: true
+  pdmgPercent?: true
+  mdmgPercent?: true
+  pdmgReductionPercent?: true
+  mdmgReductionPercent?: true
+  critRes?: true
+  ignorePdef?: true
+  ignoreMdef?: true
+  damageVsMedium?: true
+  damageReductionVsMedium?: true
+  damageVsSmall?: true
+  damageReductionVsSmall?: true
+  damageVsDemiHuman?: true
+  damageReductionVsDemiHuman?: true
+  damageVsBrute?: true
+  damageReductionVsBrute?: true
+  equipmentPdefPercent?: true
+  equipmentMdefPercent?: true
+  patk?: true
+  matk?: true
+  hp?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -96,10 +336,36 @@ export type GuildMemberCountAggregateInputType = {
   guildId?: true
   userId?: true
   displayName?: true
+  characterName?: true
+  job?: true
   active?: true
   eligible?: true
   priority?: true
   remarks?: true
+  pdef?: true
+  mdef?: true
+  pvpDamageBonus?: true
+  pvpDamageReduction?: true
+  pdmgPercent?: true
+  mdmgPercent?: true
+  pdmgReductionPercent?: true
+  mdmgReductionPercent?: true
+  critRes?: true
+  ignorePdef?: true
+  ignoreMdef?: true
+  damageVsMedium?: true
+  damageReductionVsMedium?: true
+  damageVsSmall?: true
+  damageReductionVsSmall?: true
+  damageVsDemiHuman?: true
+  damageReductionVsDemiHuman?: true
+  damageVsBrute?: true
+  damageReductionVsBrute?: true
+  equipmentPdefPercent?: true
+  equipmentMdefPercent?: true
+  patk?: true
+  matk?: true
+  hp?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -143,6 +409,18 @@ export type GuildMemberAggregateArgs<ExtArgs extends runtime.Types.Extensions.In
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: GuildMemberAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: GuildMemberSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: GuildMemberMinAggregateInputType
@@ -173,6 +451,8 @@ export type GuildMemberGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   _count?: GuildMemberCountAggregateInputType | true
+  _avg?: GuildMemberAvgAggregateInputType
+  _sum?: GuildMemberSumAggregateInputType
   _min?: GuildMemberMinAggregateInputType
   _max?: GuildMemberMaxAggregateInputType
 }
@@ -182,13 +462,41 @@ export type GuildMemberGroupByOutputType = {
   guildId: string
   userId: string | null
   displayName: string
+  characterName: string | null
+  job: string | null
   active: boolean
   eligible: boolean
   priority: $Enums.MemberPriority
   remarks: string | null
+  pdef: number | null
+  mdef: number | null
+  pvpDamageBonus: number | null
+  pvpDamageReduction: number | null
+  pdmgPercent: number | null
+  mdmgPercent: number | null
+  pdmgReductionPercent: number | null
+  mdmgReductionPercent: number | null
+  critRes: number | null
+  ignorePdef: number | null
+  ignoreMdef: number | null
+  damageVsMedium: number | null
+  damageReductionVsMedium: number | null
+  damageVsSmall: number | null
+  damageReductionVsSmall: number | null
+  damageVsDemiHuman: number | null
+  damageReductionVsDemiHuman: number | null
+  damageVsBrute: number | null
+  damageReductionVsBrute: number | null
+  equipmentPdefPercent: number | null
+  equipmentMdefPercent: number | null
+  patk: number | null
+  matk: number | null
+  hp: number | null
   createdAt: Date
   updatedAt: Date
   _count: GuildMemberCountAggregateOutputType | null
+  _avg: GuildMemberAvgAggregateOutputType | null
+  _sum: GuildMemberSumAggregateOutputType | null
   _min: GuildMemberMinAggregateOutputType | null
   _max: GuildMemberMaxAggregateOutputType | null
 }
@@ -216,10 +524,36 @@ export type GuildMemberWhereInput = {
   guildId?: Prisma.StringFilter<"GuildMember"> | string
   userId?: Prisma.StringNullableFilter<"GuildMember"> | string | null
   displayName?: Prisma.StringFilter<"GuildMember"> | string
+  characterName?: Prisma.StringNullableFilter<"GuildMember"> | string | null
+  job?: Prisma.StringNullableFilter<"GuildMember"> | string | null
   active?: Prisma.BoolFilter<"GuildMember"> | boolean
   eligible?: Prisma.BoolFilter<"GuildMember"> | boolean
   priority?: Prisma.EnumMemberPriorityFilter<"GuildMember"> | $Enums.MemberPriority
   remarks?: Prisma.StringNullableFilter<"GuildMember"> | string | null
+  pdef?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  mdef?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  pvpDamageBonus?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  pvpDamageReduction?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  pdmgPercent?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  mdmgPercent?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  pdmgReductionPercent?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  mdmgReductionPercent?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  critRes?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  ignorePdef?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  ignoreMdef?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  damageVsMedium?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  damageReductionVsMedium?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  damageVsSmall?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  damageReductionVsSmall?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  damageVsDemiHuman?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  damageReductionVsDemiHuman?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  damageVsBrute?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  damageReductionVsBrute?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  equipmentPdefPercent?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  equipmentMdefPercent?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  patk?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  matk?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  hp?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
   createdAt?: Prisma.DateTimeFilter<"GuildMember"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"GuildMember"> | Date | string
   guild?: Prisma.XOR<Prisma.GuildScalarRelationFilter, Prisma.GuildWhereInput>
@@ -227,6 +561,10 @@ export type GuildMemberWhereInput = {
   reservations?: Prisma.ReservedAllocationListRelationFilter
   allocationResults?: Prisma.AllocationResultListRelationFilter
   bidSlots?: Prisma.BidSlotListRelationFilter
+  leaveDates?: Prisma.MemberLeaveListRelationFilter
+  participations?: Prisma.EventParticipationListRelationFilter
+  rosterAssignments?: Prisma.RosterMemberListRelationFilter
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberListRelationFilter
 }
 
 export type GuildMemberOrderByWithRelationInput = {
@@ -234,10 +572,36 @@ export type GuildMemberOrderByWithRelationInput = {
   guildId?: Prisma.SortOrder
   userId?: Prisma.SortOrderInput | Prisma.SortOrder
   displayName?: Prisma.SortOrder
+  characterName?: Prisma.SortOrderInput | Prisma.SortOrder
+  job?: Prisma.SortOrderInput | Prisma.SortOrder
   active?: Prisma.SortOrder
   eligible?: Prisma.SortOrder
   priority?: Prisma.SortOrder
   remarks?: Prisma.SortOrderInput | Prisma.SortOrder
+  pdef?: Prisma.SortOrderInput | Prisma.SortOrder
+  mdef?: Prisma.SortOrderInput | Prisma.SortOrder
+  pvpDamageBonus?: Prisma.SortOrderInput | Prisma.SortOrder
+  pvpDamageReduction?: Prisma.SortOrderInput | Prisma.SortOrder
+  pdmgPercent?: Prisma.SortOrderInput | Prisma.SortOrder
+  mdmgPercent?: Prisma.SortOrderInput | Prisma.SortOrder
+  pdmgReductionPercent?: Prisma.SortOrderInput | Prisma.SortOrder
+  mdmgReductionPercent?: Prisma.SortOrderInput | Prisma.SortOrder
+  critRes?: Prisma.SortOrderInput | Prisma.SortOrder
+  ignorePdef?: Prisma.SortOrderInput | Prisma.SortOrder
+  ignoreMdef?: Prisma.SortOrderInput | Prisma.SortOrder
+  damageVsMedium?: Prisma.SortOrderInput | Prisma.SortOrder
+  damageReductionVsMedium?: Prisma.SortOrderInput | Prisma.SortOrder
+  damageVsSmall?: Prisma.SortOrderInput | Prisma.SortOrder
+  damageReductionVsSmall?: Prisma.SortOrderInput | Prisma.SortOrder
+  damageVsDemiHuman?: Prisma.SortOrderInput | Prisma.SortOrder
+  damageReductionVsDemiHuman?: Prisma.SortOrderInput | Prisma.SortOrder
+  damageVsBrute?: Prisma.SortOrderInput | Prisma.SortOrder
+  damageReductionVsBrute?: Prisma.SortOrderInput | Prisma.SortOrder
+  equipmentPdefPercent?: Prisma.SortOrderInput | Prisma.SortOrder
+  equipmentMdefPercent?: Prisma.SortOrderInput | Prisma.SortOrder
+  patk?: Prisma.SortOrderInput | Prisma.SortOrder
+  matk?: Prisma.SortOrderInput | Prisma.SortOrder
+  hp?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   guild?: Prisma.GuildOrderByWithRelationInput
@@ -245,6 +609,10 @@ export type GuildMemberOrderByWithRelationInput = {
   reservations?: Prisma.ReservedAllocationOrderByRelationAggregateInput
   allocationResults?: Prisma.AllocationResultOrderByRelationAggregateInput
   bidSlots?: Prisma.BidSlotOrderByRelationAggregateInput
+  leaveDates?: Prisma.MemberLeaveOrderByRelationAggregateInput
+  participations?: Prisma.EventParticipationOrderByRelationAggregateInput
+  rosterAssignments?: Prisma.RosterMemberOrderByRelationAggregateInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberOrderByRelationAggregateInput
 }
 
 export type GuildMemberWhereUniqueInput = Prisma.AtLeast<{
@@ -256,10 +624,36 @@ export type GuildMemberWhereUniqueInput = Prisma.AtLeast<{
   guildId?: Prisma.StringFilter<"GuildMember"> | string
   userId?: Prisma.StringNullableFilter<"GuildMember"> | string | null
   displayName?: Prisma.StringFilter<"GuildMember"> | string
+  characterName?: Prisma.StringNullableFilter<"GuildMember"> | string | null
+  job?: Prisma.StringNullableFilter<"GuildMember"> | string | null
   active?: Prisma.BoolFilter<"GuildMember"> | boolean
   eligible?: Prisma.BoolFilter<"GuildMember"> | boolean
   priority?: Prisma.EnumMemberPriorityFilter<"GuildMember"> | $Enums.MemberPriority
   remarks?: Prisma.StringNullableFilter<"GuildMember"> | string | null
+  pdef?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  mdef?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  pvpDamageBonus?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  pvpDamageReduction?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  pdmgPercent?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  mdmgPercent?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  pdmgReductionPercent?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  mdmgReductionPercent?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  critRes?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  ignorePdef?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  ignoreMdef?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  damageVsMedium?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  damageReductionVsMedium?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  damageVsSmall?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  damageReductionVsSmall?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  damageVsDemiHuman?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  damageReductionVsDemiHuman?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  damageVsBrute?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  damageReductionVsBrute?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  equipmentPdefPercent?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  equipmentMdefPercent?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  patk?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  matk?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  hp?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
   createdAt?: Prisma.DateTimeFilter<"GuildMember"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"GuildMember"> | Date | string
   guild?: Prisma.XOR<Prisma.GuildScalarRelationFilter, Prisma.GuildWhereInput>
@@ -267,6 +661,10 @@ export type GuildMemberWhereUniqueInput = Prisma.AtLeast<{
   reservations?: Prisma.ReservedAllocationListRelationFilter
   allocationResults?: Prisma.AllocationResultListRelationFilter
   bidSlots?: Prisma.BidSlotListRelationFilter
+  leaveDates?: Prisma.MemberLeaveListRelationFilter
+  participations?: Prisma.EventParticipationListRelationFilter
+  rosterAssignments?: Prisma.RosterMemberListRelationFilter
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberListRelationFilter
 }, "id" | "guildId_displayName">
 
 export type GuildMemberOrderByWithAggregationInput = {
@@ -274,15 +672,43 @@ export type GuildMemberOrderByWithAggregationInput = {
   guildId?: Prisma.SortOrder
   userId?: Prisma.SortOrderInput | Prisma.SortOrder
   displayName?: Prisma.SortOrder
+  characterName?: Prisma.SortOrderInput | Prisma.SortOrder
+  job?: Prisma.SortOrderInput | Prisma.SortOrder
   active?: Prisma.SortOrder
   eligible?: Prisma.SortOrder
   priority?: Prisma.SortOrder
   remarks?: Prisma.SortOrderInput | Prisma.SortOrder
+  pdef?: Prisma.SortOrderInput | Prisma.SortOrder
+  mdef?: Prisma.SortOrderInput | Prisma.SortOrder
+  pvpDamageBonus?: Prisma.SortOrderInput | Prisma.SortOrder
+  pvpDamageReduction?: Prisma.SortOrderInput | Prisma.SortOrder
+  pdmgPercent?: Prisma.SortOrderInput | Prisma.SortOrder
+  mdmgPercent?: Prisma.SortOrderInput | Prisma.SortOrder
+  pdmgReductionPercent?: Prisma.SortOrderInput | Prisma.SortOrder
+  mdmgReductionPercent?: Prisma.SortOrderInput | Prisma.SortOrder
+  critRes?: Prisma.SortOrderInput | Prisma.SortOrder
+  ignorePdef?: Prisma.SortOrderInput | Prisma.SortOrder
+  ignoreMdef?: Prisma.SortOrderInput | Prisma.SortOrder
+  damageVsMedium?: Prisma.SortOrderInput | Prisma.SortOrder
+  damageReductionVsMedium?: Prisma.SortOrderInput | Prisma.SortOrder
+  damageVsSmall?: Prisma.SortOrderInput | Prisma.SortOrder
+  damageReductionVsSmall?: Prisma.SortOrderInput | Prisma.SortOrder
+  damageVsDemiHuman?: Prisma.SortOrderInput | Prisma.SortOrder
+  damageReductionVsDemiHuman?: Prisma.SortOrderInput | Prisma.SortOrder
+  damageVsBrute?: Prisma.SortOrderInput | Prisma.SortOrder
+  damageReductionVsBrute?: Prisma.SortOrderInput | Prisma.SortOrder
+  equipmentPdefPercent?: Prisma.SortOrderInput | Prisma.SortOrder
+  equipmentMdefPercent?: Prisma.SortOrderInput | Prisma.SortOrder
+  patk?: Prisma.SortOrderInput | Prisma.SortOrder
+  matk?: Prisma.SortOrderInput | Prisma.SortOrder
+  hp?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.GuildMemberCountOrderByAggregateInput
+  _avg?: Prisma.GuildMemberAvgOrderByAggregateInput
   _max?: Prisma.GuildMemberMaxOrderByAggregateInput
   _min?: Prisma.GuildMemberMinOrderByAggregateInput
+  _sum?: Prisma.GuildMemberSumOrderByAggregateInput
 }
 
 export type GuildMemberScalarWhereWithAggregatesInput = {
@@ -293,10 +719,36 @@ export type GuildMemberScalarWhereWithAggregatesInput = {
   guildId?: Prisma.StringWithAggregatesFilter<"GuildMember"> | string
   userId?: Prisma.StringNullableWithAggregatesFilter<"GuildMember"> | string | null
   displayName?: Prisma.StringWithAggregatesFilter<"GuildMember"> | string
+  characterName?: Prisma.StringNullableWithAggregatesFilter<"GuildMember"> | string | null
+  job?: Prisma.StringNullableWithAggregatesFilter<"GuildMember"> | string | null
   active?: Prisma.BoolWithAggregatesFilter<"GuildMember"> | boolean
   eligible?: Prisma.BoolWithAggregatesFilter<"GuildMember"> | boolean
   priority?: Prisma.EnumMemberPriorityWithAggregatesFilter<"GuildMember"> | $Enums.MemberPriority
   remarks?: Prisma.StringNullableWithAggregatesFilter<"GuildMember"> | string | null
+  pdef?: Prisma.FloatNullableWithAggregatesFilter<"GuildMember"> | number | null
+  mdef?: Prisma.FloatNullableWithAggregatesFilter<"GuildMember"> | number | null
+  pvpDamageBonus?: Prisma.FloatNullableWithAggregatesFilter<"GuildMember"> | number | null
+  pvpDamageReduction?: Prisma.FloatNullableWithAggregatesFilter<"GuildMember"> | number | null
+  pdmgPercent?: Prisma.FloatNullableWithAggregatesFilter<"GuildMember"> | number | null
+  mdmgPercent?: Prisma.FloatNullableWithAggregatesFilter<"GuildMember"> | number | null
+  pdmgReductionPercent?: Prisma.FloatNullableWithAggregatesFilter<"GuildMember"> | number | null
+  mdmgReductionPercent?: Prisma.FloatNullableWithAggregatesFilter<"GuildMember"> | number | null
+  critRes?: Prisma.FloatNullableWithAggregatesFilter<"GuildMember"> | number | null
+  ignorePdef?: Prisma.FloatNullableWithAggregatesFilter<"GuildMember"> | number | null
+  ignoreMdef?: Prisma.FloatNullableWithAggregatesFilter<"GuildMember"> | number | null
+  damageVsMedium?: Prisma.FloatNullableWithAggregatesFilter<"GuildMember"> | number | null
+  damageReductionVsMedium?: Prisma.FloatNullableWithAggregatesFilter<"GuildMember"> | number | null
+  damageVsSmall?: Prisma.FloatNullableWithAggregatesFilter<"GuildMember"> | number | null
+  damageReductionVsSmall?: Prisma.FloatNullableWithAggregatesFilter<"GuildMember"> | number | null
+  damageVsDemiHuman?: Prisma.FloatNullableWithAggregatesFilter<"GuildMember"> | number | null
+  damageReductionVsDemiHuman?: Prisma.FloatNullableWithAggregatesFilter<"GuildMember"> | number | null
+  damageVsBrute?: Prisma.FloatNullableWithAggregatesFilter<"GuildMember"> | number | null
+  damageReductionVsBrute?: Prisma.FloatNullableWithAggregatesFilter<"GuildMember"> | number | null
+  equipmentPdefPercent?: Prisma.FloatNullableWithAggregatesFilter<"GuildMember"> | number | null
+  equipmentMdefPercent?: Prisma.FloatNullableWithAggregatesFilter<"GuildMember"> | number | null
+  patk?: Prisma.FloatNullableWithAggregatesFilter<"GuildMember"> | number | null
+  matk?: Prisma.FloatNullableWithAggregatesFilter<"GuildMember"> | number | null
+  hp?: Prisma.FloatNullableWithAggregatesFilter<"GuildMember"> | number | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"GuildMember"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"GuildMember"> | Date | string
 }
@@ -304,17 +756,47 @@ export type GuildMemberScalarWhereWithAggregatesInput = {
 export type GuildMemberCreateInput = {
   id?: string
   displayName: string
+  characterName?: string | null
+  job?: string | null
   active?: boolean
   eligible?: boolean
   priority?: $Enums.MemberPriority
   remarks?: string | null
+  pdef?: number | null
+  mdef?: number | null
+  pvpDamageBonus?: number | null
+  pvpDamageReduction?: number | null
+  pdmgPercent?: number | null
+  mdmgPercent?: number | null
+  pdmgReductionPercent?: number | null
+  mdmgReductionPercent?: number | null
+  critRes?: number | null
+  ignorePdef?: number | null
+  ignoreMdef?: number | null
+  damageVsMedium?: number | null
+  damageReductionVsMedium?: number | null
+  damageVsSmall?: number | null
+  damageReductionVsSmall?: number | null
+  damageVsDemiHuman?: number | null
+  damageReductionVsDemiHuman?: number | null
+  damageVsBrute?: number | null
+  damageReductionVsBrute?: number | null
+  equipmentPdefPercent?: number | null
+  equipmentMdefPercent?: number | null
+  patk?: number | null
+  matk?: number | null
+  hp?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   guild: Prisma.GuildCreateNestedOneWithoutMembersInput
-  user?: Prisma.UserCreateNestedOneWithoutGuildMembershipsInput
+  user?: Prisma.UserCreateNestedOneWithoutGuildMembersInput
   reservations?: Prisma.ReservedAllocationCreateNestedManyWithoutMemberInput
   allocationResults?: Prisma.AllocationResultCreateNestedManyWithoutMemberInput
   bidSlots?: Prisma.BidSlotCreateNestedManyWithoutMemberInput
+  leaveDates?: Prisma.MemberLeaveCreateNestedManyWithoutMemberInput
+  participations?: Prisma.EventParticipationCreateNestedManyWithoutMemberInput
+  rosterAssignments?: Prisma.RosterMemberCreateNestedManyWithoutMemberInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberCreateNestedManyWithoutMemberInput
 }
 
 export type GuildMemberUncheckedCreateInput = {
@@ -322,31 +804,91 @@ export type GuildMemberUncheckedCreateInput = {
   guildId: string
   userId?: string | null
   displayName: string
+  characterName?: string | null
+  job?: string | null
   active?: boolean
   eligible?: boolean
   priority?: $Enums.MemberPriority
   remarks?: string | null
+  pdef?: number | null
+  mdef?: number | null
+  pvpDamageBonus?: number | null
+  pvpDamageReduction?: number | null
+  pdmgPercent?: number | null
+  mdmgPercent?: number | null
+  pdmgReductionPercent?: number | null
+  mdmgReductionPercent?: number | null
+  critRes?: number | null
+  ignorePdef?: number | null
+  ignoreMdef?: number | null
+  damageVsMedium?: number | null
+  damageReductionVsMedium?: number | null
+  damageVsSmall?: number | null
+  damageReductionVsSmall?: number | null
+  damageVsDemiHuman?: number | null
+  damageReductionVsDemiHuman?: number | null
+  damageVsBrute?: number | null
+  damageReductionVsBrute?: number | null
+  equipmentPdefPercent?: number | null
+  equipmentMdefPercent?: number | null
+  patk?: number | null
+  matk?: number | null
+  hp?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   reservations?: Prisma.ReservedAllocationUncheckedCreateNestedManyWithoutMemberInput
   allocationResults?: Prisma.AllocationResultUncheckedCreateNestedManyWithoutMemberInput
   bidSlots?: Prisma.BidSlotUncheckedCreateNestedManyWithoutMemberInput
+  leaveDates?: Prisma.MemberLeaveUncheckedCreateNestedManyWithoutMemberInput
+  participations?: Prisma.EventParticipationUncheckedCreateNestedManyWithoutMemberInput
+  rosterAssignments?: Prisma.RosterMemberUncheckedCreateNestedManyWithoutMemberInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberUncheckedCreateNestedManyWithoutMemberInput
 }
 
 export type GuildMemberUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   eligible?: Prisma.BoolFieldUpdateOperationsInput | boolean
   priority?: Prisma.EnumMemberPriorityFieldUpdateOperationsInput | $Enums.MemberPriority
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageBonus?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageReduction?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  critRes?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignorePdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignoreMdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentPdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentMdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   guild?: Prisma.GuildUpdateOneRequiredWithoutMembersNestedInput
-  user?: Prisma.UserUpdateOneWithoutGuildMembershipsNestedInput
+  user?: Prisma.UserUpdateOneWithoutGuildMembersNestedInput
   reservations?: Prisma.ReservedAllocationUpdateManyWithoutMemberNestedInput
   allocationResults?: Prisma.AllocationResultUpdateManyWithoutMemberNestedInput
   bidSlots?: Prisma.BidSlotUpdateManyWithoutMemberNestedInput
+  leaveDates?: Prisma.MemberLeaveUpdateManyWithoutMemberNestedInput
+  participations?: Prisma.EventParticipationUpdateManyWithoutMemberNestedInput
+  rosterAssignments?: Prisma.RosterMemberUpdateManyWithoutMemberNestedInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberUpdateManyWithoutMemberNestedInput
 }
 
 export type GuildMemberUncheckedUpdateInput = {
@@ -354,15 +896,45 @@ export type GuildMemberUncheckedUpdateInput = {
   guildId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   eligible?: Prisma.BoolFieldUpdateOperationsInput | boolean
   priority?: Prisma.EnumMemberPriorityFieldUpdateOperationsInput | $Enums.MemberPriority
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageBonus?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageReduction?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  critRes?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignorePdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignoreMdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentPdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentMdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reservations?: Prisma.ReservedAllocationUncheckedUpdateManyWithoutMemberNestedInput
   allocationResults?: Prisma.AllocationResultUncheckedUpdateManyWithoutMemberNestedInput
   bidSlots?: Prisma.BidSlotUncheckedUpdateManyWithoutMemberNestedInput
+  leaveDates?: Prisma.MemberLeaveUncheckedUpdateManyWithoutMemberNestedInput
+  participations?: Prisma.EventParticipationUncheckedUpdateManyWithoutMemberNestedInput
+  rosterAssignments?: Prisma.RosterMemberUncheckedUpdateManyWithoutMemberNestedInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberUncheckedUpdateManyWithoutMemberNestedInput
 }
 
 export type GuildMemberCreateManyInput = {
@@ -370,10 +942,36 @@ export type GuildMemberCreateManyInput = {
   guildId: string
   userId?: string | null
   displayName: string
+  characterName?: string | null
+  job?: string | null
   active?: boolean
   eligible?: boolean
   priority?: $Enums.MemberPriority
   remarks?: string | null
+  pdef?: number | null
+  mdef?: number | null
+  pvpDamageBonus?: number | null
+  pvpDamageReduction?: number | null
+  pdmgPercent?: number | null
+  mdmgPercent?: number | null
+  pdmgReductionPercent?: number | null
+  mdmgReductionPercent?: number | null
+  critRes?: number | null
+  ignorePdef?: number | null
+  ignoreMdef?: number | null
+  damageVsMedium?: number | null
+  damageReductionVsMedium?: number | null
+  damageVsSmall?: number | null
+  damageReductionVsSmall?: number | null
+  damageVsDemiHuman?: number | null
+  damageReductionVsDemiHuman?: number | null
+  damageVsBrute?: number | null
+  damageReductionVsBrute?: number | null
+  equipmentPdefPercent?: number | null
+  equipmentMdefPercent?: number | null
+  patk?: number | null
+  matk?: number | null
+  hp?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -381,10 +979,36 @@ export type GuildMemberCreateManyInput = {
 export type GuildMemberUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   eligible?: Prisma.BoolFieldUpdateOperationsInput | boolean
   priority?: Prisma.EnumMemberPriorityFieldUpdateOperationsInput | $Enums.MemberPriority
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageBonus?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageReduction?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  critRes?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignorePdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignoreMdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentPdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentMdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -394,10 +1018,36 @@ export type GuildMemberUncheckedUpdateManyInput = {
   guildId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   eligible?: Prisma.BoolFieldUpdateOperationsInput | boolean
   priority?: Prisma.EnumMemberPriorityFieldUpdateOperationsInput | $Enums.MemberPriority
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageBonus?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageReduction?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  critRes?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignorePdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignoreMdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentPdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentMdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -422,12 +1072,65 @@ export type GuildMemberCountOrderByAggregateInput = {
   guildId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   displayName?: Prisma.SortOrder
+  characterName?: Prisma.SortOrder
+  job?: Prisma.SortOrder
   active?: Prisma.SortOrder
   eligible?: Prisma.SortOrder
   priority?: Prisma.SortOrder
   remarks?: Prisma.SortOrder
+  pdef?: Prisma.SortOrder
+  mdef?: Prisma.SortOrder
+  pvpDamageBonus?: Prisma.SortOrder
+  pvpDamageReduction?: Prisma.SortOrder
+  pdmgPercent?: Prisma.SortOrder
+  mdmgPercent?: Prisma.SortOrder
+  pdmgReductionPercent?: Prisma.SortOrder
+  mdmgReductionPercent?: Prisma.SortOrder
+  critRes?: Prisma.SortOrder
+  ignorePdef?: Prisma.SortOrder
+  ignoreMdef?: Prisma.SortOrder
+  damageVsMedium?: Prisma.SortOrder
+  damageReductionVsMedium?: Prisma.SortOrder
+  damageVsSmall?: Prisma.SortOrder
+  damageReductionVsSmall?: Prisma.SortOrder
+  damageVsDemiHuman?: Prisma.SortOrder
+  damageReductionVsDemiHuman?: Prisma.SortOrder
+  damageVsBrute?: Prisma.SortOrder
+  damageReductionVsBrute?: Prisma.SortOrder
+  equipmentPdefPercent?: Prisma.SortOrder
+  equipmentMdefPercent?: Prisma.SortOrder
+  patk?: Prisma.SortOrder
+  matk?: Prisma.SortOrder
+  hp?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type GuildMemberAvgOrderByAggregateInput = {
+  pdef?: Prisma.SortOrder
+  mdef?: Prisma.SortOrder
+  pvpDamageBonus?: Prisma.SortOrder
+  pvpDamageReduction?: Prisma.SortOrder
+  pdmgPercent?: Prisma.SortOrder
+  mdmgPercent?: Prisma.SortOrder
+  pdmgReductionPercent?: Prisma.SortOrder
+  mdmgReductionPercent?: Prisma.SortOrder
+  critRes?: Prisma.SortOrder
+  ignorePdef?: Prisma.SortOrder
+  ignoreMdef?: Prisma.SortOrder
+  damageVsMedium?: Prisma.SortOrder
+  damageReductionVsMedium?: Prisma.SortOrder
+  damageVsSmall?: Prisma.SortOrder
+  damageReductionVsSmall?: Prisma.SortOrder
+  damageVsDemiHuman?: Prisma.SortOrder
+  damageReductionVsDemiHuman?: Prisma.SortOrder
+  damageVsBrute?: Prisma.SortOrder
+  damageReductionVsBrute?: Prisma.SortOrder
+  equipmentPdefPercent?: Prisma.SortOrder
+  equipmentMdefPercent?: Prisma.SortOrder
+  patk?: Prisma.SortOrder
+  matk?: Prisma.SortOrder
+  hp?: Prisma.SortOrder
 }
 
 export type GuildMemberMaxOrderByAggregateInput = {
@@ -435,10 +1138,36 @@ export type GuildMemberMaxOrderByAggregateInput = {
   guildId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   displayName?: Prisma.SortOrder
+  characterName?: Prisma.SortOrder
+  job?: Prisma.SortOrder
   active?: Prisma.SortOrder
   eligible?: Prisma.SortOrder
   priority?: Prisma.SortOrder
   remarks?: Prisma.SortOrder
+  pdef?: Prisma.SortOrder
+  mdef?: Prisma.SortOrder
+  pvpDamageBonus?: Prisma.SortOrder
+  pvpDamageReduction?: Prisma.SortOrder
+  pdmgPercent?: Prisma.SortOrder
+  mdmgPercent?: Prisma.SortOrder
+  pdmgReductionPercent?: Prisma.SortOrder
+  mdmgReductionPercent?: Prisma.SortOrder
+  critRes?: Prisma.SortOrder
+  ignorePdef?: Prisma.SortOrder
+  ignoreMdef?: Prisma.SortOrder
+  damageVsMedium?: Prisma.SortOrder
+  damageReductionVsMedium?: Prisma.SortOrder
+  damageVsSmall?: Prisma.SortOrder
+  damageReductionVsSmall?: Prisma.SortOrder
+  damageVsDemiHuman?: Prisma.SortOrder
+  damageReductionVsDemiHuman?: Prisma.SortOrder
+  damageVsBrute?: Prisma.SortOrder
+  damageReductionVsBrute?: Prisma.SortOrder
+  equipmentPdefPercent?: Prisma.SortOrder
+  equipmentMdefPercent?: Prisma.SortOrder
+  patk?: Prisma.SortOrder
+  matk?: Prisma.SortOrder
+  hp?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -448,12 +1177,65 @@ export type GuildMemberMinOrderByAggregateInput = {
   guildId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   displayName?: Prisma.SortOrder
+  characterName?: Prisma.SortOrder
+  job?: Prisma.SortOrder
   active?: Prisma.SortOrder
   eligible?: Prisma.SortOrder
   priority?: Prisma.SortOrder
   remarks?: Prisma.SortOrder
+  pdef?: Prisma.SortOrder
+  mdef?: Prisma.SortOrder
+  pvpDamageBonus?: Prisma.SortOrder
+  pvpDamageReduction?: Prisma.SortOrder
+  pdmgPercent?: Prisma.SortOrder
+  mdmgPercent?: Prisma.SortOrder
+  pdmgReductionPercent?: Prisma.SortOrder
+  mdmgReductionPercent?: Prisma.SortOrder
+  critRes?: Prisma.SortOrder
+  ignorePdef?: Prisma.SortOrder
+  ignoreMdef?: Prisma.SortOrder
+  damageVsMedium?: Prisma.SortOrder
+  damageReductionVsMedium?: Prisma.SortOrder
+  damageVsSmall?: Prisma.SortOrder
+  damageReductionVsSmall?: Prisma.SortOrder
+  damageVsDemiHuman?: Prisma.SortOrder
+  damageReductionVsDemiHuman?: Prisma.SortOrder
+  damageVsBrute?: Prisma.SortOrder
+  damageReductionVsBrute?: Prisma.SortOrder
+  equipmentPdefPercent?: Prisma.SortOrder
+  equipmentMdefPercent?: Prisma.SortOrder
+  patk?: Prisma.SortOrder
+  matk?: Prisma.SortOrder
+  hp?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type GuildMemberSumOrderByAggregateInput = {
+  pdef?: Prisma.SortOrder
+  mdef?: Prisma.SortOrder
+  pvpDamageBonus?: Prisma.SortOrder
+  pvpDamageReduction?: Prisma.SortOrder
+  pdmgPercent?: Prisma.SortOrder
+  mdmgPercent?: Prisma.SortOrder
+  pdmgReductionPercent?: Prisma.SortOrder
+  mdmgReductionPercent?: Prisma.SortOrder
+  critRes?: Prisma.SortOrder
+  ignorePdef?: Prisma.SortOrder
+  ignoreMdef?: Prisma.SortOrder
+  damageVsMedium?: Prisma.SortOrder
+  damageReductionVsMedium?: Prisma.SortOrder
+  damageVsSmall?: Prisma.SortOrder
+  damageReductionVsSmall?: Prisma.SortOrder
+  damageVsDemiHuman?: Prisma.SortOrder
+  damageReductionVsDemiHuman?: Prisma.SortOrder
+  damageVsBrute?: Prisma.SortOrder
+  damageReductionVsBrute?: Prisma.SortOrder
+  equipmentPdefPercent?: Prisma.SortOrder
+  equipmentMdefPercent?: Prisma.SortOrder
+  patk?: Prisma.SortOrder
+  matk?: Prisma.SortOrder
+  hp?: Prisma.SortOrder
 }
 
 export type GuildMemberScalarRelationFilter = {
@@ -553,6 +1335,28 @@ export type EnumMemberPriorityFieldUpdateOperationsInput = {
   set?: $Enums.MemberPriority
 }
 
+export type NullableFloatFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
+export type GuildMemberCreateNestedOneWithoutLeaveDatesInput = {
+  create?: Prisma.XOR<Prisma.GuildMemberCreateWithoutLeaveDatesInput, Prisma.GuildMemberUncheckedCreateWithoutLeaveDatesInput>
+  connectOrCreate?: Prisma.GuildMemberCreateOrConnectWithoutLeaveDatesInput
+  connect?: Prisma.GuildMemberWhereUniqueInput
+}
+
+export type GuildMemberUpdateOneRequiredWithoutLeaveDatesNestedInput = {
+  create?: Prisma.XOR<Prisma.GuildMemberCreateWithoutLeaveDatesInput, Prisma.GuildMemberUncheckedCreateWithoutLeaveDatesInput>
+  connectOrCreate?: Prisma.GuildMemberCreateOrConnectWithoutLeaveDatesInput
+  upsert?: Prisma.GuildMemberUpsertWithoutLeaveDatesInput
+  connect?: Prisma.GuildMemberWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.GuildMemberUpdateToOneWithWhereWithoutLeaveDatesInput, Prisma.GuildMemberUpdateWithoutLeaveDatesInput>, Prisma.GuildMemberUncheckedUpdateWithoutLeaveDatesInput>
+}
+
 export type GuildMemberCreateNestedOneWithoutReservationsInput = {
   create?: Prisma.XOR<Prisma.GuildMemberCreateWithoutReservationsInput, Prisma.GuildMemberUncheckedCreateWithoutReservationsInput>
   connectOrCreate?: Prisma.GuildMemberCreateOrConnectWithoutReservationsInput
@@ -595,34 +1399,136 @@ export type GuildMemberUpdateOneRequiredWithoutBidSlotsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.GuildMemberUpdateToOneWithWhereWithoutBidSlotsInput, Prisma.GuildMemberUpdateWithoutBidSlotsInput>, Prisma.GuildMemberUncheckedUpdateWithoutBidSlotsInput>
 }
 
+export type GuildMemberCreateNestedOneWithoutParticipationsInput = {
+  create?: Prisma.XOR<Prisma.GuildMemberCreateWithoutParticipationsInput, Prisma.GuildMemberUncheckedCreateWithoutParticipationsInput>
+  connectOrCreate?: Prisma.GuildMemberCreateOrConnectWithoutParticipationsInput
+  connect?: Prisma.GuildMemberWhereUniqueInput
+}
+
+export type GuildMemberUpdateOneRequiredWithoutParticipationsNestedInput = {
+  create?: Prisma.XOR<Prisma.GuildMemberCreateWithoutParticipationsInput, Prisma.GuildMemberUncheckedCreateWithoutParticipationsInput>
+  connectOrCreate?: Prisma.GuildMemberCreateOrConnectWithoutParticipationsInput
+  upsert?: Prisma.GuildMemberUpsertWithoutParticipationsInput
+  connect?: Prisma.GuildMemberWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.GuildMemberUpdateToOneWithWhereWithoutParticipationsInput, Prisma.GuildMemberUpdateWithoutParticipationsInput>, Prisma.GuildMemberUncheckedUpdateWithoutParticipationsInput>
+}
+
+export type GuildMemberCreateNestedOneWithoutRosterAssignmentsInput = {
+  create?: Prisma.XOR<Prisma.GuildMemberCreateWithoutRosterAssignmentsInput, Prisma.GuildMemberUncheckedCreateWithoutRosterAssignmentsInput>
+  connectOrCreate?: Prisma.GuildMemberCreateOrConnectWithoutRosterAssignmentsInput
+  connect?: Prisma.GuildMemberWhereUniqueInput
+}
+
+export type GuildMemberUpdateOneRequiredWithoutRosterAssignmentsNestedInput = {
+  create?: Prisma.XOR<Prisma.GuildMemberCreateWithoutRosterAssignmentsInput, Prisma.GuildMemberUncheckedCreateWithoutRosterAssignmentsInput>
+  connectOrCreate?: Prisma.GuildMemberCreateOrConnectWithoutRosterAssignmentsInput
+  upsert?: Prisma.GuildMemberUpsertWithoutRosterAssignmentsInput
+  connect?: Prisma.GuildMemberWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.GuildMemberUpdateToOneWithWhereWithoutRosterAssignmentsInput, Prisma.GuildMemberUpdateWithoutRosterAssignmentsInput>, Prisma.GuildMemberUncheckedUpdateWithoutRosterAssignmentsInput>
+}
+
+export type GuildMemberCreateNestedOneWithoutPreferredRosterAssignmentsInput = {
+  create?: Prisma.XOR<Prisma.GuildMemberCreateWithoutPreferredRosterAssignmentsInput, Prisma.GuildMemberUncheckedCreateWithoutPreferredRosterAssignmentsInput>
+  connectOrCreate?: Prisma.GuildMemberCreateOrConnectWithoutPreferredRosterAssignmentsInput
+  connect?: Prisma.GuildMemberWhereUniqueInput
+}
+
+export type GuildMemberUpdateOneRequiredWithoutPreferredRosterAssignmentsNestedInput = {
+  create?: Prisma.XOR<Prisma.GuildMemberCreateWithoutPreferredRosterAssignmentsInput, Prisma.GuildMemberUncheckedCreateWithoutPreferredRosterAssignmentsInput>
+  connectOrCreate?: Prisma.GuildMemberCreateOrConnectWithoutPreferredRosterAssignmentsInput
+  upsert?: Prisma.GuildMemberUpsertWithoutPreferredRosterAssignmentsInput
+  connect?: Prisma.GuildMemberWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.GuildMemberUpdateToOneWithWhereWithoutPreferredRosterAssignmentsInput, Prisma.GuildMemberUpdateWithoutPreferredRosterAssignmentsInput>, Prisma.GuildMemberUncheckedUpdateWithoutPreferredRosterAssignmentsInput>
+}
+
 export type GuildMemberCreateWithoutUserInput = {
   id?: string
   displayName: string
+  characterName?: string | null
+  job?: string | null
   active?: boolean
   eligible?: boolean
   priority?: $Enums.MemberPriority
   remarks?: string | null
+  pdef?: number | null
+  mdef?: number | null
+  pvpDamageBonus?: number | null
+  pvpDamageReduction?: number | null
+  pdmgPercent?: number | null
+  mdmgPercent?: number | null
+  pdmgReductionPercent?: number | null
+  mdmgReductionPercent?: number | null
+  critRes?: number | null
+  ignorePdef?: number | null
+  ignoreMdef?: number | null
+  damageVsMedium?: number | null
+  damageReductionVsMedium?: number | null
+  damageVsSmall?: number | null
+  damageReductionVsSmall?: number | null
+  damageVsDemiHuman?: number | null
+  damageReductionVsDemiHuman?: number | null
+  damageVsBrute?: number | null
+  damageReductionVsBrute?: number | null
+  equipmentPdefPercent?: number | null
+  equipmentMdefPercent?: number | null
+  patk?: number | null
+  matk?: number | null
+  hp?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   guild: Prisma.GuildCreateNestedOneWithoutMembersInput
   reservations?: Prisma.ReservedAllocationCreateNestedManyWithoutMemberInput
   allocationResults?: Prisma.AllocationResultCreateNestedManyWithoutMemberInput
   bidSlots?: Prisma.BidSlotCreateNestedManyWithoutMemberInput
+  leaveDates?: Prisma.MemberLeaveCreateNestedManyWithoutMemberInput
+  participations?: Prisma.EventParticipationCreateNestedManyWithoutMemberInput
+  rosterAssignments?: Prisma.RosterMemberCreateNestedManyWithoutMemberInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberCreateNestedManyWithoutMemberInput
 }
 
 export type GuildMemberUncheckedCreateWithoutUserInput = {
   id?: string
   guildId: string
   displayName: string
+  characterName?: string | null
+  job?: string | null
   active?: boolean
   eligible?: boolean
   priority?: $Enums.MemberPriority
   remarks?: string | null
+  pdef?: number | null
+  mdef?: number | null
+  pvpDamageBonus?: number | null
+  pvpDamageReduction?: number | null
+  pdmgPercent?: number | null
+  mdmgPercent?: number | null
+  pdmgReductionPercent?: number | null
+  mdmgReductionPercent?: number | null
+  critRes?: number | null
+  ignorePdef?: number | null
+  ignoreMdef?: number | null
+  damageVsMedium?: number | null
+  damageReductionVsMedium?: number | null
+  damageVsSmall?: number | null
+  damageReductionVsSmall?: number | null
+  damageVsDemiHuman?: number | null
+  damageReductionVsDemiHuman?: number | null
+  damageVsBrute?: number | null
+  damageReductionVsBrute?: number | null
+  equipmentPdefPercent?: number | null
+  equipmentMdefPercent?: number | null
+  patk?: number | null
+  matk?: number | null
+  hp?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   reservations?: Prisma.ReservedAllocationUncheckedCreateNestedManyWithoutMemberInput
   allocationResults?: Prisma.AllocationResultUncheckedCreateNestedManyWithoutMemberInput
   bidSlots?: Prisma.BidSlotUncheckedCreateNestedManyWithoutMemberInput
+  leaveDates?: Prisma.MemberLeaveUncheckedCreateNestedManyWithoutMemberInput
+  participations?: Prisma.EventParticipationUncheckedCreateNestedManyWithoutMemberInput
+  rosterAssignments?: Prisma.RosterMemberUncheckedCreateNestedManyWithoutMemberInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberUncheckedCreateNestedManyWithoutMemberInput
 }
 
 export type GuildMemberCreateOrConnectWithoutUserInput = {
@@ -659,10 +1565,36 @@ export type GuildMemberScalarWhereInput = {
   guildId?: Prisma.StringFilter<"GuildMember"> | string
   userId?: Prisma.StringNullableFilter<"GuildMember"> | string | null
   displayName?: Prisma.StringFilter<"GuildMember"> | string
+  characterName?: Prisma.StringNullableFilter<"GuildMember"> | string | null
+  job?: Prisma.StringNullableFilter<"GuildMember"> | string | null
   active?: Prisma.BoolFilter<"GuildMember"> | boolean
   eligible?: Prisma.BoolFilter<"GuildMember"> | boolean
   priority?: Prisma.EnumMemberPriorityFilter<"GuildMember"> | $Enums.MemberPriority
   remarks?: Prisma.StringNullableFilter<"GuildMember"> | string | null
+  pdef?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  mdef?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  pvpDamageBonus?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  pvpDamageReduction?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  pdmgPercent?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  mdmgPercent?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  pdmgReductionPercent?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  mdmgReductionPercent?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  critRes?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  ignorePdef?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  ignoreMdef?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  damageVsMedium?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  damageReductionVsMedium?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  damageVsSmall?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  damageReductionVsSmall?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  damageVsDemiHuman?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  damageReductionVsDemiHuman?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  damageVsBrute?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  damageReductionVsBrute?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  equipmentPdefPercent?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  equipmentMdefPercent?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  patk?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  matk?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  hp?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
   createdAt?: Prisma.DateTimeFilter<"GuildMember"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"GuildMember"> | Date | string
 }
@@ -670,31 +1602,91 @@ export type GuildMemberScalarWhereInput = {
 export type GuildMemberCreateWithoutGuildInput = {
   id?: string
   displayName: string
+  characterName?: string | null
+  job?: string | null
   active?: boolean
   eligible?: boolean
   priority?: $Enums.MemberPriority
   remarks?: string | null
+  pdef?: number | null
+  mdef?: number | null
+  pvpDamageBonus?: number | null
+  pvpDamageReduction?: number | null
+  pdmgPercent?: number | null
+  mdmgPercent?: number | null
+  pdmgReductionPercent?: number | null
+  mdmgReductionPercent?: number | null
+  critRes?: number | null
+  ignorePdef?: number | null
+  ignoreMdef?: number | null
+  damageVsMedium?: number | null
+  damageReductionVsMedium?: number | null
+  damageVsSmall?: number | null
+  damageReductionVsSmall?: number | null
+  damageVsDemiHuman?: number | null
+  damageReductionVsDemiHuman?: number | null
+  damageVsBrute?: number | null
+  damageReductionVsBrute?: number | null
+  equipmentPdefPercent?: number | null
+  equipmentMdefPercent?: number | null
+  patk?: number | null
+  matk?: number | null
+  hp?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  user?: Prisma.UserCreateNestedOneWithoutGuildMembershipsInput
+  user?: Prisma.UserCreateNestedOneWithoutGuildMembersInput
   reservations?: Prisma.ReservedAllocationCreateNestedManyWithoutMemberInput
   allocationResults?: Prisma.AllocationResultCreateNestedManyWithoutMemberInput
   bidSlots?: Prisma.BidSlotCreateNestedManyWithoutMemberInput
+  leaveDates?: Prisma.MemberLeaveCreateNestedManyWithoutMemberInput
+  participations?: Prisma.EventParticipationCreateNestedManyWithoutMemberInput
+  rosterAssignments?: Prisma.RosterMemberCreateNestedManyWithoutMemberInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberCreateNestedManyWithoutMemberInput
 }
 
 export type GuildMemberUncheckedCreateWithoutGuildInput = {
   id?: string
   userId?: string | null
   displayName: string
+  characterName?: string | null
+  job?: string | null
   active?: boolean
   eligible?: boolean
   priority?: $Enums.MemberPriority
   remarks?: string | null
+  pdef?: number | null
+  mdef?: number | null
+  pvpDamageBonus?: number | null
+  pvpDamageReduction?: number | null
+  pdmgPercent?: number | null
+  mdmgPercent?: number | null
+  pdmgReductionPercent?: number | null
+  mdmgReductionPercent?: number | null
+  critRes?: number | null
+  ignorePdef?: number | null
+  ignoreMdef?: number | null
+  damageVsMedium?: number | null
+  damageReductionVsMedium?: number | null
+  damageVsSmall?: number | null
+  damageReductionVsSmall?: number | null
+  damageVsDemiHuman?: number | null
+  damageReductionVsDemiHuman?: number | null
+  damageVsBrute?: number | null
+  damageReductionVsBrute?: number | null
+  equipmentPdefPercent?: number | null
+  equipmentMdefPercent?: number | null
+  patk?: number | null
+  matk?: number | null
+  hp?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   reservations?: Prisma.ReservedAllocationUncheckedCreateNestedManyWithoutMemberInput
   allocationResults?: Prisma.AllocationResultUncheckedCreateNestedManyWithoutMemberInput
   bidSlots?: Prisma.BidSlotUncheckedCreateNestedManyWithoutMemberInput
+  leaveDates?: Prisma.MemberLeaveUncheckedCreateNestedManyWithoutMemberInput
+  participations?: Prisma.EventParticipationUncheckedCreateNestedManyWithoutMemberInput
+  rosterAssignments?: Prisma.RosterMemberUncheckedCreateNestedManyWithoutMemberInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberUncheckedCreateNestedManyWithoutMemberInput
 }
 
 export type GuildMemberCreateOrConnectWithoutGuildInput = {
@@ -723,19 +1715,245 @@ export type GuildMemberUpdateManyWithWhereWithoutGuildInput = {
   data: Prisma.XOR<Prisma.GuildMemberUpdateManyMutationInput, Prisma.GuildMemberUncheckedUpdateManyWithoutGuildInput>
 }
 
-export type GuildMemberCreateWithoutReservationsInput = {
+export type GuildMemberCreateWithoutLeaveDatesInput = {
   id?: string
   displayName: string
+  characterName?: string | null
+  job?: string | null
   active?: boolean
   eligible?: boolean
   priority?: $Enums.MemberPriority
   remarks?: string | null
+  pdef?: number | null
+  mdef?: number | null
+  pvpDamageBonus?: number | null
+  pvpDamageReduction?: number | null
+  pdmgPercent?: number | null
+  mdmgPercent?: number | null
+  pdmgReductionPercent?: number | null
+  mdmgReductionPercent?: number | null
+  critRes?: number | null
+  ignorePdef?: number | null
+  ignoreMdef?: number | null
+  damageVsMedium?: number | null
+  damageReductionVsMedium?: number | null
+  damageVsSmall?: number | null
+  damageReductionVsSmall?: number | null
+  damageVsDemiHuman?: number | null
+  damageReductionVsDemiHuman?: number | null
+  damageVsBrute?: number | null
+  damageReductionVsBrute?: number | null
+  equipmentPdefPercent?: number | null
+  equipmentMdefPercent?: number | null
+  patk?: number | null
+  matk?: number | null
+  hp?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   guild: Prisma.GuildCreateNestedOneWithoutMembersInput
-  user?: Prisma.UserCreateNestedOneWithoutGuildMembershipsInput
+  user?: Prisma.UserCreateNestedOneWithoutGuildMembersInput
+  reservations?: Prisma.ReservedAllocationCreateNestedManyWithoutMemberInput
   allocationResults?: Prisma.AllocationResultCreateNestedManyWithoutMemberInput
   bidSlots?: Prisma.BidSlotCreateNestedManyWithoutMemberInput
+  participations?: Prisma.EventParticipationCreateNestedManyWithoutMemberInput
+  rosterAssignments?: Prisma.RosterMemberCreateNestedManyWithoutMemberInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberCreateNestedManyWithoutMemberInput
+}
+
+export type GuildMemberUncheckedCreateWithoutLeaveDatesInput = {
+  id?: string
+  guildId: string
+  userId?: string | null
+  displayName: string
+  characterName?: string | null
+  job?: string | null
+  active?: boolean
+  eligible?: boolean
+  priority?: $Enums.MemberPriority
+  remarks?: string | null
+  pdef?: number | null
+  mdef?: number | null
+  pvpDamageBonus?: number | null
+  pvpDamageReduction?: number | null
+  pdmgPercent?: number | null
+  mdmgPercent?: number | null
+  pdmgReductionPercent?: number | null
+  mdmgReductionPercent?: number | null
+  critRes?: number | null
+  ignorePdef?: number | null
+  ignoreMdef?: number | null
+  damageVsMedium?: number | null
+  damageReductionVsMedium?: number | null
+  damageVsSmall?: number | null
+  damageReductionVsSmall?: number | null
+  damageVsDemiHuman?: number | null
+  damageReductionVsDemiHuman?: number | null
+  damageVsBrute?: number | null
+  damageReductionVsBrute?: number | null
+  equipmentPdefPercent?: number | null
+  equipmentMdefPercent?: number | null
+  patk?: number | null
+  matk?: number | null
+  hp?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  reservations?: Prisma.ReservedAllocationUncheckedCreateNestedManyWithoutMemberInput
+  allocationResults?: Prisma.AllocationResultUncheckedCreateNestedManyWithoutMemberInput
+  bidSlots?: Prisma.BidSlotUncheckedCreateNestedManyWithoutMemberInput
+  participations?: Prisma.EventParticipationUncheckedCreateNestedManyWithoutMemberInput
+  rosterAssignments?: Prisma.RosterMemberUncheckedCreateNestedManyWithoutMemberInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberUncheckedCreateNestedManyWithoutMemberInput
+}
+
+export type GuildMemberCreateOrConnectWithoutLeaveDatesInput = {
+  where: Prisma.GuildMemberWhereUniqueInput
+  create: Prisma.XOR<Prisma.GuildMemberCreateWithoutLeaveDatesInput, Prisma.GuildMemberUncheckedCreateWithoutLeaveDatesInput>
+}
+
+export type GuildMemberUpsertWithoutLeaveDatesInput = {
+  update: Prisma.XOR<Prisma.GuildMemberUpdateWithoutLeaveDatesInput, Prisma.GuildMemberUncheckedUpdateWithoutLeaveDatesInput>
+  create: Prisma.XOR<Prisma.GuildMemberCreateWithoutLeaveDatesInput, Prisma.GuildMemberUncheckedCreateWithoutLeaveDatesInput>
+  where?: Prisma.GuildMemberWhereInput
+}
+
+export type GuildMemberUpdateToOneWithWhereWithoutLeaveDatesInput = {
+  where?: Prisma.GuildMemberWhereInput
+  data: Prisma.XOR<Prisma.GuildMemberUpdateWithoutLeaveDatesInput, Prisma.GuildMemberUncheckedUpdateWithoutLeaveDatesInput>
+}
+
+export type GuildMemberUpdateWithoutLeaveDatesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  eligible?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  priority?: Prisma.EnumMemberPriorityFieldUpdateOperationsInput | $Enums.MemberPriority
+  remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageBonus?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageReduction?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  critRes?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignorePdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignoreMdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentPdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentMdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  guild?: Prisma.GuildUpdateOneRequiredWithoutMembersNestedInput
+  user?: Prisma.UserUpdateOneWithoutGuildMembersNestedInput
+  reservations?: Prisma.ReservedAllocationUpdateManyWithoutMemberNestedInput
+  allocationResults?: Prisma.AllocationResultUpdateManyWithoutMemberNestedInput
+  bidSlots?: Prisma.BidSlotUpdateManyWithoutMemberNestedInput
+  participations?: Prisma.EventParticipationUpdateManyWithoutMemberNestedInput
+  rosterAssignments?: Prisma.RosterMemberUpdateManyWithoutMemberNestedInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberUpdateManyWithoutMemberNestedInput
+}
+
+export type GuildMemberUncheckedUpdateWithoutLeaveDatesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  guildId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  eligible?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  priority?: Prisma.EnumMemberPriorityFieldUpdateOperationsInput | $Enums.MemberPriority
+  remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageBonus?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageReduction?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  critRes?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignorePdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignoreMdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentPdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentMdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reservations?: Prisma.ReservedAllocationUncheckedUpdateManyWithoutMemberNestedInput
+  allocationResults?: Prisma.AllocationResultUncheckedUpdateManyWithoutMemberNestedInput
+  bidSlots?: Prisma.BidSlotUncheckedUpdateManyWithoutMemberNestedInput
+  participations?: Prisma.EventParticipationUncheckedUpdateManyWithoutMemberNestedInput
+  rosterAssignments?: Prisma.RosterMemberUncheckedUpdateManyWithoutMemberNestedInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberUncheckedUpdateManyWithoutMemberNestedInput
+}
+
+export type GuildMemberCreateWithoutReservationsInput = {
+  id?: string
+  displayName: string
+  characterName?: string | null
+  job?: string | null
+  active?: boolean
+  eligible?: boolean
+  priority?: $Enums.MemberPriority
+  remarks?: string | null
+  pdef?: number | null
+  mdef?: number | null
+  pvpDamageBonus?: number | null
+  pvpDamageReduction?: number | null
+  pdmgPercent?: number | null
+  mdmgPercent?: number | null
+  pdmgReductionPercent?: number | null
+  mdmgReductionPercent?: number | null
+  critRes?: number | null
+  ignorePdef?: number | null
+  ignoreMdef?: number | null
+  damageVsMedium?: number | null
+  damageReductionVsMedium?: number | null
+  damageVsSmall?: number | null
+  damageReductionVsSmall?: number | null
+  damageVsDemiHuman?: number | null
+  damageReductionVsDemiHuman?: number | null
+  damageVsBrute?: number | null
+  damageReductionVsBrute?: number | null
+  equipmentPdefPercent?: number | null
+  equipmentMdefPercent?: number | null
+  patk?: number | null
+  matk?: number | null
+  hp?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  guild: Prisma.GuildCreateNestedOneWithoutMembersInput
+  user?: Prisma.UserCreateNestedOneWithoutGuildMembersInput
+  allocationResults?: Prisma.AllocationResultCreateNestedManyWithoutMemberInput
+  bidSlots?: Prisma.BidSlotCreateNestedManyWithoutMemberInput
+  leaveDates?: Prisma.MemberLeaveCreateNestedManyWithoutMemberInput
+  participations?: Prisma.EventParticipationCreateNestedManyWithoutMemberInput
+  rosterAssignments?: Prisma.RosterMemberCreateNestedManyWithoutMemberInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberCreateNestedManyWithoutMemberInput
 }
 
 export type GuildMemberUncheckedCreateWithoutReservationsInput = {
@@ -743,14 +1961,44 @@ export type GuildMemberUncheckedCreateWithoutReservationsInput = {
   guildId: string
   userId?: string | null
   displayName: string
+  characterName?: string | null
+  job?: string | null
   active?: boolean
   eligible?: boolean
   priority?: $Enums.MemberPriority
   remarks?: string | null
+  pdef?: number | null
+  mdef?: number | null
+  pvpDamageBonus?: number | null
+  pvpDamageReduction?: number | null
+  pdmgPercent?: number | null
+  mdmgPercent?: number | null
+  pdmgReductionPercent?: number | null
+  mdmgReductionPercent?: number | null
+  critRes?: number | null
+  ignorePdef?: number | null
+  ignoreMdef?: number | null
+  damageVsMedium?: number | null
+  damageReductionVsMedium?: number | null
+  damageVsSmall?: number | null
+  damageReductionVsSmall?: number | null
+  damageVsDemiHuman?: number | null
+  damageReductionVsDemiHuman?: number | null
+  damageVsBrute?: number | null
+  damageReductionVsBrute?: number | null
+  equipmentPdefPercent?: number | null
+  equipmentMdefPercent?: number | null
+  patk?: number | null
+  matk?: number | null
+  hp?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   allocationResults?: Prisma.AllocationResultUncheckedCreateNestedManyWithoutMemberInput
   bidSlots?: Prisma.BidSlotUncheckedCreateNestedManyWithoutMemberInput
+  leaveDates?: Prisma.MemberLeaveUncheckedCreateNestedManyWithoutMemberInput
+  participations?: Prisma.EventParticipationUncheckedCreateNestedManyWithoutMemberInput
+  rosterAssignments?: Prisma.RosterMemberUncheckedCreateNestedManyWithoutMemberInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberUncheckedCreateNestedManyWithoutMemberInput
 }
 
 export type GuildMemberCreateOrConnectWithoutReservationsInput = {
@@ -772,16 +2020,46 @@ export type GuildMemberUpdateToOneWithWhereWithoutReservationsInput = {
 export type GuildMemberUpdateWithoutReservationsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   eligible?: Prisma.BoolFieldUpdateOperationsInput | boolean
   priority?: Prisma.EnumMemberPriorityFieldUpdateOperationsInput | $Enums.MemberPriority
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageBonus?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageReduction?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  critRes?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignorePdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignoreMdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentPdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentMdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   guild?: Prisma.GuildUpdateOneRequiredWithoutMembersNestedInput
-  user?: Prisma.UserUpdateOneWithoutGuildMembershipsNestedInput
+  user?: Prisma.UserUpdateOneWithoutGuildMembersNestedInput
   allocationResults?: Prisma.AllocationResultUpdateManyWithoutMemberNestedInput
   bidSlots?: Prisma.BidSlotUpdateManyWithoutMemberNestedInput
+  leaveDates?: Prisma.MemberLeaveUpdateManyWithoutMemberNestedInput
+  participations?: Prisma.EventParticipationUpdateManyWithoutMemberNestedInput
+  rosterAssignments?: Prisma.RosterMemberUpdateManyWithoutMemberNestedInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberUpdateManyWithoutMemberNestedInput
 }
 
 export type GuildMemberUncheckedUpdateWithoutReservationsInput = {
@@ -789,29 +2067,89 @@ export type GuildMemberUncheckedUpdateWithoutReservationsInput = {
   guildId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   eligible?: Prisma.BoolFieldUpdateOperationsInput | boolean
   priority?: Prisma.EnumMemberPriorityFieldUpdateOperationsInput | $Enums.MemberPriority
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageBonus?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageReduction?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  critRes?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignorePdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignoreMdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentPdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentMdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   allocationResults?: Prisma.AllocationResultUncheckedUpdateManyWithoutMemberNestedInput
   bidSlots?: Prisma.BidSlotUncheckedUpdateManyWithoutMemberNestedInput
+  leaveDates?: Prisma.MemberLeaveUncheckedUpdateManyWithoutMemberNestedInput
+  participations?: Prisma.EventParticipationUncheckedUpdateManyWithoutMemberNestedInput
+  rosterAssignments?: Prisma.RosterMemberUncheckedUpdateManyWithoutMemberNestedInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberUncheckedUpdateManyWithoutMemberNestedInput
 }
 
 export type GuildMemberCreateWithoutAllocationResultsInput = {
   id?: string
   displayName: string
+  characterName?: string | null
+  job?: string | null
   active?: boolean
   eligible?: boolean
   priority?: $Enums.MemberPriority
   remarks?: string | null
+  pdef?: number | null
+  mdef?: number | null
+  pvpDamageBonus?: number | null
+  pvpDamageReduction?: number | null
+  pdmgPercent?: number | null
+  mdmgPercent?: number | null
+  pdmgReductionPercent?: number | null
+  mdmgReductionPercent?: number | null
+  critRes?: number | null
+  ignorePdef?: number | null
+  ignoreMdef?: number | null
+  damageVsMedium?: number | null
+  damageReductionVsMedium?: number | null
+  damageVsSmall?: number | null
+  damageReductionVsSmall?: number | null
+  damageVsDemiHuman?: number | null
+  damageReductionVsDemiHuman?: number | null
+  damageVsBrute?: number | null
+  damageReductionVsBrute?: number | null
+  equipmentPdefPercent?: number | null
+  equipmentMdefPercent?: number | null
+  patk?: number | null
+  matk?: number | null
+  hp?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   guild: Prisma.GuildCreateNestedOneWithoutMembersInput
-  user?: Prisma.UserCreateNestedOneWithoutGuildMembershipsInput
+  user?: Prisma.UserCreateNestedOneWithoutGuildMembersInput
   reservations?: Prisma.ReservedAllocationCreateNestedManyWithoutMemberInput
   bidSlots?: Prisma.BidSlotCreateNestedManyWithoutMemberInput
+  leaveDates?: Prisma.MemberLeaveCreateNestedManyWithoutMemberInput
+  participations?: Prisma.EventParticipationCreateNestedManyWithoutMemberInput
+  rosterAssignments?: Prisma.RosterMemberCreateNestedManyWithoutMemberInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberCreateNestedManyWithoutMemberInput
 }
 
 export type GuildMemberUncheckedCreateWithoutAllocationResultsInput = {
@@ -819,14 +2157,44 @@ export type GuildMemberUncheckedCreateWithoutAllocationResultsInput = {
   guildId: string
   userId?: string | null
   displayName: string
+  characterName?: string | null
+  job?: string | null
   active?: boolean
   eligible?: boolean
   priority?: $Enums.MemberPriority
   remarks?: string | null
+  pdef?: number | null
+  mdef?: number | null
+  pvpDamageBonus?: number | null
+  pvpDamageReduction?: number | null
+  pdmgPercent?: number | null
+  mdmgPercent?: number | null
+  pdmgReductionPercent?: number | null
+  mdmgReductionPercent?: number | null
+  critRes?: number | null
+  ignorePdef?: number | null
+  ignoreMdef?: number | null
+  damageVsMedium?: number | null
+  damageReductionVsMedium?: number | null
+  damageVsSmall?: number | null
+  damageReductionVsSmall?: number | null
+  damageVsDemiHuman?: number | null
+  damageReductionVsDemiHuman?: number | null
+  damageVsBrute?: number | null
+  damageReductionVsBrute?: number | null
+  equipmentPdefPercent?: number | null
+  equipmentMdefPercent?: number | null
+  patk?: number | null
+  matk?: number | null
+  hp?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   reservations?: Prisma.ReservedAllocationUncheckedCreateNestedManyWithoutMemberInput
   bidSlots?: Prisma.BidSlotUncheckedCreateNestedManyWithoutMemberInput
+  leaveDates?: Prisma.MemberLeaveUncheckedCreateNestedManyWithoutMemberInput
+  participations?: Prisma.EventParticipationUncheckedCreateNestedManyWithoutMemberInput
+  rosterAssignments?: Prisma.RosterMemberUncheckedCreateNestedManyWithoutMemberInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberUncheckedCreateNestedManyWithoutMemberInput
 }
 
 export type GuildMemberCreateOrConnectWithoutAllocationResultsInput = {
@@ -848,16 +2216,46 @@ export type GuildMemberUpdateToOneWithWhereWithoutAllocationResultsInput = {
 export type GuildMemberUpdateWithoutAllocationResultsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   eligible?: Prisma.BoolFieldUpdateOperationsInput | boolean
   priority?: Prisma.EnumMemberPriorityFieldUpdateOperationsInput | $Enums.MemberPriority
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageBonus?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageReduction?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  critRes?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignorePdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignoreMdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentPdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentMdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   guild?: Prisma.GuildUpdateOneRequiredWithoutMembersNestedInput
-  user?: Prisma.UserUpdateOneWithoutGuildMembershipsNestedInput
+  user?: Prisma.UserUpdateOneWithoutGuildMembersNestedInput
   reservations?: Prisma.ReservedAllocationUpdateManyWithoutMemberNestedInput
   bidSlots?: Prisma.BidSlotUpdateManyWithoutMemberNestedInput
+  leaveDates?: Prisma.MemberLeaveUpdateManyWithoutMemberNestedInput
+  participations?: Prisma.EventParticipationUpdateManyWithoutMemberNestedInput
+  rosterAssignments?: Prisma.RosterMemberUpdateManyWithoutMemberNestedInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberUpdateManyWithoutMemberNestedInput
 }
 
 export type GuildMemberUncheckedUpdateWithoutAllocationResultsInput = {
@@ -865,29 +2263,89 @@ export type GuildMemberUncheckedUpdateWithoutAllocationResultsInput = {
   guildId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   eligible?: Prisma.BoolFieldUpdateOperationsInput | boolean
   priority?: Prisma.EnumMemberPriorityFieldUpdateOperationsInput | $Enums.MemberPriority
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageBonus?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageReduction?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  critRes?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignorePdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignoreMdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentPdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentMdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reservations?: Prisma.ReservedAllocationUncheckedUpdateManyWithoutMemberNestedInput
   bidSlots?: Prisma.BidSlotUncheckedUpdateManyWithoutMemberNestedInput
+  leaveDates?: Prisma.MemberLeaveUncheckedUpdateManyWithoutMemberNestedInput
+  participations?: Prisma.EventParticipationUncheckedUpdateManyWithoutMemberNestedInput
+  rosterAssignments?: Prisma.RosterMemberUncheckedUpdateManyWithoutMemberNestedInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberUncheckedUpdateManyWithoutMemberNestedInput
 }
 
 export type GuildMemberCreateWithoutBidSlotsInput = {
   id?: string
   displayName: string
+  characterName?: string | null
+  job?: string | null
   active?: boolean
   eligible?: boolean
   priority?: $Enums.MemberPriority
   remarks?: string | null
+  pdef?: number | null
+  mdef?: number | null
+  pvpDamageBonus?: number | null
+  pvpDamageReduction?: number | null
+  pdmgPercent?: number | null
+  mdmgPercent?: number | null
+  pdmgReductionPercent?: number | null
+  mdmgReductionPercent?: number | null
+  critRes?: number | null
+  ignorePdef?: number | null
+  ignoreMdef?: number | null
+  damageVsMedium?: number | null
+  damageReductionVsMedium?: number | null
+  damageVsSmall?: number | null
+  damageReductionVsSmall?: number | null
+  damageVsDemiHuman?: number | null
+  damageReductionVsDemiHuman?: number | null
+  damageVsBrute?: number | null
+  damageReductionVsBrute?: number | null
+  equipmentPdefPercent?: number | null
+  equipmentMdefPercent?: number | null
+  patk?: number | null
+  matk?: number | null
+  hp?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   guild: Prisma.GuildCreateNestedOneWithoutMembersInput
-  user?: Prisma.UserCreateNestedOneWithoutGuildMembershipsInput
+  user?: Prisma.UserCreateNestedOneWithoutGuildMembersInput
   reservations?: Prisma.ReservedAllocationCreateNestedManyWithoutMemberInput
   allocationResults?: Prisma.AllocationResultCreateNestedManyWithoutMemberInput
+  leaveDates?: Prisma.MemberLeaveCreateNestedManyWithoutMemberInput
+  participations?: Prisma.EventParticipationCreateNestedManyWithoutMemberInput
+  rosterAssignments?: Prisma.RosterMemberCreateNestedManyWithoutMemberInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberCreateNestedManyWithoutMemberInput
 }
 
 export type GuildMemberUncheckedCreateWithoutBidSlotsInput = {
@@ -895,14 +2353,44 @@ export type GuildMemberUncheckedCreateWithoutBidSlotsInput = {
   guildId: string
   userId?: string | null
   displayName: string
+  characterName?: string | null
+  job?: string | null
   active?: boolean
   eligible?: boolean
   priority?: $Enums.MemberPriority
   remarks?: string | null
+  pdef?: number | null
+  mdef?: number | null
+  pvpDamageBonus?: number | null
+  pvpDamageReduction?: number | null
+  pdmgPercent?: number | null
+  mdmgPercent?: number | null
+  pdmgReductionPercent?: number | null
+  mdmgReductionPercent?: number | null
+  critRes?: number | null
+  ignorePdef?: number | null
+  ignoreMdef?: number | null
+  damageVsMedium?: number | null
+  damageReductionVsMedium?: number | null
+  damageVsSmall?: number | null
+  damageReductionVsSmall?: number | null
+  damageVsDemiHuman?: number | null
+  damageReductionVsDemiHuman?: number | null
+  damageVsBrute?: number | null
+  damageReductionVsBrute?: number | null
+  equipmentPdefPercent?: number | null
+  equipmentMdefPercent?: number | null
+  patk?: number | null
+  matk?: number | null
+  hp?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   reservations?: Prisma.ReservedAllocationUncheckedCreateNestedManyWithoutMemberInput
   allocationResults?: Prisma.AllocationResultUncheckedCreateNestedManyWithoutMemberInput
+  leaveDates?: Prisma.MemberLeaveUncheckedCreateNestedManyWithoutMemberInput
+  participations?: Prisma.EventParticipationUncheckedCreateNestedManyWithoutMemberInput
+  rosterAssignments?: Prisma.RosterMemberUncheckedCreateNestedManyWithoutMemberInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberUncheckedCreateNestedManyWithoutMemberInput
 }
 
 export type GuildMemberCreateOrConnectWithoutBidSlotsInput = {
@@ -924,16 +2412,46 @@ export type GuildMemberUpdateToOneWithWhereWithoutBidSlotsInput = {
 export type GuildMemberUpdateWithoutBidSlotsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   eligible?: Prisma.BoolFieldUpdateOperationsInput | boolean
   priority?: Prisma.EnumMemberPriorityFieldUpdateOperationsInput | $Enums.MemberPriority
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageBonus?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageReduction?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  critRes?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignorePdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignoreMdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentPdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentMdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   guild?: Prisma.GuildUpdateOneRequiredWithoutMembersNestedInput
-  user?: Prisma.UserUpdateOneWithoutGuildMembershipsNestedInput
+  user?: Prisma.UserUpdateOneWithoutGuildMembersNestedInput
   reservations?: Prisma.ReservedAllocationUpdateManyWithoutMemberNestedInput
   allocationResults?: Prisma.AllocationResultUpdateManyWithoutMemberNestedInput
+  leaveDates?: Prisma.MemberLeaveUpdateManyWithoutMemberNestedInput
+  participations?: Prisma.EventParticipationUpdateManyWithoutMemberNestedInput
+  rosterAssignments?: Prisma.RosterMemberUpdateManyWithoutMemberNestedInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberUpdateManyWithoutMemberNestedInput
 }
 
 export type GuildMemberUncheckedUpdateWithoutBidSlotsInput = {
@@ -941,24 +2459,668 @@ export type GuildMemberUncheckedUpdateWithoutBidSlotsInput = {
   guildId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   eligible?: Prisma.BoolFieldUpdateOperationsInput | boolean
   priority?: Prisma.EnumMemberPriorityFieldUpdateOperationsInput | $Enums.MemberPriority
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageBonus?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageReduction?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  critRes?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignorePdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignoreMdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentPdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentMdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reservations?: Prisma.ReservedAllocationUncheckedUpdateManyWithoutMemberNestedInput
   allocationResults?: Prisma.AllocationResultUncheckedUpdateManyWithoutMemberNestedInput
+  leaveDates?: Prisma.MemberLeaveUncheckedUpdateManyWithoutMemberNestedInput
+  participations?: Prisma.EventParticipationUncheckedUpdateManyWithoutMemberNestedInput
+  rosterAssignments?: Prisma.RosterMemberUncheckedUpdateManyWithoutMemberNestedInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberUncheckedUpdateManyWithoutMemberNestedInput
+}
+
+export type GuildMemberCreateWithoutParticipationsInput = {
+  id?: string
+  displayName: string
+  characterName?: string | null
+  job?: string | null
+  active?: boolean
+  eligible?: boolean
+  priority?: $Enums.MemberPriority
+  remarks?: string | null
+  pdef?: number | null
+  mdef?: number | null
+  pvpDamageBonus?: number | null
+  pvpDamageReduction?: number | null
+  pdmgPercent?: number | null
+  mdmgPercent?: number | null
+  pdmgReductionPercent?: number | null
+  mdmgReductionPercent?: number | null
+  critRes?: number | null
+  ignorePdef?: number | null
+  ignoreMdef?: number | null
+  damageVsMedium?: number | null
+  damageReductionVsMedium?: number | null
+  damageVsSmall?: number | null
+  damageReductionVsSmall?: number | null
+  damageVsDemiHuman?: number | null
+  damageReductionVsDemiHuman?: number | null
+  damageVsBrute?: number | null
+  damageReductionVsBrute?: number | null
+  equipmentPdefPercent?: number | null
+  equipmentMdefPercent?: number | null
+  patk?: number | null
+  matk?: number | null
+  hp?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  guild: Prisma.GuildCreateNestedOneWithoutMembersInput
+  user?: Prisma.UserCreateNestedOneWithoutGuildMembersInput
+  reservations?: Prisma.ReservedAllocationCreateNestedManyWithoutMemberInput
+  allocationResults?: Prisma.AllocationResultCreateNestedManyWithoutMemberInput
+  bidSlots?: Prisma.BidSlotCreateNestedManyWithoutMemberInput
+  leaveDates?: Prisma.MemberLeaveCreateNestedManyWithoutMemberInput
+  rosterAssignments?: Prisma.RosterMemberCreateNestedManyWithoutMemberInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberCreateNestedManyWithoutMemberInput
+}
+
+export type GuildMemberUncheckedCreateWithoutParticipationsInput = {
+  id?: string
+  guildId: string
+  userId?: string | null
+  displayName: string
+  characterName?: string | null
+  job?: string | null
+  active?: boolean
+  eligible?: boolean
+  priority?: $Enums.MemberPriority
+  remarks?: string | null
+  pdef?: number | null
+  mdef?: number | null
+  pvpDamageBonus?: number | null
+  pvpDamageReduction?: number | null
+  pdmgPercent?: number | null
+  mdmgPercent?: number | null
+  pdmgReductionPercent?: number | null
+  mdmgReductionPercent?: number | null
+  critRes?: number | null
+  ignorePdef?: number | null
+  ignoreMdef?: number | null
+  damageVsMedium?: number | null
+  damageReductionVsMedium?: number | null
+  damageVsSmall?: number | null
+  damageReductionVsSmall?: number | null
+  damageVsDemiHuman?: number | null
+  damageReductionVsDemiHuman?: number | null
+  damageVsBrute?: number | null
+  damageReductionVsBrute?: number | null
+  equipmentPdefPercent?: number | null
+  equipmentMdefPercent?: number | null
+  patk?: number | null
+  matk?: number | null
+  hp?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  reservations?: Prisma.ReservedAllocationUncheckedCreateNestedManyWithoutMemberInput
+  allocationResults?: Prisma.AllocationResultUncheckedCreateNestedManyWithoutMemberInput
+  bidSlots?: Prisma.BidSlotUncheckedCreateNestedManyWithoutMemberInput
+  leaveDates?: Prisma.MemberLeaveUncheckedCreateNestedManyWithoutMemberInput
+  rosterAssignments?: Prisma.RosterMemberUncheckedCreateNestedManyWithoutMemberInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberUncheckedCreateNestedManyWithoutMemberInput
+}
+
+export type GuildMemberCreateOrConnectWithoutParticipationsInput = {
+  where: Prisma.GuildMemberWhereUniqueInput
+  create: Prisma.XOR<Prisma.GuildMemberCreateWithoutParticipationsInput, Prisma.GuildMemberUncheckedCreateWithoutParticipationsInput>
+}
+
+export type GuildMemberUpsertWithoutParticipationsInput = {
+  update: Prisma.XOR<Prisma.GuildMemberUpdateWithoutParticipationsInput, Prisma.GuildMemberUncheckedUpdateWithoutParticipationsInput>
+  create: Prisma.XOR<Prisma.GuildMemberCreateWithoutParticipationsInput, Prisma.GuildMemberUncheckedCreateWithoutParticipationsInput>
+  where?: Prisma.GuildMemberWhereInput
+}
+
+export type GuildMemberUpdateToOneWithWhereWithoutParticipationsInput = {
+  where?: Prisma.GuildMemberWhereInput
+  data: Prisma.XOR<Prisma.GuildMemberUpdateWithoutParticipationsInput, Prisma.GuildMemberUncheckedUpdateWithoutParticipationsInput>
+}
+
+export type GuildMemberUpdateWithoutParticipationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  eligible?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  priority?: Prisma.EnumMemberPriorityFieldUpdateOperationsInput | $Enums.MemberPriority
+  remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageBonus?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageReduction?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  critRes?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignorePdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignoreMdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentPdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentMdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  guild?: Prisma.GuildUpdateOneRequiredWithoutMembersNestedInput
+  user?: Prisma.UserUpdateOneWithoutGuildMembersNestedInput
+  reservations?: Prisma.ReservedAllocationUpdateManyWithoutMemberNestedInput
+  allocationResults?: Prisma.AllocationResultUpdateManyWithoutMemberNestedInput
+  bidSlots?: Prisma.BidSlotUpdateManyWithoutMemberNestedInput
+  leaveDates?: Prisma.MemberLeaveUpdateManyWithoutMemberNestedInput
+  rosterAssignments?: Prisma.RosterMemberUpdateManyWithoutMemberNestedInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberUpdateManyWithoutMemberNestedInput
+}
+
+export type GuildMemberUncheckedUpdateWithoutParticipationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  guildId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  eligible?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  priority?: Prisma.EnumMemberPriorityFieldUpdateOperationsInput | $Enums.MemberPriority
+  remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageBonus?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageReduction?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  critRes?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignorePdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignoreMdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentPdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentMdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reservations?: Prisma.ReservedAllocationUncheckedUpdateManyWithoutMemberNestedInput
+  allocationResults?: Prisma.AllocationResultUncheckedUpdateManyWithoutMemberNestedInput
+  bidSlots?: Prisma.BidSlotUncheckedUpdateManyWithoutMemberNestedInput
+  leaveDates?: Prisma.MemberLeaveUncheckedUpdateManyWithoutMemberNestedInput
+  rosterAssignments?: Prisma.RosterMemberUncheckedUpdateManyWithoutMemberNestedInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberUncheckedUpdateManyWithoutMemberNestedInput
+}
+
+export type GuildMemberCreateWithoutRosterAssignmentsInput = {
+  id?: string
+  displayName: string
+  characterName?: string | null
+  job?: string | null
+  active?: boolean
+  eligible?: boolean
+  priority?: $Enums.MemberPriority
+  remarks?: string | null
+  pdef?: number | null
+  mdef?: number | null
+  pvpDamageBonus?: number | null
+  pvpDamageReduction?: number | null
+  pdmgPercent?: number | null
+  mdmgPercent?: number | null
+  pdmgReductionPercent?: number | null
+  mdmgReductionPercent?: number | null
+  critRes?: number | null
+  ignorePdef?: number | null
+  ignoreMdef?: number | null
+  damageVsMedium?: number | null
+  damageReductionVsMedium?: number | null
+  damageVsSmall?: number | null
+  damageReductionVsSmall?: number | null
+  damageVsDemiHuman?: number | null
+  damageReductionVsDemiHuman?: number | null
+  damageVsBrute?: number | null
+  damageReductionVsBrute?: number | null
+  equipmentPdefPercent?: number | null
+  equipmentMdefPercent?: number | null
+  patk?: number | null
+  matk?: number | null
+  hp?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  guild: Prisma.GuildCreateNestedOneWithoutMembersInput
+  user?: Prisma.UserCreateNestedOneWithoutGuildMembersInput
+  reservations?: Prisma.ReservedAllocationCreateNestedManyWithoutMemberInput
+  allocationResults?: Prisma.AllocationResultCreateNestedManyWithoutMemberInput
+  bidSlots?: Prisma.BidSlotCreateNestedManyWithoutMemberInput
+  leaveDates?: Prisma.MemberLeaveCreateNestedManyWithoutMemberInput
+  participations?: Prisma.EventParticipationCreateNestedManyWithoutMemberInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberCreateNestedManyWithoutMemberInput
+}
+
+export type GuildMemberUncheckedCreateWithoutRosterAssignmentsInput = {
+  id?: string
+  guildId: string
+  userId?: string | null
+  displayName: string
+  characterName?: string | null
+  job?: string | null
+  active?: boolean
+  eligible?: boolean
+  priority?: $Enums.MemberPriority
+  remarks?: string | null
+  pdef?: number | null
+  mdef?: number | null
+  pvpDamageBonus?: number | null
+  pvpDamageReduction?: number | null
+  pdmgPercent?: number | null
+  mdmgPercent?: number | null
+  pdmgReductionPercent?: number | null
+  mdmgReductionPercent?: number | null
+  critRes?: number | null
+  ignorePdef?: number | null
+  ignoreMdef?: number | null
+  damageVsMedium?: number | null
+  damageReductionVsMedium?: number | null
+  damageVsSmall?: number | null
+  damageReductionVsSmall?: number | null
+  damageVsDemiHuman?: number | null
+  damageReductionVsDemiHuman?: number | null
+  damageVsBrute?: number | null
+  damageReductionVsBrute?: number | null
+  equipmentPdefPercent?: number | null
+  equipmentMdefPercent?: number | null
+  patk?: number | null
+  matk?: number | null
+  hp?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  reservations?: Prisma.ReservedAllocationUncheckedCreateNestedManyWithoutMemberInput
+  allocationResults?: Prisma.AllocationResultUncheckedCreateNestedManyWithoutMemberInput
+  bidSlots?: Prisma.BidSlotUncheckedCreateNestedManyWithoutMemberInput
+  leaveDates?: Prisma.MemberLeaveUncheckedCreateNestedManyWithoutMemberInput
+  participations?: Prisma.EventParticipationUncheckedCreateNestedManyWithoutMemberInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberUncheckedCreateNestedManyWithoutMemberInput
+}
+
+export type GuildMemberCreateOrConnectWithoutRosterAssignmentsInput = {
+  where: Prisma.GuildMemberWhereUniqueInput
+  create: Prisma.XOR<Prisma.GuildMemberCreateWithoutRosterAssignmentsInput, Prisma.GuildMemberUncheckedCreateWithoutRosterAssignmentsInput>
+}
+
+export type GuildMemberUpsertWithoutRosterAssignmentsInput = {
+  update: Prisma.XOR<Prisma.GuildMemberUpdateWithoutRosterAssignmentsInput, Prisma.GuildMemberUncheckedUpdateWithoutRosterAssignmentsInput>
+  create: Prisma.XOR<Prisma.GuildMemberCreateWithoutRosterAssignmentsInput, Prisma.GuildMemberUncheckedCreateWithoutRosterAssignmentsInput>
+  where?: Prisma.GuildMemberWhereInput
+}
+
+export type GuildMemberUpdateToOneWithWhereWithoutRosterAssignmentsInput = {
+  where?: Prisma.GuildMemberWhereInput
+  data: Prisma.XOR<Prisma.GuildMemberUpdateWithoutRosterAssignmentsInput, Prisma.GuildMemberUncheckedUpdateWithoutRosterAssignmentsInput>
+}
+
+export type GuildMemberUpdateWithoutRosterAssignmentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  eligible?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  priority?: Prisma.EnumMemberPriorityFieldUpdateOperationsInput | $Enums.MemberPriority
+  remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageBonus?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageReduction?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  critRes?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignorePdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignoreMdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentPdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentMdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  guild?: Prisma.GuildUpdateOneRequiredWithoutMembersNestedInput
+  user?: Prisma.UserUpdateOneWithoutGuildMembersNestedInput
+  reservations?: Prisma.ReservedAllocationUpdateManyWithoutMemberNestedInput
+  allocationResults?: Prisma.AllocationResultUpdateManyWithoutMemberNestedInput
+  bidSlots?: Prisma.BidSlotUpdateManyWithoutMemberNestedInput
+  leaveDates?: Prisma.MemberLeaveUpdateManyWithoutMemberNestedInput
+  participations?: Prisma.EventParticipationUpdateManyWithoutMemberNestedInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberUpdateManyWithoutMemberNestedInput
+}
+
+export type GuildMemberUncheckedUpdateWithoutRosterAssignmentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  guildId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  eligible?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  priority?: Prisma.EnumMemberPriorityFieldUpdateOperationsInput | $Enums.MemberPriority
+  remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageBonus?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageReduction?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  critRes?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignorePdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignoreMdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentPdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentMdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reservations?: Prisma.ReservedAllocationUncheckedUpdateManyWithoutMemberNestedInput
+  allocationResults?: Prisma.AllocationResultUncheckedUpdateManyWithoutMemberNestedInput
+  bidSlots?: Prisma.BidSlotUncheckedUpdateManyWithoutMemberNestedInput
+  leaveDates?: Prisma.MemberLeaveUncheckedUpdateManyWithoutMemberNestedInput
+  participations?: Prisma.EventParticipationUncheckedUpdateManyWithoutMemberNestedInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberUncheckedUpdateManyWithoutMemberNestedInput
+}
+
+export type GuildMemberCreateWithoutPreferredRosterAssignmentsInput = {
+  id?: string
+  displayName: string
+  characterName?: string | null
+  job?: string | null
+  active?: boolean
+  eligible?: boolean
+  priority?: $Enums.MemberPriority
+  remarks?: string | null
+  pdef?: number | null
+  mdef?: number | null
+  pvpDamageBonus?: number | null
+  pvpDamageReduction?: number | null
+  pdmgPercent?: number | null
+  mdmgPercent?: number | null
+  pdmgReductionPercent?: number | null
+  mdmgReductionPercent?: number | null
+  critRes?: number | null
+  ignorePdef?: number | null
+  ignoreMdef?: number | null
+  damageVsMedium?: number | null
+  damageReductionVsMedium?: number | null
+  damageVsSmall?: number | null
+  damageReductionVsSmall?: number | null
+  damageVsDemiHuman?: number | null
+  damageReductionVsDemiHuman?: number | null
+  damageVsBrute?: number | null
+  damageReductionVsBrute?: number | null
+  equipmentPdefPercent?: number | null
+  equipmentMdefPercent?: number | null
+  patk?: number | null
+  matk?: number | null
+  hp?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  guild: Prisma.GuildCreateNestedOneWithoutMembersInput
+  user?: Prisma.UserCreateNestedOneWithoutGuildMembersInput
+  reservations?: Prisma.ReservedAllocationCreateNestedManyWithoutMemberInput
+  allocationResults?: Prisma.AllocationResultCreateNestedManyWithoutMemberInput
+  bidSlots?: Prisma.BidSlotCreateNestedManyWithoutMemberInput
+  leaveDates?: Prisma.MemberLeaveCreateNestedManyWithoutMemberInput
+  participations?: Prisma.EventParticipationCreateNestedManyWithoutMemberInput
+  rosterAssignments?: Prisma.RosterMemberCreateNestedManyWithoutMemberInput
+}
+
+export type GuildMemberUncheckedCreateWithoutPreferredRosterAssignmentsInput = {
+  id?: string
+  guildId: string
+  userId?: string | null
+  displayName: string
+  characterName?: string | null
+  job?: string | null
+  active?: boolean
+  eligible?: boolean
+  priority?: $Enums.MemberPriority
+  remarks?: string | null
+  pdef?: number | null
+  mdef?: number | null
+  pvpDamageBonus?: number | null
+  pvpDamageReduction?: number | null
+  pdmgPercent?: number | null
+  mdmgPercent?: number | null
+  pdmgReductionPercent?: number | null
+  mdmgReductionPercent?: number | null
+  critRes?: number | null
+  ignorePdef?: number | null
+  ignoreMdef?: number | null
+  damageVsMedium?: number | null
+  damageReductionVsMedium?: number | null
+  damageVsSmall?: number | null
+  damageReductionVsSmall?: number | null
+  damageVsDemiHuman?: number | null
+  damageReductionVsDemiHuman?: number | null
+  damageVsBrute?: number | null
+  damageReductionVsBrute?: number | null
+  equipmentPdefPercent?: number | null
+  equipmentMdefPercent?: number | null
+  patk?: number | null
+  matk?: number | null
+  hp?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  reservations?: Prisma.ReservedAllocationUncheckedCreateNestedManyWithoutMemberInput
+  allocationResults?: Prisma.AllocationResultUncheckedCreateNestedManyWithoutMemberInput
+  bidSlots?: Prisma.BidSlotUncheckedCreateNestedManyWithoutMemberInput
+  leaveDates?: Prisma.MemberLeaveUncheckedCreateNestedManyWithoutMemberInput
+  participations?: Prisma.EventParticipationUncheckedCreateNestedManyWithoutMemberInput
+  rosterAssignments?: Prisma.RosterMemberUncheckedCreateNestedManyWithoutMemberInput
+}
+
+export type GuildMemberCreateOrConnectWithoutPreferredRosterAssignmentsInput = {
+  where: Prisma.GuildMemberWhereUniqueInput
+  create: Prisma.XOR<Prisma.GuildMemberCreateWithoutPreferredRosterAssignmentsInput, Prisma.GuildMemberUncheckedCreateWithoutPreferredRosterAssignmentsInput>
+}
+
+export type GuildMemberUpsertWithoutPreferredRosterAssignmentsInput = {
+  update: Prisma.XOR<Prisma.GuildMemberUpdateWithoutPreferredRosterAssignmentsInput, Prisma.GuildMemberUncheckedUpdateWithoutPreferredRosterAssignmentsInput>
+  create: Prisma.XOR<Prisma.GuildMemberCreateWithoutPreferredRosterAssignmentsInput, Prisma.GuildMemberUncheckedCreateWithoutPreferredRosterAssignmentsInput>
+  where?: Prisma.GuildMemberWhereInput
+}
+
+export type GuildMemberUpdateToOneWithWhereWithoutPreferredRosterAssignmentsInput = {
+  where?: Prisma.GuildMemberWhereInput
+  data: Prisma.XOR<Prisma.GuildMemberUpdateWithoutPreferredRosterAssignmentsInput, Prisma.GuildMemberUncheckedUpdateWithoutPreferredRosterAssignmentsInput>
+}
+
+export type GuildMemberUpdateWithoutPreferredRosterAssignmentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  eligible?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  priority?: Prisma.EnumMemberPriorityFieldUpdateOperationsInput | $Enums.MemberPriority
+  remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageBonus?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageReduction?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  critRes?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignorePdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignoreMdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentPdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentMdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  guild?: Prisma.GuildUpdateOneRequiredWithoutMembersNestedInput
+  user?: Prisma.UserUpdateOneWithoutGuildMembersNestedInput
+  reservations?: Prisma.ReservedAllocationUpdateManyWithoutMemberNestedInput
+  allocationResults?: Prisma.AllocationResultUpdateManyWithoutMemberNestedInput
+  bidSlots?: Prisma.BidSlotUpdateManyWithoutMemberNestedInput
+  leaveDates?: Prisma.MemberLeaveUpdateManyWithoutMemberNestedInput
+  participations?: Prisma.EventParticipationUpdateManyWithoutMemberNestedInput
+  rosterAssignments?: Prisma.RosterMemberUpdateManyWithoutMemberNestedInput
+}
+
+export type GuildMemberUncheckedUpdateWithoutPreferredRosterAssignmentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  guildId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  eligible?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  priority?: Prisma.EnumMemberPriorityFieldUpdateOperationsInput | $Enums.MemberPriority
+  remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageBonus?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageReduction?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  critRes?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignorePdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignoreMdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentPdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentMdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reservations?: Prisma.ReservedAllocationUncheckedUpdateManyWithoutMemberNestedInput
+  allocationResults?: Prisma.AllocationResultUncheckedUpdateManyWithoutMemberNestedInput
+  bidSlots?: Prisma.BidSlotUncheckedUpdateManyWithoutMemberNestedInput
+  leaveDates?: Prisma.MemberLeaveUncheckedUpdateManyWithoutMemberNestedInput
+  participations?: Prisma.EventParticipationUncheckedUpdateManyWithoutMemberNestedInput
+  rosterAssignments?: Prisma.RosterMemberUncheckedUpdateManyWithoutMemberNestedInput
 }
 
 export type GuildMemberCreateManyUserInput = {
   id?: string
   guildId: string
   displayName: string
+  characterName?: string | null
+  job?: string | null
   active?: boolean
   eligible?: boolean
   priority?: $Enums.MemberPriority
   remarks?: string | null
+  pdef?: number | null
+  mdef?: number | null
+  pvpDamageBonus?: number | null
+  pvpDamageReduction?: number | null
+  pdmgPercent?: number | null
+  mdmgPercent?: number | null
+  pdmgReductionPercent?: number | null
+  mdmgReductionPercent?: number | null
+  critRes?: number | null
+  ignorePdef?: number | null
+  ignoreMdef?: number | null
+  damageVsMedium?: number | null
+  damageReductionVsMedium?: number | null
+  damageVsSmall?: number | null
+  damageReductionVsSmall?: number | null
+  damageVsDemiHuman?: number | null
+  damageReductionVsDemiHuman?: number | null
+  damageVsBrute?: number | null
+  damageReductionVsBrute?: number | null
+  equipmentPdefPercent?: number | null
+  equipmentMdefPercent?: number | null
+  patk?: number | null
+  matk?: number | null
+  hp?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -966,41 +3128,127 @@ export type GuildMemberCreateManyUserInput = {
 export type GuildMemberUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   eligible?: Prisma.BoolFieldUpdateOperationsInput | boolean
   priority?: Prisma.EnumMemberPriorityFieldUpdateOperationsInput | $Enums.MemberPriority
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageBonus?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageReduction?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  critRes?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignorePdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignoreMdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentPdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentMdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   guild?: Prisma.GuildUpdateOneRequiredWithoutMembersNestedInput
   reservations?: Prisma.ReservedAllocationUpdateManyWithoutMemberNestedInput
   allocationResults?: Prisma.AllocationResultUpdateManyWithoutMemberNestedInput
   bidSlots?: Prisma.BidSlotUpdateManyWithoutMemberNestedInput
+  leaveDates?: Prisma.MemberLeaveUpdateManyWithoutMemberNestedInput
+  participations?: Prisma.EventParticipationUpdateManyWithoutMemberNestedInput
+  rosterAssignments?: Prisma.RosterMemberUpdateManyWithoutMemberNestedInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberUpdateManyWithoutMemberNestedInput
 }
 
 export type GuildMemberUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   guildId?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   eligible?: Prisma.BoolFieldUpdateOperationsInput | boolean
   priority?: Prisma.EnumMemberPriorityFieldUpdateOperationsInput | $Enums.MemberPriority
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageBonus?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageReduction?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  critRes?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignorePdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignoreMdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentPdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentMdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reservations?: Prisma.ReservedAllocationUncheckedUpdateManyWithoutMemberNestedInput
   allocationResults?: Prisma.AllocationResultUncheckedUpdateManyWithoutMemberNestedInput
   bidSlots?: Prisma.BidSlotUncheckedUpdateManyWithoutMemberNestedInput
+  leaveDates?: Prisma.MemberLeaveUncheckedUpdateManyWithoutMemberNestedInput
+  participations?: Prisma.EventParticipationUncheckedUpdateManyWithoutMemberNestedInput
+  rosterAssignments?: Prisma.RosterMemberUncheckedUpdateManyWithoutMemberNestedInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberUncheckedUpdateManyWithoutMemberNestedInput
 }
 
 export type GuildMemberUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   guildId?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   eligible?: Prisma.BoolFieldUpdateOperationsInput | boolean
   priority?: Prisma.EnumMemberPriorityFieldUpdateOperationsInput | $Enums.MemberPriority
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageBonus?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageReduction?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  critRes?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignorePdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignoreMdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentPdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentMdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1009,10 +3257,36 @@ export type GuildMemberCreateManyGuildInput = {
   id?: string
   userId?: string | null
   displayName: string
+  characterName?: string | null
+  job?: string | null
   active?: boolean
   eligible?: boolean
   priority?: $Enums.MemberPriority
   remarks?: string | null
+  pdef?: number | null
+  mdef?: number | null
+  pvpDamageBonus?: number | null
+  pvpDamageReduction?: number | null
+  pdmgPercent?: number | null
+  mdmgPercent?: number | null
+  pdmgReductionPercent?: number | null
+  mdmgReductionPercent?: number | null
+  critRes?: number | null
+  ignorePdef?: number | null
+  ignoreMdef?: number | null
+  damageVsMedium?: number | null
+  damageReductionVsMedium?: number | null
+  damageVsSmall?: number | null
+  damageReductionVsSmall?: number | null
+  damageVsDemiHuman?: number | null
+  damageReductionVsDemiHuman?: number | null
+  damageVsBrute?: number | null
+  damageReductionVsBrute?: number | null
+  equipmentPdefPercent?: number | null
+  equipmentMdefPercent?: number | null
+  patk?: number | null
+  matk?: number | null
+  hp?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1020,41 +3294,127 @@ export type GuildMemberCreateManyGuildInput = {
 export type GuildMemberUpdateWithoutGuildInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   eligible?: Prisma.BoolFieldUpdateOperationsInput | boolean
   priority?: Prisma.EnumMemberPriorityFieldUpdateOperationsInput | $Enums.MemberPriority
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageBonus?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageReduction?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  critRes?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignorePdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignoreMdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentPdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentMdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  user?: Prisma.UserUpdateOneWithoutGuildMembershipsNestedInput
+  user?: Prisma.UserUpdateOneWithoutGuildMembersNestedInput
   reservations?: Prisma.ReservedAllocationUpdateManyWithoutMemberNestedInput
   allocationResults?: Prisma.AllocationResultUpdateManyWithoutMemberNestedInput
   bidSlots?: Prisma.BidSlotUpdateManyWithoutMemberNestedInput
+  leaveDates?: Prisma.MemberLeaveUpdateManyWithoutMemberNestedInput
+  participations?: Prisma.EventParticipationUpdateManyWithoutMemberNestedInput
+  rosterAssignments?: Prisma.RosterMemberUpdateManyWithoutMemberNestedInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberUpdateManyWithoutMemberNestedInput
 }
 
 export type GuildMemberUncheckedUpdateWithoutGuildInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   eligible?: Prisma.BoolFieldUpdateOperationsInput | boolean
   priority?: Prisma.EnumMemberPriorityFieldUpdateOperationsInput | $Enums.MemberPriority
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageBonus?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageReduction?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  critRes?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignorePdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignoreMdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentPdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentMdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reservations?: Prisma.ReservedAllocationUncheckedUpdateManyWithoutMemberNestedInput
   allocationResults?: Prisma.AllocationResultUncheckedUpdateManyWithoutMemberNestedInput
   bidSlots?: Prisma.BidSlotUncheckedUpdateManyWithoutMemberNestedInput
+  leaveDates?: Prisma.MemberLeaveUncheckedUpdateManyWithoutMemberNestedInput
+  participations?: Prisma.EventParticipationUncheckedUpdateManyWithoutMemberNestedInput
+  rosterAssignments?: Prisma.RosterMemberUncheckedUpdateManyWithoutMemberNestedInput
+  preferredRosterAssignments?: Prisma.PreferredRosterMemberUncheckedUpdateManyWithoutMemberNestedInput
 }
 
 export type GuildMemberUncheckedUpdateManyWithoutGuildInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   eligible?: Prisma.BoolFieldUpdateOperationsInput | boolean
   priority?: Prisma.EnumMemberPriorityFieldUpdateOperationsInput | $Enums.MemberPriority
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageBonus?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpDamageReduction?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  mdmgReductionPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  critRes?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignorePdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ignoreMdef?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsMedium?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsSmall?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsDemiHuman?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  damageReductionVsBrute?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentPdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  equipmentMdefPercent?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1068,12 +3428,20 @@ export type GuildMemberCountOutputType = {
   reservations: number
   allocationResults: number
   bidSlots: number
+  leaveDates: number
+  participations: number
+  rosterAssignments: number
+  preferredRosterAssignments: number
 }
 
 export type GuildMemberCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   reservations?: boolean | GuildMemberCountOutputTypeCountReservationsArgs
   allocationResults?: boolean | GuildMemberCountOutputTypeCountAllocationResultsArgs
   bidSlots?: boolean | GuildMemberCountOutputTypeCountBidSlotsArgs
+  leaveDates?: boolean | GuildMemberCountOutputTypeCountLeaveDatesArgs
+  participations?: boolean | GuildMemberCountOutputTypeCountParticipationsArgs
+  rosterAssignments?: boolean | GuildMemberCountOutputTypeCountRosterAssignmentsArgs
+  preferredRosterAssignments?: boolean | GuildMemberCountOutputTypeCountPreferredRosterAssignmentsArgs
 }
 
 /**
@@ -1107,16 +3475,70 @@ export type GuildMemberCountOutputTypeCountBidSlotsArgs<ExtArgs extends runtime.
   where?: Prisma.BidSlotWhereInput
 }
 
+/**
+ * GuildMemberCountOutputType without action
+ */
+export type GuildMemberCountOutputTypeCountLeaveDatesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MemberLeaveWhereInput
+}
+
+/**
+ * GuildMemberCountOutputType without action
+ */
+export type GuildMemberCountOutputTypeCountParticipationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EventParticipationWhereInput
+}
+
+/**
+ * GuildMemberCountOutputType without action
+ */
+export type GuildMemberCountOutputTypeCountRosterAssignmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RosterMemberWhereInput
+}
+
+/**
+ * GuildMemberCountOutputType without action
+ */
+export type GuildMemberCountOutputTypeCountPreferredRosterAssignmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PreferredRosterMemberWhereInput
+}
+
 
 export type GuildMemberSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   guildId?: boolean
   userId?: boolean
   displayName?: boolean
+  characterName?: boolean
+  job?: boolean
   active?: boolean
   eligible?: boolean
   priority?: boolean
   remarks?: boolean
+  pdef?: boolean
+  mdef?: boolean
+  pvpDamageBonus?: boolean
+  pvpDamageReduction?: boolean
+  pdmgPercent?: boolean
+  mdmgPercent?: boolean
+  pdmgReductionPercent?: boolean
+  mdmgReductionPercent?: boolean
+  critRes?: boolean
+  ignorePdef?: boolean
+  ignoreMdef?: boolean
+  damageVsMedium?: boolean
+  damageReductionVsMedium?: boolean
+  damageVsSmall?: boolean
+  damageReductionVsSmall?: boolean
+  damageVsDemiHuman?: boolean
+  damageReductionVsDemiHuman?: boolean
+  damageVsBrute?: boolean
+  damageReductionVsBrute?: boolean
+  equipmentPdefPercent?: boolean
+  equipmentMdefPercent?: boolean
+  patk?: boolean
+  matk?: boolean
+  hp?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   guild?: boolean | Prisma.GuildDefaultArgs<ExtArgs>
@@ -1124,6 +3546,10 @@ export type GuildMemberSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   reservations?: boolean | Prisma.GuildMember$reservationsArgs<ExtArgs>
   allocationResults?: boolean | Prisma.GuildMember$allocationResultsArgs<ExtArgs>
   bidSlots?: boolean | Prisma.GuildMember$bidSlotsArgs<ExtArgs>
+  leaveDates?: boolean | Prisma.GuildMember$leaveDatesArgs<ExtArgs>
+  participations?: boolean | Prisma.GuildMember$participationsArgs<ExtArgs>
+  rosterAssignments?: boolean | Prisma.GuildMember$rosterAssignmentsArgs<ExtArgs>
+  preferredRosterAssignments?: boolean | Prisma.GuildMember$preferredRosterAssignmentsArgs<ExtArgs>
   _count?: boolean | Prisma.GuildMemberCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["guildMember"]>
 
@@ -1132,10 +3558,36 @@ export type GuildMemberSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   guildId?: boolean
   userId?: boolean
   displayName?: boolean
+  characterName?: boolean
+  job?: boolean
   active?: boolean
   eligible?: boolean
   priority?: boolean
   remarks?: boolean
+  pdef?: boolean
+  mdef?: boolean
+  pvpDamageBonus?: boolean
+  pvpDamageReduction?: boolean
+  pdmgPercent?: boolean
+  mdmgPercent?: boolean
+  pdmgReductionPercent?: boolean
+  mdmgReductionPercent?: boolean
+  critRes?: boolean
+  ignorePdef?: boolean
+  ignoreMdef?: boolean
+  damageVsMedium?: boolean
+  damageReductionVsMedium?: boolean
+  damageVsSmall?: boolean
+  damageReductionVsSmall?: boolean
+  damageVsDemiHuman?: boolean
+  damageReductionVsDemiHuman?: boolean
+  damageVsBrute?: boolean
+  damageReductionVsBrute?: boolean
+  equipmentPdefPercent?: boolean
+  equipmentMdefPercent?: boolean
+  patk?: boolean
+  matk?: boolean
+  hp?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   guild?: boolean | Prisma.GuildDefaultArgs<ExtArgs>
@@ -1147,10 +3599,36 @@ export type GuildMemberSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   guildId?: boolean
   userId?: boolean
   displayName?: boolean
+  characterName?: boolean
+  job?: boolean
   active?: boolean
   eligible?: boolean
   priority?: boolean
   remarks?: boolean
+  pdef?: boolean
+  mdef?: boolean
+  pvpDamageBonus?: boolean
+  pvpDamageReduction?: boolean
+  pdmgPercent?: boolean
+  mdmgPercent?: boolean
+  pdmgReductionPercent?: boolean
+  mdmgReductionPercent?: boolean
+  critRes?: boolean
+  ignorePdef?: boolean
+  ignoreMdef?: boolean
+  damageVsMedium?: boolean
+  damageReductionVsMedium?: boolean
+  damageVsSmall?: boolean
+  damageReductionVsSmall?: boolean
+  damageVsDemiHuman?: boolean
+  damageReductionVsDemiHuman?: boolean
+  damageVsBrute?: boolean
+  damageReductionVsBrute?: boolean
+  equipmentPdefPercent?: boolean
+  equipmentMdefPercent?: boolean
+  patk?: boolean
+  matk?: boolean
+  hp?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   guild?: boolean | Prisma.GuildDefaultArgs<ExtArgs>
@@ -1162,21 +3640,51 @@ export type GuildMemberSelectScalar = {
   guildId?: boolean
   userId?: boolean
   displayName?: boolean
+  characterName?: boolean
+  job?: boolean
   active?: boolean
   eligible?: boolean
   priority?: boolean
   remarks?: boolean
+  pdef?: boolean
+  mdef?: boolean
+  pvpDamageBonus?: boolean
+  pvpDamageReduction?: boolean
+  pdmgPercent?: boolean
+  mdmgPercent?: boolean
+  pdmgReductionPercent?: boolean
+  mdmgReductionPercent?: boolean
+  critRes?: boolean
+  ignorePdef?: boolean
+  ignoreMdef?: boolean
+  damageVsMedium?: boolean
+  damageReductionVsMedium?: boolean
+  damageVsSmall?: boolean
+  damageReductionVsSmall?: boolean
+  damageVsDemiHuman?: boolean
+  damageReductionVsDemiHuman?: boolean
+  damageVsBrute?: boolean
+  damageReductionVsBrute?: boolean
+  equipmentPdefPercent?: boolean
+  equipmentMdefPercent?: boolean
+  patk?: boolean
+  matk?: boolean
+  hp?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type GuildMemberOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "guildId" | "userId" | "displayName" | "active" | "eligible" | "priority" | "remarks" | "createdAt" | "updatedAt", ExtArgs["result"]["guildMember"]>
+export type GuildMemberOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "guildId" | "userId" | "displayName" | "characterName" | "job" | "active" | "eligible" | "priority" | "remarks" | "pdef" | "mdef" | "pvpDamageBonus" | "pvpDamageReduction" | "pdmgPercent" | "mdmgPercent" | "pdmgReductionPercent" | "mdmgReductionPercent" | "critRes" | "ignorePdef" | "ignoreMdef" | "damageVsMedium" | "damageReductionVsMedium" | "damageVsSmall" | "damageReductionVsSmall" | "damageVsDemiHuman" | "damageReductionVsDemiHuman" | "damageVsBrute" | "damageReductionVsBrute" | "equipmentPdefPercent" | "equipmentMdefPercent" | "patk" | "matk" | "hp" | "createdAt" | "updatedAt", ExtArgs["result"]["guildMember"]>
 export type GuildMemberInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   guild?: boolean | Prisma.GuildDefaultArgs<ExtArgs>
   user?: boolean | Prisma.GuildMember$userArgs<ExtArgs>
   reservations?: boolean | Prisma.GuildMember$reservationsArgs<ExtArgs>
   allocationResults?: boolean | Prisma.GuildMember$allocationResultsArgs<ExtArgs>
   bidSlots?: boolean | Prisma.GuildMember$bidSlotsArgs<ExtArgs>
+  leaveDates?: boolean | Prisma.GuildMember$leaveDatesArgs<ExtArgs>
+  participations?: boolean | Prisma.GuildMember$participationsArgs<ExtArgs>
+  rosterAssignments?: boolean | Prisma.GuildMember$rosterAssignmentsArgs<ExtArgs>
+  preferredRosterAssignments?: boolean | Prisma.GuildMember$preferredRosterAssignmentsArgs<ExtArgs>
   _count?: boolean | Prisma.GuildMemberCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type GuildMemberIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1196,16 +3704,46 @@ export type $GuildMemberPayload<ExtArgs extends runtime.Types.Extensions.Interna
     reservations: Prisma.$ReservedAllocationPayload<ExtArgs>[]
     allocationResults: Prisma.$AllocationResultPayload<ExtArgs>[]
     bidSlots: Prisma.$BidSlotPayload<ExtArgs>[]
+    leaveDates: Prisma.$MemberLeavePayload<ExtArgs>[]
+    participations: Prisma.$EventParticipationPayload<ExtArgs>[]
+    rosterAssignments: Prisma.$RosterMemberPayload<ExtArgs>[]
+    preferredRosterAssignments: Prisma.$PreferredRosterMemberPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     guildId: string
     userId: string | null
     displayName: string
+    characterName: string | null
+    job: string | null
     active: boolean
     eligible: boolean
     priority: $Enums.MemberPriority
     remarks: string | null
+    pdef: number | null
+    mdef: number | null
+    pvpDamageBonus: number | null
+    pvpDamageReduction: number | null
+    pdmgPercent: number | null
+    mdmgPercent: number | null
+    pdmgReductionPercent: number | null
+    mdmgReductionPercent: number | null
+    critRes: number | null
+    ignorePdef: number | null
+    ignoreMdef: number | null
+    damageVsMedium: number | null
+    damageReductionVsMedium: number | null
+    damageVsSmall: number | null
+    damageReductionVsSmall: number | null
+    damageVsDemiHuman: number | null
+    damageReductionVsDemiHuman: number | null
+    damageVsBrute: number | null
+    damageReductionVsBrute: number | null
+    equipmentPdefPercent: number | null
+    equipmentMdefPercent: number | null
+    patk: number | null
+    matk: number | null
+    hp: number | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["guildMember"]>
@@ -1607,6 +4145,10 @@ export interface Prisma__GuildMemberClient<T, Null = never, ExtArgs extends runt
   reservations<T extends Prisma.GuildMember$reservationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.GuildMember$reservationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReservedAllocationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   allocationResults<T extends Prisma.GuildMember$allocationResultsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.GuildMember$allocationResultsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AllocationResultPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   bidSlots<T extends Prisma.GuildMember$bidSlotsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.GuildMember$bidSlotsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BidSlotPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  leaveDates<T extends Prisma.GuildMember$leaveDatesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.GuildMember$leaveDatesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MemberLeavePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  participations<T extends Prisma.GuildMember$participationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.GuildMember$participationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EventParticipationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  rosterAssignments<T extends Prisma.GuildMember$rosterAssignmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.GuildMember$rosterAssignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RosterMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  preferredRosterAssignments<T extends Prisma.GuildMember$preferredRosterAssignmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.GuildMember$preferredRosterAssignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PreferredRosterMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1640,10 +4182,36 @@ export interface GuildMemberFieldRefs {
   readonly guildId: Prisma.FieldRef<"GuildMember", 'String'>
   readonly userId: Prisma.FieldRef<"GuildMember", 'String'>
   readonly displayName: Prisma.FieldRef<"GuildMember", 'String'>
+  readonly characterName: Prisma.FieldRef<"GuildMember", 'String'>
+  readonly job: Prisma.FieldRef<"GuildMember", 'String'>
   readonly active: Prisma.FieldRef<"GuildMember", 'Boolean'>
   readonly eligible: Prisma.FieldRef<"GuildMember", 'Boolean'>
   readonly priority: Prisma.FieldRef<"GuildMember", 'MemberPriority'>
   readonly remarks: Prisma.FieldRef<"GuildMember", 'String'>
+  readonly pdef: Prisma.FieldRef<"GuildMember", 'Float'>
+  readonly mdef: Prisma.FieldRef<"GuildMember", 'Float'>
+  readonly pvpDamageBonus: Prisma.FieldRef<"GuildMember", 'Float'>
+  readonly pvpDamageReduction: Prisma.FieldRef<"GuildMember", 'Float'>
+  readonly pdmgPercent: Prisma.FieldRef<"GuildMember", 'Float'>
+  readonly mdmgPercent: Prisma.FieldRef<"GuildMember", 'Float'>
+  readonly pdmgReductionPercent: Prisma.FieldRef<"GuildMember", 'Float'>
+  readonly mdmgReductionPercent: Prisma.FieldRef<"GuildMember", 'Float'>
+  readonly critRes: Prisma.FieldRef<"GuildMember", 'Float'>
+  readonly ignorePdef: Prisma.FieldRef<"GuildMember", 'Float'>
+  readonly ignoreMdef: Prisma.FieldRef<"GuildMember", 'Float'>
+  readonly damageVsMedium: Prisma.FieldRef<"GuildMember", 'Float'>
+  readonly damageReductionVsMedium: Prisma.FieldRef<"GuildMember", 'Float'>
+  readonly damageVsSmall: Prisma.FieldRef<"GuildMember", 'Float'>
+  readonly damageReductionVsSmall: Prisma.FieldRef<"GuildMember", 'Float'>
+  readonly damageVsDemiHuman: Prisma.FieldRef<"GuildMember", 'Float'>
+  readonly damageReductionVsDemiHuman: Prisma.FieldRef<"GuildMember", 'Float'>
+  readonly damageVsBrute: Prisma.FieldRef<"GuildMember", 'Float'>
+  readonly damageReductionVsBrute: Prisma.FieldRef<"GuildMember", 'Float'>
+  readonly equipmentPdefPercent: Prisma.FieldRef<"GuildMember", 'Float'>
+  readonly equipmentMdefPercent: Prisma.FieldRef<"GuildMember", 'Float'>
+  readonly patk: Prisma.FieldRef<"GuildMember", 'Float'>
+  readonly matk: Prisma.FieldRef<"GuildMember", 'Float'>
+  readonly hp: Prisma.FieldRef<"GuildMember", 'Float'>
   readonly createdAt: Prisma.FieldRef<"GuildMember", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"GuildMember", 'DateTime'>
 }
@@ -2135,6 +4703,102 @@ export type GuildMember$bidSlotsArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.BidSlotScalarFieldEnum | Prisma.BidSlotScalarFieldEnum[]
+}
+
+/**
+ * GuildMember.leaveDates
+ */
+export type GuildMember$leaveDatesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the MemberLeave
+   */
+  select?: Prisma.MemberLeaveSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the MemberLeave
+   */
+  omit?: Prisma.MemberLeaveOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MemberLeaveInclude<ExtArgs> | null
+  where?: Prisma.MemberLeaveWhereInput
+  orderBy?: Prisma.MemberLeaveOrderByWithRelationInput | Prisma.MemberLeaveOrderByWithRelationInput[]
+  cursor?: Prisma.MemberLeaveWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MemberLeaveScalarFieldEnum | Prisma.MemberLeaveScalarFieldEnum[]
+}
+
+/**
+ * GuildMember.participations
+ */
+export type GuildMember$participationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EventParticipation
+   */
+  select?: Prisma.EventParticipationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EventParticipation
+   */
+  omit?: Prisma.EventParticipationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EventParticipationInclude<ExtArgs> | null
+  where?: Prisma.EventParticipationWhereInput
+  orderBy?: Prisma.EventParticipationOrderByWithRelationInput | Prisma.EventParticipationOrderByWithRelationInput[]
+  cursor?: Prisma.EventParticipationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EventParticipationScalarFieldEnum | Prisma.EventParticipationScalarFieldEnum[]
+}
+
+/**
+ * GuildMember.rosterAssignments
+ */
+export type GuildMember$rosterAssignmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RosterMember
+   */
+  select?: Prisma.RosterMemberSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RosterMember
+   */
+  omit?: Prisma.RosterMemberOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RosterMemberInclude<ExtArgs> | null
+  where?: Prisma.RosterMemberWhereInput
+  orderBy?: Prisma.RosterMemberOrderByWithRelationInput | Prisma.RosterMemberOrderByWithRelationInput[]
+  cursor?: Prisma.RosterMemberWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RosterMemberScalarFieldEnum | Prisma.RosterMemberScalarFieldEnum[]
+}
+
+/**
+ * GuildMember.preferredRosterAssignments
+ */
+export type GuildMember$preferredRosterAssignmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PreferredRosterMember
+   */
+  select?: Prisma.PreferredRosterMemberSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PreferredRosterMember
+   */
+  omit?: Prisma.PreferredRosterMemberOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PreferredRosterMemberInclude<ExtArgs> | null
+  where?: Prisma.PreferredRosterMemberWhereInput
+  orderBy?: Prisma.PreferredRosterMemberOrderByWithRelationInput | Prisma.PreferredRosterMemberOrderByWithRelationInput[]
+  cursor?: Prisma.PreferredRosterMemberWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PreferredRosterMemberScalarFieldEnum | Prisma.PreferredRosterMemberScalarFieldEnum[]
 }
 
 /**

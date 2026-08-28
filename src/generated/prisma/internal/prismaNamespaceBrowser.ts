@@ -53,7 +53,9 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   User: 'User',
   Guild: 'Guild',
+  GuildMembership: 'GuildMembership',
   GuildMember: 'GuildMember',
+  MemberLeave: 'MemberLeave',
   Resource: 'Resource',
   ReservedAllocation: 'ReservedAllocation',
   RotationState: 'RotationState',
@@ -61,7 +63,17 @@ export const ModelName = {
   AllocationResult: 'AllocationResult',
   ResourceResult: 'ResourceResult',
   BidPage: 'BidPage',
-  BidSlot: 'BidSlot'
+  BidSlot: 'BidSlot',
+  Event: 'Event',
+  EventParticipation: 'EventParticipation',
+  Roster: 'Roster',
+  RosterParty: 'RosterParty',
+  RosterMember: 'RosterMember',
+  Raid: 'Raid',
+  RaidParty: 'RaidParty',
+  PreferredRoster: 'PreferredRoster',
+  PreferredRosterParty: 'PreferredRosterParty',
+  PreferredRosterMember: 'PreferredRosterMember'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -103,20 +115,70 @@ export const GuildScalarFieldEnum = {
 export type GuildScalarFieldEnum = (typeof GuildScalarFieldEnum)[keyof typeof GuildScalarFieldEnum]
 
 
+export const GuildMembershipScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  guildId: 'guildId',
+  role: 'role',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type GuildMembershipScalarFieldEnum = (typeof GuildMembershipScalarFieldEnum)[keyof typeof GuildMembershipScalarFieldEnum]
+
+
 export const GuildMemberScalarFieldEnum = {
   id: 'id',
   guildId: 'guildId',
   userId: 'userId',
   displayName: 'displayName',
+  characterName: 'characterName',
+  job: 'job',
   active: 'active',
   eligible: 'eligible',
   priority: 'priority',
   remarks: 'remarks',
+  pdef: 'pdef',
+  mdef: 'mdef',
+  pvpDamageBonus: 'pvpDamageBonus',
+  pvpDamageReduction: 'pvpDamageReduction',
+  pdmgPercent: 'pdmgPercent',
+  mdmgPercent: 'mdmgPercent',
+  pdmgReductionPercent: 'pdmgReductionPercent',
+  mdmgReductionPercent: 'mdmgReductionPercent',
+  critRes: 'critRes',
+  ignorePdef: 'ignorePdef',
+  ignoreMdef: 'ignoreMdef',
+  damageVsMedium: 'damageVsMedium',
+  damageReductionVsMedium: 'damageReductionVsMedium',
+  damageVsSmall: 'damageVsSmall',
+  damageReductionVsSmall: 'damageReductionVsSmall',
+  damageVsDemiHuman: 'damageVsDemiHuman',
+  damageReductionVsDemiHuman: 'damageReductionVsDemiHuman',
+  damageVsBrute: 'damageVsBrute',
+  damageReductionVsBrute: 'damageReductionVsBrute',
+  equipmentPdefPercent: 'equipmentPdefPercent',
+  equipmentMdefPercent: 'equipmentMdefPercent',
+  patk: 'patk',
+  matk: 'matk',
+  hp: 'hp',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type GuildMemberScalarFieldEnum = (typeof GuildMemberScalarFieldEnum)[keyof typeof GuildMemberScalarFieldEnum]
+
+
+export const MemberLeaveScalarFieldEnum = {
+  id: 'id',
+  memberId: 'memberId',
+  date: 'date',
+  reason: 'reason',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MemberLeaveScalarFieldEnum = (typeof MemberLeaveScalarFieldEnum)[keyof typeof MemberLeaveScalarFieldEnum]
 
 
 export const ResourceScalarFieldEnum = {
@@ -126,6 +188,7 @@ export const ResourceScalarFieldEnum = {
   type: 'type',
   total: 'total',
   perPlayerLimit: 'perPlayerLimit',
+  hardCap: 'hardCap',
   active: 'active',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -162,6 +225,7 @@ export type RotationStateScalarFieldEnum = (typeof RotationStateScalarFieldEnum)
 export const AllocationRunScalarFieldEnum = {
   id: 'id',
   guildId: 'guildId',
+  eventId: 'eventId',
   status: 'status',
   rotationIndexBefore: 'rotationIndexBefore',
   rotationIndexAfter: 'rotationIndexAfter',
@@ -220,6 +284,127 @@ export const BidSlotScalarFieldEnum = {
 } as const
 
 export type BidSlotScalarFieldEnum = (typeof BidSlotScalarFieldEnum)[keyof typeof BidSlotScalarFieldEnum]
+
+
+export const EventScalarFieldEnum = {
+  id: 'id',
+  guildId: 'guildId',
+  type: 'type',
+  date: 'date',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EventScalarFieldEnum = (typeof EventScalarFieldEnum)[keyof typeof EventScalarFieldEnum]
+
+
+export const EventParticipationScalarFieldEnum = {
+  id: 'id',
+  eventId: 'eventId',
+  memberId: 'memberId',
+  available: 'available',
+  remarks: 'remarks',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EventParticipationScalarFieldEnum = (typeof EventParticipationScalarFieldEnum)[keyof typeof EventParticipationScalarFieldEnum]
+
+
+export const RosterScalarFieldEnum = {
+  id: 'id',
+  eventId: 'eventId',
+  name: 'name',
+  generationMode: 'generationMode',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RosterScalarFieldEnum = (typeof RosterScalarFieldEnum)[keyof typeof RosterScalarFieldEnum]
+
+
+export const RosterPartyScalarFieldEnum = {
+  id: 'id',
+  rosterId: 'rosterId',
+  partyNumber: 'partyNumber',
+  battlefield: 'battlefield',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RosterPartyScalarFieldEnum = (typeof RosterPartyScalarFieldEnum)[keyof typeof RosterPartyScalarFieldEnum]
+
+
+export const RosterMemberScalarFieldEnum = {
+  id: 'id',
+  partyId: 'partyId',
+  memberId: 'memberId',
+  slotNumber: 'slotNumber',
+  guildPercentile: 'guildPercentile',
+  tankScore: 'tankScore',
+  tankPercentile: 'tankPercentile',
+  dpsScore: 'dpsScore',
+  dpsPercentile: 'dpsPercentile',
+  pvpScore: 'pvpScore',
+  pvpPercentile: 'pvpPercentile',
+  createdAt: 'createdAt'
+} as const
+
+export type RosterMemberScalarFieldEnum = (typeof RosterMemberScalarFieldEnum)[keyof typeof RosterMemberScalarFieldEnum]
+
+
+export const RaidScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RaidScalarFieldEnum = (typeof RaidScalarFieldEnum)[keyof typeof RaidScalarFieldEnum]
+
+
+export const RaidPartyScalarFieldEnum = {
+  id: 'id',
+  raidId: 'raidId',
+  partyId: 'partyId',
+  createdAt: 'createdAt'
+} as const
+
+export type RaidPartyScalarFieldEnum = (typeof RaidPartyScalarFieldEnum)[keyof typeof RaidPartyScalarFieldEnum]
+
+
+export const PreferredRosterScalarFieldEnum = {
+  id: 'id',
+  guildId: 'guildId',
+  type: 'type',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PreferredRosterScalarFieldEnum = (typeof PreferredRosterScalarFieldEnum)[keyof typeof PreferredRosterScalarFieldEnum]
+
+
+export const PreferredRosterPartyScalarFieldEnum = {
+  id: 'id',
+  preferredRosterId: 'preferredRosterId',
+  battlefield: 'battlefield',
+  partyNumber: 'partyNumber',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PreferredRosterPartyScalarFieldEnum = (typeof PreferredRosterPartyScalarFieldEnum)[keyof typeof PreferredRosterPartyScalarFieldEnum]
+
+
+export const PreferredRosterMemberScalarFieldEnum = {
+  id: 'id',
+  preferredRosterPartyId: 'preferredRosterPartyId',
+  memberId: 'memberId',
+  slotNumber: 'slotNumber',
+  createdAt: 'createdAt'
+} as const
+
+export type PreferredRosterMemberScalarFieldEnum = (typeof PreferredRosterMemberScalarFieldEnum)[keyof typeof PreferredRosterMemberScalarFieldEnum]
 
 
 export const SortOrder = {

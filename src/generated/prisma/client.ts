@@ -52,10 +52,20 @@ export type User = Prisma.UserModel
  */
 export type Guild = Prisma.GuildModel
 /**
+ * Model GuildMembership
+ * 
+ */
+export type GuildMembership = Prisma.GuildMembershipModel
+/**
  * Model GuildMember
  * 
  */
 export type GuildMember = Prisma.GuildMemberModel
+/**
+ * Model MemberLeave
+ * 
+ */
+export type MemberLeave = Prisma.MemberLeaveModel
 /**
  * Model Resource
  * 
@@ -96,3 +106,53 @@ export type BidPage = Prisma.BidPageModel
  * 
  */
 export type BidSlot = Prisma.BidSlotModel
+/**
+ * Model Event
+ * 
+ */
+export type Event = Prisma.EventModel
+/**
+ * Model EventParticipation
+ * 
+ */
+export type EventParticipation = Prisma.EventParticipationModel
+/**
+ * Model Roster
+ * 
+ */
+export type Roster = Prisma.RosterModel
+/**
+ * Model RosterParty
+ * 
+ */
+export type RosterParty = Prisma.RosterPartyModel
+/**
+ * Model RosterMember
+ * 
+ */
+export type RosterMember = Prisma.RosterMemberModel
+/**
+ * Model Raid
+ * 
+ */
+export type Raid = Prisma.RaidModel
+/**
+ * Model RaidParty
+ * 
+ */
+export type RaidParty = Prisma.RaidPartyModel
+/**
+ * Model PreferredRoster
+ * 
+ */
+export type PreferredRoster = Prisma.PreferredRosterModel
+/**
+ * Model PreferredRosterParty
+ * 
+ */
+export type PreferredRosterParty = Prisma.PreferredRosterPartyModel
+/**
+ * Model PreferredRosterMember
+ * 
+ */
+export type PreferredRosterMember = Prisma.PreferredRosterMemberModel

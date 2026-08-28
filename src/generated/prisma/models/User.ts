@@ -190,7 +190,8 @@ export type UserWhereInput = {
   avatarUrl?: Prisma.StringNullableFilter<"User"> | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
-  guildMemberships?: Prisma.GuildMemberListRelationFilter
+  guildMemberships?: Prisma.GuildMembershipListRelationFilter
+  guildMembers?: Prisma.GuildMemberListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -200,7 +201,8 @@ export type UserOrderByWithRelationInput = {
   avatarUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  guildMemberships?: Prisma.GuildMemberOrderByRelationAggregateInput
+  guildMemberships?: Prisma.GuildMembershipOrderByRelationAggregateInput
+  guildMembers?: Prisma.GuildMemberOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -213,7 +215,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   avatarUrl?: Prisma.StringNullableFilter<"User"> | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
-  guildMemberships?: Prisma.GuildMemberListRelationFilter
+  guildMemberships?: Prisma.GuildMembershipListRelationFilter
+  guildMembers?: Prisma.GuildMemberListRelationFilter
 }, "id" | "discordId">
 
 export type UserOrderByWithAggregationInput = {
@@ -247,7 +250,8 @@ export type UserCreateInput = {
   avatarUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  guildMemberships?: Prisma.GuildMemberCreateNestedManyWithoutUserInput
+  guildMemberships?: Prisma.GuildMembershipCreateNestedManyWithoutUserInput
+  guildMembers?: Prisma.GuildMemberCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -257,7 +261,8 @@ export type UserUncheckedCreateInput = {
   avatarUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  guildMemberships?: Prisma.GuildMemberUncheckedCreateNestedManyWithoutUserInput
+  guildMemberships?: Prisma.GuildMembershipUncheckedCreateNestedManyWithoutUserInput
+  guildMembers?: Prisma.GuildMemberUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -267,7 +272,8 @@ export type UserUpdateInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  guildMemberships?: Prisma.GuildMemberUpdateManyWithoutUserNestedInput
+  guildMemberships?: Prisma.GuildMembershipUpdateManyWithoutUserNestedInput
+  guildMembers?: Prisma.GuildMemberUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -277,7 +283,8 @@ export type UserUncheckedUpdateInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  guildMemberships?: Prisma.GuildMemberUncheckedUpdateManyWithoutUserNestedInput
+  guildMemberships?: Prisma.GuildMembershipUncheckedUpdateManyWithoutUserNestedInput
+  guildMembers?: Prisma.GuildMemberUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -334,6 +341,11 @@ export type UserMinOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
 }
 
+export type UserScalarRelationFilter = {
+  is?: Prisma.UserWhereInput
+  isNot?: Prisma.UserWhereInput
+}
+
 export type UserNullableScalarRelationFilter = {
   is?: Prisma.UserWhereInput | null
   isNot?: Prisma.UserWhereInput | null
@@ -357,14 +369,28 @@ export type UserCreateNestedOneWithoutGuildMembershipsInput = {
   connect?: Prisma.UserWhereUniqueInput
 }
 
-export type UserUpdateOneWithoutGuildMembershipsNestedInput = {
+export type UserUpdateOneRequiredWithoutGuildMembershipsNestedInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutGuildMembershipsInput, Prisma.UserUncheckedCreateWithoutGuildMembershipsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutGuildMembershipsInput
   upsert?: Prisma.UserUpsertWithoutGuildMembershipsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutGuildMembershipsInput, Prisma.UserUpdateWithoutGuildMembershipsInput>, Prisma.UserUncheckedUpdateWithoutGuildMembershipsInput>
+}
+
+export type UserCreateNestedOneWithoutGuildMembersInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutGuildMembersInput, Prisma.UserUncheckedCreateWithoutGuildMembersInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutGuildMembersInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutGuildMembersNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutGuildMembersInput, Prisma.UserUncheckedCreateWithoutGuildMembersInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutGuildMembersInput
+  upsert?: Prisma.UserUpsertWithoutGuildMembersInput
   disconnect?: Prisma.UserWhereInput | boolean
   delete?: Prisma.UserWhereInput | boolean
   connect?: Prisma.UserWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutGuildMembershipsInput, Prisma.UserUpdateWithoutGuildMembershipsInput>, Prisma.UserUncheckedUpdateWithoutGuildMembershipsInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutGuildMembersInput, Prisma.UserUpdateWithoutGuildMembersInput>, Prisma.UserUncheckedUpdateWithoutGuildMembersInput>
 }
 
 export type UserCreateWithoutGuildMembershipsInput = {
@@ -374,6 +400,7 @@ export type UserCreateWithoutGuildMembershipsInput = {
   avatarUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  guildMembers?: Prisma.GuildMemberCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutGuildMembershipsInput = {
@@ -383,6 +410,7 @@ export type UserUncheckedCreateWithoutGuildMembershipsInput = {
   avatarUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  guildMembers?: Prisma.GuildMemberUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutGuildMembershipsInput = {
@@ -408,6 +436,7 @@ export type UserUpdateWithoutGuildMembershipsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  guildMembers?: Prisma.GuildMemberUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutGuildMembershipsInput = {
@@ -417,6 +446,63 @@ export type UserUncheckedUpdateWithoutGuildMembershipsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  guildMembers?: Prisma.GuildMemberUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutGuildMembersInput = {
+  id?: string
+  discordId: string
+  username: string
+  avatarUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  guildMemberships?: Prisma.GuildMembershipCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutGuildMembersInput = {
+  id?: string
+  discordId: string
+  username: string
+  avatarUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  guildMemberships?: Prisma.GuildMembershipUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutGuildMembersInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutGuildMembersInput, Prisma.UserUncheckedCreateWithoutGuildMembersInput>
+}
+
+export type UserUpsertWithoutGuildMembersInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutGuildMembersInput, Prisma.UserUncheckedUpdateWithoutGuildMembersInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutGuildMembersInput, Prisma.UserUncheckedCreateWithoutGuildMembersInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutGuildMembersInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutGuildMembersInput, Prisma.UserUncheckedUpdateWithoutGuildMembersInput>
+}
+
+export type UserUpdateWithoutGuildMembersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  discordId?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  guildMemberships?: Prisma.GuildMembershipUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutGuildMembersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  discordId?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  guildMemberships?: Prisma.GuildMembershipUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -426,10 +512,12 @@ export type UserUncheckedUpdateWithoutGuildMembershipsInput = {
 
 export type UserCountOutputType = {
   guildMemberships: number
+  guildMembers: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   guildMemberships?: boolean | UserCountOutputTypeCountGuildMembershipsArgs
+  guildMembers?: boolean | UserCountOutputTypeCountGuildMembersArgs
 }
 
 /**
@@ -446,6 +534,13 @@ export type UserCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensi
  * UserCountOutputType without action
  */
 export type UserCountOutputTypeCountGuildMembershipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.GuildMembershipWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountGuildMembersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.GuildMemberWhereInput
 }
 
@@ -458,6 +553,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   createdAt?: boolean
   updatedAt?: boolean
   guildMemberships?: boolean | Prisma.User$guildMembershipsArgs<ExtArgs>
+  guildMembers?: boolean | Prisma.User$guildMembersArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -491,6 +587,7 @@ export type UserSelectScalar = {
 export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "discordId" | "username" | "avatarUrl" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   guildMemberships?: boolean | Prisma.User$guildMembershipsArgs<ExtArgs>
+  guildMembers?: boolean | Prisma.User$guildMembersArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -499,7 +596,8 @@ export type UserIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
 export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "User"
   objects: {
-    guildMemberships: Prisma.$GuildMemberPayload<ExtArgs>[]
+    guildMemberships: Prisma.$GuildMembershipPayload<ExtArgs>[]
+    guildMembers: Prisma.$GuildMemberPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -902,7 +1000,8 @@ readonly fields: UserFieldRefs;
  */
 export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  guildMemberships<T extends Prisma.User$guildMembershipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$guildMembershipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GuildMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  guildMemberships<T extends Prisma.User$guildMembershipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$guildMembershipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GuildMembershipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  guildMembers<T extends Prisma.User$guildMembersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$guildMembersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GuildMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1334,6 +1433,30 @@ export type UserDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
  * User.guildMemberships
  */
 export type User$guildMembershipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the GuildMembership
+   */
+  select?: Prisma.GuildMembershipSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the GuildMembership
+   */
+  omit?: Prisma.GuildMembershipOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.GuildMembershipInclude<ExtArgs> | null
+  where?: Prisma.GuildMembershipWhereInput
+  orderBy?: Prisma.GuildMembershipOrderByWithRelationInput | Prisma.GuildMembershipOrderByWithRelationInput[]
+  cursor?: Prisma.GuildMembershipWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.GuildMembershipScalarFieldEnum | Prisma.GuildMembershipScalarFieldEnum[]
+}
+
+/**
+ * User.guildMembers
+ */
+export type User$guildMembersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
    * Select specific fields to fetch from the GuildMember
    */

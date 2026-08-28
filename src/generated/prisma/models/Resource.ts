@@ -29,11 +29,13 @@ export type AggregateResource = {
 export type ResourceAvgAggregateOutputType = {
   total: number | null
   perPlayerLimit: number | null
+  hardCap: number | null
 }
 
 export type ResourceSumAggregateOutputType = {
   total: number | null
   perPlayerLimit: number | null
+  hardCap: number | null
 }
 
 export type ResourceMinAggregateOutputType = {
@@ -43,6 +45,7 @@ export type ResourceMinAggregateOutputType = {
   type: $Enums.ResourceType | null
   total: number | null
   perPlayerLimit: number | null
+  hardCap: number | null
   active: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -55,6 +58,7 @@ export type ResourceMaxAggregateOutputType = {
   type: $Enums.ResourceType | null
   total: number | null
   perPlayerLimit: number | null
+  hardCap: number | null
   active: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -67,6 +71,7 @@ export type ResourceCountAggregateOutputType = {
   type: number
   total: number
   perPlayerLimit: number
+  hardCap: number
   active: number
   createdAt: number
   updatedAt: number
@@ -77,11 +82,13 @@ export type ResourceCountAggregateOutputType = {
 export type ResourceAvgAggregateInputType = {
   total?: true
   perPlayerLimit?: true
+  hardCap?: true
 }
 
 export type ResourceSumAggregateInputType = {
   total?: true
   perPlayerLimit?: true
+  hardCap?: true
 }
 
 export type ResourceMinAggregateInputType = {
@@ -91,6 +98,7 @@ export type ResourceMinAggregateInputType = {
   type?: true
   total?: true
   perPlayerLimit?: true
+  hardCap?: true
   active?: true
   createdAt?: true
   updatedAt?: true
@@ -103,6 +111,7 @@ export type ResourceMaxAggregateInputType = {
   type?: true
   total?: true
   perPlayerLimit?: true
+  hardCap?: true
   active?: true
   createdAt?: true
   updatedAt?: true
@@ -115,6 +124,7 @@ export type ResourceCountAggregateInputType = {
   type?: true
   total?: true
   perPlayerLimit?: true
+  hardCap?: true
   active?: true
   createdAt?: true
   updatedAt?: true
@@ -214,6 +224,7 @@ export type ResourceGroupByOutputType = {
   type: $Enums.ResourceType
   total: number
   perPlayerLimit: number
+  hardCap: number
   active: boolean
   createdAt: Date
   updatedAt: Date
@@ -249,6 +260,7 @@ export type ResourceWhereInput = {
   type?: Prisma.EnumResourceTypeFilter<"Resource"> | $Enums.ResourceType
   total?: Prisma.IntFilter<"Resource"> | number
   perPlayerLimit?: Prisma.IntFilter<"Resource"> | number
+  hardCap?: Prisma.IntFilter<"Resource"> | number
   active?: Prisma.BoolFilter<"Resource"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Resource"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Resource"> | Date | string
@@ -267,6 +279,7 @@ export type ResourceOrderByWithRelationInput = {
   type?: Prisma.SortOrder
   total?: Prisma.SortOrder
   perPlayerLimit?: Prisma.SortOrder
+  hardCap?: Prisma.SortOrder
   active?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -289,6 +302,7 @@ export type ResourceWhereUniqueInput = Prisma.AtLeast<{
   type?: Prisma.EnumResourceTypeFilter<"Resource"> | $Enums.ResourceType
   total?: Prisma.IntFilter<"Resource"> | number
   perPlayerLimit?: Prisma.IntFilter<"Resource"> | number
+  hardCap?: Prisma.IntFilter<"Resource"> | number
   active?: Prisma.BoolFilter<"Resource"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Resource"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Resource"> | Date | string
@@ -307,6 +321,7 @@ export type ResourceOrderByWithAggregationInput = {
   type?: Prisma.SortOrder
   total?: Prisma.SortOrder
   perPlayerLimit?: Prisma.SortOrder
+  hardCap?: Prisma.SortOrder
   active?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -327,6 +342,7 @@ export type ResourceScalarWhereWithAggregatesInput = {
   type?: Prisma.EnumResourceTypeWithAggregatesFilter<"Resource"> | $Enums.ResourceType
   total?: Prisma.IntWithAggregatesFilter<"Resource"> | number
   perPlayerLimit?: Prisma.IntWithAggregatesFilter<"Resource"> | number
+  hardCap?: Prisma.IntWithAggregatesFilter<"Resource"> | number
   active?: Prisma.BoolWithAggregatesFilter<"Resource"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Resource"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Resource"> | Date | string
@@ -338,6 +354,7 @@ export type ResourceCreateInput = {
   type: $Enums.ResourceType
   total: number
   perPlayerLimit: number
+  hardCap: number
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -356,6 +373,7 @@ export type ResourceUncheckedCreateInput = {
   type: $Enums.ResourceType
   total: number
   perPlayerLimit: number
+  hardCap: number
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -372,6 +390,7 @@ export type ResourceUpdateInput = {
   type?: Prisma.EnumResourceTypeFieldUpdateOperationsInput | $Enums.ResourceType
   total?: Prisma.IntFieldUpdateOperationsInput | number
   perPlayerLimit?: Prisma.IntFieldUpdateOperationsInput | number
+  hardCap?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -390,6 +409,7 @@ export type ResourceUncheckedUpdateInput = {
   type?: Prisma.EnumResourceTypeFieldUpdateOperationsInput | $Enums.ResourceType
   total?: Prisma.IntFieldUpdateOperationsInput | number
   perPlayerLimit?: Prisma.IntFieldUpdateOperationsInput | number
+  hardCap?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -407,6 +427,7 @@ export type ResourceCreateManyInput = {
   type: $Enums.ResourceType
   total: number
   perPlayerLimit: number
+  hardCap: number
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -418,6 +439,7 @@ export type ResourceUpdateManyMutationInput = {
   type?: Prisma.EnumResourceTypeFieldUpdateOperationsInput | $Enums.ResourceType
   total?: Prisma.IntFieldUpdateOperationsInput | number
   perPlayerLimit?: Prisma.IntFieldUpdateOperationsInput | number
+  hardCap?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -430,6 +452,7 @@ export type ResourceUncheckedUpdateManyInput = {
   type?: Prisma.EnumResourceTypeFieldUpdateOperationsInput | $Enums.ResourceType
   total?: Prisma.IntFieldUpdateOperationsInput | number
   perPlayerLimit?: Prisma.IntFieldUpdateOperationsInput | number
+  hardCap?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -457,6 +480,7 @@ export type ResourceCountOrderByAggregateInput = {
   type?: Prisma.SortOrder
   total?: Prisma.SortOrder
   perPlayerLimit?: Prisma.SortOrder
+  hardCap?: Prisma.SortOrder
   active?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -465,6 +489,7 @@ export type ResourceCountOrderByAggregateInput = {
 export type ResourceAvgOrderByAggregateInput = {
   total?: Prisma.SortOrder
   perPlayerLimit?: Prisma.SortOrder
+  hardCap?: Prisma.SortOrder
 }
 
 export type ResourceMaxOrderByAggregateInput = {
@@ -474,6 +499,7 @@ export type ResourceMaxOrderByAggregateInput = {
   type?: Prisma.SortOrder
   total?: Prisma.SortOrder
   perPlayerLimit?: Prisma.SortOrder
+  hardCap?: Prisma.SortOrder
   active?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -486,6 +512,7 @@ export type ResourceMinOrderByAggregateInput = {
   type?: Prisma.SortOrder
   total?: Prisma.SortOrder
   perPlayerLimit?: Prisma.SortOrder
+  hardCap?: Prisma.SortOrder
   active?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -494,6 +521,7 @@ export type ResourceMinOrderByAggregateInput = {
 export type ResourceSumOrderByAggregateInput = {
   total?: Prisma.SortOrder
   perPlayerLimit?: Prisma.SortOrder
+  hardCap?: Prisma.SortOrder
 }
 
 export type ResourceScalarRelationFilter = {
@@ -631,6 +659,7 @@ export type ResourceCreateWithoutGuildInput = {
   type: $Enums.ResourceType
   total: number
   perPlayerLimit: number
+  hardCap: number
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -647,6 +676,7 @@ export type ResourceUncheckedCreateWithoutGuildInput = {
   type: $Enums.ResourceType
   total: number
   perPlayerLimit: number
+  hardCap: number
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -693,6 +723,7 @@ export type ResourceScalarWhereInput = {
   type?: Prisma.EnumResourceTypeFilter<"Resource"> | $Enums.ResourceType
   total?: Prisma.IntFilter<"Resource"> | number
   perPlayerLimit?: Prisma.IntFilter<"Resource"> | number
+  hardCap?: Prisma.IntFilter<"Resource"> | number
   active?: Prisma.BoolFilter<"Resource"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Resource"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Resource"> | Date | string
@@ -704,6 +735,7 @@ export type ResourceCreateWithoutReservationsInput = {
   type: $Enums.ResourceType
   total: number
   perPlayerLimit: number
+  hardCap: number
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -721,6 +753,7 @@ export type ResourceUncheckedCreateWithoutReservationsInput = {
   type: $Enums.ResourceType
   total: number
   perPlayerLimit: number
+  hardCap: number
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -752,6 +785,7 @@ export type ResourceUpdateWithoutReservationsInput = {
   type?: Prisma.EnumResourceTypeFieldUpdateOperationsInput | $Enums.ResourceType
   total?: Prisma.IntFieldUpdateOperationsInput | number
   perPlayerLimit?: Prisma.IntFieldUpdateOperationsInput | number
+  hardCap?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -769,6 +803,7 @@ export type ResourceUncheckedUpdateWithoutReservationsInput = {
   type?: Prisma.EnumResourceTypeFieldUpdateOperationsInput | $Enums.ResourceType
   total?: Prisma.IntFieldUpdateOperationsInput | number
   perPlayerLimit?: Prisma.IntFieldUpdateOperationsInput | number
+  hardCap?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -784,6 +819,7 @@ export type ResourceCreateWithoutRotationStatesInput = {
   type: $Enums.ResourceType
   total: number
   perPlayerLimit: number
+  hardCap: number
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -801,6 +837,7 @@ export type ResourceUncheckedCreateWithoutRotationStatesInput = {
   type: $Enums.ResourceType
   total: number
   perPlayerLimit: number
+  hardCap: number
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -832,6 +869,7 @@ export type ResourceUpdateWithoutRotationStatesInput = {
   type?: Prisma.EnumResourceTypeFieldUpdateOperationsInput | $Enums.ResourceType
   total?: Prisma.IntFieldUpdateOperationsInput | number
   perPlayerLimit?: Prisma.IntFieldUpdateOperationsInput | number
+  hardCap?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -849,6 +887,7 @@ export type ResourceUncheckedUpdateWithoutRotationStatesInput = {
   type?: Prisma.EnumResourceTypeFieldUpdateOperationsInput | $Enums.ResourceType
   total?: Prisma.IntFieldUpdateOperationsInput | number
   perPlayerLimit?: Prisma.IntFieldUpdateOperationsInput | number
+  hardCap?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -864,6 +903,7 @@ export type ResourceCreateWithoutAllocationResultsInput = {
   type: $Enums.ResourceType
   total: number
   perPlayerLimit: number
+  hardCap: number
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -881,6 +921,7 @@ export type ResourceUncheckedCreateWithoutAllocationResultsInput = {
   type: $Enums.ResourceType
   total: number
   perPlayerLimit: number
+  hardCap: number
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -912,6 +953,7 @@ export type ResourceUpdateWithoutAllocationResultsInput = {
   type?: Prisma.EnumResourceTypeFieldUpdateOperationsInput | $Enums.ResourceType
   total?: Prisma.IntFieldUpdateOperationsInput | number
   perPlayerLimit?: Prisma.IntFieldUpdateOperationsInput | number
+  hardCap?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -929,6 +971,7 @@ export type ResourceUncheckedUpdateWithoutAllocationResultsInput = {
   type?: Prisma.EnumResourceTypeFieldUpdateOperationsInput | $Enums.ResourceType
   total?: Prisma.IntFieldUpdateOperationsInput | number
   perPlayerLimit?: Prisma.IntFieldUpdateOperationsInput | number
+  hardCap?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -944,6 +987,7 @@ export type ResourceCreateWithoutResourceResultsInput = {
   type: $Enums.ResourceType
   total: number
   perPlayerLimit: number
+  hardCap: number
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -961,6 +1005,7 @@ export type ResourceUncheckedCreateWithoutResourceResultsInput = {
   type: $Enums.ResourceType
   total: number
   perPlayerLimit: number
+  hardCap: number
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -992,6 +1037,7 @@ export type ResourceUpdateWithoutResourceResultsInput = {
   type?: Prisma.EnumResourceTypeFieldUpdateOperationsInput | $Enums.ResourceType
   total?: Prisma.IntFieldUpdateOperationsInput | number
   perPlayerLimit?: Prisma.IntFieldUpdateOperationsInput | number
+  hardCap?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1009,6 +1055,7 @@ export type ResourceUncheckedUpdateWithoutResourceResultsInput = {
   type?: Prisma.EnumResourceTypeFieldUpdateOperationsInput | $Enums.ResourceType
   total?: Prisma.IntFieldUpdateOperationsInput | number
   perPlayerLimit?: Prisma.IntFieldUpdateOperationsInput | number
+  hardCap?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1024,6 +1071,7 @@ export type ResourceCreateWithoutBidSlotsInput = {
   type: $Enums.ResourceType
   total: number
   perPlayerLimit: number
+  hardCap: number
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1041,6 +1089,7 @@ export type ResourceUncheckedCreateWithoutBidSlotsInput = {
   type: $Enums.ResourceType
   total: number
   perPlayerLimit: number
+  hardCap: number
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1072,6 +1121,7 @@ export type ResourceUpdateWithoutBidSlotsInput = {
   type?: Prisma.EnumResourceTypeFieldUpdateOperationsInput | $Enums.ResourceType
   total?: Prisma.IntFieldUpdateOperationsInput | number
   perPlayerLimit?: Prisma.IntFieldUpdateOperationsInput | number
+  hardCap?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1089,6 +1139,7 @@ export type ResourceUncheckedUpdateWithoutBidSlotsInput = {
   type?: Prisma.EnumResourceTypeFieldUpdateOperationsInput | $Enums.ResourceType
   total?: Prisma.IntFieldUpdateOperationsInput | number
   perPlayerLimit?: Prisma.IntFieldUpdateOperationsInput | number
+  hardCap?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1104,6 +1155,7 @@ export type ResourceCreateManyGuildInput = {
   type: $Enums.ResourceType
   total: number
   perPlayerLimit: number
+  hardCap: number
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1115,6 +1167,7 @@ export type ResourceUpdateWithoutGuildInput = {
   type?: Prisma.EnumResourceTypeFieldUpdateOperationsInput | $Enums.ResourceType
   total?: Prisma.IntFieldUpdateOperationsInput | number
   perPlayerLimit?: Prisma.IntFieldUpdateOperationsInput | number
+  hardCap?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1131,6 +1184,7 @@ export type ResourceUncheckedUpdateWithoutGuildInput = {
   type?: Prisma.EnumResourceTypeFieldUpdateOperationsInput | $Enums.ResourceType
   total?: Prisma.IntFieldUpdateOperationsInput | number
   perPlayerLimit?: Prisma.IntFieldUpdateOperationsInput | number
+  hardCap?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1147,6 +1201,7 @@ export type ResourceUncheckedUpdateManyWithoutGuildInput = {
   type?: Prisma.EnumResourceTypeFieldUpdateOperationsInput | $Enums.ResourceType
   total?: Prisma.IntFieldUpdateOperationsInput | number
   perPlayerLimit?: Prisma.IntFieldUpdateOperationsInput | number
+  hardCap?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1226,6 +1281,7 @@ export type ResourceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   type?: boolean
   total?: boolean
   perPlayerLimit?: boolean
+  hardCap?: boolean
   active?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1245,6 +1301,7 @@ export type ResourceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   type?: boolean
   total?: boolean
   perPlayerLimit?: boolean
+  hardCap?: boolean
   active?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1258,6 +1315,7 @@ export type ResourceSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   type?: boolean
   total?: boolean
   perPlayerLimit?: boolean
+  hardCap?: boolean
   active?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1271,12 +1329,13 @@ export type ResourceSelectScalar = {
   type?: boolean
   total?: boolean
   perPlayerLimit?: boolean
+  hardCap?: boolean
   active?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ResourceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "guildId" | "name" | "type" | "total" | "perPlayerLimit" | "active" | "createdAt" | "updatedAt", ExtArgs["result"]["resource"]>
+export type ResourceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "guildId" | "name" | "type" | "total" | "perPlayerLimit" | "hardCap" | "active" | "createdAt" | "updatedAt", ExtArgs["result"]["resource"]>
 export type ResourceInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   guild?: boolean | Prisma.GuildDefaultArgs<ExtArgs>
   reservations?: boolean | Prisma.Resource$reservationsArgs<ExtArgs>
@@ -1310,6 +1369,7 @@ export type $ResourcePayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     type: $Enums.ResourceType
     total: number
     perPlayerLimit: number
+    hardCap: number
     active: boolean
     createdAt: Date
     updatedAt: Date
@@ -1748,6 +1808,7 @@ export interface ResourceFieldRefs {
   readonly type: Prisma.FieldRef<"Resource", 'ResourceType'>
   readonly total: Prisma.FieldRef<"Resource", 'Int'>
   readonly perPlayerLimit: Prisma.FieldRef<"Resource", 'Int'>
+  readonly hardCap: Prisma.FieldRef<"Resource", 'Int'>
   readonly active: Prisma.FieldRef<"Resource", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Resource", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Resource", 'DateTime'>
