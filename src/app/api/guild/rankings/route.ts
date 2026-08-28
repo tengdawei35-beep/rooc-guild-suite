@@ -1,5 +1,16 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+
+import {
+  getCurrentAuth,
+} from "@/lib/auth";
+
+import {
+  hasPermission,
+} from "@/lib/permissions";
+
+import {
+  prisma,
+} from "@/lib/prisma";
 
 type RankingMember = {
   id: string;
@@ -30,9 +41,11 @@ type RankingMember = {
 
   event: {
     id: string;
+
     type:
       | "GUILD_LEAGUE"
       | "EMPERIUM_OVERRUN";
+
     date: Date;
   } | null;
 
@@ -40,98 +53,115 @@ type RankingMember = {
   totalRanked: number;
 };
 
-async function getGuild() {
-  return prisma.guild.findFirst({
-    select: {
-      id: true,
-    },
-  });
-}
-
 function round(
   value: number
 ) {
-  return Math.round(
-    value * 100
-  ) / 100;
+  return (
+    Math.round(
+      value * 100
+    ) / 100
+  );
 }
 
 export async function GET() {
   try {
-    const guild =
-      await getGuild();
+    const auth =
+      await getCurrentAuth();
 
-    if (!guild) {
+    if (!auth) {
       return NextResponse.json(
         {
           error:
-            "No guild has been configured.",
+            "Authentication required.",
         },
         {
-          status: 404,
+          status: 401,
         }
       );
     }
 
-    // ==========================================================
-    // LOAD CURRENT MEMBERS + LATEST RANKING SNAPSHOT
-    // ==========================================================
+    if (
+      !hasPermission(
+        auth.role,
+        "members.view"
+      )
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "You do not have permission to view guild rankings.",
+        },
+        {
+          status: 403,
+        }
+      );
+    }
 
     const members =
-      await prisma.guildMember.findMany({
-        where: {
-          guildId:
-            guild.id,
-        },
+      await prisma.guildMember.findMany(
+        {
+          where: {
+            guildId:
+              auth.guild.id,
+          },
 
-        select: {
-          id: true,
-          displayName: true,
-          characterName: true,
-          job: true,
-          active: true,
-          eligible: true,
-          priority: true,
+          select: {
+            id: true,
 
-          rosterAssignments: {
-            orderBy: {
-              createdAt:
-                "desc",
-            },
+            displayName: true,
 
-            take: 1,
+            characterName: true,
 
-            select: {
-              guildPercentile:
-                true,
+            job: true,
 
-              tankScore:
-                true,
+            active: true,
 
-              tankPercentile:
-                true,
+            eligible: true,
 
-              dpsScore:
-                true,
+            priority: true,
 
-              dpsPercentile:
-                true,
+            rosterAssignments: {
+              orderBy: {
+                createdAt:
+                  "desc",
+              },
 
-              pvpScore:
-                true,
+              take: 1,
 
-              pvpPercentile:
-                true,
+              select: {
+                guildPercentile:
+                  true,
 
-              party: {
-                select: {
-                  roster: {
-                    select: {
-                      event: {
-                        select: {
-                          id: true,
-                          type: true,
-                          date: true,
+                tankScore:
+                  true,
+
+                tankPercentile:
+                  true,
+
+                dpsScore:
+                  true,
+
+                dpsPercentile:
+                  true,
+
+                pvpScore:
+                  true,
+
+                pvpPercentile:
+                  true,
+
+                party: {
+                  select: {
+                    roster: {
+                      select: {
+                        event: {
+                          select: {
+                            id: true,
+
+                            type: true,
+
+                            date: true,
+                          },
                         },
                       },
                     },
@@ -140,14 +170,10 @@ export async function GET() {
               },
             },
           },
-        },
-      });
+        }
+      );
 
-    // ==========================================================
-    // ONLY MEMBERS WITH A SNAPSHOT ARE RANKED
-    // ==========================================================
-
-    const rankings =
+    const rankings: RankingMember[] =
       members
         .filter(
           (member) =>
@@ -234,7 +260,8 @@ export async function GET() {
 
               event:
                 snapshot.party
-                  .roster.event,
+                  .roster
+                  .event,
 
               overallRank:
                 0,
@@ -244,10 +271,6 @@ export async function GET() {
             };
           }
         );
-
-    // ==========================================================
-    // OVERALL RANK
-    // ==========================================================
 
     rankings.sort(
       (a, b) => {
@@ -283,10 +306,6 @@ export async function GET() {
           totalRanked;
       }
     );
-
-    // ==========================================================
-    // RESPONSE
-    // ==========================================================
 
     return NextResponse.json({
       rankings,
@@ -324,9 +343,7 @@ export async function GET() {
     return NextResponse.json(
       {
         error:
-          error instanceof Error
-            ? error.message
-            : "Failed to fetch guild rankings.",
+          "Failed to fetch guild rankings.",
       },
       {
         status: 500,

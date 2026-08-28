@@ -58,7 +58,7 @@ export const ROLE_DESCRIPTIONS: Record<
     "Full administrative access to the guild.",
 
   MANAGER:
-    "Manage guild members, events, rosters and allocation.",
+    "Manage guild members, users, events, rosters and allocation.",
 
   OFFICER:
     "Manage guild members, events, rosters and allocation operations.",
@@ -191,11 +191,13 @@ export function hasPermission(
       case "allocation.view":
       case "allocation.run":
 
+      // Officer can see users, but cannot manage
+      // application access.
+      case "users.view":
+
         return true;
 
-      case "users.view":
       case "users.manage":
-
       case "guild.manage":
 
         return false;
@@ -227,6 +229,11 @@ export function hasPermission(
 
       case "allocation.view":
 
+      // users.view is granted to MEMBER, but the
+      // users API MUST restrict the result to the
+      // authenticated user's own membership.
+      case "users.view":
+
         return true;
 
       case "members.edit":
@@ -241,7 +248,6 @@ export function hasPermission(
 
       case "allocation.run":
 
-      case "users.view":
       case "users.manage":
 
       case "guild.manage":
@@ -303,12 +309,18 @@ export function canManageRole(
   if (
     actorRole === "ADMIN"
   ) {
+    // Another ADMIN cannot be modified through
+    // the normal role-management flow.
+
     if (
       targetCurrentRole ===
       "ADMIN"
     ) {
       return false;
     }
+
+    // ADMIN cannot be assigned through the normal
+    // role-management flow.
 
     if (
       targetNewRole ===
@@ -327,12 +339,25 @@ export function canManageRole(
   if (
     actorRole === "MANAGER"
   ) {
+    // Managers cannot modify Admins.
+
     if (
       targetCurrentRole ===
       "ADMIN"
     ) {
       return false;
     }
+
+    // Managers cannot modify another Manager.
+
+    if (
+      targetCurrentRole ===
+      "MANAGER"
+    ) {
+      return false;
+    }
+
+    // Managers cannot create/promote someone to Manager.
 
     if (
       targetNewRole ===
@@ -369,6 +394,13 @@ export const ROLE_LEVEL: Record<
 // =============================================================
 // CAN MANAGE TARGET
 // =============================================================
+//
+// Used for operations such as removing a user's guild access,
+// where there is no target "new role".
+//
+// This intentionally mirrors canManageRole().
+//
+// =============================================================
 
 export function canManageTarget(
   actorRole: UserRole,
@@ -385,8 +417,6 @@ export function canManageTarget(
     actorRole === "MANAGER"
   ) {
     return (
-      targetRole ===
-        "MANAGER" ||
       targetRole ===
         "OFFICER" ||
       targetRole ===

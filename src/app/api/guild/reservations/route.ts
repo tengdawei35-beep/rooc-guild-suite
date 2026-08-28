@@ -1,5 +1,16 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+
+import {
+  getCurrentAuth,
+} from "@/lib/auth";
+
+import {
+  hasPermission,
+} from "@/lib/permissions";
+
+import {
+  prisma,
+} from "@/lib/prisma";
 
 type ReservationRequest = {
   id?: string;
@@ -8,20 +19,15 @@ type ReservationRequest = {
   quantity?: number;
 };
 
-async function getGuild() {
-  return prisma.guild.findFirst({
-    select: {
-      id: true,
-    },
-  });
-}
-
 function validateQuantity(
   quantity: unknown
 ) {
   if (
-    typeof quantity !== "number" ||
-    !Number.isInteger(quantity) ||
+    typeof quantity !==
+      "number" ||
+    !Number.isInteger(
+      quantity
+    ) ||
     quantity < 1
   ) {
     return "Quantity must be a positive integer.";
@@ -36,50 +42,65 @@ async function getReservationData(
 ) {
   if (!body.memberId) {
     return {
-      error: "Member is required.",
+      error:
+        "Member is required.",
     };
   }
 
   if (!body.resourceId) {
     return {
-      error: "Resource is required.",
+      error:
+        "Resource is required.",
     };
   }
 
   const quantityError =
-    validateQuantity(body.quantity);
+    validateQuantity(
+      body.quantity
+    );
 
   if (quantityError) {
     return {
-      error: quantityError,
+      error:
+        quantityError,
     };
   }
 
   const member =
-    await prisma.guildMember.findFirst({
-      where: {
-        id: body.memberId,
-        guildId,
-      },
-    });
+    await prisma.guildMember.findFirst(
+      {
+        where: {
+          id:
+            body.memberId,
+
+          guildId,
+        },
+      }
+    );
 
   if (!member) {
     return {
-      error: "Member not found.",
+      error:
+        "Member not found.",
     };
   }
 
   const resource =
-    await prisma.resource.findFirst({
-      where: {
-        id: body.resourceId,
-        guildId,
-      },
-    });
+    await prisma.resource.findFirst(
+      {
+        where: {
+          id:
+            body.resourceId,
+
+          guildId,
+        },
+      }
+    );
 
   if (!resource) {
     return {
-      error: "Resource not found.",
+      error:
+        "Resource not found.",
     };
   }
 
@@ -90,49 +111,19 @@ async function getReservationData(
     };
   }
 
-  // ===========================================================
-  // HARD CAP
-  // ===========================================================
-  //
-  // Reservations bypass perPlayerLimit.
-  //
-  // However, a reserved player can never reserve more than
-  // the resource's hardCap.
-  //
-  // Example:
-  //
-  // perPlayerLimit = 2
-  // hardCap = 5
-  //
-  // Reservation of 4 -> allowed
-  // Reservation of 5 -> allowed
-  // Reservation of 6 -> rejected
-  //
-  // ===========================================================
-
   if (
-    body.quantity! > resource.hardCap
+    body.quantity! >
+    resource.hardCap
   ) {
     return {
       error:
-        `Reservation cannot exceed the ` +
-        `hardCap of ${resource.hardCap} ` +
-        `for this resource.`,
+        `Reservation cannot exceed the hardCap of ${resource.hardCap} for this resource.`,
     };
   }
 
-  // ===========================================================
-  // RESOURCE TOTAL
-  // ===========================================================
-  //
-  // A single reservation also cannot exceed the total resource
-  // quantity. Normally hardCap <= total, but keep this check as
-  // a defensive safeguard.
-  //
-  // ===========================================================
-
   if (
-    body.quantity! > resource.total
+    body.quantity! >
+    resource.total
   ) {
     return {
       error:
@@ -143,43 +134,66 @@ async function getReservationData(
   return {
     member,
     resource,
-    quantity: body.quantity!,
+    quantity:
+      body.quantity!,
   };
 }
 
 // =============================================================
-// CREATE
+// POST
 // =============================================================
 
 export async function POST(
   request: Request
 ) {
   try {
-    const body =
-      (await request.json()) as ReservationRequest;
+    const auth =
+      await getCurrentAuth();
 
-    const guild = await getGuild();
-
-    if (!guild) {
+    if (!auth) {
       return NextResponse.json(
         {
           error:
-            "No guild has been configured.",
+            "Authentication required.",
         },
-        { status: 404 }
+        {
+          status: 401,
+        }
       );
     }
 
+    if (
+      !hasPermission(
+        auth.role,
+        "allocation.run"
+      )
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "You do not have permission to manage reservations.",
+        },
+        {
+          status: 403,
+        }
+      );
+    }
+
+    const body =
+      (await request.json()) as ReservationRequest;
+
     const data =
       await getReservationData(
-        guild.id,
+        auth.guild.id,
         body
       );
 
     if ("error" in data) {
       return NextResponse.json(
         data,
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
@@ -188,9 +202,14 @@ export async function POST(
         {
           where: {
             guildId_memberId_resourceId: {
-              guildId: guild.id,
-              memberId: data.member.id,
-              resourceId: data.resource.id,
+              guildId:
+                auth.guild.id,
+
+              memberId:
+                data.member.id,
+
+              resourceId:
+                data.resource.id,
             },
           },
         }
@@ -202,7 +221,9 @@ export async function POST(
           error:
             "A reservation already exists for this member and resource. Edit the existing reservation instead.",
         },
-        { status: 409 }
+        {
+          status: 409,
+        }
       );
     }
 
@@ -210,11 +231,19 @@ export async function POST(
       await prisma.reservedAllocation.create(
         {
           data: {
-            guildId: guild.id,
-            memberId: data.member.id,
-            resourceId: data.resource.id,
-            quantity: data.quantity,
+            guildId:
+              auth.guild.id,
+
+            memberId:
+              data.member.id,
+
+            resourceId:
+              data.resource.id,
+
+            quantity:
+              data.quantity,
           },
+
           include: {
             member: true,
             resource: true,
@@ -224,18 +253,30 @@ export async function POST(
 
     return NextResponse.json({
       reservation: {
-        id: reservation.id,
-        memberId: reservation.memberId,
-        resourceId: reservation.resourceId,
-        quantity: reservation.quantity,
+        id:
+          reservation.id,
+
+        memberId:
+          reservation.memberId,
+
+        resourceId:
+          reservation.resourceId,
+
+        quantity:
+          reservation.quantity,
+
         memberName:
           reservation.member.displayName,
+
         resourceName:
           reservation.resource.name,
+
         resourceType:
           reservation.resource.type,
+
         resourceTotal:
           reservation.resource.total,
+
         resourceHardCap:
           reservation.resource.hardCap,
       },
@@ -251,19 +292,53 @@ export async function POST(
         error:
           "Failed to create reservation.",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }
 
 // =============================================================
-// UPDATE
+// PUT
 // =============================================================
 
 export async function PUT(
   request: Request
 ) {
   try {
+    const auth =
+      await getCurrentAuth();
+
+    if (!auth) {
+      return NextResponse.json(
+        {
+          error:
+            "Authentication required.",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
+    if (
+      !hasPermission(
+        auth.role,
+        "allocation.run"
+      )
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "You do not have permission to manage reservations.",
+        },
+        {
+          status: 403,
+        }
+      );
+    }
+
     const body =
       (await request.json()) as ReservationRequest;
 
@@ -273,19 +348,9 @@ export async function PUT(
           error:
             "Reservation ID is required.",
         },
-        { status: 400 }
-      );
-    }
-
-    const guild = await getGuild();
-
-    if (!guild) {
-      return NextResponse.json(
         {
-          error:
-            "No guild has been configured.",
-        },
-        { status: 404 }
+          status: 400,
+        }
       );
     }
 
@@ -293,8 +358,11 @@ export async function PUT(
       await prisma.reservedAllocation.findFirst(
         {
           where: {
-            id: body.id,
-            guildId: guild.id,
+            id:
+              body.id,
+
+            guildId:
+              auth.guild.id,
           },
         }
       );
@@ -305,20 +373,24 @@ export async function PUT(
           error:
             "Reservation not found.",
         },
-        { status: 404 }
+        {
+          status: 404,
+        }
       );
     }
 
     const data =
       await getReservationData(
-        guild.id,
+        auth.guild.id,
         body
       );
 
     if ("error" in data) {
       return NextResponse.json(
         data,
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
@@ -326,11 +398,18 @@ export async function PUT(
       await prisma.reservedAllocation.findFirst(
         {
           where: {
-            guildId: guild.id,
-            memberId: data.member.id,
-            resourceId: data.resource.id,
+            guildId:
+              auth.guild.id,
+
+            memberId:
+              data.member.id,
+
+            resourceId:
+              data.resource.id,
+
             NOT: {
-              id: body.id,
+              id:
+                body.id,
             },
           },
         }
@@ -342,7 +421,9 @@ export async function PUT(
           error:
             "A reservation already exists for this member and resource.",
         },
-        { status: 409 }
+        {
+          status: 409,
+        }
       );
     }
 
@@ -350,13 +431,21 @@ export async function PUT(
       await prisma.reservedAllocation.update(
         {
           where: {
-            id: body.id,
+            id:
+              body.id,
           },
+
           data: {
-            memberId: data.member.id,
-            resourceId: data.resource.id,
-            quantity: data.quantity,
+            memberId:
+              data.member.id,
+
+            resourceId:
+              data.resource.id,
+
+            quantity:
+              data.quantity,
           },
+
           include: {
             member: true,
             resource: true,
@@ -366,18 +455,30 @@ export async function PUT(
 
     return NextResponse.json({
       reservation: {
-        id: reservation.id,
-        memberId: reservation.memberId,
-        resourceId: reservation.resourceId,
-        quantity: reservation.quantity,
+        id:
+          reservation.id,
+
+        memberId:
+          reservation.memberId,
+
+        resourceId:
+          reservation.resourceId,
+
+        quantity:
+          reservation.quantity,
+
         memberName:
           reservation.member.displayName,
+
         resourceName:
           reservation.resource.name,
+
         resourceType:
           reservation.resource.type,
+
         resourceTotal:
           reservation.resource.total,
+
         resourceHardCap:
           reservation.resource.hardCap,
       },
@@ -393,7 +494,9 @@ export async function PUT(
         error:
           "Failed to update reservation.",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }
@@ -406,8 +509,47 @@ export async function DELETE(
   request: Request
 ) {
   try {
-    const url = new URL(request.url);
-    const id = url.searchParams.get("id");
+    const auth =
+      await getCurrentAuth();
+
+    if (!auth) {
+      return NextResponse.json(
+        {
+          error:
+            "Authentication required.",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
+    if (
+      !hasPermission(
+        auth.role,
+        "allocation.run"
+      )
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "You do not have permission to manage reservations.",
+        },
+        {
+          status: 403,
+        }
+      );
+    }
+
+    const url =
+      new URL(
+        request.url
+      );
+
+    const id =
+      url.searchParams.get(
+        "id"
+      );
 
     if (!id) {
       return NextResponse.json(
@@ -415,19 +557,9 @@ export async function DELETE(
           error:
             "Reservation ID is required.",
         },
-        { status: 400 }
-      );
-    }
-
-    const guild = await getGuild();
-
-    if (!guild) {
-      return NextResponse.json(
         {
-          error:
-            "No guild has been configured.",
-        },
-        { status: 404 }
+          status: 400,
+        }
       );
     }
 
@@ -436,7 +568,9 @@ export async function DELETE(
         {
           where: {
             id,
-            guildId: guild.id,
+
+            guildId:
+              auth.guild.id,
           },
         }
       );
@@ -447,15 +581,19 @@ export async function DELETE(
           error:
             "Reservation not found.",
         },
-        { status: 404 }
+        {
+          status: 404,
+        }
       );
     }
 
-    await prisma.reservedAllocation.delete({
-      where: {
-        id,
-      },
-    });
+    await prisma.reservedAllocation.delete(
+      {
+        where: {
+          id,
+        },
+      }
+    );
 
     return NextResponse.json({
       success: true,
@@ -471,7 +609,9 @@ export async function DELETE(
         error:
           "Failed to delete reservation.",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }

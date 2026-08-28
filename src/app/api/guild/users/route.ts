@@ -31,6 +31,13 @@ function isUserRole(
 // =============================================================
 // GET
 // =============================================================
+//
+// ADMIN   -> all users
+// MANAGER -> all users
+// OFFICER -> all users
+// MEMBER  -> own user only
+//
+// =============================================================
 
 export async function GET() {
   try {
@@ -66,18 +73,30 @@ export async function GET() {
       );
     }
 
+    const isMember =
+      auth.role ===
+      "MEMBER";
+
     const memberships =
       await prisma.guildMembership.findMany(
         {
           where: {
             guildId:
               auth.guild.id,
+
+            ...(isMember
+              ? {
+                  userId:
+                    auth.user.id,
+                }
+              : {}),
           },
 
           orderBy: [
             {
               role: "asc",
             },
+
             {
               user: {
                 username: "asc",
@@ -242,12 +261,6 @@ export async function POST(
       );
     }
 
-    // ---------------------------------------------------------
-    // Basic permission check
-    //
-    // Only roles with users.manage may add guild users.
-    // ---------------------------------------------------------
-
     if (
       !hasPermission(
         auth.role,
@@ -277,10 +290,6 @@ export async function POST(
     const role =
       body.role;
 
-    // ---------------------------------------------------------
-    // Validate Discord ID
-    // ---------------------------------------------------------
-
     if (!discordId) {
       return NextResponse.json(
         {
@@ -292,10 +301,6 @@ export async function POST(
         }
       );
     }
-
-    // ---------------------------------------------------------
-    // Validate requested role
-    // ---------------------------------------------------------
 
     if (
       !isUserRole(role)
@@ -311,18 +316,8 @@ export async function POST(
       );
     }
 
-    // ---------------------------------------------------------
-    // ADMIN PROTECTION
-    //
-    // ADMIN access cannot be created through the normal
-    // Add User endpoint.
-    //
-    // This prevents an ADMIN role from being granted simply
-    // by making a POST request to this endpoint.
-    //
-    // The protected initial bootstrap flow is responsible
-    // for establishing the first ADMIN.
-    // ---------------------------------------------------------
+    // ADMIN cannot be granted through the
+    // normal Add User endpoint.
 
     if (
       role === "ADMIN"
@@ -337,31 +332,6 @@ export async function POST(
         }
       );
     }
-
-    // ---------------------------------------------------------
-    // ROLE ASSIGNMENT PERMISSION
-    //
-    // A newly added user does not currently have an
-    // application role, so we treat the target's current role
-    // as MEMBER for the purpose of checking whether the actor
-    // may assign the requested role.
-    //
-    // This gives us:
-    //
-    // ADMIN
-    //   -> MANAGER / OFFICER / MEMBER
-    //
-    // MANAGER
-    //   -> OFFICER / MEMBER
-    //
-    // OFFICER
-    //   -> none
-    //
-    // MEMBER
-    //   -> none
-    //
-    // ADMIN is already explicitly rejected above.
-    // ---------------------------------------------------------
 
     if (
       !canManageRole(
@@ -380,10 +350,6 @@ export async function POST(
         }
       );
     }
-
-    // ---------------------------------------------------------
-    // Find the Discord user
-    // ---------------------------------------------------------
 
     const user =
       await prisma.user.findUnique(
@@ -405,10 +371,6 @@ export async function POST(
         }
       );
     }
-
-    // ---------------------------------------------------------
-    // Check existing guild access
-    // ---------------------------------------------------------
 
     const existing =
       await prisma.guildMembership.findUnique(
@@ -436,10 +398,6 @@ export async function POST(
         }
       );
     }
-
-    // ---------------------------------------------------------
-    // Create membership
-    // ---------------------------------------------------------
 
     const membership =
       await prisma.guildMembership.create(
