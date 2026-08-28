@@ -1,0 +1,47 @@
+name: GuildMember identity refactor
+
+on:
+  push:
+    branches:
+      - codex/guild-member-identity-final
+
+permissions:
+  contents: write
+
+jobs:
+  refactor-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run targeted refactor
+        run: node scripts/refactor-guild-member-identity.mjs
+
+      - name: Regenerate Prisma client
+        run: npx prisma generate
+
+      - name: Build
+        run: npm run build
+
+      - name: Commit refactor
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -f scripts/refactor-guild-member-identity.mjs .github/workflows/refactor-guild-member-identity.yml
+          git add src
+          git add -u scripts .github/workflows
+          git diff --cached --check
+          git diff --cached --quiet || git commit -m "refactor: use characterName for member display"
+          git push
