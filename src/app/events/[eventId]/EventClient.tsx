@@ -11,7 +11,6 @@ type Participant = {
   id: string;
   userId: string | null;
   characterName: string;
-  characterName: string | null;
   job: string | null;
   priority:
     | "LEADER"
@@ -43,7 +42,6 @@ type RosterMember = {
   member: {
     id: string;
     characterName: string;
-    characterName: string | null;
     job: string | null;
     priority:
       | "LEADER"
@@ -979,7 +977,7 @@ export default function EventClient({
             }
 
             return (
-              participant.characterName
+              (participant.characterName ?? "")
                 .toLowerCase()
                 .includes(query) ||
               participant.characterName
@@ -994,7 +992,6 @@ export default function EventClient({
         .sort(
           (a, b) =>
             (
-              a.characterName ||
               a.characterName
             ).localeCompare(
               b.characterName ||
@@ -1019,8 +1016,8 @@ export default function EventClient({
 
         const matchesSearch =
           query.length === 0 ||
-          participant.characterName
-            .toLowerCase()
+          (participant.characterName ?? "")
+                .toLowerCase()
             .includes(query) ||
           participant.characterName
             ?.toLowerCase()

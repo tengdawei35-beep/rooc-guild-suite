@@ -13,7 +13,6 @@ type RankingMember = {
   id: string;
 
   characterName: string;
-  characterName: string | null;
   job: string | null;
 
   active: boolean;

@@ -33,7 +33,6 @@ type PreferredRole =
 
 type RankingMember = {
   id: string;
-  characterName: string;
   characterName: string | null;
   job: string | null;
   priority:
@@ -1632,9 +1631,7 @@ function compareByPercentile(
     );
   }
 
-  return a.characterName.localeCompare(
-    b.characterName
-  );
+  return (a.characterName ?? "").localeCompare(b.characterName ?? "");
 }
 
 // =============================================================

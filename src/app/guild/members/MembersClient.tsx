@@ -115,7 +115,6 @@ type MemberForm = {
   discordUsername: string;
 
   characterName: string;
-  characterName: string;
   job: string;
 
   active: boolean;

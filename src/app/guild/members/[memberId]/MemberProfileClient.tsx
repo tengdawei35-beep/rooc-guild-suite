@@ -8,7 +8,7 @@ import Link from "next/link";
 
 type MemberProfile = {
   id: string;
-
+  discordUsername: string | null;
   characterName: string | null;
   job: string | null;
 

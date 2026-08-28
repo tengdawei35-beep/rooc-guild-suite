@@ -8,7 +8,7 @@ export type AllocationInput = {
 
 export type AllocationAssignment = {
   memberId: string;
-  memberName: string;
+  memberName: string | null;
   resourceId: string;
   resourceName: string;
   reservedQuantity: number;
@@ -27,7 +27,7 @@ export type AllocationResourceResult = {
 
   selectedMembers: {
     id: string;
-    characterName: string;
+    characterName: string | null;
   }[];
 
   assignments: AllocationAssignment[];

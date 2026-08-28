@@ -4,7 +4,7 @@ import { useState } from "react";
 
 type Member = {
   id: string;
-  characterName: string;
+  characterName: string | null;
   priority: string;
   eligible: boolean;
 };
@@ -22,7 +22,7 @@ type Reservation = {
   memberId: string;
   resourceId: string;
   quantity: number;
-  memberName: string;
+  memberName: string | null;
   resourceName: string;
   resourceType: "FEATHER" | "CARD";
   resourceTotal: number;
