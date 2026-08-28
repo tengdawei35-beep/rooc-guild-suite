@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 
 import {
   createSession,
 } from "@/lib/auth";
 
 import { prisma } from "@/lib/prisma";
+
+const OAUTH_STATE_COOKIE =
+  "rooc_discord_oauth_state";
 
 type DiscordUser = {
   id: string;
@@ -39,14 +43,62 @@ export async function GET(
     const code =
       url.searchParams.get("code");
 
-    if (!code) {
+    const state =
+      url.searchParams.get("state");
+
+    // =========================================================
+    // VERIFY OAUTH STATE
+    // =========================================================
+    //
+    // The callback must correspond to an authorization request
+    // started by this browser. Reject missing or mismatched state
+    // before exchanging the OAuth code.
+    //
+    // =========================================================
+
+    const cookieStore =
+      await cookies();
+
+    const expectedState =
+      cookieStore.get(
+        OAUTH_STATE_COOKIE
+      )?.value;
+
+    if (
+      !code ||
+      !state ||
+      !expectedState ||
+      state.length !==
+        expectedState.length ||
+      state !== expectedState
+    ) {
       return NextResponse.redirect(
         new URL(
-          "/login?error=missing_code",
+          "/login?error=invalid_oauth_state",
           appUrl ?? url.origin
         )
       );
     }
+
+    // Consume the state before continuing so the same OAuth
+    // callback cannot be replayed through this browser session.
+    cookieStore.set(
+      OAUTH_STATE_COOKIE,
+      "",
+      {
+        httpOnly: true,
+
+        secure:
+          process.env.NODE_ENV ===
+          "production",
+
+        sameSite: "lax",
+
+        path: "/",
+
+        maxAge: 0,
+      }
+    );
 
     const clientId =
       process.env.DISCORD_CLIENT_ID;
