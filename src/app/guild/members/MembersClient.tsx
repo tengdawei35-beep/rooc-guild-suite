@@ -10,11 +10,13 @@ import Link from "next/link";
 
 import ImportMembersModal from "./ImportMembersModal";
 
-type UserRole =
-  | "LEADER"
-  | "COUNCIL"
-  | "OFFICER"
-  | "MEMBER";
+import {
+  hasPermission,
+} from "@/lib/permissions";
+
+import type {
+  UserRole,
+} from "@/lib/permissions";
 
 type Member = {
   id: string;
@@ -345,20 +347,51 @@ export default function MembersClient({
     setLeaveSaving,
   ] = useState(false);
 
-  // ============================================================
-  // ACCESS CONTROL
-  // ============================================================
+// ============================================================
+// ACCESS CONTROL
+// ============================================================
+
+  const canViewMembers =
+    userRole !== null &&
+    hasPermission(
+      userRole,
+      "members.view"
+    );
 
   const canManageMembers =
-    userRole === "LEADER" ||
-    userRole === "COUNCIL" ||
-    userRole === "OFFICER";
+    userRole !== null &&
+    hasPermission(
+      userRole,
+      "members.edit"
+    );
 
   const canImportMembers =
-    canManageMembers;
+    userRole !== null &&
+    hasPermission(
+      userRole,
+      "members.import"
+    );
 
   const canDeleteMembers =
-    canManageMembers;
+    userRole !== null &&
+    hasPermission(
+      userRole,
+      "members.delete"
+    );
+
+  const canManageAnyLeave =
+    userRole !== null &&
+    hasPermission(
+      userRole,
+      "leave.manageAny"
+    );
+
+  const canManageOwnProfile =
+    userRole !== null &&
+    hasPermission(
+      userRole,
+      "profile.editOwn"
+    );
 
   function isOwnMember(
     member: Member
@@ -379,7 +412,7 @@ export default function MembersClient({
     }
 
     return (
-      userRole === "MEMBER" &&
+      canManageOwnProfile &&
       isOwnMember(member)
     );
   }
@@ -387,12 +420,16 @@ export default function MembersClient({
   function canManageLeave(
     member: Member
   ) {
-    if (canManageMembers) {
+    if (canManageAnyLeave) {
       return true;
     }
 
     return (
-      userRole === "MEMBER" &&
+      userRole !== null &&
+      hasPermission(
+        userRole,
+        "leave.manageOwn"
+      ) &&
       isOwnMember(member)
     );
   }
@@ -475,8 +512,12 @@ export default function MembersClient({
   }
 
   useEffect(() => {
-    loadAuth();
-    loadMembers();
+    async function initialize() {
+      await loadAuth();
+      await loadMembers();
+    }
+
+    initialize();
   }, []);
 
   // ============================================================

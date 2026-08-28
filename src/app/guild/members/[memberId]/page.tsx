@@ -1,5 +1,11 @@
 import MemberProfileClient from "./MemberProfileClient";
-import { requirePageAuth } from "@/lib/auth";
+
+import {
+  hasPermission,
+  requirePageAuth,
+} from "@/lib/auth";
+
+import { redirect } from "next/navigation";
 
 type PageProps = {
   params: Promise<{
@@ -7,12 +13,24 @@ type PageProps = {
   }>;
 };
 
-export default async function MemberProfilePage(
-  { params }: PageProps
-) {
-  await requirePageAuth();
-  const { memberId } =
-    await params;
+export default async function MemberProfilePage({
+  params,
+}: PageProps) {
+  const auth =
+    await requirePageAuth();
+
+  if (
+    !hasPermission(
+      auth.role,
+      "members.view"
+    )
+  ) {
+    redirect("/guild/members");
+  }
+
+  const {
+    memberId,
+  } = await params;
 
   return (
     <MemberProfileClient

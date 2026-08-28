@@ -1,14 +1,75 @@
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
-import { buildAllocation } from "@/lib/allocation/engine";
+
+import {
+  getCurrentAuth,
+} from "@/lib/auth";
+
+import {
+  hasPermission,
+} from "@/lib/permissions";
+
+import {
+  buildAllocation,
+} from "@/lib/allocation/engine";
 
 export async function POST(
   request: Request
 ) {
   try {
-    const body = await request.json();
+    // ==========================================================
+    // AUTHENTICATION
+    // ==========================================================
 
-    const eventId = body.eventId;
+    const auth =
+      await getCurrentAuth();
+
+    if (!auth) {
+      return NextResponse.json(
+        {
+          error:
+            "Authentication required.",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
+    // ==========================================================
+    // PERMISSION
+    // ==========================================================
+    //
+    // Previewing an allocation does not persist anything,
+    // but it still exposes guild allocation information.
+    //
+    // Therefore the caller needs allocation.view.
+    //
+    // ==========================================================
+
+    if (
+      !hasPermission(
+        auth.role,
+        "allocation.view"
+      )
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "You do not have permission to view allocation information.",
+        },
+        {
+          status: 403,
+        }
+      );
+    }
+
+    const body =
+      await request.json();
+
+    const eventId =
+      body.eventId;
 
     const nonReservedMemberCount =
       Number(
@@ -28,7 +89,9 @@ export async function POST(
           error:
             "An event must be selected before generating an allocation preview.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
@@ -47,18 +110,32 @@ export async function POST(
           error:
             "nonReservedMemberCount must be a non-negative integer.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
     // ==========================================================
     // LOAD EVENT
     // ==========================================================
+    //
+    // IMPORTANT:
+    //
+    // Use findFirst rather than findUnique because the event ID
+    // alone is not sufficient for authorization.
+    //
+    // The event must belong to the authenticated guild.
+    //
+    // ==========================================================
 
     const event =
-      await prisma.event.findUnique({
+      await prisma.event.findFirst({
         where: {
           id: eventId,
+
+          guildId:
+            auth.guild.id,
         },
 
         select: {
@@ -72,9 +149,12 @@ export async function POST(
     if (!event) {
       return NextResponse.json(
         {
-          error: "Event not found.",
+          error:
+            "Event not found.",
         },
-        { status: 404 }
+        {
+          status: 404,
+        }
       );
     }
 
@@ -93,22 +173,50 @@ export async function POST(
       await buildAllocation({
         nonReservedMemberCount,
 
-        eventDate: event.date,
+        eventDate:
+          event.date,
       });
 
     // ==========================================================
     // VERIFY EVENT / GUILD
     // ==========================================================
+    //
+    // This is an additional safety check.
+    //
+    // The event was already scoped to auth.guild.id above,
+    // but the allocation engine determines its own guildId.
+    //
+    // Both must agree.
+    //
+    // ==========================================================
 
     if (
-      preview.guildId !== event.guildId
+      preview.guildId !==
+      auth.guild.id
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Allocation does not belong to your guild.",
+        },
+        {
+          status: 403,
+        }
+      );
+    }
+
+    if (
+      preview.guildId !==
+      event.guildId
     ) {
       return NextResponse.json(
         {
           error:
             "Event does not belong to the configured guild.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
@@ -120,10 +228,17 @@ export async function POST(
       preview,
 
       event: {
-        id: event.id,
-        guildId: event.guildId,
-        type: event.type,
-        date: event.date,
+        id:
+          event.id,
+
+        guildId:
+          event.guildId,
+
+        type:
+          event.type,
+
+        date:
+          event.date,
       },
     });
   } catch (error) {
@@ -139,7 +254,9 @@ export async function POST(
             ? error.message
             : "Failed to build allocation preview.",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }

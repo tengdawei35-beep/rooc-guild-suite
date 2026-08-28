@@ -9,6 +9,7 @@ type EventType =
 
 type Participant = {
   id: string;
+  userId: string | null;
   displayName: string;
   characterName: string | null;
   job: string | null;
@@ -87,6 +88,10 @@ type AllocationRun = {
 type EventResponse = {
   event: EventData;
   participants: Participant[];
+  permissions?: {
+    canManageEvents: boolean;
+    canEditRosters: boolean;
+  };
   rosters: RosterSummary[];
   allocationRuns: AllocationRun[];
   stats: {
@@ -111,8 +116,14 @@ type AddMemberTarget = {
 
 export default function EventClient({
   eventId,
+  currentUserId,
+  canManageEvents,
+  canEditRosters,
 }: {
   eventId: string;
+  currentUserId: string;
+  canManageEvents: boolean;
+  canEditRosters: boolean;
 }) {
   const [data, setData] =
     useState<EventResponse | null>(null);
@@ -1269,21 +1280,26 @@ export default function EventClient({
               <div className="divide-y divide-zinc-800">
                 {filteredParticipants.map(
                   (participant) => (
-                    <ParticipantRow
-                      key={
-                        participant.id
-                      }
-                      participant={
-                        participant
-                      }
-                      updating={
-                        updatingMember ===
-                        participant.id
-                      }
-                      onToggle={
-                        updateAvailability
-                      }
-                    />
+                   <ParticipantRow
+                    key={
+                      participant.id
+                    }
+                    participant={
+                      participant
+                    }
+                    updating={
+                      updatingMember ===
+                      participant.id
+                    }
+                    canEdit={
+                      canManageEvents ||
+                      participant.userId ===
+                        currentUserId
+                    }
+                    onToggle={
+                      updateAvailability
+                    }
+                  />
                   )
                 )}
               </div>
@@ -1307,41 +1323,43 @@ export default function EventClient({
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={
-                  saveRosterAsPreferred
-                }
-                disabled={
-                  savingPreferred ||
-                  data.rosters.length ===
-                    0
-                }
-                className="rounded-lg border border-zinc-700 px-5 py-2.5 text-sm font-medium text-zinc-300 transition hover:border-zinc-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                {savingPreferred
-                  ? "Saving..."
-                  : preferredSaved
-                    ? "Preferred Saved"
-                    : "Save Roster as Preferred"}
-              </button>
+            {canEditRosters && (
+              <div className="flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={
+                    saveRosterAsPreferred
+                  }
+                  disabled={
+                    savingPreferred ||
+                    data.rosters.length ===
+                      0
+                  }
+                  className="rounded-lg border border-zinc-700 px-5 py-2.5 text-sm font-medium text-zinc-300 transition hover:border-zinc-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {savingPreferred
+                    ? "Saving..."
+                    : preferredSaved
+                      ? "Preferred Saved"
+                      : "Save Roster as Preferred"}
+                </button>
 
-              <button
-                type="button"
-                onClick={
-                  generateRoster
-                }
-                disabled={
-                  generatingRoster
-                }
-                className="rounded-lg bg-white px-5 py-2.5 text-sm font-medium text-black transition hover:bg-zinc-200 disabled:cursor-wait disabled:opacity-50"
-              >
-                {generatingRoster
-                  ? "Generating..."
-                  : "Generate Roster"}
-              </button>
-            </div>
+                <button
+                  type="button"
+                  onClick={
+                    generateRoster
+                  }
+                  disabled={
+                    generatingRoster
+                  }
+                  className="rounded-lg bg-white px-5 py-2.5 text-sm font-medium text-black transition hover:bg-zinc-200 disabled:cursor-wait disabled:opacity-50"
+                >
+                  {generatingRoster
+                    ? "Generating..."
+                    : "Generate Roster"}
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="mt-5">
@@ -1366,6 +1384,9 @@ export default function EventClient({
                       }
                       roster={
                         roster
+                      }
+                      canEdit={
+                        canEditRosters
                       }
                       editing={
                         editingRosterId ===
@@ -1635,10 +1656,12 @@ export default function EventClient({
 function ParticipantRow({
   participant,
   updating,
+  canEdit,
   onToggle,
 }: {
   participant: Participant;
   updating: boolean;
+  canEdit: boolean;
   onToggle: (
     memberId: string,
     available: boolean
@@ -1713,38 +1736,49 @@ function ParticipantRow({
         </div>
 
         <div className="flex justify-start md:justify-end">
-          <button
-            type="button"
-            disabled={updating}
-            onClick={() =>
-              onToggle(
-                participant.id,
-                !participant.available
-              )
-            }
-            className={`relative h-7 w-12 rounded-full transition ${
-              participant.available
-                ? "bg-emerald-500"
-                : "bg-zinc-700"
-            } ${
-              updating
-                ? "cursor-wait opacity-50"
-                : ""
-            }`}
-            aria-label={
-              participant.available
-                ? "Mark unavailable"
-                : "Mark available"
-            }
-          >
-            <span
-              className={`absolute top-1 h-5 w-5 rounded-full bg-white transition ${
+          {canEdit ? (
+            <button
+              type="button"
+              disabled={
+                updating ||
+                participant.onLeave
+              }
+              onClick={() =>
+                onToggle(
+                  participant.id,
+                  !participant.available
+                )
+              }
+              className={`relative h-7 w-12 rounded-full transition ${
                 participant.available
-                  ? "left-6"
-                  : "left-1"
+                  ? "bg-emerald-500"
+                  : "bg-zinc-700"
+              } ${
+                updating
+                  ? "cursor-wait opacity-50"
+                  : participant.onLeave
+                    ? "cursor-not-allowed opacity-30"
+                    : ""
               }`}
-            />
-          </button>
+              aria-label={
+                participant.available
+                  ? "Mark unavailable"
+                  : "Mark available"
+              }
+            >
+              <span
+                className={`absolute top-1 h-5 w-5 rounded-full bg-white transition ${
+                  participant.available
+                    ? "left-6"
+                    : "left-1"
+                }`}
+              />
+            </button>
+          ) : (
+            <span className="text-xs text-zinc-700">
+              View only
+            </span>
+          )}
         </div>
       </div>
     </div>
@@ -1757,6 +1791,7 @@ function ParticipantRow({
 
 function RosterCard({
   roster,
+  canEdit,
   editing,
   onEdit,
   draggedAssignmentId,
@@ -1769,7 +1804,7 @@ function RosterCard({
   onRemoveMember,
 }: {
   roster: RosterSummary;
-
+  canEdit: boolean;
   editing: boolean;
 
   onEdit: () => void;
@@ -1852,19 +1887,21 @@ function RosterCard({
             {roster.partyCount} parties
           </span>
 
-          <button
-            type="button"
-            onClick={onEdit}
-            className={`rounded-lg border px-3 py-2 text-xs font-medium transition ${
-              editing
-                ? "border-white bg-white text-black"
-                : "border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-white"
-            }`}
-          >
-            {editing
-              ? "Done Editing"
-              : "Edit Roster"}
-          </button>
+          {canEdit && (
+            <button
+              type="button"
+              onClick={onEdit}
+              className={`rounded-lg border px-3 py-2 text-xs font-medium transition ${
+                editing
+                  ? "border-white bg-white text-black"
+                  : "border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-white"
+              }`}
+            >
+              {editing
+                ? "Done Editing"
+                : "Edit Roster"}
+            </button>
+          )}
         </div>
       </div>
 
@@ -1910,8 +1947,12 @@ function RosterCard({
                           party={
                             party
                           }
+                          canEdit={
+                            canEdit
+                          }
                           editing={
-                            editing
+                            editing &&
+                            canEdit
                           }
                           draggedAssignmentId={
                             draggedAssignmentId
@@ -1991,6 +2032,7 @@ function RosterCard({
 
 function PartyCard({
   party,
+  canEdit,
   editing,
   draggedAssignmentId,
   movingAssignmentId,
@@ -2002,7 +2044,7 @@ function PartyCard({
   onRemoveMember,
 }: {
   party: RosterParty;
-
+  canEdit: boolean;
   editing: boolean;
 
   draggedAssignmentId:

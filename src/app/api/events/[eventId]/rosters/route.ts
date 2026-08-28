@@ -1,6 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+import {
+  getCurrentAuth,
+} from "@/lib/auth";
+
+import {
+  hasPermission,
+} from "@/lib/permissions";
+
 type RouteContext = {
   params: Promise<{
     eventId: string;
@@ -96,20 +104,6 @@ type GeneratedParty = {
   battlefield: Battlefield;
   partyNumber: number;
 
-  /*
-   * Slots are explicitly represented.
-   *
-   * This is important because a preferred roster may contain:
-   *
-   * Slot 1 -> Priest A
-   * Slot 2 -> Gypsy A
-   * Slot 3 -> Gypsy B
-   * Slot 4 -> DPS A
-   * Slot 5 -> DPS B
-   *
-   * If Gypsy B is unavailable, slot 3 remains a vacancy
-   * rather than causing slots 4 and 5 to shift.
-   */
   slots: PartySlot[];
 };
 
@@ -122,17 +116,69 @@ export async function POST(
   context: RouteContext
 ) {
   try {
+    // ==========================================================
+    // AUTHENTICATION
+    // ==========================================================
+
+    const auth =
+      await getCurrentAuth();
+
+    if (!auth) {
+      return NextResponse.json(
+        {
+          error:
+            "Authentication required.",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
+    // ==========================================================
+    // PERMISSION
+    // ==========================================================
+
+    if (
+      !hasPermission(
+        auth.role,
+        "rosters.edit"
+      )
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "You do not have permission to manage rosters.",
+        },
+        {
+          status: 403,
+        }
+      );
+    }
+
     const { eventId } =
       await context.params;
 
     // ==========================================================
     // LOAD EVENT
     // ==========================================================
+    //
+    // IMPORTANT:
+    // findFirst is intentional here.
+    //
+    // eventId is unique by itself, but we also need to enforce
+    // that the event belongs to the authenticated user's guild.
+    //
+    // Using findFirst allows both conditions to be checked.
+    // ==========================================================
 
     const event =
-      await prisma.event.findUnique({
+      await prisma.event.findFirst({
         where: {
           id: eventId,
+
+          guildId:
+            auth.guild.id,
         },
 
         select: {
@@ -146,7 +192,8 @@ export async function POST(
     if (!event) {
       return NextResponse.json(
         {
-          error: "Event not found.",
+          error:
+            "Event not found.",
         },
         {
           status: 404,
@@ -604,39 +651,6 @@ export async function POST(
     // PASS 1
     //
     // APPLY PREFERRED ROSTER
-    //
-    // Preferred members retain their exact party and slot.
-    //
-    // Composition rules DO NOT apply here.
-    //
-    // This is intentional:
-    //
-    // "Preferred" means the guild administrator explicitly
-    // chose this arrangement.
-    //
-    // Example:
-    //
-    // Preferred:
-    //
-    // Party 1
-    //   Priest A
-    //   Gypsy A
-    //   Gypsy B
-    //   DPS A
-    //   DPS B
-    //
-    // If all five are available, all five remain exactly there.
-    //
-    // If Gypsy B is unavailable:
-    //
-    // Party 1
-    //   Priest A
-    //   Gypsy A
-    //   VACANCY
-    //   DPS A
-    //   DPS B
-    //
-    // Pass 2 will fill the vacancy.
     // ==========================================================
 
     for (
@@ -718,14 +732,6 @@ export async function POST(
     // PASS 2
     //
     // FILL VACANCIES IN PREFERRED PARTIES FIRST.
-    //
-    // This is the critical part of preferred-roster inheritance.
-    //
-    // A preferred party with a missing member gets filled before
-    // we start creating completely new party compositions.
-    //
-    // The existing composition + percentile algorithm is used
-    // to choose the replacement.
     // ==========================================================
 
     for (
@@ -813,16 +819,6 @@ export async function POST(
     // PASS 3
     //
     // COMPLETE NORMAL PARTIES.
-    //
-    // Each party is filled to five before moving to the next.
-    //
-    // This preserves the behavior we previously fixed where
-    // 10 members should produce:
-    //
-    // Party 1 = 5 members
-    // Party 2 = 5 members
-    //
-    // rather than one member per party.
     // ==========================================================
 
     for (
@@ -898,10 +894,6 @@ export async function POST(
     // PASS 4
     //
     // FALLBACK DISTRIBUTION
-    //
-    // If composition restrictions prevented a candidate from
-    // being selected, use percentile ranking as the final
-    // fallback.
     // ==========================================================
 
     if (
@@ -1076,13 +1068,6 @@ export async function POST(
                     party.partyNumber,
                 },
               });
-
-            // --------------------------------------------------
-            // IMPORTANT:
-            //
-            // We write every member using the explicit slot
-            // number. This preserves preferred slots.
-            // --------------------------------------------------
 
             for (
               let slotIndex = 0;
@@ -1346,10 +1331,6 @@ function selectBestCandidate(
       currentParty
     );
 
-  // -----------------------------------------------------------
-  // Required roles first.
-  // -----------------------------------------------------------
-
   const requiredRoles =
     getRequiredRoles(
       roleCounts
@@ -1380,10 +1361,6 @@ function selectBestCandidate(
     );
   }
 
-  // -----------------------------------------------------------
-  // Once required roles are satisfied, prefer DPS.
-  // -----------------------------------------------------------
-
   const dpsCandidates =
     candidates.filter(
       (candidate) =>
@@ -1401,10 +1378,6 @@ function selectBestCandidate(
       currentParty
     );
   }
-
-  // -----------------------------------------------------------
-  // Final fallback.
-  // -----------------------------------------------------------
 
   return chooseBestCandidate(
     candidates,
@@ -1518,10 +1491,6 @@ function chooseBestCandidate(
           jobB
         ) ?? 0;
 
-      // --------------------------------------------------------
-      // Prefer less duplicated jobs.
-      // --------------------------------------------------------
-
       if (
         duplicateA !==
         duplicateB
@@ -1531,10 +1500,6 @@ function chooseBestCandidate(
           duplicateB
         );
       }
-
-      // --------------------------------------------------------
-      // Higher guild percentile wins.
-      // --------------------------------------------------------
 
       return compareByPercentile(
         a,
@@ -1563,7 +1528,6 @@ function getPreferredRole(
     return "PRIEST";
   }
 
-  // Your guild's database uses Gypsy for the dancer class.
   if (
     job === "Gypsy" ||
     job === "Bard"

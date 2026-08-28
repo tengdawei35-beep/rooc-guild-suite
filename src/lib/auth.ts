@@ -7,6 +7,15 @@ import {
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 
+import {
+  hasPermission,
+} from "@/lib/permissions";
+
+import type {
+  Permission,
+  UserRole,
+} from "@/lib/permissions";
+
 const SESSION_COOKIE =
   "rooc_session";
 
@@ -93,8 +102,6 @@ function verifySessionToken(
     }
 
     const valid =
-      signature.length ===
-        expected.length &&
       timingSafeEqual(
         Buffer.from(signature),
         Buffer.from(expected)
@@ -168,11 +175,15 @@ export async function createSession(
     token,
     {
       httpOnly: true,
+
       secure:
         process.env.NODE_ENV ===
         "production",
+
       sameSite: "lax",
+
       path: "/",
+
       maxAge:
         SESSION_MAX_AGE,
     }
@@ -192,11 +203,15 @@ export async function destroySession() {
     "",
     {
       httpOnly: true,
+
       secure:
         process.env.NODE_ENV ===
         "production",
+
       sameSite: "lax",
+
       path: "/",
+
       maxAge: 0,
     }
   );
@@ -309,94 +324,24 @@ export async function requirePageAuth() {
 // =============================================================
 // PERMISSIONS
 // =============================================================
+//
+// Permission definitions and role mappings live exclusively in:
+//
+//   src/lib/permissions.ts
+//
+// This file only provides the authenticated version of the
+// permission check.
+//
+// =============================================================
 
-export type Permission =
-  | "members.view"
-  | "members.edit"
-  | "members.delete"
-  | "members.import"
-  | "profile.editOwn"
-  | "leave.manageOwn"
-  | "leave.manageAny"
-  | "rosters.view"
-  | "rosters.edit"
-  | "allocation.view"
-  | "allocation.run"
-  | "users.view"
-  | "users.manage"
-  | "guild.manage";
+export {
+  hasPermission,
+};
 
-export function hasPermission(
-  role:
-    | "LEADER"
-    | "COUNCIL"
-    | "OFFICER"
-    | "MEMBER",
-  permission: Permission
-) {
-  if (
-    role ===
-    "LEADER"
-  ) {
-    return true;
-  }
-
-  switch (
-    permission
-  ) {
-    case "members.view":
-    case "profile.editOwn":
-    case "leave.manageOwn":
-    case "rosters.view":
-    case "allocation.view":
-      return true;
-
-    case "members.edit":
-    case "members.delete":
-    case "members.import":
-      return (
-        role ===
-          "COUNCIL" ||
-        role ===
-          "OFFICER"
-      );
-
-    case "leave.manageAny":
-      return (
-        role ===
-          "COUNCIL" ||
-        role ===
-          "OFFICER"
-      );
-
-    case "rosters.edit":
-      return (
-        role ===
-        "COUNCIL"
-      );
-
-    case "allocation.run":
-      return (
-        role ===
-          "COUNCIL" ||
-        role ===
-          "OFFICER"
-      );
-
-    case "users.view":
-    case "users.manage":
-      return (
-        role ===
-        "OFFICER"
-      );
-
-    case "guild.manage":
-      return false;
-
-    default:
-      return false;
-  }
-}
+export type {
+  Permission,
+  UserRole,
+};
 
 export async function requirePermission(
   permission: Permission

@@ -1,5 +1,12 @@
+import { redirect } from "next/navigation";
+
 import EventClient from "./EventClient";
-import { requirePageAuth } from "@/lib/auth";
+
+import {
+  hasPermission,
+  requirePageAuth,
+} from "@/lib/auth";
+
 type PageProps = {
   params: Promise<{
     eventId: string;
@@ -9,10 +16,34 @@ type PageProps = {
 export default async function EventPage({
   params,
 }: PageProps) {
-  await requirePageAuth();
-  const { eventId } = await params;
+  const auth =
+    await requirePageAuth();
+
+  if (
+    !hasPermission(
+      auth.role,
+      "events.view"
+    )
+  ) {
+    redirect("/");
+  }
+
+  const {
+    eventId,
+  } = await params;
 
   return (
-    <EventClient eventId={eventId} />
+    <EventClient
+      eventId={eventId}
+      currentUserId={auth.user.id}
+      canManageEvents={hasPermission(
+        auth.role,
+        "events.manage"
+      )}
+      canEditRosters={hasPermission(
+        auth.role,
+        "rosters.edit"
+      )}
+    />
   );
 }

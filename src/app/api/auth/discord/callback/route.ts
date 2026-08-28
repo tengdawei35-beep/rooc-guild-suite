@@ -330,7 +330,7 @@ export async function GET(
                 guild.id,
 
               role:
-                "LEADER",
+                "ADMIN",
             },
 
             include: {

@@ -1,56 +1,91 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import {
+  NextResponse,
+} from "next/server";
+
+import {
+  getCurrentAuth,
+} from "@/lib/auth";
+
+import {
+  hasPermission,
+} from "@/lib/permissions";
+
+import {
+  prisma,
+} from "@/lib/prisma";
 
 type EventType =
   | "GUILD_LEAGUE"
   | "EMPERIUM_OVERRUN";
+
+// =============================================================
+// DATE NORMALIZATION
+// =============================================================
 
 function normalizeDate(
   value: string
 ): Date | null {
   if (
     typeof value !== "string" ||
-    !/^\d{4}-\d{2}-\d{2}$/.test(value)
+    !/^\d{4}-\d{2}-\d{2}$/.test(
+      value
+    )
   ) {
     return null;
   }
 
-  const [year, month, day] =
-    value.split("-").map(Number);
+  const [
+    year,
+    month,
+    day,
+  ] =
+    value
+      .split("-")
+      .map(Number);
 
   // Event dates are calendar dates in UTC+7.
   //
   // 2026-09-01 00:00 UTC+7
   // = 2026-08-31 17:00 UTC
-  const date = new Date(
-    Date.UTC(
-      year,
-      month - 1,
-      day,
-      -7
-    )
-  );
+
+  const date =
+    new Date(
+      Date.UTC(
+        year,
+        month - 1,
+        day,
+        -7
+      )
+    );
 
   // Validate the supplied calendar date.
-  const check = new Date(
-    Date.UTC(
-      year,
-      month - 1,
-      day
-    )
-  );
+
+  const check =
+    new Date(
+      Date.UTC(
+        year,
+        month - 1,
+        day
+      )
+    );
 
   if (
-    check.getUTCFullYear() !== year ||
+    check.getUTCFullYear() !==
+      year ||
     check.getUTCMonth() !==
       month - 1 ||
-    check.getUTCDate() !== day
+    check.getUTCDate() !==
+      day
   ) {
     return null;
   }
 
   return date;
 }
+
+// =============================================================
+// EVENT RULES
+// =============================================================
 
 function getEventRule(
   type: EventType
@@ -60,14 +95,21 @@ function getEventRule(
     "GUILD_LEAGUE"
   ) {
     return {
-      allowedDays: [2, 4],
-      label: "Guild League",
+      allowedDays: [
+        2,
+        4,
+      ],
+
+      label:
+        "Guild League",
     };
   }
 
   return {
     allowedDays: [0],
-    label: "Emperium Overrun",
+
+    label:
+      "Emperium Overrun",
   };
 }
 
@@ -82,10 +124,14 @@ function validateEventDate(
   // Convert the stored timestamp back
   // into UTC+7 before determining the
   // calendar weekday.
+
   const utcPlus7Date =
     new Date(
       date.getTime() +
-        7 * 60 * 60 * 1000
+        7 *
+          60 *
+          60 *
+          1000
     );
 
   const day =
@@ -115,20 +161,45 @@ function validateEventDate(
 
 export async function GET() {
   try {
-    const guild =
-      await prisma.guild.findFirst({
-        select: {
-          id: true,
-        },
-      });
+    const auth =
+      await getCurrentAuth();
 
-    if (!guild) {
+    if (!auth) {
       return NextResponse.json(
         {
           error:
-            "No guild has been configured.",
+            "Authentication required.",
         },
-        { status: 404 }
+        {
+          status: 401,
+        }
+      );
+    }
+
+    const canViewEvents =
+      hasPermission(
+        auth.role,
+        "events.view"
+      );
+
+    const canViewRosters =
+      hasPermission(
+        auth.role,
+        "rosters.view"
+      );
+
+    if (
+      !canViewEvents &&
+      !canViewRosters
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "You do not have permission to view events.",
+        },
+        {
+          status: 403,
+        }
       );
     }
 
@@ -137,87 +208,105 @@ export async function GET() {
     // ---------------------------------------------------------
 
     const events =
-      await prisma.event.findMany({
-        where: {
-          guildId: guild.id,
-        },
+      canViewEvents
+        ? await prisma.event.findMany(
+            {
+              where: {
+                guildId:
+                  auth.guild.id,
+              },
 
-        orderBy: [
-          {
-            date: "desc",
-          },
-          {
-            createdAt: "desc",
-          },
-        ],
+              orderBy: [
+                {
+                  date: "desc",
+                },
+                {
+                  createdAt:
+                    "desc",
+                },
+              ],
 
-        include: {
-          _count: {
-            select: {
-              participations: true,
-              rosters: true,
-              allocationRuns: true,
-            },
-          },
-        },
-      });
+              include: {
+                _count: {
+                  select: {
+                    participations:
+                      true,
+
+                    rosters:
+                      true,
+
+                    allocationRuns:
+                      true,
+                  },
+                },
+              },
+            }
+          )
+        : [];
 
     // ---------------------------------------------------------
     // PREFERRED ROSTERS
-    //
-    // These belong to the guild and event type,
-    // not to an individual event.
     // ---------------------------------------------------------
 
     const preferredRosters =
-      await prisma.preferredRoster.findMany(
-        {
-          where: {
-            guildId: guild.id,
-          },
-
-          select: {
-            id: true,
-            guildId: true,
-            type: true,
-            createdAt: true,
-            updatedAt: true,
-
-            _count: {
-              select: {
-                parties: true,
+      canViewRosters
+        ? await prisma.preferredRoster.findMany(
+            {
+              where: {
+                guildId:
+                  auth.guild.id,
               },
-            },
-          },
 
-          orderBy: {
-            type: "asc",
-          },
-        }
-      );
+              select: {
+                id: true,
+                guildId: true,
+                type: true,
+                createdAt: true,
+                updatedAt: true,
+
+                _count: {
+                  select: {
+                    parties: true,
+                  },
+                },
+              },
+
+              orderBy: {
+                type: "asc",
+              },
+            }
+          )
+        : [];
 
     return NextResponse.json({
-      events: events.map(
-        (event) => ({
-          id: event.id,
-          guildId:
-            event.guildId,
-          type: event.type,
-          date: event.date,
+      events:
+        events.map(
+          (event) => ({
+            id:
+              event.id,
 
-          participationCount:
-            event._count
-              .participations,
+            guildId:
+              event.guildId,
 
-          rosterCount:
-            event._count
-              .rosters,
+            type:
+              event.type,
 
-          allocationRunCount:
-            event._count
-              .allocationRuns,
-        })
-      ),
+            date:
+              event.date,
+
+            participationCount:
+              event._count
+                .participations,
+
+            rosterCount:
+              event._count
+                .rosters,
+
+            allocationRunCount:
+              event._count
+                .allocationRuns,
+          })
+        ),
 
       preferredRosters:
         preferredRosters.map(
@@ -256,7 +345,9 @@ export async function GET() {
             ? error.message
             : "Failed to load events.",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }
@@ -269,6 +360,38 @@ export async function POST(
   request: Request
 ) {
   try {
+    const auth =
+      await getCurrentAuth();
+
+    if (!auth) {
+      return NextResponse.json(
+        {
+          error:
+            "Authentication required.",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
+    if (
+      !hasPermission(
+        auth.role,
+        "events.manage"
+      )
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "You do not have permission to create events.",
+        },
+        {
+          status: 403,
+        }
+      );
+    }
+
     const body =
       await request.json();
 
@@ -295,7 +418,9 @@ export async function POST(
           error:
             "Invalid event type.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
@@ -309,7 +434,9 @@ export async function POST(
           error:
             "A valid event date is required.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
@@ -322,30 +449,12 @@ export async function POST(
     if (dateError) {
       return NextResponse.json(
         {
-          error: dateError,
-        },
-        { status: 400 }
-      );
-    }
-
-    // ---------------------------------------------------------
-    // GUILD
-    // ---------------------------------------------------------
-
-    const guild =
-      await prisma.guild.findFirst({
-        select: {
-          id: true,
-        },
-      });
-
-    if (!guild) {
-      return NextResponse.json(
-        {
           error:
-            "No guild has been configured.",
+            dateError,
         },
-        { status: 404 }
+        {
+          status: 400,
+        }
       );
     }
 
@@ -354,18 +463,20 @@ export async function POST(
     // ---------------------------------------------------------
 
     const existing =
-      await prisma.event.findUnique({
-        where: {
-          guildId_type_date: {
-            guildId:
-              guild.id,
+      await prisma.event.findUnique(
+        {
+          where: {
+            guildId_type_date: {
+              guildId:
+                auth.guild.id,
 
-            type,
+              type,
 
-            date,
+              date,
+            },
           },
-        },
-      });
+        }
+      );
 
     if (existing) {
       return NextResponse.json(
@@ -373,7 +484,9 @@ export async function POST(
           error:
             "An event of this type already exists for this date.",
         },
-        { status: 409 }
+        {
+          status: 409,
+        }
       );
     }
 
@@ -382,25 +495,31 @@ export async function POST(
     // ---------------------------------------------------------
 
     const event =
-      await prisma.event.create({
-        data: {
-          guildId:
-            guild.id,
+      await prisma.event.create(
+        {
+          data: {
+            guildId:
+              auth.guild.id,
 
-          type,
+            type,
 
-          date,
-        },
-      });
+            date,
+          },
+        }
+      );
 
     return NextResponse.json(
       {
         event: {
-          id: event.id,
+          id:
+            event.id,
+
           guildId:
             event.guildId,
+
           type:
             event.type,
+
           date:
             event.date,
         },
@@ -422,7 +541,9 @@ export async function POST(
             ? error.message
             : "Failed to create event.",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }

@@ -1,14 +1,23 @@
 import Link from "next/link";
+
 import { prisma } from "@/lib/prisma";
 import { requirePageAuth } from "@/lib/auth";
+
 export default async function AllocationHistoryPage() {
-  await requirePageAuth();
-  const guild = await prisma.guild.findFirst({
-    select: {
-      id: true,
-      name: true,
-    },
-  });
+  const auth =
+    await requirePageAuth();
+
+  const guild =
+    await prisma.guild.findUnique({
+      where: {
+        id: auth.guild.id,
+      },
+
+      select: {
+        id: true,
+        name: true,
+      },
+    });
 
   if (!guild) {
     return (
@@ -42,51 +51,55 @@ export default async function AllocationHistoryPage() {
     );
   }
 
-  const runs = await prisma.allocationRun.findMany({
-    where: {
-      guildId: guild.id,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-    include: {
-      resourceResults: {
-        include: {
-          resource: {
-            select: {
-              name: true,
-              type: true,
+  const runs =
+    await prisma.allocationRun.findMany({
+      where: {
+        guildId:
+          auth.guild.id,
+      },
+
+      orderBy: {
+        createdAt: "desc",
+      },
+
+      include: {
+        resourceResults: {
+          include: {
+            resource: {
+              select: {
+                name: true,
+                type: true,
+              },
             },
           },
         },
-      },
 
-      allocationResults: {
-        include: {
-          member: {
-            select: {
-              characterName: true,
+        allocationResults: {
+          include: {
+            member: {
+              select: {
+                characterName: true,
+              },
             },
-          },
 
-          resource: {
-            select: {
-              name: true,
-              type: true,
+            resource: {
+              select: {
+                name: true,
+                type: true,
+              },
             },
           },
         },
-      },
 
-      bidPages: {
-        select: {
-          id: true,
-          type: true,
-          pageNumber: true,
+        bidPages: {
+          select: {
+            id: true,
+            type: true,
+            pageNumber: true,
+          },
         },
       },
-    },
-  });
+    });
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white">

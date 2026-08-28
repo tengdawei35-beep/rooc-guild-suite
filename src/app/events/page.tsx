@@ -1,6 +1,12 @@
-import Link from "next/link";
+import { redirect } from "next/navigation";
+
 import EventsClient from "./EventsClient";
-import { requirePageAuth } from "@/lib/auth";
+
+import {
+  hasPermission,
+  requirePageAuth,
+} from "@/lib/auth";
+
 type EventsView =
   | "events"
   | "rosters"
@@ -13,7 +19,9 @@ export default async function EventsPage({
     view?: string;
   }>;
 }) {
-  await requirePageAuth();
+  const auth =
+    await requirePageAuth();
+
   const params =
     await searchParams;
 
@@ -23,14 +31,36 @@ export default async function EventsPage({
       ? params.view
       : "events";
 
+  // ===========================================================
+  // PAGE ACCESS
+  // ===========================================================
+
+  if (
+    view === "events" &&
+    !hasPermission(
+      auth.role,
+      "events.view"
+    )
+  ) {
+    redirect("/");
+  }
+
+  if (
+    (
+      view === "rosters" ||
+      view === "preferred"
+    ) &&
+    !hasPermission(
+      auth.role,
+      "rosters.view"
+    )
+  ) {
+    redirect("/");
+  }
+
   return (
     <EventsClient
       initialView={view}
     />
   );
-}<Link
-  href="/"
-  className="mb-6 inline-block text-sm text-zinc-500 transition hover:text-white"
->
-  ← Dashboard
-</Link>
+}

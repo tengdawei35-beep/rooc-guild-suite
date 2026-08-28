@@ -19,8 +19,8 @@ enum MemberPriority {
 }
 
 enum UserRole {
-  LEADER
-  COUNCIL
+  ADMIN
+  MANAGER
   OFFICER
   MEMBER
 }

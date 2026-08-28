@@ -1,8 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+
 import { prisma } from "@/lib/prisma";
 import BidsClient from "./BidsClient";
-import { requirePageAuth } from "@/lib/auth";
+
+import {
+  requirePageAuth,
+} from "@/lib/auth";
+
 type Props = {
   params: Promise<{
     runId: string;
@@ -12,20 +17,42 @@ type Props = {
 export default async function BidsPage({
   params,
 }: Props) {
-  await requirePageAuth();
-  const { runId } = await params;
+  const auth =
+    await requirePageAuth();
+
+  const { runId } =
+    await params;
+
+  // ==========================================================
+  // LOAD RUN
+  // ==========================================================
+  //
+  // IMPORTANT:
+  //
+  // The allocation run must belong to the currently
+  // authenticated user's guild.
+  //
+  // Checking only `id` would allow a user who knows another
+  // run ID to view that guild's bid pages.
+  //
+  // ==========================================================
 
   const run =
     await prisma.allocationRun.findFirst({
       where: {
         id: runId,
+
+        guildId:
+          auth.guild.id,
       },
+
       include: {
         guild: {
           select: {
             name: true,
           },
         },
+
         bidPages: {
           orderBy: [
             {
@@ -35,18 +62,23 @@ export default async function BidsPage({
               pageNumber: "asc",
             },
           ],
+
           include: {
             slots: {
               orderBy: {
-                slotNumber: "asc",
+                slotNumber:
+                  "asc",
               },
+
               include: {
                 member: {
                   select: {
                     id: true,
-                    displayName: true,
+                    displayName:
+                      true,
                   },
                 },
+
                 resource: {
                   select: {
                     id: true,
@@ -65,13 +97,19 @@ export default async function BidsPage({
     notFound();
   }
 
-  const feathers = run.bidPages.filter(
-    (page) => page.type === "FEATHER"
-  );
+  const feathers =
+    run.bidPages.filter(
+      (page) =>
+        page.type ===
+        "FEATHER"
+    );
 
-  const cards = run.bidPages.filter(
-    (page) => page.type === "CARD"
-  );
+  const cards =
+    run.bidPages.filter(
+      (page) =>
+        page.type ===
+        "CARD"
+    );
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
@@ -150,8 +188,12 @@ export default async function BidsPage({
           </section>
         ) : (
           <BidsClient
-            feathers={feathers}
-            cards={cards}
+            feathers={
+              feathers
+            }
+            cards={
+              cards
+            }
           />
         )}
       </div>

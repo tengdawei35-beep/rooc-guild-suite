@@ -1,16 +1,36 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+
 import { prisma } from "@/lib/prisma";
 import { requirePageAuth } from "@/lib/auth";
 
 export default async function BidPagesPage() {
-  await requirePageAuth();
-  const guild = await prisma.guild.findFirst({
-    select: {
-      id: true,
-      name: true,
-    },
-  });
+  const auth =
+    await requirePageAuth();
+
+  // ==========================================================
+  // LOAD AUTHENTICATED GUILD
+  // ==========================================================
+  //
+  // Never use findFirst() here.
+  //
+  // The authenticated session already tells us exactly which
+  // guild this user belongs to.
+  //
+  // ==========================================================
+
+  const guild =
+    await prisma.guild.findUnique({
+      where: {
+        id:
+          auth.guild.id,
+      },
+
+      select: {
+        id: true,
+        name: true,
+      },
+    });
 
   if (!guild) {
     return (
@@ -44,11 +64,18 @@ export default async function BidPagesPage() {
     );
   }
 
+  // ==========================================================
+  // FIND LATEST COMPLETED RUN
+  // ==========================================================
+
   const latestRun =
     await prisma.allocationRun.findFirst({
       where: {
-        guildId: guild.id,
-        status: "COMPLETED",
+        guildId:
+          auth.guild.id,
+
+        status:
+          "COMPLETED",
 
         bidPages: {
           some: {},
@@ -56,7 +83,8 @@ export default async function BidPagesPage() {
       },
 
       orderBy: {
-        createdAt: "desc",
+        createdAt:
+          "desc",
       },
 
       select: {

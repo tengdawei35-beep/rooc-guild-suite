@@ -20,8 +20,8 @@ export type MemberPriority = (typeof MemberPriority)[keyof typeof MemberPriority
 
 
 export const UserRole = {
-  LEADER: 'LEADER',
-  COUNCIL: 'COUNCIL',
+  ADMIN: 'ADMIN',
+  MANAGER: 'MANAGER',
   OFFICER: 'OFFICER',
   MEMBER: 'MEMBER'
 } as const

@@ -1,4 +1,10 @@
 import { NextResponse } from "next/server";
+
+import {
+  getCurrentAuth,
+  hasPermission,
+} from "@/lib/auth";
+
 import { prisma } from "@/lib/prisma";
 
 type RouteContext = {
@@ -12,19 +18,87 @@ export async function POST(
   context: RouteContext
 ) {
   try {
-    const { eventId } =
-      await context.params;
+    // =========================================================
+    // AUTHENTICATION
+    // =========================================================
+
+    const auth =
+      await getCurrentAuth();
+
+    if (!auth) {
+      return NextResponse.json(
+        {
+          error:
+            "Authentication required.",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
+    // =========================================================
+    // PERMISSION
+    // =========================================================
+    //
+    // Saving a preferred roster changes guild configuration.
+    // Only roles with rosters.edit may perform this action.
+    //
+    // Current intended roles:
+    //
+    // ADMIN   -> allowed
+    // MANAGER -> allowed
+    // OFFICER -> denied
+    // MEMBER  -> denied
+    //
+    // =========================================================
+
+    if (
+      !hasPermission(
+        auth.role,
+        "rosters.edit"
+      )
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "You do not have permission to manage preferred rosters.",
+        },
+        {
+          status: 403,
+        }
+      );
+    }
+
+    const {
+      eventId,
+    } = await context.params;
+
+    // =========================================================
+    // LOAD EVENT
+    // =========================================================
+    //
+    // IMPORTANT:
+    // Restrict the lookup to the authenticated guild.
+    // This prevents a user from saving a preferred roster
+    // against an event belonging to another guild.
+    //
+    // =========================================================
 
     const event =
-      await prisma.event.findUnique({
+      await prisma.event.findFirst({
         where: {
           id: eventId,
+
+          guildId:
+            auth.guild.id,
         },
 
         include: {
           rosters: {
             orderBy: {
-              createdAt: "desc",
+              createdAt:
+                "desc",
             },
 
             take: 1,
@@ -33,17 +107,20 @@ export async function POST(
               parties: {
                 orderBy: [
                   {
-                    battlefield: "asc",
+                    battlefield:
+                      "asc",
                   },
                   {
-                    partyNumber: "asc",
+                    partyNumber:
+                      "asc",
                   },
                 ],
 
                 include: {
                   members: {
                     orderBy: {
-                      slotNumber: "asc",
+                      slotNumber:
+                        "asc",
                     },
                   },
                 },
@@ -53,16 +130,25 @@ export async function POST(
         },
       });
 
+    // =========================================================
+    // EVENT NOT FOUND
+    // =========================================================
+
     if (!event) {
       return NextResponse.json(
         {
-          error: "Event not found.",
+          error:
+            "Event not found.",
         },
         {
           status: 404,
         }
       );
     }
+
+    // =========================================================
+    // FIND LATEST ROSTER
+    // =========================================================
 
     const roster =
       event.rosters[0];
@@ -79,79 +165,177 @@ export async function POST(
       );
     }
 
-    // ----------------------------------------------------------
-    // Replace existing preferred roster
-    // ----------------------------------------------------------
+    // =========================================================
+    // VALIDATE ROSTER MEMBERS
+    // =========================================================
+    //
+    // The roster should already be guild-scoped through its
+    // event, but validate the member IDs before copying them
+    // into the preferred roster as an additional integrity
+    // check.
+    //
+    // =========================================================
+
+    const memberIds =
+      roster.parties.flatMap(
+        (party) =>
+          party.members.map(
+            (member) =>
+              member.memberId
+          )
+      );
+
+    if (
+      memberIds.length > 0
+    ) {
+      const uniqueMemberIds =
+        Array.from(
+          new Set(memberIds)
+        );
+
+      const guildMembers =
+        await prisma.guildMember.findMany(
+          {
+            where: {
+              id: {
+                in:
+                  uniqueMemberIds,
+              },
+
+              guildId:
+                auth.guild.id,
+            },
+
+            select: {
+              id: true,
+            },
+          }
+        );
+
+      const validMemberIds =
+        new Set(
+          guildMembers.map(
+            (member) =>
+              member.id
+          )
+        );
+
+      const hasInvalidMember =
+        uniqueMemberIds.some(
+          (memberId) =>
+            !validMemberIds.has(
+              memberId
+            )
+        );
+
+      if (hasInvalidMember) {
+        return NextResponse.json(
+          {
+            error:
+              "The roster contains a member that does not belong to this guild.",
+          },
+          {
+            status: 400,
+          }
+        );
+      }
+    }
+
+    // =========================================================
+    // REPLACE EXISTING PREFERRED ROSTER
+    // =========================================================
 
     const preferred =
       await prisma.$transaction(
         async (tx) => {
-          const existing =
-            await tx.preferredRoster.findUnique({
-              where: {
-                guildId_type: {
-                  guildId:
-                    event.guildId,
+          // ---------------------------------------------------
+          // DELETE EXISTING PREFERRED ROSTER
+          // ---------------------------------------------------
 
-                  type:
-                    event.type,
+          const existing =
+            await tx.preferredRoster.findUnique(
+              {
+                where: {
+                  guildId_type: {
+                    guildId:
+                      auth.guild.id,
+
+                    type:
+                      event.type,
+                  },
                 },
-              },
-            });
+              }
+            );
 
           if (existing) {
-            await tx.preferredRoster.delete({
-              where: {
-                id: existing.id,
-              },
-            });
+            await tx.preferredRoster.delete(
+              {
+                where: {
+                  id:
+                    existing.id,
+                },
+              }
+            );
           }
 
-          return tx.preferredRoster.create({
-            data: {
-              guildId:
-                event.guildId,
+          // ---------------------------------------------------
+          // CREATE NEW PREFERRED ROSTER
+          // ---------------------------------------------------
 
-              type:
-                event.type,
+          return tx.preferredRoster.create(
+            {
+              data: {
+                guildId:
+                  auth.guild.id,
 
-              parties: {
-                create:
-                  roster.parties.map(
-                    (party) => ({
-                      battlefield:
-                        party.battlefield,
+                type:
+                  event.type,
 
-                      partyNumber:
-                        party.partyNumber,
+                parties: {
+                  create:
+                    roster.parties.map(
+                      (party) => ({
+                        battlefield:
+                          party.battlefield,
 
-                      members: {
-                        create:
-                          party.members.map(
-                            (member) => ({
-                              memberId:
-                                member.memberId,
+                        partyNumber:
+                          party.partyNumber,
 
-                              slotNumber:
-                                member.slotNumber,
-                            })
-                          ),
-                      },
-                    })
-                  ),
-              },
-            },
+                        members: {
+                          create:
+                            party.members.map(
+                              (
+                                member
+                              ) => ({
+                                memberId:
+                                  member.memberId,
 
-            include: {
-              parties: {
-                include: {
-                  members: true,
+                                slotNumber:
+                                  member.slotNumber,
+                              })
+                            ),
+                        },
+                      })
+                    ),
                 },
               },
-            },
-          });
+
+              include: {
+                parties: {
+                  include: {
+                    members:
+                      true,
+                  },
+                },
+              },
+            }
+          );
         }
       );
+
+    // =========================================================
+    // SUCCESS
+    // =========================================================
 
     return NextResponse.json({
       success: true,

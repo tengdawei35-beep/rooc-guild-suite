@@ -1,5 +1,14 @@
 import { NextResponse } from "next/server";
+
+import {
+  getCurrentAuth,
+  hasPermission,
+} from "@/lib/auth";
+
 import { prisma } from "@/lib/prisma";
+
+const PARTY_SIZE = 5;
+const TEMP_SLOT_BASE = 1_000_000;
 
 type AddMemberRequest = {
   partyId?: string;
@@ -13,12 +22,6 @@ type MoveMemberRequest = {
   targetSlotNumber?: number;
 };
 
-// =============================================================
-// HELPERS
-// =============================================================
-
-const PARTY_SIZE = 5;
-
 function isValidSlot(
   value: unknown
 ): value is number {
@@ -30,14 +33,54 @@ function isValidSlot(
   );
 }
 
+function unauthorizedResponse() {
+  return NextResponse.json(
+    {
+      error:
+        "Authentication required.",
+    },
+    {
+      status: 401,
+    }
+  );
+}
+
+function forbiddenResponse() {
+  return NextResponse.json(
+    {
+      error:
+        "You do not have permission to edit rosters.",
+    },
+    {
+      status: 403,
+    }
+  );
+}
+
 // =============================================================
-// ADD MEMBER
+// ADD MEMBER TO ROSTER
 // =============================================================
 
 export async function POST(
   request: Request
 ) {
   try {
+    const auth =
+      await getCurrentAuth();
+
+    if (!auth) {
+      return unauthorizedResponse();
+    }
+
+    if (
+      !hasPermission(
+        auth.role,
+        "rosters.edit"
+      )
+    ) {
+      return forbiddenResponse();
+    }
+
     const body =
       (await request.json()) as AddMemberRequest;
 
@@ -47,7 +90,9 @@ export async function POST(
           error:
             "Party ID is required.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
@@ -57,7 +102,9 @@ export async function POST(
           error:
             "Member ID is required.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
@@ -71,30 +118,34 @@ export async function POST(
           error:
             "Slot number must be between 1 and 5.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
-    // =========================================================
-    // LOAD PARTY
-    // =========================================================
+    // ---------------------------------------------------------
+    // LOAD PARTY + ROSTER + EVENT
+    // ---------------------------------------------------------
 
     const party =
-      await prisma.rosterParty.findUnique({
-        where: {
-          id: body.partyId,
-        },
-
-        include: {
-          roster: {
-            include: {
-              event: true,
-            },
+      await prisma.rosterParty.findUnique(
+        {
+          where: {
+            id: body.partyId,
           },
 
-          members: true,
-        },
-      });
+          include: {
+            roster: {
+              include: {
+                event: true,
+              },
+            },
+
+            members: true,
+          },
+        }
+      );
 
     if (!party) {
       return NextResponse.json(
@@ -102,7 +153,25 @@ export async function POST(
           error:
             "Party not found.",
         },
-        { status: 404 }
+        {
+          status: 404,
+        }
+      );
+    }
+
+    // Critical guild isolation check.
+    if (
+      party.roster.event.guildId !==
+      auth.guild.id
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Party not found.",
+        },
+        {
+          status: 404,
+        }
       );
     }
 
@@ -115,23 +184,27 @@ export async function POST(
           error:
             "A party cannot contain more than 5 members.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
-    // =========================================================
-    // CHECK MEMBER
-    // =========================================================
+    // ---------------------------------------------------------
+    // LOAD MEMBER
+    // ---------------------------------------------------------
 
     const member =
-      await prisma.guildMember.findFirst({
-        where: {
-          id: body.memberId,
+      await prisma.guildMember.findFirst(
+        {
+          where: {
+            id: body.memberId,
 
-          guildId:
-            party.roster.event.guildId,
-        },
-      });
+            guildId:
+              auth.guild.id,
+          },
+        }
+      );
 
     if (!member) {
       return NextResponse.json(
@@ -139,7 +212,9 @@ export async function POST(
           error:
             "Guild member not found.",
         },
-        { status: 404 }
+        {
+          status: 404,
+        }
       );
     }
 
@@ -149,13 +224,15 @@ export async function POST(
           error:
             "Inactive members cannot be assigned to a roster.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
-    // =========================================================
+    // ---------------------------------------------------------
     // CHECK LEAVE DATE
-    // =========================================================
+    // ---------------------------------------------------------
 
     const eventDate =
       new Date(
@@ -172,17 +249,19 @@ export async function POST(
       );
 
     const leave =
-      await prisma.memberLeave.findFirst({
-        where: {
-          memberId:
-            member.id,
+      await prisma.memberLeave.findFirst(
+        {
+          where: {
+            memberId:
+              member.id,
 
-          date: {
-            gte: eventDate,
-            lt: eventDateEnd,
+            date: {
+              gte: eventDate,
+              lt: eventDateEnd,
+            },
           },
-        },
-      });
+        }
+      );
 
     if (leave) {
       return NextResponse.json(
@@ -190,13 +269,15 @@ export async function POST(
           error:
             "This member is unavailable on the event date.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
-    // =========================================================
+    // ---------------------------------------------------------
     // CHECK EVENT PARTICIPATION
-    // =========================================================
+    // ---------------------------------------------------------
 
     const participation =
       await prisma.eventParticipation.findUnique(
@@ -222,13 +303,15 @@ export async function POST(
           error:
             "This member is marked unavailable for this event.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
-    // =========================================================
-    // CHECK EXISTING ROSTER ASSIGNMENT
-    // =========================================================
+    // ---------------------------------------------------------
+    // CHECK EXISTING ASSIGNMENT
+    // ---------------------------------------------------------
 
     const existingAssignment =
       await prisma.rosterMember.findFirst(
@@ -251,13 +334,15 @@ export async function POST(
           error:
             "This member is already assigned to this roster.",
         },
-        { status: 409 }
+        {
+          status: 409,
+        }
       );
     }
 
-    // =========================================================
-    // CHECK SLOT
-    // =========================================================
+    // ---------------------------------------------------------
+    // CHECK DESTINATION SLOT
+    // ---------------------------------------------------------
 
     const existingSlot =
       party.members.find(
@@ -272,151 +357,123 @@ export async function POST(
           error:
             "This slot is already occupied.",
         },
-        { status: 409 }
+        {
+          status: 409,
+        }
       );
     }
 
-    // =========================================================
-    // LOAD PREVIOUS RANKING SNAPSHOT
-    // =========================================================
-    //
-    // Manual additions need a historical ranking snapshot.
-    //
-    // If this member has previously appeared in a roster,
-    // preserve their most recent scores and percentiles.
-    //
-    // If this is their first roster appearance, use zero as
-    // the initial baseline.
-    //
-    // =========================================================
+    // ---------------------------------------------------------
+    // PRESERVE PREVIOUS RANKING SNAPSHOT
+    // ---------------------------------------------------------
 
     const previousAssignment =
-      await prisma.rosterMember.findFirst({
-        where: {
-          memberId:
-            member.id,
-        },
+      await prisma.rosterMember.findFirst(
+        {
+          where: {
+            memberId:
+              member.id,
+          },
 
-        orderBy: {
-          createdAt:
-            "desc",
-        },
+          orderBy: {
+            createdAt:
+              "desc",
+          },
 
-        select: {
-          guildPercentile:
-            true,
+          select: {
+            guildPercentile:
+              true,
 
-          tankScore:
-            true,
+            tankScore:
+              true,
 
-          tankPercentile:
-            true,
+            tankPercentile:
+              true,
 
-          dpsScore:
-            true,
+            dpsScore:
+              true,
 
-          dpsPercentile:
-            true,
+            dpsPercentile:
+              true,
 
-          pvpScore:
-            true,
+            pvpScore:
+              true,
 
-          pvpPercentile:
-            true,
-        },
-      });
+            pvpPercentile:
+              true,
+          },
+        }
+      );
 
-    // =========================================================
+    // ---------------------------------------------------------
     // CREATE ASSIGNMENT
-    // =========================================================
+    // ---------------------------------------------------------
 
     const assignment =
-      await prisma.rosterMember.create({
-        data: {
-          partyId:
-            party.id,
+      await prisma.rosterMember.create(
+        {
+          data: {
+            partyId:
+              party.id,
 
-          memberId:
-            member.id,
+            memberId:
+              member.id,
 
-          slotNumber:
-            body.slotNumber,
+            slotNumber:
+              body.slotNumber,
 
-          // ---------------------------------------------------
-          // Overall
-          // ---------------------------------------------------
+            guildPercentile:
+              previousAssignment
+                ?.guildPercentile ??
+              0,
 
-          guildPercentile:
-            previousAssignment
-              ?.guildPercentile ??
-            0,
+            tankScore:
+              previousAssignment
+                ?.tankScore ??
+              0,
 
-          // ---------------------------------------------------
-          // Tank
-          // ---------------------------------------------------
+            tankPercentile:
+              previousAssignment
+                ?.tankPercentile ??
+              0,
 
-          tankScore:
-            previousAssignment
-              ?.tankScore ??
-            0,
+            dpsScore:
+              previousAssignment
+                ?.dpsScore ??
+              0,
 
-          tankPercentile:
-            previousAssignment
-              ?.tankPercentile ??
-            0,
+            dpsPercentile:
+              previousAssignment
+                ?.dpsPercentile ??
+              0,
 
-          // ---------------------------------------------------
-          // DPS
-          // ---------------------------------------------------
+            pvpScore:
+              previousAssignment
+                ?.pvpScore ??
+              0,
 
-          dpsScore:
-            previousAssignment
-              ?.dpsScore ??
-            0,
+            pvpPercentile:
+              previousAssignment
+                ?.pvpPercentile ??
+              0,
+          },
 
-          dpsPercentile:
-            previousAssignment
-              ?.dpsPercentile ??
-            0,
-
-          // ---------------------------------------------------
-          // PvP
-          // ---------------------------------------------------
-
-          pvpScore:
-            previousAssignment
-              ?.pvpScore ??
-            0,
-
-          pvpPercentile:
-            previousAssignment
-              ?.pvpPercentile ??
-            0,
-        },
-
-        include: {
-          member: {
-            select: {
-              id: true,
-
-              displayName:
-                true,
-
-              characterName:
-                true,
-
-              job: true,
-
-              priority:
-                true,
+          include: {
+            member: {
+              select: {
+                id: true,
+                displayName: true,
+                characterName: true,
+                job: true,
+                priority: true,
+              },
             },
           },
-        },
-      });
+        }
+      );
 
     return NextResponse.json({
       success: true,
-
       assignment,
     });
   } catch (error) {
@@ -432,7 +489,9 @@ export async function POST(
             ? error.message
             : "Failed to add member to roster.",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }
@@ -440,25 +499,27 @@ export async function POST(
 // =============================================================
 // MOVE / SWAP MEMBER
 // =============================================================
-//
-// PATCH behavior:
-//
-// assignmentId       = member being moved
-// targetPartyId      = destination party
-// targetSlotNumber   = destination slot
-//
-// If destination slot is empty:
-//     move member.
-//
-// If destination slot is occupied:
-//     swap the two assignments.
-//
-// =============================================================
 
 export async function PATCH(
   request: Request
 ) {
   try {
+    const auth =
+      await getCurrentAuth();
+
+    if (!auth) {
+      return unauthorizedResponse();
+    }
+
+    if (
+      !hasPermission(
+        auth.role,
+        "rosters.edit"
+      )
+    ) {
+      return forbiddenResponse();
+    }
+
     const body =
       (await request.json()) as MoveMemberRequest;
 
@@ -468,7 +529,9 @@ export async function PATCH(
           error:
             "Assignment ID is required.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
@@ -478,7 +541,9 @@ export async function PATCH(
           error:
             "Target party ID is required.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
@@ -492,13 +557,15 @@ export async function PATCH(
           error:
             "Target slot must be between 1 and 5.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
-    // =========================================================
+    // ---------------------------------------------------------
     // LOAD SOURCE ASSIGNMENT
-    // =========================================================
+    // ---------------------------------------------------------
 
     const source =
       await prisma.rosterMember.findUnique(
@@ -528,13 +595,31 @@ export async function PATCH(
           error:
             "Roster assignment not found.",
         },
-        { status: 404 }
+        {
+          status: 404,
+        }
       );
     }
 
-    // =========================================================
+    // Critical guild isolation check.
+    if (
+      source.party.roster.event.guildId !==
+      auth.guild.id
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Roster assignment not found.",
+        },
+        {
+          status: 404,
+        }
+      );
+    }
+
+    // ---------------------------------------------------------
     // LOAD TARGET PARTY
-    // =========================================================
+    // ---------------------------------------------------------
 
     const targetParty =
       await prisma.rosterParty.findUnique(
@@ -563,30 +648,32 @@ export async function PATCH(
           error:
             "Target party not found.",
         },
-        { status: 404 }
+        {
+          status: 404,
+        }
       );
     }
 
-    // =========================================================
-    // SAME ROSTER CHECK
-    // =========================================================
-
+    // Target party must also belong to the
+    // authenticated guild.
     if (
-      targetParty.rosterId !==
-      source.party.rosterId
+      targetParty.roster.id !==
+      source.party.roster.id
     ) {
       return NextResponse.json(
         {
           error:
             "Members can only be moved within the same roster.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
-    // =========================================================
+    // ---------------------------------------------------------
     // SAME POSITION
-    // =========================================================
+    // ---------------------------------------------------------
 
     if (
       source.partyId ===
@@ -600,9 +687,9 @@ export async function PATCH(
       });
     }
 
-    // =========================================================
+    // ---------------------------------------------------------
     // FIND DESTINATION
-    // =========================================================
+    // ---------------------------------------------------------
 
     const destination =
       targetParty.members.find(
@@ -611,24 +698,14 @@ export async function PATCH(
           body.targetSlotNumber
       );
 
-    // =========================================================
+    // ---------------------------------------------------------
     // MOVE INTO EMPTY SLOT
-    // =========================================================
+    // ---------------------------------------------------------
 
     if (!destination) {
       const updated =
         await prisma.$transaction(
           async (tx) => {
-            /*
-             * Temporarily move source to an impossible slot.
-             *
-             * This avoids the unique constraint collision when
-             * source and destination are in the same party.
-             */
-
-            const temporarySlot =
-              1000000;
-
             await tx.rosterMember.update({
               where: {
                 id:
@@ -637,7 +714,7 @@ export async function PATCH(
 
               data: {
                 slotNumber:
-                  temporarySlot,
+                  TEMP_SLOT_BASE,
               },
             });
 
@@ -659,17 +736,10 @@ export async function PATCH(
                 member: {
                   select: {
                     id: true,
-
-                    displayName:
-                      true,
-
-                    characterName:
-                      true,
-
+                    displayName: true,
+                    characterName: true,
                     job: true,
-
-                    priority:
-                      true,
+                    priority: true,
                   },
                 },
               },
@@ -679,30 +749,26 @@ export async function PATCH(
 
       return NextResponse.json({
         success: true,
-
         action: "moved",
-
-        assignment:
-          updated,
+        assignment: updated,
       });
     }
 
-    // =========================================================
+    // ---------------------------------------------------------
     // SWAP
-    // =========================================================
+    // ---------------------------------------------------------
 
     const swapped =
       await prisma.$transaction(
         async (tx) => {
-          const temporarySourceSlot =
-            1000000;
+          const sourceTemp =
+            TEMP_SLOT_BASE;
 
-          const temporaryDestinationSlot =
-            1000001;
+          const destinationTemp =
+            TEMP_SLOT_BASE + 1;
 
-          // ---------------------------------------------------
-          // Move both assignments temporarily.
-          // ---------------------------------------------------
+          // Temporarily move both assignments
+          // to avoid unique constraint collisions.
 
           await tx.rosterMember.update({
             where: {
@@ -712,7 +778,7 @@ export async function PATCH(
 
             data: {
               slotNumber:
-                temporarySourceSlot,
+                sourceTemp,
             },
           });
 
@@ -724,13 +790,11 @@ export async function PATCH(
 
             data: {
               slotNumber:
-                temporaryDestinationSlot,
+                destinationTemp,
             },
           });
 
-          // ---------------------------------------------------
           // Source takes destination position.
-          // ---------------------------------------------------
 
           await tx.rosterMember.update({
             where: {
@@ -747,9 +811,7 @@ export async function PATCH(
             },
           });
 
-          // ---------------------------------------------------
           // Destination takes source position.
-          // ---------------------------------------------------
 
           await tx.rosterMember.update({
             where: {
@@ -780,17 +842,10 @@ export async function PATCH(
               member: {
                 select: {
                   id: true,
-
-                  displayName:
-                    true,
-
-                  characterName:
-                    true,
-
+                  displayName: true,
+                  characterName: true,
                   job: true,
-
-                  priority:
-                    true,
+                  priority: true,
                 },
               },
             },
@@ -805,11 +860,8 @@ export async function PATCH(
 
     return NextResponse.json({
       success: true,
-
       action: "swapped",
-
-      assignments:
-        swapped,
+      assignments: swapped,
     });
   } catch (error) {
     console.error(
@@ -824,7 +876,9 @@ export async function PATCH(
             ? error.message
             : "Failed to move roster member.",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }
@@ -837,6 +891,22 @@ export async function DELETE(
   request: Request
 ) {
   try {
+    const auth =
+      await getCurrentAuth();
+
+    if (!auth) {
+      return unauthorizedResponse();
+    }
+
+    if (
+      !hasPermission(
+        auth.role,
+        "rosters.edit"
+      )
+    ) {
+      return forbiddenResponse();
+    }
+
     const url =
       new URL(request.url);
 
@@ -849,28 +919,36 @@ export async function DELETE(
           error:
             "Assignment ID is required.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
-    // =========================================================
+    // ---------------------------------------------------------
     // LOAD ASSIGNMENT
-    // =========================================================
+    // ---------------------------------------------------------
 
     const assignment =
-      await prisma.rosterMember.findUnique({
-        where: {
-          id,
-        },
+      await prisma.rosterMember.findUnique(
+        {
+          where: {
+            id,
+          },
 
-        include: {
-          party: {
-            include: {
-              roster: true,
+          include: {
+            party: {
+              include: {
+                roster: {
+                  include: {
+                    event: true,
+                  },
+                },
+              },
             },
           },
-        },
-      });
+        }
+      );
 
     if (!assignment) {
       return NextResponse.json(
@@ -878,13 +956,31 @@ export async function DELETE(
           error:
             "Roster assignment not found.",
         },
-        { status: 404 }
+        {
+          status: 404,
+        }
       );
     }
 
-    // =========================================================
-    // DELETE ASSIGNMENT
-    // =========================================================
+    // Critical guild isolation check.
+    if (
+      assignment.party.roster.event.guildId !==
+      auth.guild.id
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Roster assignment not found.",
+        },
+        {
+          status: 404,
+        }
+      );
+    }
+
+    // ---------------------------------------------------------
+    // DELETE
+    // ---------------------------------------------------------
 
     await prisma.rosterMember.delete({
       where: {
@@ -892,43 +988,29 @@ export async function DELETE(
       },
     });
 
-    // =========================================================
+    // ---------------------------------------------------------
     // COMPACT REMAINING SLOTS
-    // =========================================================
-    //
-    // Example:
-    //
-    // 1 A
-    // 2 B
-    // 3 C
-    //
-    // Remove B
-    //
-    // becomes:
-    //
-    // 1 A
-    // 2 C
-    //
-    // =========================================================
+    // ---------------------------------------------------------
 
     const remaining =
-      await prisma.rosterMember.findMany({
-        where: {
-          partyId:
-            assignment.partyId,
-        },
+      await prisma.rosterMember.findMany(
+        {
+          where: {
+            partyId:
+              assignment.partyId,
+          },
 
-        orderBy: {
-          slotNumber:
-            "asc",
-        },
-      });
-
-    // ---------------------------------------------------------
-    // First move everything to temporary slots.
-    // ---------------------------------------------------------
+          orderBy: {
+            slotNumber:
+              "asc",
+          },
+        }
+      );
 
     if (remaining.length > 0) {
+      // First move all remaining assignments
+      // to temporary slots.
+
       await prisma.$transaction(
         remaining.map(
           (entry, index) =>
@@ -940,16 +1022,14 @@ export async function DELETE(
 
               data: {
                 slotNumber:
-                  1000000 +
+                  TEMP_SLOT_BASE +
                   index,
               },
             })
         )
       );
 
-      // -------------------------------------------------------
-      // Then assign compact slots.
-      // -------------------------------------------------------
+      // Then assign compact slots 1..N.
 
       await prisma.$transaction(
         remaining.map(
@@ -985,7 +1065,9 @@ export async function DELETE(
             ? error.message
             : "Failed to remove roster member.",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }

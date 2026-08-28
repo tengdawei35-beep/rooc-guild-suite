@@ -8,8 +8,8 @@ import {
 } from "react";
 
 type UserRole =
-  | "LEADER"
-  | "COUNCIL"
+  | "ADMIN"
+  | "MANAGER"
   | "OFFICER"
   | "MEMBER";
 
@@ -38,8 +38,8 @@ type CurrentUser = {
 };
 
 const ROLE_ORDER: UserRole[] = [
-  "LEADER",
-  "COUNCIL",
+  "ADMIN",
+  "MANAGER",
   "OFFICER",
   "MEMBER",
 ];
@@ -48,12 +48,15 @@ const ROLE_DESCRIPTIONS: Record<
   UserRole,
   string
 > = {
-  LEADER:
+  ADMIN:
     "Full administrative access to the guild.",
-  COUNCIL:
-    "Manage members, rosters and allocation.",
+
+  MANAGER:
+    "Manage guild members, events, rosters and allocation.",
+
   OFFICER:
-    "Manage members, users and allocation.",
+    "Manage guild members, events, rosters and allocation operations.",
+
   MEMBER:
     "View guild data and edit their own profile.",
 };
@@ -125,7 +128,10 @@ export default function UsersClient() {
       if (
         data.currentUser &&
         typeof data.currentUser.id ===
-          "string"
+          "string" &&
+        isUserRole(
+          data.currentUser.role
+        )
       ) {
         setCurrentUser({
           id:
@@ -156,34 +162,88 @@ export default function UsersClient() {
   // PERMISSIONS
   // =========================================================
 
+  /*
+   * User-management access is intentionally restricted to:
+   *
+   * ADMIN
+   * MANAGER
+   *
+   * Officers can manage guild operations, but cannot change
+   * application access roles.
+   */
+
   const canManageUsers =
     currentUser?.role ===
-      "LEADER" ||
+      "ADMIN" ||
     currentUser?.role ===
-      "OFFICER";
+      "MANAGER";
+
+  /*
+   * Determines which roles the current user may assign.
+   *
+   * ADMIN:
+   *   MANAGER
+   *   OFFICER
+   *   MEMBER
+   *
+   * MANAGER:
+   *   OFFICER
+   *   MEMBER
+   *
+   * OFFICER:
+   *   none
+   *
+   * MEMBER:
+   *   none
+   *
+   * ADMIN is deliberately excluded as a selectable target role.
+   */
 
   function canAssignRole(
     role: UserRole
   ) {
     if (
       currentUser?.role ===
-      "LEADER"
+      "ADMIN"
     ) {
-      return true;
+      return (
+        role === "MANAGER" ||
+        role === "OFFICER" ||
+        role === "MEMBER"
+      );
     }
 
     if (
       currentUser?.role ===
-      "OFFICER"
+      "MANAGER"
     ) {
       return (
-        role === "MEMBER" ||
-        role === "OFFICER"
+        role === "OFFICER" ||
+        role === "MEMBER"
       );
     }
 
     return false;
   }
+
+  /*
+   * Determines whether the current user can manage this
+   * particular guild user.
+   *
+   * This mirrors the server-side hierarchy:
+   *
+   * ADMIN
+   *   -> MANAGER / OFFICER / MEMBER
+   *
+   * MANAGER
+   *   -> OFFICER / MEMBER
+   *
+   * OFFICER
+   *   -> none
+   *
+   * MEMBER
+   *   -> none
+   */
 
   function canManageTarget(
     user: GuildUser
@@ -193,12 +253,10 @@ export default function UsersClient() {
     }
 
     /*
-     * A user cannot modify their own
-     * guild membership from this page.
-     *
-     * This prevents an accidental
-     * self-demotion/removal.
+     * A user cannot modify their own guild
+     * membership from this page.
      */
+
     if (
       user.id ===
       currentUser?.id
@@ -208,22 +266,21 @@ export default function UsersClient() {
 
     if (
       currentUser?.role ===
-      "LEADER"
-    ) {
-      return true;
-    }
-
-    /*
-     * OFFICER can only manage
-     * MEMBER/OFFICER.
-     */
-    if (
-      currentUser?.role ===
-      "OFFICER"
+      "ADMIN"
     ) {
       return (
-        user.role === "MEMBER" ||
-        user.role === "OFFICER"
+        user.role !==
+        "ADMIN"
+      );
+    }
+
+    if (
+      currentUser?.role ===
+      "MANAGER"
+    ) {
+      return (
+        user.role === "OFFICER" ||
+        user.role === "MEMBER"
       );
     }
 
@@ -245,6 +302,26 @@ export default function UsersClient() {
     if (!trimmed) {
       setError(
         "Enter a Discord user ID."
+      );
+      return;
+    }
+
+    if (
+      !canManageUsers
+    ) {
+      setError(
+        "You do not have permission to add users."
+      );
+      return;
+    }
+
+    if (
+      !canAssignRole(
+        newRole
+      )
+    ) {
+      setError(
+        "You do not have permission to assign this role."
       );
       return;
     }
@@ -309,9 +386,27 @@ export default function UsersClient() {
     role: UserRole
   ) {
     if (
-      role === user.role ||
-      !canManageTarget(user)
+      role === user.role
     ) {
+      return;
+    }
+
+    if (
+      !canManageTarget(
+        user
+      )
+    ) {
+      return;
+    }
+
+    if (
+      !canAssignRole(
+        role
+      )
+    ) {
+      setError(
+        "You do not have permission to assign this role."
+      );
       return;
     }
 
@@ -377,7 +472,9 @@ export default function UsersClient() {
     user: GuildUser
   ) {
     if (
-      !canManageTarget(user)
+      !canManageTarget(
+        user
+      )
     ) {
       return;
     }
@@ -442,14 +539,14 @@ export default function UsersClient() {
   const roleCounts =
     useMemo(() => {
       return {
-        LEADER: users.filter(
+        ADMIN: users.filter(
           (user) =>
-            user.role === "LEADER"
+            user.role === "ADMIN"
         ).length,
 
-        COUNCIL: users.filter(
+        MANAGER: users.filter(
           (user) =>
-            user.role === "COUNCIL"
+            user.role === "MANAGER"
         ).length,
 
         OFFICER: users.filter(
@@ -815,9 +912,11 @@ export default function UsersClient() {
                                   (
                                     role
                                   ) =>
+                                    role ===
+                                      user.role ||
                                     canAssignRole(
                                       role
-                                    ) && (
+                                    ) ? (
                                       <option
                                         key={
                                           role
@@ -830,7 +929,7 @@ export default function UsersClient() {
                                           role
                                         )}
                                       </option>
-                                    )
+                                    ) : null
                                 )}
                               </select>
 
@@ -907,6 +1006,21 @@ export default function UsersClient() {
         </section>
       </div>
     </main>
+  );
+}
+
+// =============================================================
+// ROLE VALIDATION
+// =============================================================
+
+function isUserRole(
+  value: unknown
+): value is UserRole {
+  return (
+    value === "ADMIN" ||
+    value === "MANAGER" ||
+    value === "OFFICER" ||
+    value === "MEMBER"
   );
 }
 

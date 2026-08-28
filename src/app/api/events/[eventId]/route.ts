@@ -1,4 +1,10 @@
 import { NextResponse } from "next/server";
+
+import {
+  getCurrentAuth,
+  hasPermission,
+} from "@/lib/auth";
+
 import { prisma } from "@/lib/prisma";
 
 type RouteContext = {
@@ -7,11 +13,47 @@ type RouteContext = {
   }>;
 };
 
+// =============================================================
+// GET EVENT
+// =============================================================
+
 export async function GET(
   _request: Request,
   context: RouteContext
 ) {
   try {
+    const auth =
+      await getCurrentAuth();
+
+    if (!auth) {
+      return NextResponse.json(
+        {
+          error:
+            "Authentication required.",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
+    if (
+      !hasPermission(
+        auth.role,
+        "events.view"
+      )
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "You do not have permission to view events.",
+        },
+        {
+          status: 403,
+        }
+      );
+    }
+
     const { eventId } =
       await context.params;
 
@@ -25,9 +67,13 @@ export async function GET(
     // ==========================================================
 
     const event =
-      await prisma.event.findUnique({
+      await prisma.event.findFirst({
         where: {
           id: eventId,
+
+          // Prevent cross-guild event access.
+          guildId:
+            auth.guild.id,
         },
 
         include: {
@@ -43,6 +89,7 @@ export async function GET(
               member: {
                 select: {
                   id: true,
+                  userId: true,
                   displayName: true,
                   characterName: true,
                   job: true,
@@ -130,7 +177,8 @@ export async function GET(
     if (!event) {
       return NextResponse.json(
         {
-          error: "Event not found.",
+          error:
+            "Event not found.",
         },
         {
           status: 404,
@@ -145,12 +193,15 @@ export async function GET(
     const members =
       await prisma.guildMember.findMany({
         where: {
-          guildId: event.guildId,
+          guildId:
+            auth.guild.id,
+
           active: true,
         },
 
         select: {
           id: true,
+          userId: true,
           displayName: true,
           characterName: true,
           job: true,
@@ -239,6 +290,9 @@ export async function GET(
         return {
           id: member.id,
 
+          userId:
+            member.userId,
+
           displayName:
             member.displayName,
 
@@ -294,6 +348,24 @@ export async function GET(
       // ========================================================
 
       participants,
+
+      // ========================================================
+      // PERMISSIONS
+      // ========================================================
+
+      permissions: {
+        canManageEvents:
+          hasPermission(
+            auth.role,
+            "events.manage"
+          ),
+
+        canEditRosters:
+          hasPermission(
+            auth.role,
+            "rosters.edit"
+          ),
+      },
 
       // ========================================================
       // ROSTERS
@@ -448,8 +520,28 @@ export async function PATCH(
   context: RouteContext
 ) {
   try {
-    const { eventId } =
-      await context.params;
+    // ==========================================================
+    // AUTHENTICATION
+    // ==========================================================
+
+    const auth =
+      await getCurrentAuth();
+
+    if (!auth) {
+      return NextResponse.json(
+        {
+          error:
+            "Authentication required.",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
+    const {
+      eventId,
+    } = await context.params;
 
     const body =
       await request.json();
@@ -497,9 +589,15 @@ export async function PATCH(
     // ==========================================================
 
     const event =
-      await prisma.event.findUnique({
+      await prisma.event.findFirst({
         where: {
           id: eventId,
+
+          // Critical:
+          // Only allow access to events belonging to the
+          // authenticated user's guild.
+          guildId:
+            auth.guild.id,
         },
 
         select: {
@@ -512,13 +610,24 @@ export async function PATCH(
     if (!event) {
       return NextResponse.json(
         {
-          error: "Event not found.",
+          error:
+            "Event not found.",
         },
         {
           status: 404,
         }
       );
     }
+
+    // ==========================================================
+    // DETERMINE EVENT MANAGEMENT PERMISSION
+    // ==========================================================
+
+    const canManageAll =
+      hasPermission(
+        auth.role,
+        "events.manage"
+      );
 
     // ==========================================================
     // LOAD MEMBER
@@ -537,6 +646,7 @@ export async function PATCH(
 
         select: {
           id: true,
+          userId: true,
 
           leaveDates: {
             orderBy: {
@@ -554,6 +664,36 @@ export async function PATCH(
         },
         {
           status: 404,
+        }
+      );
+    }
+
+    // ==========================================================
+    // MEMBER OWNERSHIP CHECK
+    // ==========================================================
+    //
+    // Users with events.manage can modify anyone.
+    //
+    // Everyone else may only modify the GuildMember record
+    // associated with their own User account.
+    //
+    // This is enforced server-side rather than relying on the
+    // UI hiding the controls.
+    //
+    // ==========================================================
+
+    if (
+      !canManageAll &&
+      member.userId !==
+        auth.user.id
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "You can only change your own event availability.",
+        },
+        {
+          status: 403,
         }
       );
     }

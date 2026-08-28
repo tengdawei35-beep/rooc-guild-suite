@@ -1,14 +1,26 @@
 import Link from "next/link";
 
-import { prisma } from "@/lib/prisma";
-import { requirePageAuth } from "@/lib/auth";
+import {
+  prisma,
+} from "@/lib/prisma";
+
+import {
+  requirePageAuth,
+  hasPermission,
+} from "@/lib/auth";
+
 import GuildForm from "./GuildForm";
 
 export default async function GuildPage() {
   const auth =
     await requirePageAuth();
 
-  if (auth.role !== "LEADER") {
+  if (
+    !hasPermission(
+      auth.role,
+      "guild.manage"
+    )
+  ) {
     return (
       <main className="min-h-screen bg-zinc-950 text-white">
         <div className="mx-auto max-w-4xl px-6 py-10">
@@ -40,10 +52,6 @@ export default async function GuildPage() {
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
       <div className="mx-auto max-w-4xl px-6 py-10">
-        {/* =====================================================
-            HEADER
-        ===================================================== */}
-
         <header className="mb-8">
           <Link
             href="/"
@@ -66,18 +74,12 @@ export default async function GuildPage() {
           </p>
         </header>
 
-        {/* =====================================================
-            GUILD MANAGEMENT
-        ===================================================== */}
-
         <section className="mb-6">
           <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-zinc-500">
             Guild Management
           </h2>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            {/* MEMBERS */}
-
             <Link
               href="/guild/members"
               className="group rounded-2xl border border-zinc-800 bg-zinc-900 p-5 transition hover:border-zinc-600 hover:bg-zinc-800"
@@ -100,8 +102,6 @@ export default async function GuildPage() {
                 </span>
               </div>
             </Link>
-
-            {/* USERS */}
 
             <Link
               href="/guild/users"
@@ -127,10 +127,6 @@ export default async function GuildPage() {
           </div>
         </section>
 
-        {/* =====================================================
-            GUILD SETUP
-        ===================================================== */}
-
         <section>
           <div className="mb-3">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">
@@ -143,8 +139,12 @@ export default async function GuildPage() {
               guild={
                 guild
                   ? {
-                      id: guild.id,
-                      name: guild.name,
+                      id:
+                        guild.id,
+
+                      name:
+                        guild.name,
+
                       discordGuildId:
                         guild.discordGuildId,
                     }

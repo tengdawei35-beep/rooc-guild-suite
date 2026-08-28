@@ -4,61 +4,29 @@ import {
   getCurrentAuth,
 } from "@/lib/auth";
 
-import { prisma } from "@/lib/prisma";
+import {
+  canManageRole,
+  canManageTarget,
+  hasPermission,
+  USER_ROLES,
+} from "@/lib/permissions";
+
+import {
+  prisma,
+} from "@/lib/prisma";
 
 type UserRole =
-  | "LEADER"
-  | "COUNCIL"
-  | "OFFICER"
-  | "MEMBER";
+  (typeof USER_ROLES)[number];
 
-const VALID_ROLES: UserRole[] = [
-  "LEADER",
-  "COUNCIL",
-  "OFFICER",
-  "MEMBER",
-];
-
-// =============================================================
-// PERMISSION HELPERS
-// =============================================================
-
-function canManageTarget(
-  actorRole: UserRole,
-  targetRole: UserRole,
-  newRole?: UserRole
-): boolean {
-  // LEADER can manage everyone.
-  if (actorRole === "LEADER") {
-    return true;
-  }
-
-  // Only LEADER and OFFICER can
-  // manage users.
-  if (actorRole !== "OFFICER") {
-    return false;
-  }
-
-  // OFFICER cannot modify LEADER
-  // or COUNCIL accounts.
-  if (
-    targetRole === "LEADER" ||
-    targetRole === "COUNCIL"
-  ) {
-    return false;
-  }
-
-  // OFFICER can only assign
-  // MEMBER or OFFICER.
-  if (
-    newRole &&
-    newRole !== "MEMBER" &&
-    newRole !== "OFFICER"
-  ) {
-    return false;
-  }
-
-  return true;
+function isUserRole(
+  value: unknown
+): value is UserRole {
+  return (
+    typeof value === "string" &&
+    USER_ROLES.includes(
+      value as UserRole
+    )
+  );
 }
 
 // =============================================================
@@ -75,10 +43,6 @@ export async function PATCH(
   }
 ) {
   try {
-    // ---------------------------------------------------------
-    // Authentication
-    // ---------------------------------------------------------
-
     const auth =
       await getCurrentAuth();
 
@@ -94,13 +58,11 @@ export async function PATCH(
       );
     }
 
-    // ---------------------------------------------------------
-    // Permission
-    // ---------------------------------------------------------
-
     if (
-      auth.role !== "LEADER" &&
-      auth.role !== "OFFICER"
+      !hasPermission(
+        auth.role,
+        "users.manage"
+      )
     ) {
       return NextResponse.json(
         {
@@ -112,10 +74,6 @@ export async function PATCH(
         }
       );
     }
-
-    // ---------------------------------------------------------
-    // Target user
-    // ---------------------------------------------------------
 
     const {
       userId,
@@ -133,10 +91,6 @@ export async function PATCH(
       );
     }
 
-    // ---------------------------------------------------------
-    // Prevent self-role changes
-    // ---------------------------------------------------------
-
     if (
       userId === auth.user.id
     ) {
@@ -151,18 +105,14 @@ export async function PATCH(
       );
     }
 
-    // ---------------------------------------------------------
-    // Request body
-    // ---------------------------------------------------------
-
     const body =
       await request.json();
 
-    const role =
-      body.role as UserRole;
+    const newRole =
+      body.role;
 
     if (
-      !VALID_ROLES.includes(role)
+      !isUserRole(newRole)
     ) {
       return NextResponse.json(
         {
@@ -174,10 +124,6 @@ export async function PATCH(
         }
       );
     }
-
-    // ---------------------------------------------------------
-    // Find membership within CURRENT guild
-    // ---------------------------------------------------------
 
     const membership =
       await prisma.guildMembership.findUnique(
@@ -209,14 +155,21 @@ export async function PATCH(
     }
 
     // ---------------------------------------------------------
-    // Check target role permissions
+    // Check whether the authenticated user may change this
+    // specific user's role.
+    //
+    // This checks BOTH:
+    //
+    //   1. The current role of the target
+    //   2. The requested new role
+    //
     // ---------------------------------------------------------
 
     if (
-      !canManageTarget(
+      !canManageRole(
         auth.role,
         membership.role,
-        role
+        newRole
       )
     ) {
       return NextResponse.json(
@@ -231,32 +184,33 @@ export async function PATCH(
     }
 
     // ---------------------------------------------------------
-    // Prevent removal of the last LEADER
+    // Prevent removing the last ADMIN
     // ---------------------------------------------------------
 
     if (
-      membership.role === "LEADER" &&
-      role !== "LEADER"
+      membership.role === "ADMIN" &&
+      newRole !== "ADMIN"
     ) {
-      const leaderCount =
+      const adminCount =
         await prisma.guildMembership.count(
           {
             where: {
               guildId:
                 auth.guild.id,
 
-              role: "LEADER",
+              role:
+                "ADMIN",
             },
           }
         );
 
       if (
-        leaderCount <= 1
+        adminCount <= 1
       ) {
         return NextResponse.json(
           {
             error:
-              "The guild must have at least one LEADER.",
+              "The guild must have at least one ADMIN.",
           },
           {
             status: 409,
@@ -264,10 +218,6 @@ export async function PATCH(
         );
       }
     }
-
-    // ---------------------------------------------------------
-    // Update membership
-    // ---------------------------------------------------------
 
     const updated =
       await prisma.guildMembership.update(
@@ -281,7 +231,8 @@ export async function PATCH(
           },
 
           data: {
-            role,
+            role:
+              newRole,
           },
 
           include: {
@@ -346,10 +297,6 @@ export async function DELETE(
   }
 ) {
   try {
-    // ---------------------------------------------------------
-    // Authentication
-    // ---------------------------------------------------------
-
     const auth =
       await getCurrentAuth();
 
@@ -365,13 +312,11 @@ export async function DELETE(
       );
     }
 
-    // ---------------------------------------------------------
-    // Permission
-    // ---------------------------------------------------------
-
     if (
-      auth.role !== "LEADER" &&
-      auth.role !== "OFFICER"
+      !hasPermission(
+        auth.role,
+        "users.manage"
+      )
     ) {
       return NextResponse.json(
         {
@@ -383,10 +328,6 @@ export async function DELETE(
         }
       );
     }
-
-    // ---------------------------------------------------------
-    // Target user
-    // ---------------------------------------------------------
 
     const {
       userId,
@@ -404,10 +345,6 @@ export async function DELETE(
       );
     }
 
-    // ---------------------------------------------------------
-    // Prevent self-removal
-    // ---------------------------------------------------------
-
     if (
       userId === auth.user.id
     ) {
@@ -422,10 +359,6 @@ export async function DELETE(
       );
     }
 
-    // ---------------------------------------------------------
-    // Find membership within CURRENT guild
-    // ---------------------------------------------------------
-
     const membership =
       await prisma.guildMembership.findUnique(
         {
@@ -435,6 +368,10 @@ export async function DELETE(
               guildId:
                 auth.guild.id,
             },
+          },
+
+          include: {
+            user: true,
           },
         }
       );
@@ -452,7 +389,9 @@ export async function DELETE(
     }
 
     // ---------------------------------------------------------
-    // Check target role permissions
+    // Removing access is not a role change.
+    //
+    // Use canManageTarget() rather than canManageRole().
     // ---------------------------------------------------------
 
     if (
@@ -473,31 +412,32 @@ export async function DELETE(
     }
 
     // ---------------------------------------------------------
-    // Prevent removal of the last LEADER
+    // Prevent removal of the last ADMIN
     // ---------------------------------------------------------
 
     if (
-      membership.role === "LEADER"
+      membership.role === "ADMIN"
     ) {
-      const leaderCount =
+      const adminCount =
         await prisma.guildMembership.count(
           {
             where: {
               guildId:
                 auth.guild.id,
 
-              role: "LEADER",
+              role:
+                "ADMIN",
             },
           }
         );
 
       if (
-        leaderCount <= 1
+        adminCount <= 1
       ) {
         return NextResponse.json(
           {
             error:
-              "The guild must have at least one LEADER.",
+              "The guild must have at least one ADMIN.",
           },
           {
             status: 409,
@@ -505,10 +445,6 @@ export async function DELETE(
         );
       }
     }
-
-    // ---------------------------------------------------------
-    // Remove guild membership ONLY
-    // ---------------------------------------------------------
 
     await prisma.guildMembership.delete(
       {
