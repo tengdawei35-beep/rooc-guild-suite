@@ -1218,98 +1218,7 @@ export default function EventClient({
           />
         </section>
 
-        {/* ====================================================
-            PARTICIPATION
-        ==================================================== */}
 
-        {showParticipation && (
-          <section className="mt-10">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <h2 className="text-xl font-semibold">
-                Participation
-              </h2>
-
-              <p className="mt-1 text-sm text-zinc-500">
-                Manage who is available for this event.
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <input
-                value={search}
-                onChange={(event) =>
-                  setSearch(
-                    event.target.value
-                  )
-                }
-                placeholder="Search members..."
-                className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-zinc-500"
-              />
-
-              <button
-                type="button"
-                onClick={() =>
-                  setShowUnavailable(
-                    (value) => !value
-                  )
-                }
-                className="rounded-lg border border-zinc-700 px-4 py-2.5 text-sm text-zinc-300 hover:border-zinc-500 hover:text-white"
-              >
-                {showUnavailable
-                  ? "Hide Unavailable"
-                  : "Show Unavailable"}
-              </button>
-            </div>
-          </div>
-
-          <div className="mt-5 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900">
-            <div className="hidden grid-cols-[2fr_1.2fr_1fr_1fr_120px] gap-4 border-b border-zinc-800 px-5 py-3 text-xs font-medium uppercase tracking-wider text-zinc-600 md:grid">
-              <span>Member</span>
-              <span>Job</span>
-              <span>Priority</span>
-              <span>Status</span>
-              <span className="text-right">
-                Available
-              </span>
-            </div>
-
-            {filteredParticipants.length ===
-            0 ? (
-              <div className="px-6 py-12 text-center text-sm text-zinc-600">
-                No members match the current filters.
-              </div>
-            ) : (
-              <div className="divide-y divide-zinc-800">
-                {filteredParticipants.map(
-                  (participant) => (
-                   <ParticipantRow
-                    key={
-                      participant.id
-                    }
-                    participant={
-                      participant
-                    }
-                    updating={
-                      updatingMember ===
-                      participant.id
-                    }
-                    canEdit={
-                      canManageEvents ||
-                      participant.userId ===
-                        currentUserId
-                    }
-                    onToggle={
-                      updateAvailability
-                    }
-                  />
-                  )
-                )}
-              </div>
-            )}
-          </div>
-        </section>
-        )}
         {/* ====================================================
             ROSTERS
         ==================================================== */}
@@ -1491,7 +1400,98 @@ export default function EventClient({
                 : "Show Participation"}
             </button>
           </div>
+        {/* ====================================================
+            PARTICIPATION
+        ==================================================== */}
 
+        {showParticipation && (
+          <section className="mt-10">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <h2 className="text-xl font-semibold">
+                Participation
+              </h2>
+
+              <p className="mt-1 text-sm text-zinc-500">
+                Manage who is available for this event.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <input
+                value={search}
+                onChange={(event) =>
+                  setSearch(
+                    event.target.value
+                  )
+                }
+                placeholder="Search members..."
+                className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-zinc-500"
+              />
+
+              <button
+                type="button"
+                onClick={() =>
+                  setShowUnavailable(
+                    (value) => !value
+                  )
+                }
+                className="rounded-lg border border-zinc-700 px-4 py-2.5 text-sm text-zinc-300 hover:border-zinc-500 hover:text-white"
+              >
+                {showUnavailable
+                  ? "Hide Unavailable"
+                  : "Show Unavailable"}
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-5 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900">
+            <div className="hidden grid-cols-[2fr_1.2fr_1fr_1fr_120px] gap-4 border-b border-zinc-800 px-5 py-3 text-xs font-medium uppercase tracking-wider text-zinc-600 md:grid">
+              <span>Member</span>
+              <span>Job</span>
+              <span>Priority</span>
+              <span>Status</span>
+              <span className="text-right">
+                Available
+              </span>
+            </div>
+
+            {filteredParticipants.length ===
+            0 ? (
+              <div className="px-6 py-12 text-center text-sm text-zinc-600">
+                No members match the current filters.
+              </div>
+            ) : (
+              <div className="divide-y divide-zinc-800">
+                {filteredParticipants.map(
+                  (participant) => (
+                   <ParticipantRow
+                    key={
+                      participant.id
+                    }
+                    participant={
+                      participant
+                    }
+                    updating={
+                      updatingMember ===
+                      participant.id
+                    }
+                    canEdit={
+                      canManageEvents ||
+                      participant.userId ===
+                        currentUserId
+                    }
+                    onToggle={
+                      updateAvailability
+                    }
+                  />
+                  )
+                )}
+              </div>
+            )}
+          </div>
+        </section>
+        )}
       {/* ====================================================
           ALLOCATION
       ==================================================== */}
