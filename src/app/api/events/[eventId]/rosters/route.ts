@@ -247,7 +247,6 @@ export async function POST(
 
         select: {
           id: true,
-          displayName: true,
           characterName: true,
           job: true,
           priority: true,
@@ -298,7 +297,7 @@ export async function POST(
             priority: "asc",
           },
           {
-            displayName: "asc",
+            characterName: "asc",
           },
         ],
       });
@@ -313,9 +312,6 @@ export async function POST(
         (member) => ({
           id:
             member.id,
-
-          displayName:
-            member.displayName,
 
           characterName:
             member.characterName,
@@ -1167,8 +1163,6 @@ export async function POST(
                   member: {
                     select: {
                       id: true,
-                      displayName:
-                        true,
                       characterName:
                         true,
                       job: true,

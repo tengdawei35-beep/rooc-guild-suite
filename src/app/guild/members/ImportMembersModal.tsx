@@ -22,7 +22,7 @@ type ImportResult = {
   total: number;
   errors: {
     row: number;
-    displayName: string;
+    discordUsername: string;
     errors: string[];
   }[];
 };
@@ -40,19 +40,19 @@ const FIELD_ALIASES: Record<
   string
 > = {
   displayname:
-    "displayName",
+    "discordUsername",
 
   discord:
-    "displayName",
+    "discordUsername",
 
   discordname:
-    "displayName",
+    "discordUsername",
 
   discordusername:
-    "displayName",
+    "discordUsername",
 
   username:
-    "displayName",
+    "discordUsername",
 
   character:
     "characterName",
@@ -356,7 +356,7 @@ function mapCSVRows(
 
   if (
     !headers.includes(
-      "displayName"
+      "discordUsername"
     )
   ) {
     throw new Error(
@@ -413,10 +413,10 @@ function validatePreviewRow(
   const errors: string[] = [];
 
   if (
-    !data.displayName?.trim()
+    !data.discordUsername?.trim()
   ) {
     errors.push(
-      "Display name required"
+      "Discord Username required"
     );
   }
 
@@ -612,7 +612,7 @@ export default function ImportMembersModal({
 
     for (const row of preview) {
       const name =
-        row.data.displayName
+        row.data.discordUsername
           ?.trim()
           .toLowerCase();
 
@@ -628,7 +628,7 @@ export default function ImportMembersModal({
         undefined
       ) {
         row.errors.push(
-          `Duplicate display name; first appears on row ${existing}`
+          `Duplicate Discord Username; first appears on row ${existing}`
         );
       } else {
         seen.set(
@@ -1311,7 +1311,7 @@ export default function ImportMembersModal({
 
                           <td className="px-3 py-3 text-zinc-300">
                             {row.data
-                              .displayName ||
+                              .discordUsername ||
                               "—"}
                           </td>
 

@@ -471,7 +471,6 @@ export async function POST(
             member: {
               select: {
                 id: true,
-                displayName: true,
                 characterName: true,
                 job: true,
                 priority: true,
@@ -745,7 +744,6 @@ export async function PATCH(
                 member: {
                   select: {
                     id: true,
-                    displayName: true,
                     characterName: true,
                     job: true,
                     priority: true,
@@ -851,7 +849,6 @@ export async function PATCH(
               member: {
                 select: {
                   id: true,
-                  displayName: true,
                   characterName: true,
                   job: true,
                   priority: true,

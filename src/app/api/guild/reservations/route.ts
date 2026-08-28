@@ -266,7 +266,7 @@ export async function POST(
           reservation.quantity,
 
         memberName:
-          reservation.member.displayName,
+          reservation.member.characterName,
 
         resourceName:
           reservation.resource.name,
@@ -468,7 +468,7 @@ export async function PUT(
           reservation.quantity,
 
         memberName:
-          reservation.member.displayName,
+          reservation.member.characterName,
 
         resourceName:
           reservation.resource.name,

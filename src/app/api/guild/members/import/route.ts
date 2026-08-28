@@ -6,7 +6,7 @@ import { getCurrentAuth, hasPermission } from "@/lib/auth";
 type ImportRow = Record<string, unknown>;
 
 const MEMBER_FIELDS = [
-  "displayName", "characterName", "job", "active", "eligible", "priority", "remarks",
+  "characterName", "job", "active", "eligible", "priority", "remarks",
   "discordUserId", "discordUsername",
   "pdef", "mdef", "pvpDamageBonus", "pvpDamageReduction",
   "pdmgPercent", "mdmgPercent", "pdmgReductionPercent", "mdmgReductionPercent",
@@ -34,7 +34,7 @@ function normaliseHeader(header: string) {
 }
 
 const HEADER_ALIASES: Record<string, MemberField> = {
-  displayname: "displayName", discord: "discordUsername", discordname: "discordUsername",
+  displayname: "discordUsername", discord: "discordUsername", discordname: "discordUsername",
   discordusername: "discordUsername", username: "discordUsername", discordid: "discordUserId",
   discorduserid: "discordUserId", discorduser: "discordUserId", character: "characterName",
   charactername: "characterName", charname: "characterName", job: "job", class: "job",
@@ -90,11 +90,18 @@ function parseDiscordUsername(value: unknown): string | null {
 
 function validateRow(row: ImportRow, rowNumber: number) {
   const errors: string[] = [];
-  const displayName = String(getValue(row, "displayName") ?? "").trim();
-  const characterName = String(getValue(row, "characterName") ?? "").trim();
+  const discordUsername = String(
+    getValue(row, "discordUsername") ?? ""
+  ).trim();
+
+  const characterName = String(
+    getValue(row, "characterName") ?? ""
+  ).trim();
   const job = String(getValue(row, "job") ?? "").trim();
 
-  if (!displayName) errors.push("Display name is required.");
+  if (!discordUsername) {
+  errors.push("Discord Username is required.");
+}
   if (!characterName) errors.push("Character name is required.");
   if (!job) errors.push("Job is required.");
   else if (!JOBS.includes(job as (typeof JOBS)[number])) errors.push(`Invalid job \"${job}\".`);
@@ -123,7 +130,13 @@ function validateRow(row: ImportRow, rowNumber: number) {
     }
   }
 
-  return { rowNumber, displayName, characterName, job, errors };
+  return {
+    rowNumber,
+    discordUsername,
+    characterName,
+    job,
+    errors,
+  };
 }
 
 function buildCreateData(row: ImportRow, guildId: string, userId: string | null) {
@@ -134,7 +147,6 @@ function buildCreateData(row: ImportRow, guildId: string, userId: string | null)
     userId,
     discordUserId: parseDiscordUserId(getValue(row, "discordUserId")),
     discordUsername: parseDiscordUsername(getValue(row, "discordUsername")),
-    displayName: String(getValue(row, "displayName") ?? "").trim(),
     characterName: characterName || null,
     job: job || null,
     active: parseBoolean(getValue(row, "active")) ?? true,
@@ -225,28 +237,15 @@ export async function POST(request: Request) {
         }
       }
 
-      // Existing guild imports commonly use Display Name
-      // as the Discord username. Preserve that convention
-      // unless an explicit Discord Username was supplied.
-      if (
-        (result.discordUsername === undefined ||
-          String(result.discordUsername).trim() === "") &&
-        result.displayName !== undefined &&
-        String(result.displayName).trim() !== ""
-      ) {
-        result.discordUsername =
-          String(result.displayName).trim();
-      }
-
       return result;
     });
     const validatedRows = normalizedRows.map((row, index) => validateRow(row, index + 2));
     const seen = new Map<string, number>();
     for (const row of validatedRows) {
-      if (!row.displayName) continue;
-      const key = row.displayName.toLowerCase();
+      if (!row.discordUsername) continue;
+      const key = row.discordUsername.toLowerCase();
       const previous = seen.get(key);
-      if (previous !== undefined) row.errors.push(`Duplicate display name in CSV; first appears on row ${previous}.`);
+      if (previous !== undefined) row.errors.push(`Duplicate Discord username in CSV; first appears on row ${previous}.`);
       else seen.set(key, row.rowNumber);
     }
 
@@ -259,25 +258,33 @@ export async function POST(request: Request) {
     if (validationErrors.length > 0) {
       return NextResponse.json({
         success: false, created: 0, updated: 0,
-        errors: validationErrors.map((row) => ({ row: row.rowNumber, displayName: row.displayName, errors: row.errors })),
+        errors: validationErrors.map((row) => ({
+          row: row.rowNumber,
+          discordUsername: row.discordUsername,
+          errors: row.errors,
+        })),
         message: "Import validation failed. No changes were made.",
       });
     }
 
     let created = 0;
     let updated = 0;
-    const results: { row: number; displayName: string; action: "created" | "updated" }[] = [];
+    const results: {
+      row: number;
+      discordUsername: string;
+      action: "created" | "updated";
+    }[] = [];
 
     await prisma.$transaction(async (tx) => {
       for (let index = 0; index < normalizedRows.length; index++) {
         const row = normalizedRows[index];
-        const displayName = String(getValue(row, "displayName")).trim();
+        const discordUsername = String(getValue(row, "discordUsername")).trim();
         const identity = await resolveImportedUser(row);
         const userId = identity?.userId ?? null;
         const discordUserId = parseDiscordUserId(getValue(row, "discordUserId"));
 
         const existing = await tx.guildMember.findFirst({
-          where: { guildId: auth.guild.id, displayName },
+          where: { guildId: auth.guild.id, discordUsername },
         });
 
         if (discordUserId) {
@@ -298,13 +305,21 @@ export async function POST(request: Request) {
             data: buildUpdateData(row, userId),
           });
           updated++;
-          results.push({ row: index + 2, displayName, action: "updated" });
+          results.push({
+            row: index + 2,
+            discordUsername,
+            action: "updated",
+          });
         } else {
           await tx.guildMember.create({
             data: buildCreateData(row, auth.guild.id, userId),
           });
           created++;
-          results.push({ row: index + 2, displayName, action: "created" });
+          results.push({
+            row: index + 2,
+            discordUsername,
+            action: "created",
+          });
         }
       }
     });

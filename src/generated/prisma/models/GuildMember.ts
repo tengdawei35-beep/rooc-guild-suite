@@ -84,7 +84,8 @@ export type GuildMemberMinAggregateOutputType = {
   id: string | null
   guildId: string | null
   userId: string | null
-  displayName: string | null
+  discordUserId: string | null
+  discordUsername: string | null
   characterName: string | null
   job: string | null
   active: boolean | null
@@ -123,7 +124,8 @@ export type GuildMemberMaxAggregateOutputType = {
   id: string | null
   guildId: string | null
   userId: string | null
-  displayName: string | null
+  discordUserId: string | null
+  discordUsername: string | null
   characterName: string | null
   job: string | null
   active: boolean | null
@@ -162,7 +164,8 @@ export type GuildMemberCountAggregateOutputType = {
   id: number
   guildId: number
   userId: number
-  displayName: number
+  discordUserId: number
+  discordUsername: number
   characterName: number
   job: number
   active: number
@@ -257,7 +260,8 @@ export type GuildMemberMinAggregateInputType = {
   id?: true
   guildId?: true
   userId?: true
-  displayName?: true
+  discordUserId?: true
+  discordUsername?: true
   characterName?: true
   job?: true
   active?: true
@@ -296,7 +300,8 @@ export type GuildMemberMaxAggregateInputType = {
   id?: true
   guildId?: true
   userId?: true
-  displayName?: true
+  discordUserId?: true
+  discordUsername?: true
   characterName?: true
   job?: true
   active?: true
@@ -335,7 +340,8 @@ export type GuildMemberCountAggregateInputType = {
   id?: true
   guildId?: true
   userId?: true
-  displayName?: true
+  discordUserId?: true
+  discordUsername?: true
   characterName?: true
   job?: true
   active?: true
@@ -461,7 +467,8 @@ export type GuildMemberGroupByOutputType = {
   id: string
   guildId: string
   userId: string | null
-  displayName: string
+  discordUserId: string | null
+  discordUsername: string | null
   characterName: string | null
   job: string | null
   active: boolean
@@ -523,7 +530,8 @@ export type GuildMemberWhereInput = {
   id?: Prisma.StringFilter<"GuildMember"> | string
   guildId?: Prisma.StringFilter<"GuildMember"> | string
   userId?: Prisma.StringNullableFilter<"GuildMember"> | string | null
-  displayName?: Prisma.StringFilter<"GuildMember"> | string
+  discordUserId?: Prisma.StringNullableFilter<"GuildMember"> | string | null
+  discordUsername?: Prisma.StringNullableFilter<"GuildMember"> | string | null
   characterName?: Prisma.StringNullableFilter<"GuildMember"> | string | null
   job?: Prisma.StringNullableFilter<"GuildMember"> | string | null
   active?: Prisma.BoolFilter<"GuildMember"> | boolean
@@ -571,7 +579,8 @@ export type GuildMemberOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   guildId?: Prisma.SortOrder
   userId?: Prisma.SortOrderInput | Prisma.SortOrder
-  displayName?: Prisma.SortOrder
+  discordUserId?: Prisma.SortOrderInput | Prisma.SortOrder
+  discordUsername?: Prisma.SortOrderInput | Prisma.SortOrder
   characterName?: Prisma.SortOrderInput | Prisma.SortOrder
   job?: Prisma.SortOrderInput | Prisma.SortOrder
   active?: Prisma.SortOrder
@@ -617,13 +626,14 @@ export type GuildMemberOrderByWithRelationInput = {
 
 export type GuildMemberWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  guildId_displayName?: Prisma.GuildMemberGuildIdDisplayNameCompoundUniqueInput
+  guildId_discordUserId?: Prisma.GuildMemberGuildIdDiscordUserIdCompoundUniqueInput
   AND?: Prisma.GuildMemberWhereInput | Prisma.GuildMemberWhereInput[]
   OR?: Prisma.GuildMemberWhereInput[]
   NOT?: Prisma.GuildMemberWhereInput | Prisma.GuildMemberWhereInput[]
   guildId?: Prisma.StringFilter<"GuildMember"> | string
   userId?: Prisma.StringNullableFilter<"GuildMember"> | string | null
-  displayName?: Prisma.StringFilter<"GuildMember"> | string
+  discordUserId?: Prisma.StringNullableFilter<"GuildMember"> | string | null
+  discordUsername?: Prisma.StringNullableFilter<"GuildMember"> | string | null
   characterName?: Prisma.StringNullableFilter<"GuildMember"> | string | null
   job?: Prisma.StringNullableFilter<"GuildMember"> | string | null
   active?: Prisma.BoolFilter<"GuildMember"> | boolean
@@ -665,13 +675,14 @@ export type GuildMemberWhereUniqueInput = Prisma.AtLeast<{
   participations?: Prisma.EventParticipationListRelationFilter
   rosterAssignments?: Prisma.RosterMemberListRelationFilter
   preferredRosterAssignments?: Prisma.PreferredRosterMemberListRelationFilter
-}, "id" | "guildId_displayName">
+}, "id" | "guildId_discordUserId">
 
 export type GuildMemberOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   guildId?: Prisma.SortOrder
   userId?: Prisma.SortOrderInput | Prisma.SortOrder
-  displayName?: Prisma.SortOrder
+  discordUserId?: Prisma.SortOrderInput | Prisma.SortOrder
+  discordUsername?: Prisma.SortOrderInput | Prisma.SortOrder
   characterName?: Prisma.SortOrderInput | Prisma.SortOrder
   job?: Prisma.SortOrderInput | Prisma.SortOrder
   active?: Prisma.SortOrder
@@ -718,7 +729,8 @@ export type GuildMemberScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"GuildMember"> | string
   guildId?: Prisma.StringWithAggregatesFilter<"GuildMember"> | string
   userId?: Prisma.StringNullableWithAggregatesFilter<"GuildMember"> | string | null
-  displayName?: Prisma.StringWithAggregatesFilter<"GuildMember"> | string
+  discordUserId?: Prisma.StringNullableWithAggregatesFilter<"GuildMember"> | string | null
+  discordUsername?: Prisma.StringNullableWithAggregatesFilter<"GuildMember"> | string | null
   characterName?: Prisma.StringNullableWithAggregatesFilter<"GuildMember"> | string | null
   job?: Prisma.StringNullableWithAggregatesFilter<"GuildMember"> | string | null
   active?: Prisma.BoolWithAggregatesFilter<"GuildMember"> | boolean
@@ -755,7 +767,8 @@ export type GuildMemberScalarWhereWithAggregatesInput = {
 
 export type GuildMemberCreateInput = {
   id?: string
-  displayName: string
+  discordUserId?: string | null
+  discordUsername?: string | null
   characterName?: string | null
   job?: string | null
   active?: boolean
@@ -803,7 +816,8 @@ export type GuildMemberUncheckedCreateInput = {
   id?: string
   guildId: string
   userId?: string | null
-  displayName: string
+  discordUserId?: string | null
+  discordUsername?: string | null
   characterName?: string | null
   job?: string | null
   active?: boolean
@@ -847,7 +861,8 @@ export type GuildMemberUncheckedCreateInput = {
 
 export type GuildMemberUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  discordUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discordUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -895,7 +910,8 @@ export type GuildMemberUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   guildId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  discordUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discordUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -941,7 +957,8 @@ export type GuildMemberCreateManyInput = {
   id?: string
   guildId: string
   userId?: string | null
-  displayName: string
+  discordUserId?: string | null
+  discordUsername?: string | null
   characterName?: string | null
   job?: string | null
   active?: boolean
@@ -978,7 +995,8 @@ export type GuildMemberCreateManyInput = {
 
 export type GuildMemberUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  discordUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discordUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1017,7 +1035,8 @@ export type GuildMemberUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   guildId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  discordUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discordUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1062,16 +1081,17 @@ export type GuildMemberOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
-export type GuildMemberGuildIdDisplayNameCompoundUniqueInput = {
+export type GuildMemberGuildIdDiscordUserIdCompoundUniqueInput = {
   guildId: string
-  displayName: string
+  discordUserId: string
 }
 
 export type GuildMemberCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   guildId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  displayName?: Prisma.SortOrder
+  discordUserId?: Prisma.SortOrder
+  discordUsername?: Prisma.SortOrder
   characterName?: Prisma.SortOrder
   job?: Prisma.SortOrder
   active?: Prisma.SortOrder
@@ -1137,7 +1157,8 @@ export type GuildMemberMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   guildId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  displayName?: Prisma.SortOrder
+  discordUserId?: Prisma.SortOrder
+  discordUsername?: Prisma.SortOrder
   characterName?: Prisma.SortOrder
   job?: Prisma.SortOrder
   active?: Prisma.SortOrder
@@ -1176,7 +1197,8 @@ export type GuildMemberMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   guildId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  displayName?: Prisma.SortOrder
+  discordUserId?: Prisma.SortOrder
+  discordUsername?: Prisma.SortOrder
   characterName?: Prisma.SortOrder
   job?: Prisma.SortOrder
   active?: Prisma.SortOrder
@@ -1443,7 +1465,8 @@ export type GuildMemberUpdateOneRequiredWithoutPreferredRosterAssignmentsNestedI
 
 export type GuildMemberCreateWithoutUserInput = {
   id?: string
-  displayName: string
+  discordUserId?: string | null
+  discordUsername?: string | null
   characterName?: string | null
   job?: string | null
   active?: boolean
@@ -1489,7 +1512,8 @@ export type GuildMemberCreateWithoutUserInput = {
 export type GuildMemberUncheckedCreateWithoutUserInput = {
   id?: string
   guildId: string
-  displayName: string
+  discordUserId?: string | null
+  discordUsername?: string | null
   characterName?: string | null
   job?: string | null
   active?: boolean
@@ -1564,7 +1588,8 @@ export type GuildMemberScalarWhereInput = {
   id?: Prisma.StringFilter<"GuildMember"> | string
   guildId?: Prisma.StringFilter<"GuildMember"> | string
   userId?: Prisma.StringNullableFilter<"GuildMember"> | string | null
-  displayName?: Prisma.StringFilter<"GuildMember"> | string
+  discordUserId?: Prisma.StringNullableFilter<"GuildMember"> | string | null
+  discordUsername?: Prisma.StringNullableFilter<"GuildMember"> | string | null
   characterName?: Prisma.StringNullableFilter<"GuildMember"> | string | null
   job?: Prisma.StringNullableFilter<"GuildMember"> | string | null
   active?: Prisma.BoolFilter<"GuildMember"> | boolean
@@ -1601,7 +1626,8 @@ export type GuildMemberScalarWhereInput = {
 
 export type GuildMemberCreateWithoutGuildInput = {
   id?: string
-  displayName: string
+  discordUserId?: string | null
+  discordUsername?: string | null
   characterName?: string | null
   job?: string | null
   active?: boolean
@@ -1647,7 +1673,8 @@ export type GuildMemberCreateWithoutGuildInput = {
 export type GuildMemberUncheckedCreateWithoutGuildInput = {
   id?: string
   userId?: string | null
-  displayName: string
+  discordUserId?: string | null
+  discordUsername?: string | null
   characterName?: string | null
   job?: string | null
   active?: boolean
@@ -1717,7 +1744,8 @@ export type GuildMemberUpdateManyWithWhereWithoutGuildInput = {
 
 export type GuildMemberCreateWithoutLeaveDatesInput = {
   id?: string
-  displayName: string
+  discordUserId?: string | null
+  discordUsername?: string | null
   characterName?: string | null
   job?: string | null
   active?: boolean
@@ -1764,7 +1792,8 @@ export type GuildMemberUncheckedCreateWithoutLeaveDatesInput = {
   id?: string
   guildId: string
   userId?: string | null
-  displayName: string
+  discordUserId?: string | null
+  discordUsername?: string | null
   characterName?: string | null
   job?: string | null
   active?: boolean
@@ -1823,7 +1852,8 @@ export type GuildMemberUpdateToOneWithWhereWithoutLeaveDatesInput = {
 
 export type GuildMemberUpdateWithoutLeaveDatesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  discordUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discordUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1870,7 +1900,8 @@ export type GuildMemberUncheckedUpdateWithoutLeaveDatesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   guildId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  discordUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discordUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1913,7 +1944,8 @@ export type GuildMemberUncheckedUpdateWithoutLeaveDatesInput = {
 
 export type GuildMemberCreateWithoutReservationsInput = {
   id?: string
-  displayName: string
+  discordUserId?: string | null
+  discordUsername?: string | null
   characterName?: string | null
   job?: string | null
   active?: boolean
@@ -1960,7 +1992,8 @@ export type GuildMemberUncheckedCreateWithoutReservationsInput = {
   id?: string
   guildId: string
   userId?: string | null
-  displayName: string
+  discordUserId?: string | null
+  discordUsername?: string | null
   characterName?: string | null
   job?: string | null
   active?: boolean
@@ -2019,7 +2052,8 @@ export type GuildMemberUpdateToOneWithWhereWithoutReservationsInput = {
 
 export type GuildMemberUpdateWithoutReservationsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  discordUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discordUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2066,7 +2100,8 @@ export type GuildMemberUncheckedUpdateWithoutReservationsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   guildId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  discordUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discordUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2109,7 +2144,8 @@ export type GuildMemberUncheckedUpdateWithoutReservationsInput = {
 
 export type GuildMemberCreateWithoutAllocationResultsInput = {
   id?: string
-  displayName: string
+  discordUserId?: string | null
+  discordUsername?: string | null
   characterName?: string | null
   job?: string | null
   active?: boolean
@@ -2156,7 +2192,8 @@ export type GuildMemberUncheckedCreateWithoutAllocationResultsInput = {
   id?: string
   guildId: string
   userId?: string | null
-  displayName: string
+  discordUserId?: string | null
+  discordUsername?: string | null
   characterName?: string | null
   job?: string | null
   active?: boolean
@@ -2215,7 +2252,8 @@ export type GuildMemberUpdateToOneWithWhereWithoutAllocationResultsInput = {
 
 export type GuildMemberUpdateWithoutAllocationResultsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  discordUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discordUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2262,7 +2300,8 @@ export type GuildMemberUncheckedUpdateWithoutAllocationResultsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   guildId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  discordUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discordUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2305,7 +2344,8 @@ export type GuildMemberUncheckedUpdateWithoutAllocationResultsInput = {
 
 export type GuildMemberCreateWithoutBidSlotsInput = {
   id?: string
-  displayName: string
+  discordUserId?: string | null
+  discordUsername?: string | null
   characterName?: string | null
   job?: string | null
   active?: boolean
@@ -2352,7 +2392,8 @@ export type GuildMemberUncheckedCreateWithoutBidSlotsInput = {
   id?: string
   guildId: string
   userId?: string | null
-  displayName: string
+  discordUserId?: string | null
+  discordUsername?: string | null
   characterName?: string | null
   job?: string | null
   active?: boolean
@@ -2411,7 +2452,8 @@ export type GuildMemberUpdateToOneWithWhereWithoutBidSlotsInput = {
 
 export type GuildMemberUpdateWithoutBidSlotsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  discordUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discordUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2458,7 +2500,8 @@ export type GuildMemberUncheckedUpdateWithoutBidSlotsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   guildId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  discordUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discordUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2501,7 +2544,8 @@ export type GuildMemberUncheckedUpdateWithoutBidSlotsInput = {
 
 export type GuildMemberCreateWithoutParticipationsInput = {
   id?: string
-  displayName: string
+  discordUserId?: string | null
+  discordUsername?: string | null
   characterName?: string | null
   job?: string | null
   active?: boolean
@@ -2548,7 +2592,8 @@ export type GuildMemberUncheckedCreateWithoutParticipationsInput = {
   id?: string
   guildId: string
   userId?: string | null
-  displayName: string
+  discordUserId?: string | null
+  discordUsername?: string | null
   characterName?: string | null
   job?: string | null
   active?: boolean
@@ -2607,7 +2652,8 @@ export type GuildMemberUpdateToOneWithWhereWithoutParticipationsInput = {
 
 export type GuildMemberUpdateWithoutParticipationsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  discordUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discordUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2654,7 +2700,8 @@ export type GuildMemberUncheckedUpdateWithoutParticipationsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   guildId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  discordUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discordUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2697,7 +2744,8 @@ export type GuildMemberUncheckedUpdateWithoutParticipationsInput = {
 
 export type GuildMemberCreateWithoutRosterAssignmentsInput = {
   id?: string
-  displayName: string
+  discordUserId?: string | null
+  discordUsername?: string | null
   characterName?: string | null
   job?: string | null
   active?: boolean
@@ -2744,7 +2792,8 @@ export type GuildMemberUncheckedCreateWithoutRosterAssignmentsInput = {
   id?: string
   guildId: string
   userId?: string | null
-  displayName: string
+  discordUserId?: string | null
+  discordUsername?: string | null
   characterName?: string | null
   job?: string | null
   active?: boolean
@@ -2803,7 +2852,8 @@ export type GuildMemberUpdateToOneWithWhereWithoutRosterAssignmentsInput = {
 
 export type GuildMemberUpdateWithoutRosterAssignmentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  discordUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discordUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2850,7 +2900,8 @@ export type GuildMemberUncheckedUpdateWithoutRosterAssignmentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   guildId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  discordUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discordUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2893,7 +2944,8 @@ export type GuildMemberUncheckedUpdateWithoutRosterAssignmentsInput = {
 
 export type GuildMemberCreateWithoutPreferredRosterAssignmentsInput = {
   id?: string
-  displayName: string
+  discordUserId?: string | null
+  discordUsername?: string | null
   characterName?: string | null
   job?: string | null
   active?: boolean
@@ -2940,7 +2992,8 @@ export type GuildMemberUncheckedCreateWithoutPreferredRosterAssignmentsInput = {
   id?: string
   guildId: string
   userId?: string | null
-  displayName: string
+  discordUserId?: string | null
+  discordUsername?: string | null
   characterName?: string | null
   job?: string | null
   active?: boolean
@@ -2999,7 +3052,8 @@ export type GuildMemberUpdateToOneWithWhereWithoutPreferredRosterAssignmentsInpu
 
 export type GuildMemberUpdateWithoutPreferredRosterAssignmentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  discordUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discordUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3046,7 +3100,8 @@ export type GuildMemberUncheckedUpdateWithoutPreferredRosterAssignmentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   guildId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  discordUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discordUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3090,7 +3145,8 @@ export type GuildMemberUncheckedUpdateWithoutPreferredRosterAssignmentsInput = {
 export type GuildMemberCreateManyUserInput = {
   id?: string
   guildId: string
-  displayName: string
+  discordUserId?: string | null
+  discordUsername?: string | null
   characterName?: string | null
   job?: string | null
   active?: boolean
@@ -3127,7 +3183,8 @@ export type GuildMemberCreateManyUserInput = {
 
 export type GuildMemberUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  discordUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discordUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3173,7 +3230,8 @@ export type GuildMemberUpdateWithoutUserInput = {
 export type GuildMemberUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   guildId?: Prisma.StringFieldUpdateOperationsInput | string
-  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  discordUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discordUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3218,7 +3276,8 @@ export type GuildMemberUncheckedUpdateWithoutUserInput = {
 export type GuildMemberUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   guildId?: Prisma.StringFieldUpdateOperationsInput | string
-  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  discordUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discordUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3256,7 +3315,8 @@ export type GuildMemberUncheckedUpdateManyWithoutUserInput = {
 export type GuildMemberCreateManyGuildInput = {
   id?: string
   userId?: string | null
-  displayName: string
+  discordUserId?: string | null
+  discordUsername?: string | null
   characterName?: string | null
   job?: string | null
   active?: boolean
@@ -3293,7 +3353,8 @@ export type GuildMemberCreateManyGuildInput = {
 
 export type GuildMemberUpdateWithoutGuildInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  discordUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discordUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3339,7 +3400,8 @@ export type GuildMemberUpdateWithoutGuildInput = {
 export type GuildMemberUncheckedUpdateWithoutGuildInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  discordUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discordUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3384,7 +3446,8 @@ export type GuildMemberUncheckedUpdateWithoutGuildInput = {
 export type GuildMemberUncheckedUpdateManyWithoutGuildInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  discordUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discordUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   characterName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3508,7 +3571,8 @@ export type GuildMemberSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   id?: boolean
   guildId?: boolean
   userId?: boolean
-  displayName?: boolean
+  discordUserId?: boolean
+  discordUsername?: boolean
   characterName?: boolean
   job?: boolean
   active?: boolean
@@ -3557,7 +3621,8 @@ export type GuildMemberSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   id?: boolean
   guildId?: boolean
   userId?: boolean
-  displayName?: boolean
+  discordUserId?: boolean
+  discordUsername?: boolean
   characterName?: boolean
   job?: boolean
   active?: boolean
@@ -3598,7 +3663,8 @@ export type GuildMemberSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   id?: boolean
   guildId?: boolean
   userId?: boolean
-  displayName?: boolean
+  discordUserId?: boolean
+  discordUsername?: boolean
   characterName?: boolean
   job?: boolean
   active?: boolean
@@ -3639,7 +3705,8 @@ export type GuildMemberSelectScalar = {
   id?: boolean
   guildId?: boolean
   userId?: boolean
-  displayName?: boolean
+  discordUserId?: boolean
+  discordUsername?: boolean
   characterName?: boolean
   job?: boolean
   active?: boolean
@@ -3674,7 +3741,7 @@ export type GuildMemberSelectScalar = {
   updatedAt?: boolean
 }
 
-export type GuildMemberOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "guildId" | "userId" | "displayName" | "characterName" | "job" | "active" | "eligible" | "priority" | "remarks" | "pdef" | "mdef" | "pvpDamageBonus" | "pvpDamageReduction" | "pdmgPercent" | "mdmgPercent" | "pdmgReductionPercent" | "mdmgReductionPercent" | "critRes" | "ignorePdef" | "ignoreMdef" | "damageVsMedium" | "damageReductionVsMedium" | "damageVsSmall" | "damageReductionVsSmall" | "damageVsDemiHuman" | "damageReductionVsDemiHuman" | "damageVsBrute" | "damageReductionVsBrute" | "equipmentPdefPercent" | "equipmentMdefPercent" | "patk" | "matk" | "hp" | "createdAt" | "updatedAt", ExtArgs["result"]["guildMember"]>
+export type GuildMemberOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "guildId" | "userId" | "discordUserId" | "discordUsername" | "characterName" | "job" | "active" | "eligible" | "priority" | "remarks" | "pdef" | "mdef" | "pvpDamageBonus" | "pvpDamageReduction" | "pdmgPercent" | "mdmgPercent" | "pdmgReductionPercent" | "mdmgReductionPercent" | "critRes" | "ignorePdef" | "ignoreMdef" | "damageVsMedium" | "damageReductionVsMedium" | "damageVsSmall" | "damageReductionVsSmall" | "damageVsDemiHuman" | "damageReductionVsDemiHuman" | "damageVsBrute" | "damageReductionVsBrute" | "equipmentPdefPercent" | "equipmentMdefPercent" | "patk" | "matk" | "hp" | "createdAt" | "updatedAt", ExtArgs["result"]["guildMember"]>
 export type GuildMemberInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   guild?: boolean | Prisma.GuildDefaultArgs<ExtArgs>
   user?: boolean | Prisma.GuildMember$userArgs<ExtArgs>
@@ -3713,7 +3780,8 @@ export type $GuildMemberPayload<ExtArgs extends runtime.Types.Extensions.Interna
     id: string
     guildId: string
     userId: string | null
-    displayName: string
+    discordUserId: string | null
+    discordUsername: string | null
     characterName: string | null
     job: string | null
     active: boolean
@@ -4181,7 +4249,8 @@ export interface GuildMemberFieldRefs {
   readonly id: Prisma.FieldRef<"GuildMember", 'String'>
   readonly guildId: Prisma.FieldRef<"GuildMember", 'String'>
   readonly userId: Prisma.FieldRef<"GuildMember", 'String'>
-  readonly displayName: Prisma.FieldRef<"GuildMember", 'String'>
+  readonly discordUserId: Prisma.FieldRef<"GuildMember", 'String'>
+  readonly discordUsername: Prisma.FieldRef<"GuildMember", 'String'>
   readonly characterName: Prisma.FieldRef<"GuildMember", 'String'>
   readonly job: Prisma.FieldRef<"GuildMember", 'String'>
   readonly active: Prisma.FieldRef<"GuildMember", 'Boolean'>

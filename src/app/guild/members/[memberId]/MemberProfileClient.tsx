@@ -9,7 +9,6 @@ import Link from "next/link";
 type MemberProfile = {
   id: string;
 
-  displayName: string;
   characterName: string | null;
   job: string | null;
 
@@ -279,15 +278,11 @@ export default function MemberProfileClient({
           <div className="mt-5 flex flex-col justify-between gap-5 md:flex-row md:items-end">
             <div>
               <h1 className="text-3xl font-bold tracking-tight text-white">
-                {member.characterName ??
-                  member.displayName}
+                {member.characterName}
               </h1>
 
               <div className="mt-2 text-sm text-zinc-500">
-                {member.characterName &&
-                member.displayName !==
-                  member.characterName
-                  ? member.displayName
+                {member.characterName
                   : null}
 
                 {member.job
@@ -437,7 +432,7 @@ export default function MemberProfileClient({
             <InfoRow
               label="Discord Name"
               value={
-                member.displayName
+                member.discordUsername
               }
             />
 

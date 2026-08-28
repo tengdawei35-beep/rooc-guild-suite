@@ -232,9 +232,6 @@ export async function GET(
       member: {
         id: member.id,
 
-        displayName:
-          member.displayName,
-
         characterName:
           member.characterName,
 
@@ -414,7 +411,6 @@ export async function DELETE(
 
           select: {
             id: true,
-            displayName: true,
             characterName: true,
           },
         }

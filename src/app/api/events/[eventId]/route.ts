@@ -90,7 +90,6 @@ export async function GET(
                 select: {
                   id: true,
                   userId: true,
-                  displayName: true,
                   characterName: true,
                   job: true,
                   active: true,
@@ -134,7 +133,6 @@ export async function GET(
                       member: {
                         select: {
                           id: true,
-                          displayName: true,
                           characterName: true,
                           job: true,
                           priority: true,
@@ -202,7 +200,6 @@ export async function GET(
         select: {
           id: true,
           userId: true,
-          displayName: true,
           characterName: true,
           job: true,
           active: true,
@@ -222,7 +219,7 @@ export async function GET(
             priority: "asc",
           },
           {
-            displayName: "asc",
+            characterName: "asc",
           },
         ],
       });
@@ -292,9 +289,6 @@ export async function GET(
 
           userId:
             member.userId,
-
-          displayName:
-            member.displayName,
 
           characterName:
             member.characterName,
@@ -423,11 +417,6 @@ export async function GET(
                             assignment
                               .member
                               .id,
-
-                          displayName:
-                            assignment
-                              .member
-                              .displayName,
 
                           characterName:
                             assignment

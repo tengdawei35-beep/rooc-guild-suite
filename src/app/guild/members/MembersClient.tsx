@@ -24,7 +24,6 @@ type Member = {
   discordUserId: string | null;
   discordUsername: string | null;
 
-  displayName: string;
   characterName: string | null;
   job: string | null;
 
@@ -170,7 +169,6 @@ const EMPTY_FORM: MemberForm = {
   discordUserId: "",
   discordUsername: "",
 
-  displayName: "",
   characterName: "",
   job: "",
 
@@ -546,9 +544,6 @@ export default function MembersClient({
       discordUsername:
         member.discordUsername ?? "",
 
-      displayName:
-        member.displayName,
-
       characterName:
         member.characterName ??
         "",
@@ -759,9 +754,6 @@ export default function MembersClient({
         discordUsername:
           form.discordUsername.trim(),
 
-        displayName:
-          form.displayName.trim(),
-
         characterName:
           form.characterName.trim() ||
           null,
@@ -895,14 +887,6 @@ export default function MembersClient({
       };
 
       if (
-        !payload.displayName
-      ) {
-        throw new Error(
-          "Discord/display name is required."
-        );
-      }
-
-      if (
         !payload.characterName
       ) {
         throw new Error(
@@ -972,8 +956,7 @@ export default function MembersClient({
     const confirmed =
       window.confirm(
         `Delete ${
-          selectedMember.characterName ??
-          selectedMember.displayName
+          selectedMember.characterName
         }? This cannot be undone.`
       );
 
@@ -1468,14 +1451,12 @@ export default function MembersClient({
                           href={`/guild/members/${member.id}`}
                           className="font-medium text-zinc-100 hover:text-white hover:underline"
                         >
-                          {member.characterName ??
-                            member.displayName}
+                          {member.characterName}
                         </Link>
                       </td>
 
                       <td className="px-4 py-3 text-zinc-400">
-                        {member.discordUsername ??
-                          member.displayName}
+                        {member.discordUsername}
                       </td>
 
                       <td className="px-4 py-3 text-zinc-300">
@@ -1666,26 +1647,6 @@ export default function MembersClient({
                           </div>
                         </>
                       )}
-
-                      <div>
-                        <label className="mb-1 block text-sm text-zinc-400">
-                          Discord Name
-                        </label>
-
-                        <input
-                          type="text"
-                          value={
-                            form.displayName
-                          }
-                          onChange={(event) =>
-                            setField(
-                              "displayName",
-                              event.target.value
-                            )
-                          }
-                          className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-zinc-500"
-                        />
-                      </div>
 
                       <div>
                         <label className="mb-1 block text-sm text-zinc-400">

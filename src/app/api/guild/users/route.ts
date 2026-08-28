@@ -132,7 +132,6 @@ export async function GET() {
               select: {
                 id: true,
                 userId: true,
-                displayName: true,
                 characterName: true,
                 job: true,
                 active: true,
@@ -201,9 +200,6 @@ export async function GET() {
                   ? {
                       id:
                         member.id,
-
-                      displayName:
-                        member.displayName,
 
                       characterName:
                         member.characterName,

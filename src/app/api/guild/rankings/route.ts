@@ -70,7 +70,6 @@ export async function GET() {
       },
       select: {
         id: true,
-        displayName: true,
         characterName: true,
         job: true,
         active: true,
@@ -127,7 +126,6 @@ export async function GET() {
 
         return {
           id: member.id,
-          displayName: member.displayName,
           characterName: member.characterName,
           job: member.job,
           active: member.active,
@@ -153,8 +151,8 @@ export async function GET() {
         return difference;
       }
 
-      return (a.characterName ?? a.displayName).localeCompare(
-        b.characterName ?? b.displayName
+      return (a.characterName ?? "").localeCompare(
+        b.characterName ?? ""
       );
     });
 

@@ -74,7 +74,7 @@ export default async function BidsPage({
                 member: {
                   select: {
                     id: true,
-                    displayName:
+                    characterName:
                       true,
                   },
                 },

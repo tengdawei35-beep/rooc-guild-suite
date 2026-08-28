@@ -12,7 +12,7 @@ export default async function MembersPage() {
     include: {
       members: {
         orderBy: {
-          displayName: "asc",
+          characterName: "asc",
         },
         include: {
           leaveDates: {
@@ -70,7 +70,6 @@ export default async function MembersPage() {
     discordUserId: member.discordUserId,
     discordUsername: member.discordUsername,
 
-    displayName: member.displayName,
     characterName: member.characterName,
     job: member.job,
 

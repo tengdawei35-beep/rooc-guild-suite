@@ -14,7 +14,6 @@ type MemberRequest = {
   discordUserId?: string | null;
   discordUsername?: string | null;
 
-  displayName?: string;
   characterName?: string;
   job?: string;
 
@@ -107,18 +106,8 @@ function validateMember(
     };
   }
 
-  const displayName =
-    body.displayName?.trim();
-
   const characterName =
     body.characterName?.trim();
-
-  if (!displayName) {
-    return {
-      error:
-        "Display name is required.",
-    };
-  }
 
   if (!characterName) {
     return {
@@ -160,7 +149,6 @@ function validateMember(
     discordUserId,
     discordUsername,
 
-    displayName,
     characterName,
     job: body.job,
 
@@ -341,7 +329,6 @@ async function resolveDiscordIdentity(
       },
       select: {
         id: true,
-        displayName: true,
       },
     });
 
@@ -409,7 +396,7 @@ export async function GET() {
           },
 
           orderBy: {
-            displayName: "asc",
+            characterName: "asc",
           },
         }
       );
@@ -510,8 +497,8 @@ export async function POST(
             guildId:
               auth.guild.id,
 
-            displayName:
-              data.displayName,
+            characterName:
+              data.characterName,
           },
         }
       );
@@ -520,7 +507,7 @@ export async function POST(
       return NextResponse.json(
         {
           error:
-            "A member with this display name already exists.",
+            "A member with this character name already exists.",
         },
         { status: 409 }
       );
@@ -541,9 +528,6 @@ export async function POST(
 
             userId:
               discordIdentity.userId,
-
-            displayName:
-              data.displayName,
 
             characterName:
               data.characterName,
@@ -795,8 +779,8 @@ export async function PUT(
             guildId:
               auth.guild.id,
 
-            displayName:
-              data.displayName,
+            characterName:
+              data.characterName,
 
             NOT: {
               id: body.id,
@@ -819,9 +803,6 @@ export async function PUT(
       string,
       unknown
     > = {
-      displayName:
-        data.displayName,
-
       characterName:
         data.characterName,
 
