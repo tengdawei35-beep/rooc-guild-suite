@@ -7,10 +7,6 @@ datasource db {
   provider = "postgresql"
 }
 
-// =============================================================
-// ENUMS
-// =============================================================
-
 enum MemberPriority {
   LEADER
   OFFICER
@@ -56,102 +52,42 @@ enum RosterGenerationMode {
   AUTOMATIC
 }
 
-// =============================================================
-// USER
-// =============================================================
-//
-// A User represents a global SaaS account.
-//
-// The same Discord account can belong to multiple guilds.
-// Guild-specific permissions are stored on GuildMembership,
-// NOT on User.
-//
-// =============================================================
-
 model User {
   id        String  @id @default(cuid())
   discordId String  @unique
   username  String
   avatarUrl String?
 
-  // -----------------------------------------------------------
-  // Relations
-  // -----------------------------------------------------------
-
   guildMemberships GuildMembership[]
-
   guildMembers GuildMember[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-// =============================================================
-// GUILD
-// =============================================================
-//
-// A Guild represents a customer/community using the SaaS.
-//
-// A user can belong to multiple Guild records through
-// GuildMembership.
-//
-// =============================================================
-
 model Guild {
   id             String @id @default(cuid())
   discordGuildId String @unique
   name           String
 
-  // -----------------------------------------------------------
-  // Relations
-  // -----------------------------------------------------------
-
   memberships GuildMembership[]
-
   members             GuildMember[]
   resources           Resource[]
   reservedAllocations ReservedAllocation[]
   rotationStates      RotationState[]
   allocationRuns      AllocationRun[]
-
   events Event[]
-
   preferredRosters PreferredRoster[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-// =============================================================
-// GUILD MEMBERSHIP
-// =============================================================
-//
-// Connects a global User to a Guild.
-//
-// IMPORTANT:
-// The role belongs here rather than on User because the same
-// Discord user can have different roles in different guilds.
-//
-// Example:
-//
-// User X
-//   Guild A -> LEADER
-//   Guild B -> MEMBER
-//   Guild C -> OFFICER
-//
-// =============================================================
-
 model GuildMembership {
   id String @id @default(cuid())
-
   userId  String
   guildId String
-
   role UserRole @default(MEMBER)
-
-  // -----------------------------------------------------------
-  // Relations
-  // -----------------------------------------------------------
 
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
@@ -159,34 +95,11 @@ model GuildMembership {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // A user can only have one membership in a particular guild.
   @@unique([userId, guildId])
-
   @@index([userId])
   @@index([guildId])
   @@index([guildId, role])
 }
-
-// =============================================================
-// GUILD MEMBER
-// =============================================================
-//
-// Represents the player's guild/character record.
-//
-// This remains separate from User.
-//
-// A User is the SaaS/Discord identity.
-// A GuildMember is the in-game member record.
-//
-// discordUserId / discordUsername are imported Discord identity
-// values. They let a guild leader link an existing member before
-// that Discord account has ever signed into the application.
-//
-// userId is the internal User relation and is populated when the
-// Discord account is known to the application or when the user
-// signs in for the first time.
-//
-// =============================================================
 
 model GuildMember {
   id String @id @default(cuid())
@@ -194,326 +107,345 @@ model GuildMember {
   guildId String
   userId  String?
 
-  // -----------------------------------------------------------
-  // Discord Identity
-  // -----------------------------------------------------------
-
+  // Discord identity imported by guild leadership.
+  // discordUserId is stored as text because Discord Snowflakes
+  // must not be converted to JavaScript numbers.
   discordUserId  String?
   discordUsername String?
-
-  // -----------------------------------------------------------
-  // Identity
-  // -----------------------------------------------------------
 
   displayName   String
   characterName String?
   job           String?
-
-  // -----------------------------------------------------------
-  // Guild
-  // -----------------------------------------------------------
 
   active   Boolean        @default(true)
   eligible Boolean        @default(true)
   priority MemberPriority @default(MEMBER)
   remarks  String?
 
-  // -----------------------------------------------------------
-  // Combat / Character Stats
-  // -----------------------------------------------------------
-
   pdef Float?
   mdef Float?
-
   pvpDamageBonus     Float?
   pvpDamageReduction Float?
-
   pdmgPercent          Float?
   mdmgPercent          Float?
   pdmgReductionPercent Float?
   mdmgReductionPercent Float?
-
   critRes    Float?
   ignorePdef Float?
   ignoreMdef Float?
-
   damageVsMedium          Float?
   damageReductionVsMedium Float?
-
   damageVsSmall          Float?
   damageReductionVsSmall Float?
-
   damageVsDemiHuman          Float?
   damageReductionVsDemiHuman Float?
-
   damageVsBrute          Float?
   damageReductionVsBrute Float?
-
   equipmentPdefPercent Float?
   equipmentMdefPercent Float?
-
   patk Float?
   matk Float?
   hp   Float?
 
-  // -----------------------------------------------------------
-  // Relations
-  // -----------------------------------------------------------
-
   guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
-
-  // Optional link between the in-game member and the global
-  // SaaS/Discord user account.
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  reservations      ReservedAllocation[]
+  allocationResults AllocationResult[]
+  bidSlots          BidSlot[]
+  leaveDates        MemberLeave[]
+  participations    EventParticipation[]
+  rosterAssignments RosterMember[]
+  preferredRosterAssignments PreferredRosterMember[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([guildId, displayName])
+  @@unique([guildId, discordUserId])
   @@index([guildId])
   @@index([userId])
   @@index([discordUserId])
   @@index([discordUsername])
-  @@unique([guildId, discordUserId])
+  @@index([job])
+  @@index([active])
+  @@index([eligible])
 }
 
-// =============================================================
-// RESOURCE
-// =============================================================
+model MemberLeave {
+  id String @id @default(cuid())
+  memberId String
+  date DateTime
+  reason String?
+  member GuildMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([memberId, date])
+  @@index([memberId])
+  @@index([date])
+}
 
 model Resource {
   id String @id @default(cuid())
-
   guildId String
-  name    String
-  type    ResourceType
-  quantity Int @default(0)
-
+  name           String
+  type           ResourceType
+  total          Int
+  perPlayerLimit Int
+  hardCap        Int
+  active         Boolean      @default(true)
   guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
-
-  reservedAllocations ReservedAllocation[]
-
+  reservations      ReservedAllocation[]
+  allocationResults AllocationResult[]
+  resourceResults   ResourceResult[]
+  rotationStates    RotationState[]
+  bidSlots          BidSlot[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
+  @@unique([guildId, name])
   @@index([guildId])
 }
 
-// =============================================================
-// RESERVED ALLOCATION
-// =============================================================
-
 model ReservedAllocation {
   id String @id @default(cuid())
-
   guildId    String
   memberId   String
   resourceId String
-  quantity   Int @default(1)
-
+  quantity Int
   guild    Guild       @relation(fields: [guildId], references: [id], onDelete: Cascade)
   member   GuildMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
   resource Resource    @relation(fields: [resourceId], references: [id], onDelete: Cascade)
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
+  @@unique([guildId, memberId, resourceId])
   @@index([guildId])
   @@index([memberId])
   @@index([resourceId])
 }
 
-// =============================================================
-// ROTATION STATE
-// =============================================================
-
 model RotationState {
   id String @id @default(cuid())
-
-  guildId  String
-  category String
-  nextIndex Int @default(0)
-
-  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
-
+  guildId    String
+  resourceId String
+  rotationIndex Int @default(0)
+  guild    Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  resource Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  @@unique([guildId, category])
+  @@unique([guildId, resourceId])
   @@index([guildId])
 }
 
-// =============================================================
-// EVENT
-// =============================================================
+model AllocationRun {
+  id String @id @default(cuid())
+  guildId String
+  eventId String?
+  status AllocationRunStatus @default(RUNNING)
+  rotationIndexBefore Json?
+  rotationIndexAfter  Json?
+  errorMessage String?
+  guild Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  event Event? @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  allocationResults AllocationResult[]
+  resourceResults   ResourceResult[]
+  bidPages          BidPage[]
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+  @@index([guildId])
+  @@index([guildId, createdAt])
+  @@index([eventId])
+}
+
+model AllocationResult {
+  id String @id @default(cuid())
+  allocationRunId String
+  memberId        String
+  resourceId      String
+  reservedQuantity Int @default(0)
+  assignedQuantity Int @default(0)
+  allocationRun AllocationRun @relation(fields: [allocationRunId], references: [id], onDelete: Cascade)
+  member        GuildMember   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  resource      Resource      @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  @@unique([allocationRunId, memberId, resourceId])
+  @@index([allocationRunId])
+  @@index([memberId])
+  @@index([resourceId])
+}
+
+model ResourceResult {
+  id String @id @default(cuid())
+  allocationRunId String
+  resourceId      String
+  total     Int
+  reserved  Int
+  allocated Int
+  overflow  Int
+  allocationRun AllocationRun @relation(fields: [allocationRunId], references: [id], onDelete: Cascade)
+  resource      Resource      @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  @@unique([allocationRunId, resourceId])
+  @@index([allocationRunId])
+}
+
+model BidPage {
+  id String @id @default(cuid())
+  allocationRunId String
+  type       BidPageType
+  pageNumber Int
+  allocationRun AllocationRun @relation(fields: [allocationRunId], references: [id], onDelete: Cascade)
+  slots BidSlot[]
+  createdAt DateTime @default(now())
+  @@unique([allocationRunId, type, pageNumber])
+  @@index([allocationRunId])
+}
+
+model BidSlot {
+  id String @id @default(cuid())
+  bidPageId String
+  slotNumber Int
+  resourceId String
+  memberId   String
+  bidPage  BidPage     @relation(fields: [bidPageId], references: [id], onDelete: Cascade)
+  resource Resource    @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  member   GuildMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  @@unique([bidPageId, slotNumber])
+  @@index([bidPageId])
+}
 
 model Event {
   id String @id @default(cuid())
-
   guildId String
-
-  name String
   type EventType
   date DateTime
-
   guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
-
-  preferredRosters PreferredRoster[]
-  rosters          EventRoster[]
-  allocations      AllocationRun[]
-
+  participations EventParticipation[]
+  rosters        Roster[]
+  allocationRuns AllocationRun[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
+  @@unique([guildId, type, date])
   @@index([guildId])
-  @@index([guildId, date])
+  @@index([date])
 }
 
-// =============================================================
-// PREFERRED ROSTER
-// =============================================================
+model EventParticipation {
+  id String @id @default(cuid())
+  eventId  String
+  memberId String
+  available Boolean @default(true)
+  remarks   String?
+  event  Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  member GuildMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([eventId, memberId])
+  @@index([eventId])
+  @@index([memberId])
+}
+
+model Roster {
+  id String @id @default(cuid())
+  eventId String
+  name String
+  generationMode RosterGenerationMode
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  parties RosterParty[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([eventId])
+}
+
+model RosterParty {
+  id String @id @default(cuid())
+  rosterId String
+  partyNumber Int
+  battlefield Battlefield
+  roster Roster @relation(fields: [rosterId], references: [id], onDelete: Cascade)
+  members RosterMember[]
+  raids   RaidParty[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([rosterId, battlefield, partyNumber])
+  @@index([rosterId])
+}
+
+model RosterMember {
+  id String @id @default(cuid())
+  partyId  String
+  memberId String
+  slotNumber Int
+  guildPercentile Float
+  tankScore      Float
+  tankPercentile Float
+  dpsScore       Float
+  dpsPercentile  Float
+  pvpScore       Float
+  pvpPercentile  Float
+  party  RosterParty @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  member GuildMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  @@unique([partyId, slotNumber])
+  @@index([partyId])
+  @@index([memberId])
+}
+
+model Raid {
+  id String @id @default(cuid())
+  name String
+  parties RaidParty[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RaidParty {
+  id String @id @default(cuid())
+  raidId  String
+  partyId String
+  raid  Raid        @relation(fields: [raidId], references: [id], onDelete: Cascade)
+  party RosterParty @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  @@unique([raidId, partyId])
+  @@index([raidId])
+  @@index([partyId])
+}
 
 model PreferredRoster {
   id String @id @default(cuid())
-
   guildId String
-  eventId String
-  name    String
-
+  type    EventType
   guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
-  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
-
-  members PreferredRosterMember[]
-
+  parties PreferredRosterParty[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
+  @@unique([guildId, type])
   @@index([guildId])
-  @@index([eventId])
+  @@index([type])
+}
+
+model PreferredRosterParty {
+  id String @id @default(cuid())
+  preferredRosterId String
+  battlefield Battlefield
+  partyNumber Int
+  preferredRoster PreferredRoster @relation(fields: [preferredRosterId], references: [id], onDelete: Cascade)
+  members PreferredRosterMember[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([preferredRosterId, battlefield, partyNumber])
+  @@index([preferredRosterId])
 }
 
 model PreferredRosterMember {
   id String @id @default(cuid())
-
-  rosterId String
-  memberId String
-
-  roster PreferredRoster @relation(fields: [rosterId], references: [id], onDelete: Cascade)
-  member GuildMember     @relation(fields: [memberId], references: [id], onDelete: Cascade)
-
-  @@unique([rosterId, memberId])
-  @@index([memberId])
-}
-
-// =============================================================
-// EVENT ROSTER
-// =============================================================
-
-model EventRoster {
-  id String @id @default(cuid())
-
-  eventId String
-  name    String
-
-  mode RosterGenerationMode @default(MANUAL)
-
-  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
-
-  members EventRosterMember[]
-  parties EventRosterParty[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([eventId])
-}
-
-model EventRosterMember {
-  id String @id @default(cuid())
-
-  rosterId String
-  memberId String
-
-  roster EventRoster @relation(fields: [rosterId], references: [id], onDelete: Cascade)
+  preferredRosterPartyId String
+  memberId               String
+  slotNumber Int
+  preferredRosterParty PreferredRosterParty @relation(fields: [preferredRosterPartyId], references: [id], onDelete: Cascade)
   member GuildMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
-
-  @@unique([rosterId, memberId])
-  @@index([memberId])
-}
-
-model EventRosterParty {
-  id String @id @default(cuid())
-
-  rosterId String
-  name     String
-
-  roster EventRoster @relation(fields: [rosterId], references: [id], onDelete: Cascade)
-  members EventRosterPartyMember[]
-
-  @@index([rosterId])
-}
-
-model EventRosterPartyMember {
-  id String @id @default(cuid())
-
-  partyId  String
-  memberId String
-
-  party  EventRosterParty @relation(fields: [partyId], references: [id], onDelete: Cascade)
-  member GuildMember      @relation(fields: [memberId], references: [id], onDelete: Cascade)
-
-  @@unique([partyId, memberId])
-  @@index([memberId])
-}
-
-// =============================================================
-// ALLOCATION RUN
-// =============================================================
-
-model AllocationRun {
-  id String @id @default(cuid())
-
-  guildId String
-  eventId String
-
-  status AllocationRunStatus @default(RUNNING)
-
-  eventDate DateTime
-
-  nonReservedMemberCount Int
-
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
-  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
-
-  bids Bid[]
-
-  @@index([guildId])
-  @@index([eventId])
-  @@index([guildId, eventId])
-}
-
-// =============================================================
-// BID
-// =============================================================
-
-model Bid {
-  id String @id @default(cuid())
-
-  allocationRunId String
-  memberId        String
-  resourceId      String
-
-  amount Int @default(0)
-
-  allocationRun AllocationRun @relation(fields: [allocationRunId], references: [id], onDelete: Cascade)
-  member        GuildMember   @relation(fields: [memberId], references: [id], onDelete: Cascade)
-  resource      Resource      @relation(fields: [resourceId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([allocationRunId])
+  @@unique([preferredRosterPartyId, slotNumber])
+  @@unique([preferredRosterPartyId, memberId])
+  @@index([preferredRosterPartyId])
   @@index([memberId])
-  @@index([resourceId])
 }
