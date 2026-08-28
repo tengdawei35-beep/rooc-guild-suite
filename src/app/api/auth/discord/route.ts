@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
+import { randomBytes } from "crypto";
 
 const DISCORD_AUTHORIZE_URL =
   "https://discord.com/oauth2/authorize";
+
+const OAUTH_STATE_COOKIE =
+  "rooc_discord_oauth_state";
+
+const OAUTH_STATE_MAX_AGE =
+  60 * 10; // 10 minutes
 
 export async function GET(
   request: Request
@@ -31,6 +38,19 @@ export async function GET(
   const redirectUri =
     `${appUrl}/api/auth/discord/callback`;
 
+  // =========================================================
+  // OAUTH STATE
+  // =========================================================
+  //
+  // Bind the OAuth callback to an authorization request started
+  // by this browser. This prevents login CSRF / authorization
+  // response injection.
+  //
+  // =========================================================
+
+  const state =
+    randomBytes(32).toString("hex");
+
   const url =
     new URL(
       DISCORD_AUTHORIZE_URL
@@ -56,7 +76,34 @@ export async function GET(
     "identify"
   );
 
-  return NextResponse.redirect(
-    url
+  url.searchParams.set(
+    "state",
+    state
   );
+
+  const response =
+    NextResponse.redirect(
+      url
+    );
+
+  response.cookies.set(
+    OAUTH_STATE_COOKIE,
+    state,
+    {
+      httpOnly: true,
+
+      secure:
+        process.env.NODE_ENV ===
+        "production",
+
+      sameSite: "lax",
+
+      path: "/",
+
+      maxAge:
+        OAUTH_STATE_MAX_AGE,
+    }
+  );
+
+  return response;
 }
