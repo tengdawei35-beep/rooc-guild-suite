@@ -282,8 +282,7 @@ export default function MemberProfileClient({
               </h1>
 
               <div className="mt-2 text-sm text-zinc-500">
-                {member.characterName
-                  : null}
+                {member.characterName}
 
                 {member.job
                   ? ` • ${member.job}`

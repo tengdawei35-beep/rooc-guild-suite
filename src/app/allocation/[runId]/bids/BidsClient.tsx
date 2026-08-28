@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 
 type Member = {
   id: string;
-  displayName: string;
+  characterName: string;
 };
 
 type Resource = {
@@ -87,7 +87,7 @@ export default function BidsClient({
       ]) {
         for (const slot of page.slots) {
           if (
-            slot.member.displayName
+            slot.member.characterName
               .toLowerCase()
               .includes(
                 normalizedSearch
@@ -100,7 +100,7 @@ export default function BidsClient({
               slotNumber:
                 slot.slotNumber,
               memberName:
-                slot.member.displayName,
+                slot.member.characterName,
               resourceName:
                 slot.resource.name,
             });
@@ -490,12 +490,12 @@ function BidSlot({
       <div className="flex flex-1 flex-col items-center justify-center text-center">
         <div className="flex h-16 w-16 items-center justify-center rounded-full border border-zinc-700 bg-zinc-950 text-lg font-bold">
           {getInitials(
-            slot.member.displayName
+            slot.member.characterName
           )}
         </div>
 
         <h4 className="mt-4 text-lg font-semibold">
-          {slot.member.displayName}
+          {slot.member.characterName}
         </h4>
 
         <p className="mt-2 text-sm text-zinc-500">

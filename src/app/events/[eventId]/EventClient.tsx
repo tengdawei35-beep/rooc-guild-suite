@@ -10,7 +10,7 @@ type EventType =
 type Participant = {
   id: string;
   userId: string | null;
-  displayName: string;
+  characterName: string;
   characterName: string | null;
   job: string | null;
   priority:
@@ -42,7 +42,7 @@ type RosterMember = {
 
   member: {
     id: string;
-    displayName: string;
+    characterName: string;
     characterName: string | null;
     job: string | null;
     priority:
@@ -979,7 +979,7 @@ export default function EventClient({
             }
 
             return (
-              participant.displayName
+              participant.characterName
                 .toLowerCase()
                 .includes(query) ||
               participant.characterName
@@ -995,10 +995,10 @@ export default function EventClient({
           (a, b) =>
             (
               a.characterName ||
-              a.displayName
+              a.characterName
             ).localeCompare(
               b.characterName ||
-                b.displayName
+                b.characterName
             )
         );
     }, [
@@ -1019,7 +1019,7 @@ export default function EventClient({
 
         const matchesSearch =
           query.length === 0 ||
-          participant.displayName
+          participant.characterName
             .toLowerCase()
             .includes(query) ||
           participant.characterName
@@ -1622,7 +1622,7 @@ export default function EventClient({
                         <div>
                           <p className="text-sm font-medium text-zinc-300">
                             {member.characterName ||
-                              member.displayName}
+                              member.characterName}
                           </p>
 
                           <p className="mt-1 text-xs text-zinc-600">
@@ -1688,9 +1688,9 @@ function ParticipantRow({
           </p>
 
           <div className="mt-1 flex flex-wrap gap-2 text-xs text-zinc-600">
-            {participant.displayName && (
+            {participant.characterName && (
               <span>
-                {participant.displayName}
+                {participant.characterName}
               </span>
             )}
 
@@ -2188,7 +2188,7 @@ function PartyCard({
                         {assignment.member
                           .characterName ||
                           assignment.member
-                            .displayName}
+                            .characterName}
                       </p>
 
                       <p className="truncate text-xs text-zinc-600">

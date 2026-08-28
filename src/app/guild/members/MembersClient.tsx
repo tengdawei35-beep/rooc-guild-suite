@@ -114,7 +114,7 @@ type MemberForm = {
   discordUserId: string;
   discordUsername: string;
 
-  displayName: string;
+  characterName: string;
   characterName: string;
   job: string;
 
@@ -1226,7 +1226,7 @@ export default function MembersClient({
           const matchesSearch =
             !query ||
             [
-              member.displayName,
+              member.characterName,
               member.characterName,
               member.job,
               member.priority,

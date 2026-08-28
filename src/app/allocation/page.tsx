@@ -28,7 +28,7 @@ type ResourceResult = {
   overflow: number;
   selectedMembers: {
     id: string;
-    displayName: string;
+    characterName: string;
   }[];
   assignments: Assignment[];
 };
@@ -798,7 +798,7 @@ function ResourceCard({
                   key={member.id}
                   className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"
                 >
-                  {member.displayName}
+                  {member.characterName}
                 </span>
               )
             )}

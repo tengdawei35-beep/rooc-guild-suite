@@ -27,7 +27,7 @@ export type AllocationResourceResult = {
 
   selectedMembers: {
     id: string;
-    displayName: string;
+    characterName: string;
   }[];
 
   assignments: AllocationAssignment[];
@@ -130,7 +130,7 @@ export async function buildAllocation(
             },
 
             orderBy: {
-              displayName:
+              characterName:
                 "asc",
             },
           },
@@ -161,7 +161,7 @@ export async function buildAllocation(
                     select: {
                       id: true,
 
-                      displayName:
+                      characterName:
                         true,
 
                       active:
@@ -175,7 +175,7 @@ export async function buildAllocation(
 
                 orderBy: {
                   member: {
-                    displayName:
+                    characterName:
                       "asc",
                   },
                 },
@@ -298,7 +298,7 @@ export async function buildAllocation(
                 memberName:
                   reservation
                     .member
-                    .displayName,
+                    .characterName,
 
                 resourceId:
                   resource.id,
@@ -374,7 +374,7 @@ export async function buildAllocation(
                 member.id,
 
               memberName:
-                member.displayName,
+                member.characterName,
 
               resourceId:
                 resource.id,
@@ -488,8 +488,8 @@ export async function buildAllocation(
             id:
               member.id,
 
-            displayName:
-              member.displayName,
+            characterName:
+              member.characterName,
           })
         ),
 
