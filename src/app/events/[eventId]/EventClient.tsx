@@ -150,6 +150,9 @@ export default function EventClient({
   const [showUnavailable, setShowUnavailable] =
     useState(true);
 
+  const [showParticipation, setShowParticipation] =
+    useState(false);
+
   // ==========================================================
   // ROSTER EDITING
   // ==========================================================
@@ -1130,12 +1133,14 @@ export default function EventClient({
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <Link
-                href={`/allocation?eventId=${data.event.id}`}
-                className="rounded-lg border border-zinc-700 px-4 py-2.5 text-sm font-medium text-zinc-300 transition hover:border-zinc-500 hover:text-white"
-              >
-                Allocation
-              </Link>
+              {canManageEvents && (
+                <Link
+                  href={`/allocation?eventId=${data.event.id}`}
+                  className="rounded-lg border border-zinc-700 px-4 py-2.5 text-sm font-medium text-zinc-300 transition hover:border-zinc-500 hover:text-white"
+                >
+                  Allocation
+                </Link>
+              )}
 
               <button
                 type="button"
@@ -1217,7 +1222,8 @@ export default function EventClient({
             PARTICIPATION
         ==================================================== */}
 
-        <section className="mt-10">
+        {showParticipation && (
+          <section className="mt-10">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <h2 className="text-xl font-semibold">
@@ -1303,13 +1309,12 @@ export default function EventClient({
             )}
           </div>
         </section>
-
+        )}
         {/* ====================================================
             ROSTERS
         ==================================================== */}
-
-        <section className="mt-10">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <section className="mt-10">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <h2 className="text-xl font-semibold">
                 Rosters
@@ -1458,12 +1463,40 @@ export default function EventClient({
               </div>
             )}
           </div>
-        </section>
+         </section>
 
-        {/* ====================================================
-            ALLOCATION
-        ==================================================== */}
+          <div className="mt-6 flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-900 px-5 py-4">
+            <div>
+              <p className="font-medium">
+                Participation
+              </p>
 
+              <p className="mt-1 text-sm text-zinc-500">
+                {data.stats.availableMembers} available ·{" "}
+                {data.stats.totalMembers} total members
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() =>
+                setShowParticipation(
+                  (value) => !value
+                )
+              }
+              className="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-300 transition hover:border-zinc-500 hover:text-white"
+            >
+              {showParticipation
+                ? "Hide Participation"
+                : "Show Participation"}
+            </button>
+          </div>
+
+      {/* ====================================================
+          ALLOCATION
+      ==================================================== */}
+
+      {canManageEvents && (
         <section className="mt-10 pb-12">
           <div>
             <h2 className="text-xl font-semibold">
@@ -1528,6 +1561,7 @@ export default function EventClient({
             )}
           </div>
         </section>
+        )}
       </div>
 
       {/* ======================================================
