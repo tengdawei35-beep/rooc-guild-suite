@@ -21,6 +21,8 @@ import type {
 type Member = {
   id: string;
   userId: string | null;
+  discordUserId: string | null;
+  discordUsername: string | null;
 
   displayName: string;
   characterName: string | null;
@@ -110,6 +112,9 @@ type Member = {
 };
 
 type MemberForm = {
+  discordUserId: string;
+  discordUsername: string;
+
   displayName: string;
   characterName: string;
   job: string;
@@ -162,6 +167,9 @@ type MemberForm = {
 };
 
 const EMPTY_FORM: MemberForm = {
+  discordUserId: "",
+  discordUsername: "",
+
   displayName: "",
   characterName: "",
   job: "",
@@ -328,10 +336,6 @@ export default function MembersClient({
     setShowImport,
   ] = useState(false);
 
-  // ============================================================
-  // LEAVE / AVAILABILITY
-  // ============================================================
-
   const [
     leaveDate,
     setLeaveDate,
@@ -346,10 +350,6 @@ export default function MembersClient({
     leaveSaving,
     setLeaveSaving,
   ] = useState(false);
-
-// ============================================================
-// ACCESS CONTROL
-// ============================================================
 
   const canViewMembers =
     userRole !== null &&
@@ -434,10 +434,6 @@ export default function MembersClient({
     );
   }
 
-  // ============================================================
-  // LOAD AUTH
-  // ============================================================
-
   async function loadAuth() {
     try {
       const response =
@@ -469,10 +465,6 @@ export default function MembersClient({
       setUserRole(null);
     }
   }
-
-  // ============================================================
-  // LOAD MEMBERS
-  // ============================================================
 
   async function loadMembers() {
     try {
@@ -520,10 +512,6 @@ export default function MembersClient({
     initialize();
   }, []);
 
-  // ============================================================
-  // NEW MEMBER
-  // ============================================================
-
   function openNewMember() {
     if (!canManageMembers) {
       return;
@@ -540,10 +528,6 @@ export default function MembersClient({
     setError(null);
   }
 
-  // ============================================================
-  // OPEN MEMBER
-  // ============================================================
-
   function openMember(
     member: Member
   ) {
@@ -556,6 +540,12 @@ export default function MembersClient({
     setSelectedMember(member);
 
     setForm({
+      discordUserId:
+        member.discordUserId ?? "",
+
+      discordUsername:
+        member.discordUsername ?? "",
+
       displayName:
         member.displayName,
 
@@ -704,10 +694,6 @@ export default function MembersClient({
     setError(null);
   }
 
-  // ============================================================
-  // CLOSE MEMBER
-  // ============================================================
-
   function closeMember() {
     if (
       saving ||
@@ -728,10 +714,6 @@ export default function MembersClient({
     setError(null);
   }
 
-  // ============================================================
-  // SET FORM FIELD
-  // ============================================================
-
   function setField<
     K extends keyof MemberForm
   >(
@@ -743,10 +725,6 @@ export default function MembersClient({
       [field]: value,
     }));
   }
-
-  // ============================================================
-  // SAVE MEMBER
-  // ============================================================
 
   async function saveMember() {
     if (!canManageMembers) {
@@ -774,6 +752,12 @@ export default function MembersClient({
                 selectedMember.id,
             }
           : {}),
+
+        discordUserId:
+          form.discordUserId.trim(),
+
+        discordUsername:
+          form.discordUsername.trim(),
 
         displayName:
           form.displayName.trim(),
@@ -977,10 +961,6 @@ export default function MembersClient({
     }
   }
 
-  // ============================================================
-  // DELETE MEMBER
-  // ============================================================
-
   async function deleteMember() {
     if (
       !canDeleteMembers ||
@@ -1036,10 +1016,6 @@ export default function MembersClient({
       setDeleting(false);
     }
   }
-
-  // ============================================================
-  // ADD LEAVE DATE
-  // ============================================================
 
   async function addLeaveDate() {
     if (
@@ -1148,10 +1124,6 @@ export default function MembersClient({
     }
   }
 
-  // ============================================================
-  // REMOVE LEAVE DATE
-  // ============================================================
-
   async function removeLeaveDate(
     leaveId: string
   ) {
@@ -1238,10 +1210,6 @@ export default function MembersClient({
     }
   }
 
-  // ============================================================
-  // FILTERS
-  // ============================================================
-
   const jobs =
     useMemo(
       () =>
@@ -1325,15 +1293,9 @@ export default function MembersClient({
       statusFilter,
     ]);
 
-  // ============================================================
-  // RENDER
-  // ============================================================
-
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-100">
       <div className="mx-auto max-w-7xl px-6 py-8">
-        {/* HEADER */}
-
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold">
@@ -1375,15 +1337,11 @@ export default function MembersClient({
           </div>
         </div>
 
-        {/* ERROR */}
-
         {error && (
           <div className="mb-6 rounded-lg border border-red-900 bg-red-950/40 px-4 py-3 text-sm text-red-300">
             {error}
           </div>
         )}
-
-        {/* FILTERS */}
 
         <div className="mb-6 grid gap-3 md:grid-cols-[1fr_180px_180px]">
           <input
@@ -1443,8 +1401,6 @@ export default function MembersClient({
             </option>
           </select>
         </div>
-
-        {/* MEMBER TABLE */}
 
         <div className="overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-900">
           <table className="w-full min-w-[900px] text-sm">
@@ -1507,8 +1463,6 @@ export default function MembersClient({
                       key={member.id}
                       className="border-b border-zinc-800 last:border-0 transition hover:bg-zinc-800/50"
                     >
-                      {/* CHARACTER */}
-
                       <td className="px-4 py-3">
                         <Link
                           href={`/guild/members/${member.id}`}
@@ -1519,28 +1473,21 @@ export default function MembersClient({
                         </Link>
                       </td>
 
-                      {/* DISCORD */}
-
                       <td className="px-4 py-3 text-zinc-400">
-                        {member.displayName}
+                        {member.discordUsername ??
+                          member.displayName}
                       </td>
-
-                      {/* JOB */}
 
                       <td className="px-4 py-3 text-zinc-300">
                         {member.job ??
                           "—"}
                       </td>
 
-                      {/* PRIORITY */}
-
                       <td className="px-4 py-3 text-zinc-300">
                         {formatPriority(
                           member.priority
                         )}
                       </td>
-
-                      {/* STATUS */}
 
                       <td className="px-4 py-3">
                         <span
@@ -1556,8 +1503,6 @@ export default function MembersClient({
                         </span>
                       </td>
 
-                      {/* ELIGIBLE */}
-
                       <td className="px-4 py-3">
                         <span
                           className={`rounded-full px-2 py-1 text-xs font-medium ${
@@ -1571,8 +1516,6 @@ export default function MembersClient({
                             : "No"}
                         </span>
                       </td>
-
-                      {/* ACTIONS */}
 
                       <td className="px-4 py-3 text-right">
                         {canEditMember(
@@ -1603,10 +1546,6 @@ export default function MembersClient({
           </table>
         </div>
 
-        {/* ====================================================== */}
-        {/* IMPORT MODAL */}
-        {/* ====================================================== */}
-
         {showImport &&
           canImportMembers && (
             <ImportMembersModal
@@ -1625,16 +1564,10 @@ export default function MembersClient({
             />
           )}
 
-        {/* ====================================================== */}
-        {/* MEMBER FORM */}
-        {/* ====================================================== */}
-
         {selectedMember !==
           null && (
           <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 p-4 backdrop-blur-sm">
             <div className="mx-auto my-8 max-w-5xl overflow-hidden rounded-xl border border-zinc-700 bg-zinc-900 shadow-2xl">
-              {/* HEADER */}
-
               <div className="flex items-center justify-between border-b border-zinc-800 px-6 py-4">
                 <div>
                   <h2 className="text-lg font-semibold">
@@ -1671,18 +1604,69 @@ export default function MembersClient({
                 </button>
               </div>
 
-              {/* FORM */}
-
               <div className="max-h-[75vh] overflow-y-auto p-6">
                 <div className="grid gap-6 md:grid-cols-2">
-                  {/* BASIC INFORMATION */}
-
                   <section>
                     <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-zinc-400">
                       Basic Information
                     </h3>
 
                     <div className="space-y-4">
+                      {canManageMembers && (
+                        <>
+                          <div>
+                            <label className="mb-1 block text-sm text-zinc-400">
+                              Discord User ID
+                            </label>
+
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              value={
+                                form.discordUserId
+                              }
+                              onChange={(event) =>
+                                setField(
+                                  "discordUserId",
+                                  event.target.value
+                                )
+                              }
+                              placeholder="123456789012345678"
+                              className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 font-mono text-sm text-zinc-100 outline-none focus:border-zinc-500"
+                            />
+
+                            <p className="mt-1 text-xs text-zinc-600">
+                              The numeric Discord User ID. Keep this as text.
+                            </p>
+                          </div>
+
+                          <div>
+                            <label className="mb-1 block text-sm text-zinc-400">
+                              Discord Username
+                            </label>
+
+                            <input
+                              type="text"
+                              value={
+                                form.discordUsername
+                              }
+                              onChange={(event) =>
+                                setField(
+                                  "discordUsername",
+                                  event.target.value
+                                )
+                              }
+                              placeholder="jigsaw0226"
+                              className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-zinc-500"
+                            />
+
+                            <p className="mt-1 text-xs text-zinc-600">
+                              The current Discord username associated with the account.
+                            </p>
+                          </div>
+                        </>
+                      )}
+
                       <div>
                         <label className="mb-1 block text-sm text-zinc-400">
                           Discord Name
@@ -1693,14 +1677,10 @@ export default function MembersClient({
                           value={
                             form.displayName
                           }
-                          onChange={(
-                            event
-                          ) =>
+                          onChange={(event) =>
                             setField(
                               "displayName",
-                              event
-                                .target
-                                .value
+                              event.target.value
                             )
                           }
                           className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-zinc-500"
@@ -1717,14 +1697,10 @@ export default function MembersClient({
                           value={
                             form.characterName
                           }
-                          onChange={(
-                            event
-                          ) =>
+                          onChange={(event) =>
                             setField(
                               "characterName",
-                              event
-                                .target
-                                .value
+                              event.target.value
                             )
                           }
                           className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-zinc-500"
@@ -1741,21 +1717,15 @@ export default function MembersClient({
                           value={
                             form.job
                           }
-                          onChange={(
-                            event
-                          ) =>
+                          onChange={(event) =>
                             setField(
                               "job",
-                              event
-                                .target
-                                .value
+                              event.target.value
                             )
                           }
                           className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-zinc-500"
                         />
                       </div>
-
-                      {/* MANAGEMENT FIELDS */}
 
                       {canManageMembers && (
                         <>
@@ -1768,14 +1738,10 @@ export default function MembersClient({
                               value={
                                 form.priority
                               }
-                              onChange={(
-                                event
-                              ) =>
+                              onChange={(event) =>
                                 setField(
                                   "priority",
-                                  event
-                                    .target
-                                    .value as MemberForm["priority"]
+                                  event.target.value as MemberForm["priority"]
                                 )
                               }
                               className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none"
@@ -1805,14 +1771,10 @@ export default function MembersClient({
                                 checked={
                                   form.active
                                 }
-                                onChange={(
-                                  event
-                                ) =>
+                                onChange={(event) =>
                                   setField(
                                     "active",
-                                    event
-                                      .target
-                                      .checked
+                                    event.target.checked
                                   )
                                 }
                               />
@@ -1826,14 +1788,10 @@ export default function MembersClient({
                                 checked={
                                   form.eligible
                                 }
-                                onChange={(
-                                  event
-                                ) =>
+                                onChange={(event) =>
                                   setField(
                                     "eligible",
-                                    event
-                                      .target
-                                      .checked
+                                    event.target.checked
                                   )
                                 }
                               />
@@ -1851,14 +1809,10 @@ export default function MembersClient({
                               value={
                                 form.remarks
                               }
-                              onChange={(
-                                event
-                              ) =>
+                              onChange={(event) =>
                                 setField(
                                   "remarks",
-                                  event
-                                    .target
-                                    .value
+                                  event.target.value
                                 )
                               }
                               rows={3}
@@ -1870,8 +1824,6 @@ export default function MembersClient({
                     </div>
                   </section>
 
-                  {/* COMBAT STATS */}
-
                   <section>
                     <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-zinc-400">
                       Combat Stats
@@ -1879,113 +1831,37 @@ export default function MembersClient({
 
                     <div className="grid grid-cols-2 gap-3">
                       {[
-                        [
-                          "PDEF",
-                          "pdef",
-                        ],
-                        [
-                          "MDEF",
-                          "mdef",
-                        ],
-                        [
-                          "PATK",
-                          "patk",
-                        ],
-                        [
-                          "MATK",
-                          "matk",
-                        ],
-                        [
-                          "HP",
-                          "hp",
-                        ],
-                        [
-                          "Crit Res",
-                          "critRes",
-                        ],
-                        [
-                          "Ignore PDEF",
-                          "ignorePdef",
-                        ],
-                        [
-                          "Ignore MDEF",
-                          "ignoreMdef",
-                        ],
-                        [
-                          "PvP DMG Bonus",
-                          "pvpDamageBonus",
-                        ],
-                        [
-                          "PvP DMG Reduction",
-                          "pvpDamageReduction",
-                        ],
-                        [
-                          "P DMG %",
-                          "pdmgPercent",
-                        ],
-                        [
-                          "M DMG %",
-                          "mdmgPercent",
-                        ],
-                        [
-                          "P DMG Reduction %",
-                          "pdmgReductionPercent",
-                        ],
-                        [
-                          "M DMG Reduction %",
-                          "mdmgReductionPercent",
-                        ],
-                        [
-                          "DMG vs Small",
-                          "damageVsSmall",
-                        ],
-                        [
-                          "Reduction vs Small",
-                          "damageReductionVsSmall",
-                        ],
-                        [
-                          "DMG vs Medium",
-                          "damageVsMedium",
-                        ],
-                        [
-                          "Reduction vs Medium",
-                          "damageReductionVsMedium",
-                        ],
-                        [
-                          "DMG vs Demi-Human",
-                          "damageVsDemiHuman",
-                        ],
-                        [
-                          "Reduction vs Demi-Human",
-                          "damageReductionVsDemiHuman",
-                        ],
-                        [
-                          "DMG vs Brute",
-                          "damageVsBrute",
-                        ],
-                        [
-                          "Reduction vs Brute",
-                          "damageReductionVsBrute",
-                        ],
-                        [
-                          "Equipment PDEF %",
-                          "equipmentPdefPercent",
-                        ],
-                        [
-                          "Equipment MDEF %",
-                          "equipmentMdefPercent",
-                        ],
+                        ["PDEF", "pdef"],
+                        ["MDEF", "mdef"],
+                        ["PATK", "patk"],
+                        ["MATK", "matk"],
+                        ["HP", "hp"],
+                        ["Crit Res", "critRes"],
+                        ["Ignore PDEF", "ignorePdef"],
+                        ["Ignore MDEF", "ignoreMdef"],
+                        ["PvP DMG Bonus", "pvpDamageBonus"],
+                        ["PvP DMG Reduction", "pvpDamageReduction"],
+                        ["P DMG %", "pdmgPercent"],
+                        ["M DMG %", "mdmgPercent"],
+                        ["P DMG Reduction %", "pdmgReductionPercent"],
+                        ["M DMG Reduction %", "mdmgReductionPercent"],
+                        ["DMG vs Small", "damageVsSmall"],
+                        ["Reduction vs Small", "damageReductionVsSmall"],
+                        ["DMG vs Medium", "damageVsMedium"],
+                        ["Reduction vs Medium", "damageReductionVsMedium"],
+                        ["DMG vs Demi-Human", "damageVsDemiHuman"],
+                        ["Reduction vs Demi-Human", "damageReductionVsDemiHuman"],
+                        ["DMG vs Brute", "damageVsBrute"],
+                        ["Reduction vs Brute", "damageReductionVsBrute"],
+                        ["Equipment PDEF %", "equipmentPdefPercent"],
+                        ["Equipment MDEF %", "equipmentMdefPercent"],
                       ].map(
                         ([label, field]) => (
                           <div
-                            key={
-                              field
-                            }
+                            key={field}
                           >
                             <label className="mb-1 block text-xs text-zinc-500">
-                              {
-                                label
-                              }
+                              {label}
                             </label>
 
                             <input
@@ -1996,14 +1872,10 @@ export default function MembersClient({
                                   field as keyof MemberForm
                                 ] as string
                               }
-                              onChange={(
-                                event
-                              ) =>
+                              onChange={(event) =>
                                 setField(
                                   field as keyof MemberForm,
-                                  event
-                                    .target
-                                    .value as never
+                                  event.target.value as never
                                 )
                               }
                               className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-zinc-500"
@@ -2014,10 +1886,6 @@ export default function MembersClient({
                     </div>
                   </section>
                 </div>
-
-                {/* ================================================== */}
-                {/* AVAILABILITY */}
-                {/* ================================================== */}
 
                 <section className="mt-8 border-t border-zinc-800 pt-6">
                   <div className="mb-4">
@@ -2041,13 +1909,9 @@ export default function MembersClient({
                           value={
                             leaveDate
                           }
-                          onChange={(
-                            event
-                          ) =>
+                          onChange={(event) =>
                             setLeaveDate(
-                              event
-                                .target
-                                .value
+                              event.target.value
                             )
                           }
                           className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none"
@@ -2058,13 +1922,9 @@ export default function MembersClient({
                           value={
                             leaveReason
                           }
-                          onChange={(
-                            event
-                          ) =>
+                          onChange={(event) =>
                             setLeaveReason(
-                              event
-                                .target
-                                .value
+                              event.target.value
                             )
                           }
                           placeholder="Reason (optional)"
@@ -2153,8 +2013,6 @@ export default function MembersClient({
                   </div>
                 </section>
               </div>
-
-              {/* FOOTER */}
 
               <div className="flex items-center justify-between border-t border-zinc-800 px-6 py-4">
                 <div>
