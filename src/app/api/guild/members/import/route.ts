@@ -213,14 +213,33 @@ export async function POST(request: Request) {
 
     const normalizedRows: ImportRow[] = rows.map((raw: ImportRow) => {
       const result: ImportRow = {};
+
       for (const [key, value] of Object.entries(raw)) {
-        const field = HEADER_ALIASES[normaliseHeader(key)];
-        if (field) result[field] = value;
-        else result[key] = value;
+        const field =
+          HEADER_ALIASES[normaliseHeader(key)];
+
+        if (field) {
+          result[field] = value;
+        } else {
+          result[key] = value;
+        }
       }
+
+      // Existing guild imports commonly use Display Name
+      // as the Discord username. Preserve that convention
+      // unless an explicit Discord Username was supplied.
+      if (
+        (result.discordUsername === undefined ||
+          String(result.discordUsername).trim() === "") &&
+        result.displayName !== undefined &&
+        String(result.displayName).trim() !== ""
+      ) {
+        result.discordUsername =
+          String(result.displayName).trim();
+      }
+
       return result;
     });
-
     const validatedRows = normalizedRows.map((row, index) => validateRow(row, index + 2));
     const seen = new Map<string, number>();
     for (const row of validatedRows) {
