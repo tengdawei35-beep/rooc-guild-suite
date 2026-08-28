@@ -6,6 +6,10 @@ import {
 } from "@/lib/auth";
 
 import { prisma } from "@/lib/prisma";
+import {
+  GUILD_SELECTION_COOKIE,
+  createGuildSelectionToken,
+} from "@/lib/guild-selection";
 
 const OAUTH_STATE_COOKIE =
   "rooc_discord_oauth_state";
@@ -390,6 +394,46 @@ export async function GET(
             },
           }
         );
+    }
+
+    // =========================================================
+    // MULTI-GUILD SELECTION
+    // =========================================================
+    //
+    // If the Discord account belongs to multiple guilds, do not
+    // silently select the first membership. Create a short-lived
+    // signed selection token and let the user choose the guild.
+    // The selected guild is validated server-side before the
+    // authenticated session is created.
+    //
+    // =========================================================
+
+    if (
+      memberships.length > 1 &&
+      membership
+    ) {
+      cookieStore.set(
+        GUILD_SELECTION_COOKIE,
+        createGuildSelectionToken(
+          user.id
+        ),
+        {
+          httpOnly: true,
+          secure:
+            process.env.NODE_ENV ===
+            "production",
+          sameSite: "lax",
+          path: "/",
+          maxAge: 5 * 60,
+        }
+      );
+
+      return NextResponse.redirect(
+        new URL(
+          "/guild/select",
+          appBaseUrl
+        )
+      );
     }
 
     // =========================================================
