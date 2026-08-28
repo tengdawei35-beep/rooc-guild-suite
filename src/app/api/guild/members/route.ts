@@ -11,6 +11,9 @@ import { JOBS } from "@/lib/constants/jobs";
 type MemberRequest = {
   id?: string;
 
+  discordUserId?: string | null;
+  discordUsername?: string | null;
+
   displayName?: string;
   characterName?: string;
   job?: string;
@@ -52,10 +55,6 @@ type MemberRequest = {
   active?: boolean;
   eligible?: boolean;
 
-  /*
-   * This is the MEMBER priority field used
-   * by allocation. It is NOT the SaaS user role.
-   */
   priority?:
     | "LEADER"
     | "OFFICER"
@@ -92,6 +91,22 @@ function numberOrNull(
 function validateMember(
   body: MemberRequest
 ) {
+  const discordUserId =
+    body.discordUserId?.trim() || null;
+
+  const discordUsername =
+    body.discordUsername?.trim() || null;
+
+  if (
+    discordUserId &&
+    !/^\d{17,20}$/.test(discordUserId)
+  ) {
+    return {
+      error:
+        "Discord User ID must be a valid numeric Discord ID.",
+    };
+  }
+
   const displayName =
     body.displayName?.trim();
 
@@ -142,6 +157,9 @@ function validateMember(
   }
 
   return {
+    discordUserId,
+    discordUsername,
+
     displayName,
     characterName,
     job: body.job,
@@ -184,20 +202,17 @@ function validateMember(
         body.mdmgReductionPercent
       ),
 
-    critRes:
-      numberOrNull(
-        body.critRes
-      ),
+    critRes: numberOrNull(
+      body.critRes
+    ),
 
-    ignorePdef:
-      numberOrNull(
-        body.ignorePdef
-      ),
+    ignorePdef: numberOrNull(
+      body.ignorePdef
+    ),
 
-    ignoreMdef:
-      numberOrNull(
-        body.ignoreMdef
-      ),
+    ignoreMdef: numberOrNull(
+      body.ignoreMdef
+    ),
 
     damageVsMedium:
       numberOrNull(
@@ -272,6 +287,74 @@ function validateMember(
     remarks:
       body.remarks?.trim() ||
       null,
+  };
+}
+
+async function resolveDiscordIdentity(
+  guildId: string,
+  discordUserId: string | null,
+  discordUsername: string | null,
+  existingMemberId?: string
+) {
+  if (!discordUserId) {
+    return {
+      discordUserId: null,
+      discordUsername,
+      userId: null,
+    };
+  }
+
+  const user =
+    await prisma.user.findUnique({
+      where: {
+        discordId: discordUserId,
+      },
+      select: {
+        id: true,
+        discordId: true,
+        username: true,
+      },
+    });
+
+  if (
+    user &&
+    discordUsername &&
+    user.username !== discordUsername
+  ) {
+    throw new Error(
+      "The Discord User ID and Discord Username do not belong to the same Discord account."
+    );
+  }
+
+  const linkedMember =
+    await prisma.guildMember.findFirst({
+      where: {
+        guildId,
+        discordUserId,
+        ...(existingMemberId
+          ? {
+              NOT: {
+                id: existingMemberId,
+              },
+            }
+          : {}),
+      },
+      select: {
+        id: true,
+        displayName: true,
+      },
+    });
+
+  if (linkedMember) {
+    throw new Error(
+      "That Discord account is already linked to another guild member."
+    );
+  }
+
+  return {
+    discordUserId,
+    discordUsername,
+    userId: user?.id ?? null,
   };
 }
 
@@ -399,6 +482,27 @@ export async function POST(
       );
     }
 
+    let discordIdentity;
+
+    try {
+      discordIdentity =
+        await resolveDiscordIdentity(
+          auth.guild.id,
+          data.discordUserId,
+          data.discordUsername
+        );
+    } catch (error) {
+      return NextResponse.json(
+        {
+          error:
+            error instanceof Error
+              ? error.message
+              : "Invalid Discord identity.",
+        },
+        { status: 409 }
+      );
+    }
+
     const existing =
       await prisma.guildMember.findFirst(
         {
@@ -428,6 +532,15 @@ export async function POST(
           data: {
             guildId:
               auth.guild.id,
+
+            discordUserId:
+              discordIdentity.discordUserId,
+
+            discordUsername:
+              discordIdentity.discordUsername,
+
+            userId:
+              discordIdentity.userId,
 
             displayName:
               data.displayName,
@@ -644,6 +757,37 @@ export async function PUT(
       );
     }
 
+    let discordIdentity = {
+      discordUserId:
+        existing.discordUserId,
+      discordUsername:
+        existing.discordUsername,
+      userId:
+        existing.userId,
+    };
+
+    if (canEditAny) {
+      try {
+        discordIdentity =
+          await resolveDiscordIdentity(
+            auth.guild.id,
+            data.discordUserId,
+            data.discordUsername,
+            existing.id
+          );
+      } catch (error) {
+        return NextResponse.json(
+          {
+            error:
+              error instanceof Error
+                ? error.message
+                : "Invalid Discord identity.",
+          },
+          { status: 409 }
+        );
+      }
+    }
+
     const duplicate =
       await prisma.guildMember.findFirst(
         {
@@ -671,13 +815,6 @@ export async function PUT(
       );
     }
 
-    /*
-     * MEMBER self-edit:
-     *
-     * They may change their player/profile
-     * information, but not guild-managed
-     * allocation/access fields.
-     */
     const updateData: Record<
       string,
       unknown
@@ -765,6 +902,15 @@ export async function PUT(
     };
 
     if (canEditAny) {
+      updateData.discordUserId =
+        discordIdentity.discordUserId;
+
+      updateData.discordUsername =
+        discordIdentity.discordUsername;
+
+      updateData.userId =
+        discordIdentity.userId;
+
       updateData.active =
         data.active;
 
