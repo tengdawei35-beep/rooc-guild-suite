@@ -175,7 +175,8 @@ export async function POST(
     const preview =
       await buildAllocation({
         guildId:
-         auth.guild.id,
+          auth.guild.id,
+
         nonReservedMemberCount,
 
         eventDate:
@@ -224,36 +225,6 @@ export async function POST(
     }
 
     // ==========================================================
-    // LOAD GUILD + ROTATION STATES
-    // ==========================================================
-
-    const guild =
-      await prisma.guild.findUnique({
-        where: {
-          id:
-            preview.guildId,
-        },
-
-        include: {
-          resources: {
-            where: {
-              active: true,
-            },
-
-            include: {
-              rotationStates: true,
-            },
-          },
-        },
-      });
-
-    if (!guild) {
-      throw new Error(
-        "Guild no longer exists."
-      );
-    }
-
-    // ==========================================================
     // EVENT DATE RANGE
     // ==========================================================
     //
@@ -278,116 +249,6 @@ export async function POST(
         eventDateStart.getTime() +
           24 * 60 * 60 * 1000
       );
-
-    // ==========================================================
-    // DETERMINE ROTATION BEFORE / AFTER
-    // ==========================================================
-
-    const rotationBefore: Record<
-      string,
-      number
-    > = {};
-
-    const rotationAfter: Record<
-      string,
-      number
-    > = {};
-
-    for (
-      const resource of
-        guild.resources
-    ) {
-      const currentIndex =
-        resource
-          .rotationStates[0]
-          ?.rotationIndex ??
-        0;
-
-      rotationBefore[
-        resource.id
-      ] =
-        currentIndex;
-
-      const resourceResult =
-        preview.resources.find(
-          (result) =>
-            result.resourceId ===
-            resource.id
-        );
-
-      const selectedCount =
-        resourceResult
-          ?.selectedMembers
-          .length ??
-        0;
-
-      // --------------------------------------------------------
-      // COUNT THE SAME MEMBER POOL USED BY THE ENGINE
-      // --------------------------------------------------------
-      //
-      // A member must:
-      //
-      // - belong to this guild
-      // - be active
-      // - be eligible for bidding
-      // - NOT be on leave for the event date
-      // - NOT have a reservation for this resource
-      //
-      // This keeps rotation calculations consistent with
-      // the allocation engine.
-      //
-      // --------------------------------------------------------
-
-      const eligibleMemberCount =
-        await prisma.guildMember.count(
-          {
-            where: {
-              guildId:
-                preview.guildId,
-
-              active: true,
-
-              eligible: true,
-
-              leaveDates: {
-                none: {
-                  date: {
-                    gte:
-                      eventDateStart,
-
-                    lt:
-                      eventDateEnd,
-                  },
-                },
-              },
-
-              NOT: {
-                reservations: {
-                  some: {
-                    resourceId:
-                      resource.id,
-                  },
-                },
-              },
-            },
-          }
-        );
-
-      const nextIndex =
-        eligibleMemberCount >
-        0
-          ? (
-              currentIndex +
-              selectedCount
-            ) %
-            eligibleMemberCount
-          : 0;
-
-      rotationAfter[
-        resource.id
-      ] =
-        nextIndex;
-    }
 
     // ==========================================================
     // BUILD BID SLOT DATA
@@ -443,10 +304,237 @@ export async function POST(
     // ==========================================================
     // PERSIST EVERYTHING IN ONE TRANSACTION
     // ==========================================================
+    //
+    // The advisory transaction lock serializes allocation runs
+    // for the same guild + event.
+    //
+    // This prevents two simultaneous requests from:
+    //
+    // - reading the same rotation state
+    // - both creating allocation runs
+    // - both advancing rotation
+    //
+    // PostgreSQL automatically releases the transaction-scoped
+    // advisory lock when this transaction commits or rolls back.
+    //
+    // ==========================================================
 
     const result =
       await prisma.$transaction(
         async (tx) => {
+          // ----------------------------------------------------
+          // SERIALIZE THIS GUILD / EVENT
+          // ----------------------------------------------------
+          //
+          // hashtextextended() produces a bigint suitable for
+          // pg_advisory_xact_lock().
+          //
+          // The lock key contains both guild and event IDs so
+          // unrelated guilds/events do not block one another.
+          //
+          // ----------------------------------------------------
+
+          const allocationLockKey =
+            `${auth.guild.id}:${event.id}`;
+
+          await tx.$executeRaw`
+            SELECT pg_advisory_xact_lock(
+              hashtextextended(
+                ${allocationLockKey},
+                0
+              )
+            )
+          `;
+
+          // ----------------------------------------------------
+          // PREVENT DUPLICATE ALLOCATION RUNS
+          // ----------------------------------------------------
+          //
+          // This check MUST happen after acquiring the lock.
+          //
+          // A check before the transaction would still allow two
+          // simultaneous requests to both pass the check.
+          //
+          // ----------------------------------------------------
+
+          const existingRun =
+            await tx.allocationRun.findFirst(
+              {
+                where: {
+                  guildId:
+                    auth.guild.id,
+
+                  eventId:
+                    event.id,
+                },
+
+                select: {
+                  id: true,
+                  status: true,
+                },
+              }
+            );
+
+          if (existingRun) {
+            return {
+              conflict: true as const,
+
+              runId:
+                existingRun.id,
+
+              status:
+                existingRun.status,
+            };
+          }
+
+          // ----------------------------------------------------
+          // LOAD GUILD + ROTATION STATES
+          // ----------------------------------------------------
+          //
+          // IMPORTANT:
+          //
+          // Rotation state is deliberately read INSIDE the
+          // transaction after the advisory lock has been acquired.
+          //
+          // This ensures concurrent allocations cannot both use
+          // the same rotation state.
+          //
+          // ----------------------------------------------------
+
+          const guild =
+            await tx.guild.findUnique({
+              where: {
+                id:
+                  auth.guild.id,
+              },
+
+              include: {
+                resources: {
+                  where: {
+                    active: true,
+                  },
+
+                  include: {
+                    rotationStates:
+                      true,
+                  },
+                },
+              },
+            });
+
+          if (!guild) {
+            throw new Error(
+              "Guild no longer exists."
+            );
+          }
+
+          // ----------------------------------------------------
+          // DETERMINE ROTATION BEFORE / AFTER
+          // ----------------------------------------------------
+
+          const rotationBefore: Record<
+            string,
+            number
+          > = {};
+
+          const rotationAfter: Record<
+            string,
+            number
+          > = {};
+
+          for (
+            const resource of
+              guild.resources
+          ) {
+            const currentIndex =
+              resource
+                .rotationStates[0]
+                ?.rotationIndex ??
+              0;
+
+            rotationBefore[
+              resource.id
+            ] =
+              currentIndex;
+
+            const resourceResult =
+              preview.resources.find(
+                (result) =>
+                  result.resourceId ===
+                  resource.id
+              );
+
+            const selectedCount =
+              resourceResult
+                ?.selectedMembers
+                .length ??
+              0;
+
+            // --------------------------------------------------
+            // COUNT THE SAME MEMBER POOL USED BY THE ENGINE
+            // --------------------------------------------------
+            //
+            // A member must:
+            //
+            // - belong to this guild
+            // - be active
+            // - be eligible for bidding
+            // - NOT be on leave for the event date
+            // - NOT have a reservation for this resource
+            //
+            // --------------------------------------------------
+
+            const eligibleMemberCount =
+              await tx.guildMember.count(
+                {
+                  where: {
+                    guildId:
+                      auth.guild.id,
+
+                    active: true,
+
+                    eligible: true,
+
+                    leaveDates: {
+                      none: {
+                        date: {
+                          gte:
+                            eventDateStart,
+
+                          lt:
+                            eventDateEnd,
+                        },
+                      },
+                    },
+
+                    NOT: {
+                      reservations: {
+                        some: {
+                          resourceId:
+                            resource.id,
+                        },
+                      },
+                    },
+                  },
+                }
+              );
+
+            const nextIndex =
+              eligibleMemberCount >
+              0
+                ? (
+                    currentIndex +
+                    selectedCount
+                  ) %
+                  eligibleMemberCount
+                : 0;
+
+            rotationAfter[
+              resource.id
+            ] =
+              nextIndex;
+          }
+
           // ----------------------------------------------------
           // CREATE ALLOCATION RUN
           // ----------------------------------------------------
@@ -456,7 +544,7 @@ export async function POST(
               {
                 data: {
                   guildId:
-                    preview.guildId,
+                    auth.guild.id,
 
                   eventId:
                     event.id,
@@ -658,7 +746,7 @@ export async function POST(
                   guildId_resourceId:
                     {
                       guildId:
-                        preview.guildId,
+                        auth.guild.id,
 
                       resourceId:
                         resource.id,
@@ -667,7 +755,7 @@ export async function POST(
 
                 create: {
                   guildId:
-                    preview.guildId,
+                    auth.guild.id,
 
                   resourceId:
                     resource.id,
@@ -686,27 +774,69 @@ export async function POST(
           // COMPLETE RUN
           // ----------------------------------------------------
 
-          return tx.allocationRun.update(
-            {
-              where: {
-                id:
-                  run.id,
-              },
+          const completedRun =
+            await tx.allocationRun.update(
+              {
+                where: {
+                  id:
+                    run.id,
+                },
 
-              data: {
-                status:
-                  "COMPLETED",
+                data: {
+                  status:
+                    "COMPLETED",
 
-                rotationIndexAfter:
-                  rotationAfter,
+                  rotationIndexAfter:
+                    rotationAfter,
 
-                completedAt:
-                  new Date(),
-              },
-            }
-          );
+                  completedAt:
+                    new Date(),
+                },
+              }
+            );
+
+          return {
+            conflict: false as const,
+
+            allocationRun:
+              completedRun,
+
+            rotationBefore,
+
+            rotationAfter,
+
+            guild,
+          };
         }
       );
+
+    // ==========================================================
+    // DUPLICATE RUN RESPONSE
+    // ==========================================================
+
+    if (
+      result.conflict
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "An allocation has already been run for this event.",
+          allocationRun: {
+            id:
+              result.runId,
+
+            status:
+              result.status,
+
+            eventId:
+              event.id,
+          },
+        },
+        {
+          status: 409,
+        }
+      );
+    }
 
     // ==========================================================
     // RESPONSE
@@ -717,16 +847,24 @@ export async function POST(
 
       allocationRun: {
         id:
-          result.id,
+          result
+            .allocationRun
+            .id,
 
         status:
-          result.status,
+          result
+            .allocationRun
+            .status,
 
         createdAt:
-          result.createdAt,
+          result
+            .allocationRun
+            .createdAt,
 
         completedAt:
-          result.completedAt,
+          result
+            .allocationRun
+            .completedAt,
 
         eventId:
           event.id,
@@ -745,10 +883,10 @@ export async function POST(
 
       rotation: {
         before:
-          rotationBefore,
+          result.rotationBefore,
 
         after:
-          rotationAfter,
+          result.rotationAfter,
       },
 
       bidPages: {
