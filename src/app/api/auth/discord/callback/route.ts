@@ -7,6 +7,9 @@ import {
 
 import { prisma } from "@/lib/prisma";
 import {
+  ensureGuildMembershipsForDiscordUser,
+} from "@/lib/auth/ensure-guild-membership";
+import {
   GUILD_SELECTION_COOKIE,
   createGuildSelectionToken,
 } from "@/lib/guild-selection";
@@ -28,15 +31,6 @@ type DiscordTokenResponse = {
 export async function GET(
   request: Request
 ) {
-  /*
-   * APP_URL is the public URL of the application.
-   *
-   * Example:
-   * https://imagine-capabilities-silence-fully.trycloudflare.com
-   *
-   * Do NOT include /api/auth/discord/callback here.
-   */
-
   const appUrl =
     process.env.APP_URL;
 
@@ -52,12 +46,6 @@ export async function GET(
 
     // =========================================================
     // VERIFY OAUTH STATE
-    // =========================================================
-    //
-    // The callback must correspond to an authorization request
-    // started by this browser. Reject missing or mismatched state
-    // before exchanging the OAuth code.
-    //
     // =========================================================
 
     const cookieStore =
@@ -84,22 +72,16 @@ export async function GET(
       );
     }
 
-    // Consume the state before continuing so the same OAuth
-    // callback cannot be replayed through this browser session.
     cookieStore.set(
       OAUTH_STATE_COOKIE,
       "",
       {
         httpOnly: true,
-
         secure:
           process.env.NODE_ENV ===
           "production",
-
         sameSite: "lax",
-
         path: "/",
-
         maxAge: 0,
       }
     );
@@ -141,25 +123,19 @@ export async function GET(
         "https://discord.com/api/oauth2/token",
         {
           method: "POST",
-
           headers: {
             "Content-Type":
               "application/x-www-form-urlencoded",
           },
-
           body:
             new URLSearchParams({
               client_id:
                 clientId,
-
               client_secret:
                 clientSecret,
-
               grant_type:
                 "authorization_code",
-
               code,
-
               redirect_uri:
                 redirectUri,
             }),
@@ -203,11 +179,6 @@ export async function GET(
       !tokenData.access_token ||
       !tokenData.token_type
     ) {
-      console.error(
-        "[DISCORD AUTH] Token response missing required fields:",
-        tokenResponseText
-      );
-
       throw new Error(
         "Discord token response was incomplete."
       );
@@ -225,7 +196,6 @@ export async function GET(
             Authorization:
               `${tokenData.token_type} ${tokenData.access_token}`,
           },
-
           cache: "no-store",
         }
       );
@@ -233,9 +203,7 @@ export async function GET(
     const discordResponseText =
       await discordResponse.text();
 
-    if (
-      !discordResponse.ok
-    ) {
+    if (!discordResponse.ok) {
       console.error(
         "[DISCORD AUTH] Failed to retrieve Discord user:",
         discordResponse.status,
@@ -274,9 +242,12 @@ export async function GET(
       );
     }
 
-    // =========================================================
-    // DISCORD AVATAR
-    // =========================================================
+    // Discord Snowflakes are identifiers and must remain strings.
+    const discordUserId =
+      discordUser.id;
+
+    const discordUsername =
+      discordUser.username;
 
     const avatarUrl =
       discordUser.avatar
@@ -291,26 +262,42 @@ export async function GET(
       await prisma.user.upsert({
         where: {
           discordId:
-            discordUser.id,
+            discordUserId,
         },
-
         update: {
           username:
-            discordUser.username,
-
+            discordUsername,
           avatarUrl,
         },
-
         create: {
           discordId:
-            discordUser.id,
-
+            discordUserId,
           username:
-            discordUser.username,
-
+            discordUsername,
           avatarUrl,
         },
       });
+
+    // =========================================================
+    // AUTOMATIC EXISTING-MEMBER ONBOARDING
+    // =========================================================
+    //
+    // A GuildMember imported with a Discord ID is authoritative.
+    // A unique imported Discord username is a fallback only.
+    // Successfully linked active members receive application
+    // access as MEMBER. No higher application role is inferred
+    // from the in-game MemberPriority.
+    //
+    // =========================================================
+
+    await ensureGuildMembershipsForDiscordUser({
+      userId:
+        user.id,
+      discordId:
+        discordUserId,
+      username:
+        discordUsername,
+    });
 
     // =========================================================
     // FIND EXISTING GUILD MEMBERSHIPS
@@ -323,11 +310,9 @@ export async function GET(
             userId:
               user.id,
           },
-
           include: {
             guild: true,
           },
-
           orderBy: {
             createdAt: "asc",
           },
@@ -343,7 +328,7 @@ export async function GET(
 
     if (
       !membership &&
-      discordUser.id ===
+      discordUserId ===
         process.env
           .INITIAL_LEADER_DISCORD_ID
     ) {
@@ -381,14 +366,11 @@ export async function GET(
             data: {
               userId:
                 user.id,
-
               guildId:
                 guild.id,
-
               role:
                 "ADMIN",
             },
-
             include: {
               guild: true,
             },
@@ -398,14 +380,6 @@ export async function GET(
 
     // =========================================================
     // MULTI-GUILD SELECTION
-    // =========================================================
-    //
-    // If the Discord account belongs to multiple guilds, do not
-    // silently select the first membership. Create a short-lived
-    // signed selection token and let the user choose the guild.
-    // The selected guild is validated server-side before the
-    // authenticated session is created.
-    //
     // =========================================================
 
     if (
@@ -458,10 +432,6 @@ export async function GET(
       membership.guildId
     );
 
-    // =========================================================
-    // LOGIN COMPLETE
-    // =========================================================
-
     return NextResponse.redirect(
       new URL(
         "/",
@@ -474,13 +444,6 @@ export async function GET(
       error
     );
 
-    /*
-     * If APP_URL is configured, always redirect using
-     * the public application URL.
-     *
-     * This prevents Cloudflare Tunnel requests from
-     * accidentally redirecting the user to localhost.
-     */
     const fallbackUrl =
       appUrl
         ? new URL(appUrl)
