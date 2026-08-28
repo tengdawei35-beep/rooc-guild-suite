@@ -51,10 +51,6 @@ export default async function GuildSelectionPage() {
     redirect("/login?error=no_guild_access");
   }
 
-  if (memberships.length === 1) {
-    redirect("/api/auth/guild/select?guildId=" + encodeURIComponent(memberships[0].guildId));
-  }
-
   return (
     <main className="flex min-h-screen items-center justify-center bg-zinc-950 px-4">
       <div className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 p-8 shadow-xl">
@@ -67,16 +63,18 @@ export default async function GuildSelectionPage() {
 
         <div className="mt-8 space-y-3">
           {memberships.map((membership) => (
-            <a
-              key={membership.guildId}
-              href={`/api/auth/guild/select?guildId=${encodeURIComponent(membership.guildId)}`}
-              className="block rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-4 transition hover:border-zinc-500 hover:bg-zinc-750"
-            >
-              <div className="font-medium text-white">{membership.guild.name}</div>
-              <div className="mt-1 text-xs uppercase tracking-wide text-zinc-500">
-                {membership.role}
-              </div>
-            </a>
+            <form key={membership.guildId} action="/api/auth/guild/select" method="POST">
+              <input type="hidden" name="guildId" value={membership.guildId} />
+              <button
+                type="submit"
+                className="block w-full rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-4 text-left transition hover:border-zinc-500 hover:bg-zinc-700"
+              >
+                <div className="font-medium text-white">{membership.guild.name}</div>
+                <div className="mt-1 text-xs uppercase tracking-wide text-zinc-500">
+                  {membership.role}
+                </div>
+              </button>
+            </form>
           ))}
         </div>
       </div>
