@@ -64,6 +64,12 @@ export default async function MembersPage() {
     // whether the authenticated MEMBER owns this profile.
     userId: member.userId,
 
+    // Discord identity is stored separately from the
+    // display name so authentication can match either
+    // the numeric Discord ID or username as appropriate.
+    discordUserId: member.discordUserId,
+    discordUsername: member.discordUsername,
+
     displayName: member.displayName,
     characterName: member.characterName,
     job: member.job,
