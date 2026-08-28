@@ -78,6 +78,17 @@ export async function GET(
             },
 
             rosterAssignments: {
+              where: {
+                party: {
+                  roster: {
+                    event: {
+                      guildId:
+                        auth.guild.id,
+                    },
+                  },
+                },
+              },
+
               orderBy: {
                 createdAt: "desc",
               },
