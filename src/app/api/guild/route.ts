@@ -1,24 +1,42 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+
+import {
+  getCurrentAuth,
+} from "@/lib/auth";
+
+import {
+  hasPermission,
+} from "@/lib/permissions";
+
+import {
+  prisma,
+} from "@/lib/prisma";
 
 type GuildRequest = {
   name?: string;
   discordGuildId?: string;
 };
 
-function validateGuildData(body: GuildRequest) {
-  const name = body.name?.trim();
-  const discordGuildId = body.discordGuildId?.trim();
+function validateGuildData(
+  body: GuildRequest
+) {
+  const name =
+    body.name?.trim();
+
+  const discordGuildId =
+    body.discordGuildId?.trim();
 
   if (!name) {
     return {
-      error: "Guild name is required.",
+      error:
+        "Guild name is required.",
     };
   }
 
   if (!discordGuildId) {
     return {
-      error: "Discord Guild ID is required.",
+      error:
+        "Discord Guild ID is required.",
     };
   }
 
@@ -28,102 +46,167 @@ function validateGuildData(body: GuildRequest) {
   };
 }
 
-export async function POST(request: Request) {
+// =============================================================
+// PUT
+// Update the currently authenticated guild
+// =============================================================
+
+export async function PUT(
+  request: Request
+) {
   try {
-    const body =
-      (await request.json()) as GuildRequest;
+    // ---------------------------------------------------------
+    // AUTHENTICATION
+    // ---------------------------------------------------------
 
-    const data = validateGuildData(body);
+    const auth =
+      await getCurrentAuth();
 
-    if ("error" in data) {
-      return NextResponse.json(
-        data,
-        { status: 400 }
-      );
-    }
-
-    const existingGuild =
-      await prisma.guild.findFirst();
-
-    if (existingGuild) {
+    if (!auth) {
       return NextResponse.json(
         {
           error:
-            "A guild is already configured.",
+            "Authentication required.",
         },
-        { status: 409 }
+        {
+          status: 401,
+        }
       );
     }
 
-    const guild =
-      await prisma.guild.create({
-        data: {
-          name: data.name,
-          discordGuildId:
-            data.discordGuildId,
+    // ---------------------------------------------------------
+    // PERMISSION
+    // ---------------------------------------------------------
+
+    if (
+      !hasPermission(
+        auth.role,
+        "guild.manage"
+      )
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "You do not have permission to manage guild settings.",
         },
-      });
+        {
+          status: 403,
+        }
+      );
+    }
 
-    return NextResponse.json({
-      guild,
-    });
-  } catch (error) {
-    console.error(
-      "[GUILD] Failed to create guild:",
-      error
-    );
+    // ---------------------------------------------------------
+    // REQUEST BODY
+    // ---------------------------------------------------------
 
-    return NextResponse.json(
-      {
-        error:
-          "Failed to create guild.",
-      },
-      { status: 500 }
-    );
-  }
-}
-
-export async function PUT(request: Request) {
-  try {
     const body =
       (await request.json()) as GuildRequest;
 
-    const data = validateGuildData(body);
+    const data =
+      validateGuildData(
+        body
+      );
 
     if ("error" in data) {
       return NextResponse.json(
         data,
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
+    // ---------------------------------------------------------
+    // LOAD CURRENT GUILD
+    // ---------------------------------------------------------
+    //
+    // IMPORTANT:
+    //
+    // Never use findFirst() here.
+    //
+    // The guild is determined exclusively from the
+    // authenticated session.
+    //
+    // ---------------------------------------------------------
+
     const guild =
-      await prisma.guild.findFirst();
+      await prisma.guild.findUnique(
+        {
+          where: {
+            id:
+              auth.guild.id,
+          },
+        }
+      );
 
     if (!guild) {
       return NextResponse.json(
         {
           error:
-            "No guild has been configured yet.",
+            "Guild not found.",
         },
-        { status: 404 }
+        {
+          status: 404,
+        }
       );
     }
 
+    // ---------------------------------------------------------
+    // PREVENT DISCORD GUILD ID COLLISION
+    // ---------------------------------------------------------
+
+    const conflictingGuild =
+      await prisma.guild.findFirst(
+        {
+          where: {
+            discordGuildId:
+              data.discordGuildId,
+
+            NOT: {
+              id:
+                guild.id,
+            },
+          },
+        }
+      );
+
+    if (conflictingGuild) {
+      return NextResponse.json(
+        {
+          error:
+            "That Discord Guild ID is already associated with another guild.",
+        },
+        {
+          status: 409,
+        }
+      );
+    }
+
+    // ---------------------------------------------------------
+    // UPDATE
+    // ---------------------------------------------------------
+
     const updatedGuild =
-      await prisma.guild.update({
-        where: {
-          id: guild.id,
-        },
-        data: {
-          name: data.name,
-          discordGuildId:
-            data.discordGuildId,
-        },
-      });
+      await prisma.guild.update(
+        {
+          where: {
+            id:
+              guild.id,
+          },
+
+          data: {
+            name:
+              data.name,
+
+            discordGuildId:
+              data.discordGuildId,
+          },
+        }
+      );
 
     return NextResponse.json({
-      guild: updatedGuild,
+      guild:
+        updatedGuild,
     });
   } catch (error) {
     console.error(
@@ -136,7 +219,9 @@ export async function PUT(request: Request) {
         error:
           "Failed to update guild.",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }

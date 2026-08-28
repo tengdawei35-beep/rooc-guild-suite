@@ -12,18 +12,39 @@ type GuildData = {
 export default function GuildForm({
   guild,
 }: {
-  guild: GuildData | null;
+  guild: GuildData;
 }) {
-  const router = useRouter();
+  const router =
+    useRouter();
 
-  const [name, setName] = useState(guild?.name ?? "");
-  const [discordGuildId, setDiscordGuildId] = useState(
-    guild?.discordGuildId ?? ""
+  const [
+    name,
+    setName,
+  ] = useState(
+    guild.name
   );
 
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [
+    discordGuildId,
+    setDiscordGuildId,
+  ] = useState(
+    guild.discordGuildId
+  );
+
+  const [
+    saving,
+    setSaving,
+  ] = useState(false);
+
+  const [
+    error,
+    setError,
+  ] = useState("");
+
+  const [
+    success,
+    setSuccess,
+  ] = useState("");
 
   async function handleSubmit(
     event: React.FormEvent<HTMLFormElement>
@@ -35,26 +56,38 @@ export default function GuildForm({
     setSuccess("");
 
     try {
-      const response = await fetch("/api/guild", {
-        method: guild ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name,
-          discordGuildId,
-        }),
-      });
+      const response =
+        await fetch(
+          "/api/guild",
+          {
+            method: "PUT",
 
-      const result = await response.json();
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+
+            body:
+              JSON.stringify({
+                name,
+                discordGuildId,
+              }),
+          }
+        );
+
+      const result =
+        await response.json();
 
       if (!response.ok) {
         throw new Error(
-          result.error || "Failed to save guild."
+          result.error ||
+            "Failed to save guild."
         );
       }
 
-      setSuccess("Guild settings saved successfully.");
+      setSuccess(
+        "Guild settings saved successfully."
+      );
 
       router.refresh();
     } catch (error) {
@@ -70,7 +103,9 @@ export default function GuildForm({
 
   return (
     <form
-      onSubmit={handleSubmit}
+      onSubmit={
+        handleSubmit
+      }
       className="space-y-6"
     >
       {/* Guild Name */}
@@ -87,8 +122,12 @@ export default function GuildForm({
           id="name"
           type="text"
           value={name}
-          onChange={(event) =>
-            setName(event.target.value)
+          onChange={(
+            event
+          ) =>
+            setName(
+              event.target.value
+            )
           }
           placeholder="My ROO Guild"
           required
@@ -109,9 +148,15 @@ export default function GuildForm({
         <input
           id="discordGuildId"
           type="text"
-          value={discordGuildId}
-          onChange={(event) =>
-            setDiscordGuildId(event.target.value)
+          value={
+            discordGuildId
+          }
+          onChange={(
+            event
+          ) =>
+            setDiscordGuildId(
+              event.target.value
+            )
           }
           placeholder="123456789012345678"
           required
@@ -143,14 +188,14 @@ export default function GuildForm({
 
       <button
         type="submit"
-        disabled={saving}
+        disabled={
+          saving
+        }
         className="rounded-lg bg-white px-5 py-3 font-medium text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {saving
           ? "Saving..."
-          : guild
-            ? "Save Changes"
-            : "Create Guild"}
+          : "Save Changes"}
       </button>
     </form>
   );

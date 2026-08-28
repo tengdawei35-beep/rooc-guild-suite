@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getCurrentAuth, hasPermission } from "@/lib/auth";
 
 const EVENT_LIMITS = {
   GUILD_LEAGUE: {
@@ -33,14 +34,6 @@ type CreateEventRequest = {
   date?: string;
 };
 
-async function getGuild() {
-  return prisma.guild.findFirst({
-    select: {
-      id: true,
-    },
-  });
-}
-
 // =============================================================
 // CREATE EVENT
 // =============================================================
@@ -54,15 +47,12 @@ export async function POST(
         | CreateRosterRequest
         | CreateEventRequest;
 
-    const guild = await getGuild();
+    const auth = await getCurrentAuth();
 
-    if (!guild) {
+    if (!auth) {
       return NextResponse.json(
-        {
-          error:
-            "No guild has been configured.",
-        },
-        { status: 404 }
+        { error: "Authentication required." },
+        { status: 401 }
       );
     }
 
@@ -70,14 +60,25 @@ export async function POST(
      * This endpoint accepts event creation when
      * `type` is supplied, and roster creation when
      * `eventId` is supplied.
+     *
+     * The guild is always taken from the authenticated
+     * session; it is never selected from the database by
+     * findFirst() or supplied by the client.
      */
 
     if (
       "type" in body &&
       body.type
     ) {
+      if (!hasPermission(auth.role, "events.manage")) {
+        return NextResponse.json(
+          { error: "You do not have permission to manage events." },
+          { status: 403 }
+        );
+      }
+
       return createEvent(
-        guild.id,
+        auth.guild.id,
         body as CreateEventRequest
       );
     }
@@ -86,8 +87,15 @@ export async function POST(
       "eventId" in body &&
       body.eventId
     ) {
+      if (!hasPermission(auth.role, "rosters.edit")) {
+        return NextResponse.json(
+          { error: "You do not have permission to edit rosters." },
+          { status: 403 }
+        );
+      }
+
       return createRoster(
-        guild.id,
+        auth.guild.id,
         body as CreateRosterRequest
       );
     }
@@ -278,22 +286,26 @@ async function createRoster(
 
 export async function GET() {
   try {
-    const guild = await getGuild();
+    const auth = await getCurrentAuth();
 
-    if (!guild) {
+    if (!auth) {
       return NextResponse.json(
-        {
-          error:
-            "No guild has been configured.",
-        },
-        { status: 404 }
+        { error: "Authentication required." },
+        { status: 401 }
+      );
+    }
+
+    if (!hasPermission(auth.role, "events.view")) {
+      return NextResponse.json(
+        { error: "You do not have permission to view events." },
+        { status: 403 }
       );
     }
 
     const events =
       await prisma.event.findMany({
         where: {
-          guildId: guild.id,
+          guildId: auth.guild.id,
         },
 
         orderBy: {

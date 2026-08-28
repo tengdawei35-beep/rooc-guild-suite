@@ -104,14 +104,6 @@ const PRIORITIES = [
   "MEMBER",
 ] as const;
 
-async function getGuild() {
-  return prisma.guild.findFirst({
-    select: {
-      id: true,
-    },
-  });
-}
-
 function normaliseHeader(
   header: string
 ): string {

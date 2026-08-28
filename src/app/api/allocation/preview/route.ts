@@ -171,54 +171,14 @@ export async function POST(
 
     const preview =
       await buildAllocation({
+        guildId:
+          auth.guild.id,
+
         nonReservedMemberCount,
 
         eventDate:
           event.date,
       });
-
-    // ==========================================================
-    // VERIFY EVENT / GUILD
-    // ==========================================================
-    //
-    // This is an additional safety check.
-    //
-    // The event was already scoped to auth.guild.id above,
-    // but the allocation engine determines its own guildId.
-    //
-    // Both must agree.
-    //
-    // ==========================================================
-
-    if (
-      preview.guildId !==
-      auth.guild.id
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            "Allocation does not belong to your guild.",
-        },
-        {
-          status: 403,
-        }
-      );
-    }
-
-    if (
-      preview.guildId !==
-      event.guildId
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            "Event does not belong to the configured guild.",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
 
     // ==========================================================
     // RESPONSE

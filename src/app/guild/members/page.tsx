@@ -4,8 +4,11 @@ import MembersClient from "./MembersClient";
 import { requirePageAuth } from "@/lib/auth";
 
 export default async function MembersPage() {
-  await requirePageAuth();
-  const guild = await prisma.guild.findFirst({
+  const auth = await requirePageAuth();
+  const guild = await prisma.guild.findUnique({
+    where: {
+      id: auth.guild.id,
+    },
     include: {
       members: {
         orderBy: {

@@ -3,9 +3,12 @@ import { prisma } from "@/lib/prisma";
 import { requirePageAuth } from "@/lib/auth";
 
 export default async function Home() {
-  await requirePageAuth();
+  const auth = await requirePageAuth();
 
-  const guild = await prisma.guild.findFirst({
+  const guild = await prisma.guild.findUnique({
+    where: {
+      id: auth.guild.id,
+    },
     include: {
       members: {
         where: {

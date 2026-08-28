@@ -373,6 +373,15 @@ export async function POST(
           where: {
             memberId:
               member.id,
+
+            party: {
+              roster: {
+                event: {
+                  guildId:
+                    auth.guild.id,
+                },
+              },
+            },
           },
 
           orderBy: {

@@ -174,6 +174,8 @@ export async function POST(
 
     const preview =
       await buildAllocation({
+        guildId:
+         auth.guild.id,
         nonReservedMemberCount,
 
         eventDate:

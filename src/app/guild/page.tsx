@@ -15,6 +15,10 @@ export default async function GuildPage() {
   const auth =
     await requirePageAuth();
 
+  // ===========================================================
+  // PERMISSION
+  // ===========================================================
+
   if (
     !hasPermission(
       auth.role,
@@ -46,8 +50,53 @@ export default async function GuildPage() {
     );
   }
 
+  // ===========================================================
+  // LOAD CURRENT GUILD
+  // ===========================================================
+  //
+  // IMPORTANT:
+  //
+  // The authenticated session determines which guild is active.
+  //
+  // Never use findFirst() in a multi-guild application.
+  //
+  // ===========================================================
+
   const guild =
-    await prisma.guild.findFirst();
+    await prisma.guild.findUnique(
+      {
+        where: {
+          id:
+            auth.guild.id,
+        },
+      }
+    );
+
+  if (!guild) {
+    return (
+      <main className="min-h-screen bg-zinc-950 text-white">
+        <div className="mx-auto max-w-4xl px-6 py-10">
+          <Link
+            href="/"
+            className="text-sm text-zinc-500 hover:text-white"
+          >
+            ← Dashboard
+          </Link>
+
+          <div className="mt-8 rounded-2xl border border-red-900 bg-zinc-900 p-8">
+            <h1 className="text-xl font-semibold">
+              Guild Not Found
+            </h1>
+
+            <p className="mt-2 text-sm text-zinc-400">
+              The guild associated with your session could
+              not be found.
+            </p>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
@@ -136,20 +185,16 @@ export default async function GuildPage() {
 
           <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
             <GuildForm
-              guild={
-                guild
-                  ? {
-                      id:
-                        guild.id,
+              guild={{
+                id:
+                  guild.id,
 
-                      name:
-                        guild.name,
+                name:
+                  guild.name,
 
-                      discordGuildId:
-                        guild.discordGuildId,
-                    }
-                  : null
-              }
+                discordGuildId:
+                  guild.discordGuildId,
+              }}
             />
           </div>
         </section>

@@ -1,5 +1,16 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+
+import {
+  getCurrentAuth,
+} from "@/lib/auth";
+
+import {
+  hasPermission,
+} from "@/lib/permissions";
+
+import {
+  prisma,
+} from "@/lib/prisma";
 
 type Battlefield =
   | "BATTLEFIELD_1"
@@ -14,13 +25,58 @@ type PartyRequest = {
 const MAX_PARTY_SIZE = 5;
 
 // =============================================================
-// CREATE PARTY
+// POST
+// Create a party
 // =============================================================
 
 export async function POST(
   request: Request
 ) {
   try {
+    // ---------------------------------------------------------
+    // AUTHENTICATION
+    // ---------------------------------------------------------
+
+    const auth =
+      await getCurrentAuth();
+
+    if (!auth) {
+      return NextResponse.json(
+        {
+          error:
+            "Authentication required.",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
+    // ---------------------------------------------------------
+    // PERMISSION
+    // ---------------------------------------------------------
+
+    if (
+      !hasPermission(
+        auth.role,
+        "rosters.edit"
+      )
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "You do not have permission to edit rosters.",
+        },
+        {
+          status: 403,
+        }
+      );
+    }
+
+    // ---------------------------------------------------------
+    // REQUEST BODY
+    // ---------------------------------------------------------
+
     const body =
       (await request.json()) as PartyRequest;
 
@@ -30,7 +86,9 @@ export async function POST(
           error:
             "Roster ID is required.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
@@ -45,7 +103,9 @@ export async function POST(
           error:
             "Valid battlefield is required.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
@@ -61,25 +121,44 @@ export async function POST(
           error:
             "Party number must be an integer.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
-    const roster =
-      await prisma.roster.findUnique({
-        where: {
-          id: body.rosterId,
-        },
+    // ---------------------------------------------------------
+    // LOAD ROSTER
+    // ---------------------------------------------------------
+    //
+    // The roster itself does not have a guildId.
+    // Its event does.
+    //
+    // Therefore authorization must follow:
+    //
+    // roster -> event -> guildId
+    //
+    // ---------------------------------------------------------
 
-        include: {
-          event: true,
-          parties: {
-            include: {
-              members: true,
+    const roster =
+      await prisma.roster.findUnique(
+        {
+          where: {
+            id:
+              body.rosterId,
+          },
+
+          include: {
+            event: true,
+
+            parties: {
+              include: {
+                members: true,
+              },
             },
           },
-        },
-      });
+        }
+      );
 
     if (!roster) {
       return NextResponse.json(
@@ -87,9 +166,34 @@ export async function POST(
           error:
             "Roster not found.",
         },
-        { status: 404 }
+        {
+          status: 404,
+        }
       );
     }
+
+    // ---------------------------------------------------------
+    // GUILD ISOLATION
+    // ---------------------------------------------------------
+
+    if (
+      roster.event.guildId !==
+      auth.guild.id
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Roster not found.",
+        },
+        {
+          status: 404,
+        }
+      );
+    }
+
+    // ---------------------------------------------------------
+    // EVENT LIMITS
+    // ---------------------------------------------------------
 
     const maxParties =
       roster.event.type ===
@@ -107,9 +211,15 @@ export async function POST(
           error:
             `Party number must be between 1 and ${maxParties}.`,
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
+
+    // ---------------------------------------------------------
+    // BATTLEFIELD VALIDATION
+    // ---------------------------------------------------------
 
     if (
       roster.event.type ===
@@ -122,23 +232,34 @@ export async function POST(
           error:
             "Emperium Overrun does not have Battlefield 2.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
+    // ---------------------------------------------------------
+    // DUPLICATE PARTY
+    // ---------------------------------------------------------
+
     const existing =
-      await prisma.rosterParty.findUnique({
-        where: {
-          rosterId_battlefield_partyNumber: {
-            rosterId:
-              roster.id,
-            battlefield:
-              body.battlefield,
-            partyNumber:
-              body.partyNumber,
+      await prisma.rosterParty.findUnique(
+        {
+          where: {
+            rosterId_battlefield_partyNumber:
+              {
+                rosterId:
+                  roster.id,
+
+                battlefield:
+                  body.battlefield,
+
+                partyNumber:
+                  body.partyNumber,
+              },
           },
-        },
-      });
+        }
+      );
 
     if (existing) {
       return NextResponse.json(
@@ -146,25 +267,40 @@ export async function POST(
           error:
             "This party already exists.",
         },
-        { status: 409 }
+        {
+          status: 409,
+        }
       );
     }
 
-    const party =
-      await prisma.rosterParty.create({
-        data: {
-          rosterId:
-            roster.id,
-          battlefield:
-            body.battlefield,
-          partyNumber:
-            body.partyNumber,
-        },
-      });
+    // ---------------------------------------------------------
+    // CREATE PARTY
+    // ---------------------------------------------------------
 
-    return NextResponse.json({
-      party,
-    });
+    const party =
+      await prisma.rosterParty.create(
+        {
+          data: {
+            rosterId:
+              roster.id,
+
+            battlefield:
+              body.battlefield,
+
+            partyNumber:
+              body.partyNumber,
+          },
+        }
+      );
+
+    return NextResponse.json(
+      {
+        party,
+      },
+      {
+        status: 201,
+      }
+    );
   } catch (error) {
     console.error(
       "[ROSTER PARTIES] Failed to create:",
@@ -174,26 +310,77 @@ export async function POST(
     return NextResponse.json(
       {
         error:
-          "Failed to create party.",
+          error instanceof Error
+            ? error.message
+            : "Failed to create party.",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }
 
 // =============================================================
-// DELETE PARTY
+// DELETE
+// Delete a party
 // =============================================================
 
 export async function DELETE(
   request: Request
 ) {
   try {
+    // ---------------------------------------------------------
+    // AUTHENTICATION
+    // ---------------------------------------------------------
+
+    const auth =
+      await getCurrentAuth();
+
+    if (!auth) {
+      return NextResponse.json(
+        {
+          error:
+            "Authentication required.",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
+    // ---------------------------------------------------------
+    // PERMISSION
+    // ---------------------------------------------------------
+
+    if (
+      !hasPermission(
+        auth.role,
+        "rosters.edit"
+      )
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "You do not have permission to edit rosters.",
+        },
+        {
+          status: 403,
+        }
+      );
+    }
+
+    // ---------------------------------------------------------
+    // PARTY ID
+    // ---------------------------------------------------------
+
     const url =
       new URL(request.url);
 
     const id =
-      url.searchParams.get("id");
+      url.searchParams.get(
+        "id"
+      );
 
     if (!id) {
       return NextResponse.json(
@@ -201,16 +388,32 @@ export async function DELETE(
           error:
             "Party ID is required.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
+    // ---------------------------------------------------------
+    // LOAD PARTY + GUILD
+    // ---------------------------------------------------------
+
     const party =
-      await prisma.rosterParty.findUnique({
-        where: {
-          id,
-        },
-      });
+      await prisma.rosterParty.findUnique(
+        {
+          where: {
+            id,
+          },
+
+          include: {
+            roster: {
+              include: {
+                event: true,
+              },
+            },
+          },
+        }
+      );
 
     if (!party) {
       return NextResponse.json(
@@ -218,15 +421,42 @@ export async function DELETE(
           error:
             "Party not found.",
         },
-        { status: 404 }
+        {
+          status: 404,
+        }
       );
     }
 
-    await prisma.rosterParty.delete({
-      where: {
-        id,
-      },
-    });
+    // ---------------------------------------------------------
+    // GUILD ISOLATION
+    // ---------------------------------------------------------
+
+    if (
+      party.roster.event.guildId !==
+      auth.guild.id
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Party not found.",
+        },
+        {
+          status: 404,
+        }
+      );
+    }
+
+    // ---------------------------------------------------------
+    // DELETE
+    // ---------------------------------------------------------
+
+    await prisma.rosterParty.delete(
+      {
+        where: {
+          id,
+        },
+      }
+    );
 
     return NextResponse.json({
       success: true,
@@ -240,9 +470,13 @@ export async function DELETE(
     return NextResponse.json(
       {
         error:
-          "Failed to delete party.",
+          error instanceof Error
+            ? error.message
+            : "Failed to delete party.",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }
