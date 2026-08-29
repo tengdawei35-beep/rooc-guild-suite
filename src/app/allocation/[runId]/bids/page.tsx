@@ -6,6 +6,7 @@ import BidsClient from "./BidsClient";
 
 import {
   requirePageAuth,
+  hasPermission,
 } from "@/lib/auth";
 
 type Props = {
@@ -23,36 +24,25 @@ export default async function BidsPage({
   const { runId } =
     await params;
 
-  // ==========================================================
-  // LOAD RUN
-  // ==========================================================
-  //
-  // IMPORTANT:
-  //
-  // The allocation run must belong to the currently
-  // authenticated user's guild.
-  //
-  // Checking only `id` would allow a user who knows another
-  // run ID to view that guild's bid pages.
-  //
-  // ==========================================================
+  const canViewAllocation =
+    hasPermission(
+      auth.role,
+      "allocation.view"
+    );
 
   const run =
     await prisma.allocationRun.findFirst({
       where: {
         id: runId,
-
         guildId:
           auth.guild.id,
       },
-
       include: {
         guild: {
           select: {
             name: true,
           },
         },
-
         bidPages: {
           orderBy: [
             {
@@ -62,14 +52,12 @@ export default async function BidsPage({
               pageNumber: "asc",
             },
           ],
-
           include: {
             slots: {
               orderBy: {
                 slotNumber:
                   "asc",
               },
-
               include: {
                 member: {
                   select: {
@@ -78,7 +66,6 @@ export default async function BidsPage({
                       true,
                   },
                 },
-
                 resource: {
                   select: {
                     id: true,
@@ -116,22 +103,28 @@ export default async function BidsPage({
       <div className="mx-auto max-w-7xl px-6 py-8">
         <div className="flex flex-wrap items-center gap-4">
           <Link
-            href="/allocation/history"
+            href={canViewAllocation ? "/allocation/history" : "/"}
             className="text-sm text-zinc-500 hover:text-white"
           >
-            ← Allocation History
+            {canViewAllocation
+              ? "← Allocation History"
+              : "← Dashboard"}
           </Link>
 
-          <span className="text-zinc-800">
-            /
-          </span>
+          {canViewAllocation && (
+            <>
+              <span className="text-zinc-800">
+                /
+              </span>
 
-          <Link
-            href="/allocation"
-            className="text-sm text-zinc-500 hover:text-white"
-          >
-            Allocation
-          </Link>
+              <Link
+                href="/allocation"
+                className="text-sm text-zinc-500 hover:text-white"
+              >
+                Allocation
+              </Link>
+            </>
+          )}
         </div>
 
         <header className="mt-6">
@@ -179,12 +172,14 @@ export default async function BidsPage({
               generation was enabled.
             </p>
 
-            <Link
-              href="/allocation"
-              className="mt-6 inline-flex rounded-lg bg-white px-5 py-3 font-medium text-black hover:bg-zinc-200"
-            >
-              Create New Allocation
-            </Link>
+            {canViewAllocation && (
+              <Link
+                href="/allocation"
+                className="mt-6 inline-flex rounded-lg bg-white px-5 py-3 font-medium text-black hover:bg-zinc-200"
+              >
+                Create New Allocation
+              </Link>
+            )}
           </section>
         ) : (
           <BidsClient
