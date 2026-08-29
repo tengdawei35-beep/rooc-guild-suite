@@ -40,7 +40,7 @@ export default async function LoginPage({
       <div className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 p-8 shadow-xl">
         <div className="text-center">
           <h1 className="text-2xl font-semibold text-white">
-            ROO Guild Suite
+            HMDL
           </h1>
 
           <p className="mt-2 text-sm text-zinc-500">
