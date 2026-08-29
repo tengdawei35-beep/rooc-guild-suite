@@ -20,6 +20,9 @@ export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
     adapter,
+    transactionOptions: {
+      timeout: 30_000,
+    },
   });
 
 if (process.env.NODE_ENV !== "production") {
