@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -29,15 +30,9 @@ export default async function GuildSelectionPage() {
   }
 
   const memberships = await prisma.guildMembership.findMany({
-    where: {
-      userId: selection.userId,
-    },
-    include: {
-      guild: true,
-    },
-    orderBy: {
-      createdAt: "asc",
-    },
+    where: { userId: selection.userId },
+    include: { guild: true },
+    orderBy: { createdAt: "asc" },
   });
 
   if (memberships.length === 0) {
@@ -48,8 +43,25 @@ export default async function GuildSelectionPage() {
       path: "/",
       maxAge: 0,
     });
-    redirect("/login?error=no_guild_access");
+    redirect("/billing/new");
   }
+
+  const user = await prisma.user.findUnique({
+    where: { id: selection.userId },
+  });
+
+  const creator = user
+    ? await prisma.platformGuildCreator.findUnique({
+        where: { discordUserId: user.discordId },
+      })
+    : null;
+
+  const ownedGuildCount = creator
+    ? await prisma.guild.count({ where: { ownerUserId: selection.userId } })
+    : 0;
+  const canCreateGuild = Boolean(
+    creator?.active && ownedGuildCount < creator.maxGuilds
+  );
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-zinc-950 px-4">
@@ -57,7 +69,7 @@ export default async function GuildSelectionPage() {
         <div className="text-center">
           <h1 className="text-2xl font-semibold text-white">Select Guild</h1>
           <p className="mt-2 text-sm text-zinc-500">
-            Your Discord account has access to multiple guilds. Choose where you want to continue.
+            Choose a guild to manage, or create another guild if your account is authorized to do so.
           </p>
         </div>
 
@@ -77,6 +89,20 @@ export default async function GuildSelectionPage() {
             </form>
           ))}
         </div>
+
+        {canCreateGuild && (
+          <div className="mt-6 border-t border-zinc-800 pt-6">
+            <Link
+              href="/billing/new"
+              className="flex w-full items-center justify-center rounded-lg bg-white px-4 py-3 text-sm font-semibold text-black transition hover:bg-zinc-200"
+            >
+              Create another guild
+            </Link>
+            <p className="mt-2 text-center text-xs text-zinc-600">
+              {creator?.maxGuilds! - ownedGuildCount} guild creation slot{creator?.maxGuilds! - ownedGuildCount === 1 ? "" : "s"} remaining.
+            </p>
+          </div>
+        )}
       </div>
     </main>
   );
