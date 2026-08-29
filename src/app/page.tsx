@@ -2,14 +2,22 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requirePageAuth, hasPermission } from "@/lib/auth";
 import { hasGuildModule, RESOURCE_SUITE_MODULE } from "@/lib/auth/modules";
-import { getGuildSubscriptionEntitlement, getGuildResourceEntitlement } from "@/lib/billing/entitlement-status";
+import { getGuildSubscriptionEntitlement } from "@/lib/billing/entitlement-status";
 
 export default async function Home() {
   const auth = await requirePageAuth();
   const subscription = await getGuildSubscriptionEntitlement(auth.guild.id);
-  const resourceEntitlement = await getGuildResourceEntitlement(auth.guild.id);
   const hasResourceSuite = await hasGuildModule(auth.guild.id, RESOURCE_SUITE_MODULE);
-  const guild = await prisma.guild.findUnique({ where: { id: auth.guild.id }, include: { members: { where: { active: true } }, resources: { where: { active: true } }, reservedAllocations: true, allocationRuns: true, events: { orderBy: { date: "desc" }, take: 5, include: { rosters: true } } } });
+  const guild = await prisma.guild.findUnique({
+    where: { id: auth.guild.id },
+    include: {
+      members: { where: { active: true } },
+      resources: { where: { active: true } },
+      reservedAllocations: true,
+      allocationRuns: true,
+      events: { orderBy: { date: "desc" }, take: 5, include: { rosters: true } },
+    },
+  });
   const memberCount = guild?.members.length ?? 0;
   const resourceCount = guild?.resources.length ?? 0;
   const reservationCount = guild?.reservedAllocations.length ?? 0;
@@ -19,8 +27,12 @@ export default async function Home() {
   const canViewAllocation = hasResourceSuite && hasPermission(auth.role, "allocation.view");
 
   return <main className="min-h-screen bg-zinc-950 text-white"><div className="mx-auto max-w-7xl px-6 py-10">
-    <header className="mb-10 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"><div><p className="mb-2 text-sm font-medium uppercase tracking-widest text-zinc-500">ROO Guild Suite</p><h1 className="text-4xl font-bold tracking-tight">Guild Dashboard</h1><p className="mt-2 text-zinc-400">Manage your guild, events, rosters, resources and allocations.</p></div><Link href="/billing/new" className="inline-flex w-fit rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition hover:border-zinc-500 hover:bg-zinc-800">Billing & subscriptions →</Link></header>
+    <header className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"><div><p className="mb-2 text-sm font-medium uppercase tracking-widest text-zinc-500">ROO Guild Suite</p><h1 className="text-4xl font-bold tracking-tight">Guild Dashboard</h1><p className="mt-2 text-zinc-400">Manage your guild, events, rosters, resources and allocations.</p></div><Link href="/billing/new" className="inline-flex w-fit rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition hover:border-zinc-500 hover:bg-zinc-800">Billing & subscriptions →</Link></header>
+
+    <section className="mb-6 rounded-2xl border border-zinc-800 bg-zinc-900 p-6"><div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-sm text-zinc-500">Subscription</p><div className="mt-1 flex flex-wrap items-center gap-3"><h2 className="text-xl font-semibold">{subscription.planName ?? "No active subscription"}</h2><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${subscription.enabled ? "bg-emerald-950 text-emerald-300" : "bg-red-950 text-red-300"}`}>{subscription.enabled ? "Active" : "Inactive"}</span>{subscription.cancelAtPeriodEnd && subscription.enabled && <span className="rounded-full bg-amber-950 px-2.5 py-1 text-xs font-semibold text-amber-300">Cancels at period end</span>}</div><p className="mt-2 text-sm text-zinc-500">{subscription.expiresAt ? `${subscription.cancelAtPeriodEnd ? "Access until" : "Renews"} ${formatDate(subscription.expiresAt)}` : subscription.enabled ? "No expiry date" : "Renew to restore full guild access."}</p></div><Link href="/billing/new" className="inline-flex w-fit rounded-lg border border-zinc-700 px-4 py-2.5 text-sm font-medium text-white transition hover:border-zinc-500 hover:bg-zinc-800">Manage subscription →</Link></div></section>
+
     {subscription.warning && subscription.daysRemaining !== null && <section className="mb-6 rounded-2xl border border-amber-800/60 bg-amber-950/30 p-5"><h2 className="font-semibold text-amber-200">{subscription.planName ?? "Subscription"} expires in {subscription.daysRemaining} {subscription.daysRemaining === 1 ? "day" : "days"}</h2><p className="mt-1 text-sm text-amber-100/70">Renew before expiry to keep your guild accessible. {subscription.cancelAtPeriodEnd ? "Your subscription is scheduled to cancel at the end of this period." : ""}</p><Link href="/billing/new" className="mt-3 inline-flex rounded-lg bg-amber-200 px-4 py-2 text-sm font-medium text-zinc-950 hover:bg-amber-100">Manage subscription</Link></section>}
+
     {!guild ? <section className="rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/50 p-10 text-center"><h2 className="text-xl font-semibold">No guild configured</h2><p className="mt-2 text-sm text-zinc-400">Your ROO Guild Suite database is connected, but no guild has been created yet.</p><Link href="/guild" className="mt-6 inline-flex rounded-lg bg-white px-5 py-3 font-medium text-black">Configure Guild</Link></section> : <>
       <section className="mb-6 rounded-2xl border border-zinc-800 bg-zinc-900 p-6"><p className="text-sm text-zinc-500">Guild</p><h2 className="mt-1 text-2xl font-semibold">{guild.name}</h2><p className="mt-1 text-sm text-zinc-500">Discord Guild ID: {guild.discordGuildId}</p></section>
       <section className={`grid gap-4 sm:grid-cols-2 ${canViewAllocation ? "lg:grid-cols-6" : "lg:grid-cols-3"}`}><StatCard label="Active Members" value={memberCount} />{canViewAllocation && <StatCard label="Active Resources" value={resourceCount} />}{canViewAllocation && <StatCard label="Reservations" value={reservationCount} />}{canViewAllocation && <StatCard label="Allocation Runs" value={allocationRunCount} />}<StatCard label="Events" value={eventCount} /><StatCard label="Rosters" value={rosterCount} /></section>
