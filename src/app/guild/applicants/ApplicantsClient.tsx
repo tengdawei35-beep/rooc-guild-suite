@@ -17,6 +17,7 @@ type Applicant = {
 };
 
 type Invite = { id: string; token: string; active: boolean; createdAt: string; revokedAt: string | null };
+type ComparisonScores = NonNullable<Applicant["comparison"]>["scores"];
 
 export default function ApplicantsClient({ canManage }: { canManage: boolean }) {
   const [applicants, setApplicants] = useState<Applicant[]>([]);
@@ -42,24 +43,16 @@ export default function ApplicantsClient({ canManage }: { canManage: boolean }) 
 
   async function generateInvite() {
     setBusy(true); setError("");
-    try {
-      const response = await fetch("/api/guild/applicants/invite", { method: "POST" });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error ?? "Failed to generate link.");
-      await load();
-    } catch (err) { setError(err instanceof Error ? err.message : "Failed to generate link."); }
+    try { const response = await fetch("/api/guild/applicants/invite", { method: "POST" }); const data = await response.json(); if (!response.ok) throw new Error(data.error ?? "Failed to generate link."); await load(); }
+    catch (err) { setError(err instanceof Error ? err.message : "Failed to generate link."); }
     finally { setBusy(false); }
   }
 
   async function revokeInvite(id: string) {
     if (!window.confirm("Revoke this application link? Existing applications remain available.")) return;
     setBusy(true); setError("");
-    try {
-      const response = await fetch(`/api/guild/applicants/invite?id=${encodeURIComponent(id)}`, { method: "DELETE" });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error ?? "Failed to revoke link.");
-      await load();
-    } catch (err) { setError(err instanceof Error ? err.message : "Failed to revoke link."); }
+    try { const response = await fetch(`/api/guild/applicants/invite?id=${encodeURIComponent(id)}`, { method: "DELETE" }); const data = await response.json(); if (!response.ok) throw new Error(data.error ?? "Failed to revoke link."); await load(); }
+    catch (err) { setError(err instanceof Error ? err.message : "Failed to revoke link."); }
     finally { setBusy(false); }
   }
 
@@ -67,12 +60,8 @@ export default function ApplicantsClient({ canManage }: { canManage: boolean }) 
     const label = decision === "ACCEPTED" ? "accept" : "deny";
     if (!window.confirm(`Are you sure you want to ${label} this applicant?`)) return;
     setBusy(true); setError("");
-    try {
-      const response = await fetch("/api/guild/applicants", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, decision }) });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error ?? `Failed to ${label} applicant.`);
-      await load();
-    } catch (err) { setError(err instanceof Error ? err.message : `Failed to ${label} applicant.`); }
+    try { const response = await fetch("/api/guild/applicants", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, decision }) }); const data = await response.json(); if (!response.ok) throw new Error(data.error ?? `Failed to ${label} applicant.`); await load(); }
+    catch (err) { setError(err instanceof Error ? err.message : `Failed to ${label} applicant.`); }
     finally { setBusy(false); }
   }
 
@@ -84,5 +73,5 @@ export default function ApplicantsClient({ canManage }: { canManage: boolean }) 
   </div></main>;
 }
 
-function ScorePanel({ title, scores }: { title: string; scores: Applicant["comparison"]["scores"] }) { return <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-5"><h3 className="font-semibold">{title}</h3><div className="mt-4 grid grid-cols-3 gap-3"><Metric label="PvP" value={scores.pvpScore} percentile={scores.pvpPercentile} /><Metric label="DPS" value={scores.dpsScore} percentile={scores.dpsPercentile} /><Metric label="Tank" value={scores.tankScore} percentile={scores.tankPercentile} /></div><p className="mt-4 text-xs text-zinc-500">RAW PDEF {scores.rawPdef.toFixed(2)} · RAW MDEF {scores.rawMdef.toFixed(2)}</p></div>; }
+function ScorePanel({ title, scores }: { title: string; scores: ComparisonScores }) { return <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-5"><h3 className="font-semibold">{title}</h3><div className="mt-4 grid grid-cols-3 gap-3"><Metric label="PvP" value={scores.pvpScore} percentile={scores.pvpPercentile} /><Metric label="DPS" value={scores.dpsScore} percentile={scores.dpsPercentile} /><Metric label="Tank" value={scores.tankScore} percentile={scores.tankPercentile} /></div><p className="mt-4 text-xs text-zinc-500">RAW PDEF {scores.rawPdef.toFixed(2)} · RAW MDEF {scores.rawMdef.toFixed(2)}</p></div>; }
 function Metric({ label, value, percentile }: { label: string; value: number; percentile?: number }) { return <div className="rounded-lg border border-zinc-800 p-3 text-center"><p className="text-xs uppercase text-zinc-500">{label}</p><p className="mt-1 text-lg font-bold">{value.toFixed(2)}</p>{percentile !== undefined && <p className="mt-1 text-xs text-zinc-400">{percentile.toFixed(1)}th percentile</p>}</div>; }
