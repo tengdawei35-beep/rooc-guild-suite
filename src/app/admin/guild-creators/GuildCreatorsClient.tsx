@@ -8,6 +8,7 @@ type Creator = {
   discordUsername: string;
   maxGuilds: number;
   active: boolean;
+  guildCount: number;
 };
 
 export default function GuildCreatorsClient({
@@ -31,17 +32,12 @@ export default function GuildCreatorsClient({
       const response = await fetch("/api/admin/guild-creators", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          discordUserId,
-          discordUsername,
-          maxGuilds: Number(maxGuilds),
-        }),
+        body: JSON.stringify({ discordUserId, discordUsername, maxGuilds: Number(maxGuilds) }),
       });
-
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error ?? "Failed to add creator.");
 
-      setCreators((current) => [...current, payload.creator].sort((a, b) => a.discordUsername.localeCompare(b.discordUsername)));
+      setCreators((current) => [...current, { ...payload.creator, guildCount: 0 }].sort((a, b) => a.discordUsername.localeCompare(b.discordUsername)));
       setDiscordUserId("");
       setDiscordUsername("");
       setMaxGuilds("1");
@@ -60,28 +56,21 @@ export default function GuildCreatorsClient({
       body: JSON.stringify({ id: creator.id, ...changes }),
     });
     const payload = await response.json();
-
     if (!response.ok) {
       setError(payload.error ?? "Failed to update creator.");
       return;
     }
-
-    setCreators((current) => current.map((item) => item.id === creator.id ? payload.creator : item));
+    setCreators((current) => current.map((item) => item.id === creator.id ? { ...payload.creator, guildCount: item.guildCount } : item));
   }
 
   async function removeCreator(id: string) {
     if (!window.confirm("Remove this guild creator? They will no longer be allowed to create new guilds.")) return;
-
-    const response = await fetch(`/api/admin/guild-creators?id=${encodeURIComponent(id)}`, {
-      method: "DELETE",
-    });
+    const response = await fetch(`/api/admin/guild-creators?id=${encodeURIComponent(id)}`, { method: "DELETE" });
     const payload = await response.json();
-
     if (!response.ok) {
       setError(payload.error ?? "Failed to remove creator.");
       return;
     }
-
     setCreators((current) => current.filter((item) => item.id !== id));
   }
 
@@ -111,6 +100,10 @@ export default function GuildCreatorsClient({
                 <div>
                   <p className="font-medium">{creator.discordUsername}</p>
                   <p className="mt-1 text-xs text-zinc-500">{creator.discordUserId}</p>
+                </div>
+                <div className="text-sm">
+                  <p className="text-zinc-400">Guilds</p>
+                  <p className="mt-1 font-medium">{creator.guildCount} / {creator.maxGuilds}</p>
                 </div>
                 <label className="text-sm text-zinc-400">
                   Max guilds
