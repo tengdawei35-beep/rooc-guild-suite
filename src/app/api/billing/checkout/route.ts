@@ -57,8 +57,8 @@ export async function POST(request: Request) {
     });
     if (!plan) return NextResponse.json({ error: "INVALID_PLAN" }, { status: 400 });
 
-    const priceId = process.env[getStripePriceEnvKey(plan.name)];
-    if (!priceId) {
+    const stripePriceId = process.env[getStripePriceEnvKey(plan.name)];
+    if (!stripePriceId) {
       return NextResponse.json(
         { error: `STRIPE_PRICE_NOT_CONFIGURED_FOR_PLAN:${plan.name}` },
         { status: 500 },
@@ -67,7 +67,8 @@ export async function POST(request: Request) {
 
     const appUrl = process.env.APP_URL ?? new URL(request.url).origin;
     const session = await stripePaymentProvider.createCheckout({
-      planId: priceId,
+      planId: plan.id,
+      stripePriceId,
       customer: {
         discordUserId: user.discordId,
         username: user.username,
