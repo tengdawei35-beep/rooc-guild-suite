@@ -62,15 +62,18 @@ async function hasActiveSubscription(guildId: string) {
   return subscription !== null;
 }
 
+/** Returns authenticated session + guild membership without requiring billing entitlement. */
 export async function getCurrentAuth() {
   const membership = await getCurrentMembership();
   if (!membership) return null;
   return { user: membership.user, guild: membership.guild, membership, role: membership.role };
 }
 
+/** API/business-operation authentication: requires an active subscription. */
 export async function requireAuth() {
   const auth = await getCurrentAuth();
   if (!auth) throw new Error("UNAUTHORIZED");
+  if (!(await hasActiveSubscription(auth.guild.id))) throw new Error("SUBSCRIPTION_INACTIVE");
   return auth;
 }
 
@@ -87,16 +90,13 @@ export async function requirePageAuth() {
 }
 
 export async function requireActiveSubscription() {
-  const auth = await requireAuth();
-  if (!(await hasActiveSubscription(auth.guild.id))) throw new Error("SUBSCRIPTION_INACTIVE");
-  return auth;
+  return requireAuth();
 }
 
 export { hasPermission };
 export type { Permission, UserRole };
 export async function requirePermission(permission: Permission) {
   const auth = await requireAuth();
-  if (!(await hasActiveSubscription(auth.guild.id))) throw new Error("SUBSCRIPTION_INACTIVE");
   if (!hasPermission(auth.role, permission)) throw new Error("FORBIDDEN");
   return auth;
 }
