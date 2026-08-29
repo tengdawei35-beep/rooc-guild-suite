@@ -68,11 +68,10 @@ export async function POST(request: Request) {
       }
 
       await prisma.$transaction(async (tx) => {
-        const creator = await tx.platformGuildCreator.findUnique({ where: { discordUserId } });
         const user = await tx.user.findUnique({ where: { discordId: discordUserId } });
         const plan = await tx.plan.findFirst({ where: { id: planId, active: true }, include: { modules: true } });
 
-        if (!creator?.active || !user || !plan) throw new Error("CHECKOUT_CREATOR_USER_OR_PLAN_INVALID");
+        if (!user || !plan) throw new Error("CHECKOUT_USER_OR_PLAN_INVALID");
 
         const existingGuild = await tx.guild.findUnique({ where: { discordGuildId } });
         if (existingGuild) {
@@ -83,8 +82,11 @@ export async function POST(request: Request) {
           return;
         }
 
-        const ownedGuildCount = await tx.guild.count({ where: { ownerUserId: user.id } });
-        if (ownedGuildCount >= creator.maxGuilds) throw new Error("GUILD_CREATION_LIMIT_REACHED");
+        const creator = await tx.platformGuildCreator.findUnique({ where: { discordUserId } });
+        if (creator?.active) {
+          const ownedGuildCount = await tx.guild.count({ where: { ownerUserId: user.id } });
+          if (ownedGuildCount >= creator.maxGuilds) throw new Error("GUILD_CREATION_LIMIT_REACHED");
+        }
 
         const guild = await tx.guild.create({ data: { name: guildName, discordGuildId, ownerUserId: user.id } });
         await tx.guildSubscription.create({
