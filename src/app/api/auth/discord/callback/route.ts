@@ -1,21 +1,11 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
-import {
-  createSession,
-} from "@/lib/auth";
-import {
-  setPlatformUserSession,
-} from "@/lib/auth/platform";
-
+import { createSession } from "@/lib/auth";
+import { setPlatformUserSession } from "@/lib/auth/platform";
 import { prisma } from "@/lib/prisma";
-import {
-  ensureGuildMembershipsForDiscordUser,
-} from "@/lib/auth/ensure-guild-membership";
-import {
-  GUILD_SELECTION_COOKIE,
-  createGuildSelectionToken,
-} from "@/lib/guild-selection";
+import { ensureGuildMembershipsForDiscordUser } from "@/lib/auth/ensure-guild-membership";
+import { GUILD_SELECTION_COOKIE, createGuildSelectionToken } from "@/lib/guild-selection";
 
 const OAUTH_STATE_COOKIE = "rooc_discord_oauth_state";
 
@@ -80,18 +70,44 @@ export async function GET(request: Request) {
       create: { discordId: discordUserId, username: discordUsername, avatarUrl },
     });
 
-    // Every authenticated Discord user receives a signed platform session.
-    // This session is intentionally independent of guild membership so the
-    // SaaS onboarding flow can support users who do not yet own a guild.
     await setPlatformUserSession(user.id);
 
     await ensureGuildMembershipsForDiscordUser({ userId: user.id, discordId: discordUserId, username: discordUsername });
 
-    const memberships = await prisma.guildMembership.findMany({
+    let memberships = await prisma.guildMembership.findMany({
       where: { userId: user.id },
       include: { guild: true },
       orderBy: { createdAt: "asc" },
     });
+
+    // Paid checkout creates the guild with ownerUserId. Recover any missing
+    // membership here as a defensive repair for guilds provisioned before the
+    // owner-membership webhook fix, or for a webhook replay that encountered an
+    // older provisioning path. Ownership is authoritative and does not depend
+    // on GuildMember identity linking.
+    if (memberships.length === 0) {
+      const ownedGuilds = await prisma.guild.findMany({
+        where: { ownerUserId: user.id },
+        select: { id: true },
+      });
+
+      if (ownedGuilds.length > 0) {
+        await prisma.guildMembership.createMany({
+          data: ownedGuilds.map((guild) => ({
+            userId: user.id,
+            guildId: guild.id,
+            role: "ADMIN" as const,
+          })),
+          skipDuplicates: true,
+        });
+
+        memberships = await prisma.guildMembership.findMany({
+          where: { userId: user.id },
+          include: { guild: true },
+          orderBy: { createdAt: "asc" },
+        });
+      }
+    }
 
     const membership = memberships[0] ?? null;
 
@@ -122,9 +138,6 @@ export async function GET(request: Request) {
       return NextResponse.redirect(new URL("/billing/new", appBaseUrl));
     }
 
-    // Always use the guild selector when the user has an existing membership.
-    // It also provides the optional "Create another guild" action when the
-    // platform creator allowance permits it.
     cookieStore.set(GUILD_SELECTION_COOKIE, createGuildSelectionToken(user.id), {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
