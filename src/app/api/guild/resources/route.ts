@@ -9,6 +9,11 @@ import {
 } from "@/lib/permissions";
 
 import {
+  hasGuildModule,
+  RESOURCE_SUITE_MODULE,
+} from "@/lib/auth/modules";
+
+import {
   prisma,
 } from "@/lib/prisma";
 
@@ -142,6 +147,15 @@ function validateResourceData(
   };
 }
 
+async function requireResourceSuite(
+  guildId: string
+) {
+  return hasGuildModule(
+    guildId,
+    RESOURCE_SUITE_MODULE
+  );
+}
+
 // =============================================================
 // POST
 // =============================================================
@@ -161,6 +175,18 @@ export async function POST(
         },
         {
           status: 401,
+        }
+      );
+    }
+
+    if (!(await requireResourceSuite(auth.guild.id))) {
+      return NextResponse.json(
+        {
+          error:
+            "The Resource Suite is not subscribed for this guild.",
+        },
+        {
+          status: 403,
         }
       );
     }
@@ -294,6 +320,18 @@ export async function PUT(
         },
         {
           status: 401,
+        }
+      );
+    }
+
+    if (!(await requireResourceSuite(auth.guild.id))) {
+      return NextResponse.json(
+        {
+          error:
+            "The Resource Suite is not subscribed for this guild.",
+        },
+        {
+          status: 403,
         }
       );
     }
@@ -469,6 +507,18 @@ export async function DELETE(
         },
         {
           status: 401,
+        }
+      );
+    }
+
+    if (!(await requireResourceSuite(auth.guild.id))) {
+      return NextResponse.json(
+        {
+          error:
+            "The Resource Suite is not subscribed for this guild.",
+        },
+        {
+          status: 403,
         }
       );
     }
