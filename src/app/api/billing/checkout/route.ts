@@ -4,9 +4,10 @@ import { getCurrentPlatformUser } from "@/lib/auth/platform";
 import { prisma } from "@/lib/prisma";
 import { stripePaymentProvider } from "@/lib/payments/stripe";
 
-function getStripePriceEnvKey(planName: string) {
+function getStripePriceId(planName: string) {
   const normalized = planName.trim().toUpperCase().replace(/[^A-Z0-9]+/g, "_");
-  return `STRIPE_PRICE_${normalized}`;
+  return process.env[`STRIPE_PRICE_${normalized}`] ??
+    process.env[`${normalized}_PRICE_ID`];
 }
 
 export async function POST(request: Request) {
@@ -29,7 +30,7 @@ export async function POST(request: Request) {
     const plan = await prisma.plan.findFirst({ where: { id: planId, active: true }, include: { modules: true } });
     if (!plan) return NextResponse.json({ error: "INVALID_PLAN" }, { status: 400 });
 
-    const stripePriceId = process.env[getStripePriceEnvKey(plan.name)];
+    const stripePriceId = getStripePriceId(plan.name);
     if (!stripePriceId) return NextResponse.json({ error: `STRIPE_PRICE_NOT_CONFIGURED_FOR_PLAN:${plan.name}` }, { status: 500 });
 
     const appUrl = process.env.APP_URL ?? new URL(request.url).origin;
