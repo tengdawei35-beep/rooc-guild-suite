@@ -1,0 +1,54 @@
+name: Fix build errors
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch files
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('src/app/api/events/[eventId]/raids/route.ts')
+          s=p.read_text()
+          s=s.replace('    const rosters = await prisma.roster.findMany({', '    const rosters = await prisma.roster.findMany({')
+          old='''        parties: {\n          orderBy: [{ battlefield: "asc" }, { partyNumber: "asc" }],\n          include: {\n            raids: { include: { raid: true } },\n          },\n        },'''
+          new='''        parties: {\n          orderBy: [{ battlefield: "asc" }, { partyNumber: "asc" }],\n        },'''
+          s=s.replace(old,new)
+          old2='''    const raids = await prisma.raid.findMany({\n      where: { parties: { some: { party: { roster: { eventId } } } } },\n      orderBy: { createdAt: "asc" },\n      include: {\n        parties: {\n          include: {\n            party: { select: { id: true, rosterId: true, partyNumber: true, battlefield: true } },\n          },\n          orderBy: { createdAt: "asc" },\n        },\n      },\n    });'''
+          new2='''    const raids = await prisma.raid.findMany({\n      where: { parties: { some: { party: { roster: { eventId } } } } },\n      orderBy: { createdAt: "asc" },\n      include: {\n        parties: {\n          orderBy: { createdAt: "asc" },\n        },\n      },\n    });\n\n    const raidPartyRows = await prisma.raidParty.findMany({\n      where: { party: { roster: { eventId } } },\n      select: { partyId: true, raidId: true },\n    });\n    const raidByParty = new Map(raidPartyRows.map((row) => [row.partyId, row.raidId]));'''
+          s=s.replace(old2,new2)
+          s=s.replace('          raidId: party.raids[0]?.raidId ?? null,','          raidId: raidByParty.get(party.id) ?? null,')
+          old3='''    const parties = await prisma.rosterParty.findMany({\n      where: { id: { in: partyIds }, roster: { eventId } },\n      select: { id: true, raids: { select: { raidId: true } } },\n    });'''
+          new3='''    const parties = await prisma.rosterParty.findMany({\n      where: { id: { in: partyIds }, roster: { eventId } },\n      select: { id: true },\n    });\n    const existingRaidParties = await prisma.raidParty.findMany({\n      where: { partyId: { in: partyIds } },\n      select: { partyId: true, raidId: true },\n    });'''
+          s=s.replace(old3,new3)
+          s=s.replace('    if (parties.some((party) => party.raids.length > 0)) return NextResponse.json({ error: "A selected party is already assigned to a raid." }, { status: 409 });','    if (existingRaidParties.length > 0) return NextResponse.json({ error: "A selected party is already assigned to a raid." }, { status: 409 });')
+          old4='''      const parties = await prisma.rosterParty.findMany({\n        where: { id: { in: partyIds }, roster: { eventId } },\n        select: { id: true, raids: { select: { raidId: true } } },\n      });'''
+          new4='''      const parties = await prisma.rosterParty.findMany({\n        where: { id: { in: partyIds }, roster: { eventId } },\n        select: { id: true },\n      });\n      const existingRaidParties = await prisma.raidParty.findMany({\n        where: { partyId: { in: partyIds } },\n        select: { partyId: true, raidId: true },\n      });'''
+          s=s.replace(old4,new4)
+          s=s.replace('      if (parties.some((party) => party.raids.some((entry) => entry.raidId !== raidId))) return NextResponse.json({ error: "A selected party is already assigned to another raid." }, { status: 409 });','      if (existingRaidParties.some((entry) => entry.raidId !== raidId)) return NextResponse.json({ error: "A selected party is already assigned to another raid." }, { status: 409 });')
+          p.write_text(s)
+
+          p=Path('src/app/guild/members/[memberId]/MemberProfileClient.tsx')
+          s=p.read_text()
+          s=s.replace('''}: {\n  memberId: string;\n  rawPdef: number;\n}) {''','''}: {\n  memberId: string;\n  rawPdef: number;\n  rawMdef: number;\n}) {''')
+          s=s.replace('''          stats={[\n            [\n              "RAW PDEF",\n              rawPdef,\n            ],\n          ]}''','''          stats={[\n            [\n              "RAW PDEF",\n              rawPdef,\n            ],\n            [\n              "RAW MDEF",\n              rawMdef,\n            ],\n          ]}''')
+          p.write_text(s)
+          PY
+      - name: Commit fixes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/app/api/events/[eventId]/raids/route.ts src/app/guild/members/[memberId]/MemberProfileClient.tsx
+          git diff --cached --check
+          git commit -m "fix: resolve raid and raw mdef type errors" || exit 0
+          git push
+      - name: Remove workflow
+        if: always()
+        run: |
+          git rm .github/workflows/fix-build.yml || true
+          git commit -m "chore: remove temporary fix workflow" || true
+          git push || true
