@@ -47,7 +47,12 @@ export function hasPermission(role: UserRole, permission: Permission): boolean {
   if (role === "ADMIN") return true;
 
   if (role === "MANAGER") {
-    return permission !== "guild.manage";
+    return [
+      "members.view", "members.edit", "members.delete", "members.import",
+      "profile.editOwn", "leave.manageOwn", "leave.manageAny",
+      "events.view", "events.manage", "rosters.view", "rosters.edit",
+      "allocation.view", "allocation.run", "users.view", "users.manage",
+    ].includes(permission);
   }
 
   if (role === "OFFICER") {
