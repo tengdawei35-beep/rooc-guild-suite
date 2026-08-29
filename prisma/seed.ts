@@ -1,19 +1,23 @@
 import "dotenv/config";
 import Stripe from "stripe";
-import { PrismaClient } from "../src/generated/prisma/client.ts";
+import { PrismaClient } from "../src/generated/prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 
-const prisma = new PrismaClient();
-
+const connectionString = process.env.DATABASE_URL;
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const basicPriceId = process.env.BASIC_PRICE_ID;
 const totalPriceId = process.env.TOTAL_PRICE_ID;
 
-if (!stripeSecretKey || !basicPriceId || !totalPriceId) {
+if (!connectionString || !stripeSecretKey || !basicPriceId || !totalPriceId) {
   throw new Error(
-    "STRIPE_SECRET_KEY, BASIC_PRICE_ID and TOTAL_PRICE_ID are required to seed plans."
+    "DATABASE_URL, STRIPE_SECRET_KEY, BASIC_PRICE_ID and TOTAL_PRICE_ID are required to seed plans."
   );
 }
 
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 const stripe = new Stripe(stripeSecretKey);
 
 async function upsertPlan(name: string, priceId: string, description: string) {
@@ -76,4 +80,5 @@ try {
   console.log(`Seeded plans: ${basic.name} (${basic.id}), ${total.name} (${total.id})`);
 } finally {
   await prisma.$disconnect();
+  await pool.end();
 }
