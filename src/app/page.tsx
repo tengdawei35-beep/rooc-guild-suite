@@ -4,9 +4,14 @@ import {
   requirePageAuth,
   hasPermission,
 } from "@/lib/auth";
+import {
+  hasGuildModule,
+  RESOURCE_SUITE_MODULE,
+} from "@/lib/auth/modules";
 
 export default async function Home() {
   const auth = await requirePageAuth();
+  const hasResourceSuite = await hasGuildModule(auth.guild.id, RESOURCE_SUITE_MODULE);
 
   const guild = await prisma.guild.findUnique({
     where: { id: auth.guild.id },
@@ -33,7 +38,8 @@ export default async function Home() {
     0
   ) ?? 0;
 
-  const canViewAllocation = hasPermission(auth.role, "allocation.view");
+  const canViewAllocation =
+    hasResourceSuite && hasPermission(auth.role, "allocation.view");
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
@@ -139,17 +145,19 @@ export default async function Home() {
               </section>
             )}
 
-            <section className="mt-10">
-              <h2 className="mb-4 text-lg font-semibold">Bid Pages</h2>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <DashboardCard
-                  href="/bid-pages"
-                  title="Bid Pages"
-                  description="View active and previous bidding pages and find assigned slots."
-                  featured
-                />
-              </div>
-            </section>
+            {hasResourceSuite && (
+              <section className="mt-10">
+                <h2 className="mb-4 text-lg font-semibold">Bid Pages</h2>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <DashboardCard
+                    href="/bid-pages"
+                    title="Bid Pages"
+                    description="View active and previous bidding pages and find assigned slots."
+                    featured
+                  />
+                </div>
+              </section>
+            )}
 
             {hasPermission(auth.role, "events.view") && guild.events.length > 0 && (
               <section className="mt-10">
