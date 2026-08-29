@@ -2,8 +2,13 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 
 function getConfiguredAdminDiscordIds() {
+  const configured =
+    process.env.PLATFORM_ADMIN_DISCORD_ID ??
+    process.env.ADMIN_DISCORD_USER_IDS ??
+    "";
+
   return new Set(
-    (process.env.ADMIN_DISCORD_USER_IDS ?? "")
+    configured
       .split(",")
       .map((value) => value.trim())
       .filter(Boolean)
