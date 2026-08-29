@@ -33,6 +33,8 @@ export default async function Home() {
     0
   ) ?? 0;
 
+  const canViewAllocation = hasPermission(auth.role, "allocation.view");
+
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
       <div className="mx-auto max-w-7xl px-6 py-10">
@@ -69,11 +71,11 @@ export default async function Home() {
               </p>
             </section>
 
-            <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
+            <section className={`grid gap-4 sm:grid-cols-2 ${canViewAllocation ? "lg:grid-cols-6" : "lg:grid-cols-3"}`}>
               <StatCard label="Active Members" value={memberCount} />
-              <StatCard label="Active Resources" value={resourceCount} />
-              <StatCard label="Reservations" value={reservationCount} />
-              <StatCard label="Allocation Runs" value={allocationRunCount} />
+              {canViewAllocation && <StatCard label="Active Resources" value={resourceCount} />}
+              {canViewAllocation && <StatCard label="Reservations" value={reservationCount} />}
+              {canViewAllocation && <StatCard label="Allocation Runs" value={allocationRunCount} />}
               <StatCard label="Events" value={eventCount} />
               <StatCard label="Rosters" value={rosterCount} />
             </section>
@@ -111,10 +113,10 @@ export default async function Home() {
                   {hasPermission(auth.role, "members.view") && (
                     <DashboardCard href="/guild/rankings" title="Guild Rankings" description="Compare overall, DPS, Tank and PvP performance across the guild." featured />
                   )}
-                  {hasPermission(auth.role, "allocation.view") && (
+                  {canViewAllocation && (
                     <DashboardCard href="/guild/resources" title="Resources" description="Manage feathers, cards and resource limits." />
                   )}
-                  {hasPermission(auth.role, "allocation.view") && (
+                  {canViewAllocation && (
                     <DashboardCard href="/guild/reservations" title="Reservations" description="Manage reserved resource allocations." />
                   )}
                   {hasPermission(auth.role, "users.view") && (
@@ -127,7 +129,7 @@ export default async function Home() {
               </section>
             )}
 
-            {hasPermission(auth.role, "allocation.view") && (
+            {canViewAllocation && (
               <section className="mt-10">
                 <h2 className="mb-4 text-lg font-semibold">Allocation</h2>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
