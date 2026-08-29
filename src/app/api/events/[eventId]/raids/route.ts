@@ -93,17 +93,19 @@ export async function POST(request: Request, context: RouteContext) {
     const body = await request.json();
     const name = typeof body.name === "string" ? body.name.trim() : "";
     const partyIds = validatePartyIds(body.partyIds);
+    if (!partyIds) return NextResponse.json({ error: "partyIds must be an array." }, { status: 400 });
 
     if (!name) return NextResponse.json({ error: "Raid name is required." }, { status: 400 });
     if (!partyIds) return NextResponse.json({ error: "partyIds must be an array." }, { status: 400 });
 
     const parties = await prisma.rosterParty.findMany({
       where: { id: { in: partyIds }, roster: { eventId } },
-      select: { id: true, raids: { select: { raidId: true } } },
+      select: { id: true },
     });
 
     if (parties.length !== partyIds.length) return NextResponse.json({ error: "One or more selected parties do not belong to this event." }, { status: 400 });
-    if (parties.some((party) => party.raids.length > 0)) return NextResponse.json({ error: "A selected party is already assigned to a raid." }, { status: 409 });
+    const assigned = await prisma.raidParty.findMany({ where: { partyId: { in: partyIds } }, select: { partyId: true } });
+    if (assigned.length > 0) return NextResponse.json({ error: "A selected party is already assigned to a raid." }, { status: 409 });
 
     const raid = await prisma.raid.create({
       data: {
@@ -147,10 +149,11 @@ export async function PATCH(request: Request, context: RouteContext) {
     if (partyIds !== undefined) {
       const parties = await prisma.rosterParty.findMany({
         where: { id: { in: partyIds }, roster: { eventId } },
-        select: { id: true, raids: { select: { raidId: true } } },
+        select: { id: true },
       });
       if (parties.length !== partyIds.length) return NextResponse.json({ error: "One or more selected parties do not belong to this event." }, { status: 400 });
-      if (parties.some((party) => party.raids.some((entry) => entry.raidId !== raidId))) return NextResponse.json({ error: "A selected party is already assigned to another raid." }, { status: 409 });
+      const assigned = await prisma.raidParty.findMany({ where: { partyId: { in: partyIds }, raidId: { not: raidId } }, select: { partyId: true } });
+      if (assigned.length > 0) return NextResponse.json({ error: "A selected party is already assigned to another raid." }, { status: 409 });
     }
 
     const updated = await prisma.$transaction(async (tx) => {

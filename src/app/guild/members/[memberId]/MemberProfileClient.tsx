@@ -145,9 +145,11 @@ type ApiResponse = {
 export default function MemberProfileClient({
   memberId,
   rawPdef,
+  rawMdef,
 }: {
   memberId: string;
   rawPdef: number;
+  rawMdef: number;
 }) {
   const [data, setData] =
     useState<ApiResponse | null>(
@@ -491,6 +493,10 @@ export default function MemberProfileClient({
             [
               "RAW PDEF",
               rawPdef,
+            ],
+            [
+              "RAW MDEF",
+              rawMdef,
             ],
           ]}
         />
