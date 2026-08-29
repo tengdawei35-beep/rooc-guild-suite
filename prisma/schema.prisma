@@ -52,6 +52,26 @@ enum RosterGenerationMode {
   AUTOMATIC
 }
 
+enum SaaSModule {
+  CORE
+  RESOURCES
+  BIDDING
+  ALLOCATION
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  TRIALING
+  PAST_DUE
+  CANCELED
+  INCOMPLETE
+}
+
+enum BillingInterval {
+  MONTH
+  YEAR
+}
+
 model User {
   id        String  @id @default(cuid())
   discordId String  @unique
@@ -60,6 +80,7 @@ model User {
 
   guildMemberships GuildMembership[]
   guildMembers GuildMember[]
+  ownedGuilds Guild[] @relation("GuildOwner")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -69,27 +90,32 @@ model Guild {
   id             String @id @default(cuid())
   discordGuildId String @unique
   name           String
+  ownerUserId    String?
 
   memberships GuildMembership[]
-  members             GuildMember[]
-  resources           Resource[]
+  members GuildMember[]
+  resources Resource[]
   reservedAllocations ReservedAllocation[]
-  rotationStates      RotationState[]
-  allocationRuns      AllocationRun[]
+  rotationStates RotationState[]
+  allocationRuns AllocationRun[]
   events Event[]
   preferredRosters PreferredRoster[]
+  owner User? @relation("GuildOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
+  subscriptions GuildSubscription[]
+  moduleEntitlements GuildModuleEntitlement[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@index([ownerUserId])
 }
 
 model GuildMembership {
   id String @id @default(cuid())
-  userId  String
+  userId String
   guildId String
   role UserRole @default(MEMBER)
 
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
@@ -103,56 +129,48 @@ model GuildMembership {
 
 model GuildMember {
   id String @id @default(cuid())
-
   guildId String
-  userId  String?
-
-  // Discord identity imported by guild leadership.
-  // discordUserId is stored as text because Discord Snowflakes
-  // must not be converted to JavaScript numbers.
-  discordUserId  String?
+  userId String?
+  discordUserId String?
   discordUsername String?
   characterName String?
-  job           String?
-
-  active   Boolean        @default(true)
-  eligible Boolean        @default(true)
+  job String?
+  active Boolean @default(true)
+  eligible Boolean @default(true)
   priority MemberPriority @default(MEMBER)
-  remarks  String?
-
+  remarks String?
   pdef Float?
   mdef Float?
-  pvpDamageBonus     Float?
+  pvpDamageBonus Float?
   pvpDamageReduction Float?
-  pdmgPercent          Float?
-  mdmgPercent          Float?
+  pdmgPercent Float?
+  mdmgPercent Float?
   pdmgReductionPercent Float?
   mdmgReductionPercent Float?
-  critRes    Float?
+  critRes Float?
   ignorePdef Float?
   ignoreMdef Float?
-  damageVsMedium          Float?
+  damageVsMedium Float?
   damageReductionVsMedium Float?
-  damageVsSmall          Float?
+  damageVsSmall Float?
   damageReductionVsSmall Float?
-  damageVsDemiHuman          Float?
+  damageVsDemiHuman Float?
   damageReductionVsDemiHuman Float?
-  damageVsBrute          Float?
+  damageVsBrute Float?
   damageReductionVsBrute Float?
   equipmentPdefPercent Float?
   equipmentMdefPercent Float?
   patk Float?
   matk Float?
-  hp   Float?
+  hp Float?
 
   guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  reservations      ReservedAllocation[]
+  reservations ReservedAllocation[]
   allocationResults AllocationResult[]
-  bidSlots          BidSlot[]
-  leaveDates        MemberLeave[]
-  participations    EventParticipation[]
+  bidSlots BidSlot[]
+  leaveDates MemberLeave[]
+  participations EventParticipation[]
   rosterAssignments RosterMember[]
   preferredRosterAssignments PreferredRosterMember[]
 
@@ -184,18 +202,18 @@ model MemberLeave {
 model Resource {
   id String @id @default(cuid())
   guildId String
-  name           String
-  type           ResourceType
-  total          Int
+  name String
+  type ResourceType
+  total Int
   perPlayerLimit Int
-  hardCap        Int
-  active         Boolean      @default(true)
+  hardCap Int
+  active Boolean @default(true)
   guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
-  reservations      ReservedAllocation[]
+  reservations ReservedAllocation[]
   allocationResults AllocationResult[]
-  resourceResults   ResourceResult[]
-  rotationStates    RotationState[]
-  bidSlots          BidSlot[]
+  resourceResults ResourceResult[]
+  rotationStates RotationState[]
+  bidSlots BidSlot[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@unique([guildId, name])
@@ -204,13 +222,13 @@ model Resource {
 
 model ReservedAllocation {
   id String @id @default(cuid())
-  guildId    String
-  memberId   String
+  guildId String
+  memberId String
   resourceId String
   quantity Int
-  guild    Guild       @relation(fields: [guildId], references: [id], onDelete: Cascade)
-  member   GuildMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
-  resource Resource    @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  member GuildMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  resource Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@unique([guildId, memberId, resourceId])
@@ -221,10 +239,10 @@ model ReservedAllocation {
 
 model RotationState {
   id String @id @default(cuid())
-  guildId    String
+  guildId String
   resourceId String
   rotationIndex Int @default(0)
-  guild    Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
   resource Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -238,14 +256,14 @@ model AllocationRun {
   eventId String?
   status AllocationRunStatus @default(RUNNING)
   rotationIndexBefore Json?
-  rotationIndexAfter  Json?
+  rotationIndexAfter Json?
   errorMessage String?
-  guild Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
   event Event? @relation(fields: [eventId], references: [id], onDelete: SetNull)
   allocationResults AllocationResult[]
-  resourceResults   ResourceResult[]
-  bidPages          BidPage[]
-  createdAt   DateTime  @default(now())
+  resourceResults ResourceResult[]
+  bidPages BidPage[]
+  createdAt DateTime @default(now())
   completedAt DateTime?
   @@index([guildId])
   @@index([guildId, createdAt])
@@ -255,13 +273,13 @@ model AllocationRun {
 model AllocationResult {
   id String @id @default(cuid())
   allocationRunId String
-  memberId        String
-  resourceId      String
+  memberId String
+  resourceId String
   reservedQuantity Int @default(0)
   assignedQuantity Int @default(0)
   allocationRun AllocationRun @relation(fields: [allocationRunId], references: [id], onDelete: Cascade)
-  member        GuildMember   @relation(fields: [memberId], references: [id], onDelete: Cascade)
-  resource      Resource      @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  member GuildMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  resource Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   @@unique([allocationRunId, memberId, resourceId])
   @@index([allocationRunId])
@@ -272,13 +290,13 @@ model AllocationResult {
 model ResourceResult {
   id String @id @default(cuid())
   allocationRunId String
-  resourceId      String
-  total     Int
-  reserved  Int
+  resourceId String
+  total Int
+  reserved Int
   allocated Int
-  overflow  Int
+  overflow Int
   allocationRun AllocationRun @relation(fields: [allocationRunId], references: [id], onDelete: Cascade)
-  resource      Resource      @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  resource Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
   @@unique([allocationRunId, resourceId])
   @@index([allocationRunId])
 }
@@ -286,7 +304,7 @@ model ResourceResult {
 model BidPage {
   id String @id @default(cuid())
   allocationRunId String
-  type       BidPageType
+  type BidPageType
   pageNumber Int
   allocationRun AllocationRun @relation(fields: [allocationRunId], references: [id], onDelete: Cascade)
   slots BidSlot[]
@@ -300,10 +318,10 @@ model BidSlot {
   bidPageId String
   slotNumber Int
   resourceId String
-  memberId   String
-  bidPage  BidPage     @relation(fields: [bidPageId], references: [id], onDelete: Cascade)
-  resource Resource    @relation(fields: [resourceId], references: [id], onDelete: Cascade)
-  member   GuildMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  memberId String
+  bidPage BidPage @relation(fields: [bidPageId], references: [id], onDelete: Cascade)
+  resource Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  member GuildMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   @@unique([bidPageId, slotNumber])
   @@index([bidPageId])
@@ -316,7 +334,7 @@ model Event {
   date DateTime
   guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
   participations EventParticipation[]
-  rosters        Roster[]
+  rosters Roster[]
   allocationRuns AllocationRun[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -327,11 +345,11 @@ model Event {
 
 model EventParticipation {
   id String @id @default(cuid())
-  eventId  String
+  eventId String
   memberId String
   available Boolean @default(true)
-  remarks   String?
-  event  Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  remarks String?
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
   member GuildMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -359,7 +377,7 @@ model RosterParty {
   battlefield Battlefield
   roster Roster @relation(fields: [rosterId], references: [id], onDelete: Cascade)
   members RosterMember[]
-  raids   RaidParty[]
+  raids RaidParty[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@unique([rosterId, battlefield, partyNumber])
@@ -368,17 +386,17 @@ model RosterParty {
 
 model RosterMember {
   id String @id @default(cuid())
-  partyId  String
+  partyId String
   memberId String
   slotNumber Int
   guildPercentile Float
-  tankScore      Float
+  tankScore Float
   tankPercentile Float
-  dpsScore       Float
-  dpsPercentile  Float
-  pvpScore       Float
-  pvpPercentile  Float
-  party  RosterParty @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  dpsScore Float
+  dpsPercentile Float
+  pvpScore Float
+  pvpPercentile Float
+  party RosterParty @relation(fields: [partyId], references: [id], onDelete: Cascade)
   member GuildMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   @@unique([partyId, slotNumber])
@@ -396,9 +414,9 @@ model Raid {
 
 model RaidParty {
   id String @id @default(cuid())
-  raidId  String
+  raidId String
   partyId String
-  raid  Raid        @relation(fields: [raidId], references: [id], onDelete: Cascade)
+  raid Raid @relation(fields: [raidId], references: [id], onDelete: Cascade)
   party RosterParty @relation(fields: [partyId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   @@unique([raidId, partyId])
@@ -409,7 +427,7 @@ model RaidParty {
 model PreferredRoster {
   id String @id @default(cuid())
   guildId String
-  type    EventType
+  type EventType
   guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
   parties PreferredRosterParty[]
   createdAt DateTime @default(now())
@@ -427,7 +445,6 @@ model PreferredRosterParty {
   preferredRoster PreferredRoster @relation(fields: [preferredRosterId], references: [id], onDelete: Cascade)
   members PreferredRosterMember[]
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
   @@unique([preferredRosterId, battlefield, partyNumber])
   @@index([preferredRosterId])
 }
@@ -435,7 +452,7 @@ model PreferredRosterParty {
 model PreferredRosterMember {
   id String @id @default(cuid())
   preferredRosterPartyId String
-  memberId               String
+  memberId String
   slotNumber Int
   preferredRosterParty PreferredRosterParty @relation(fields: [preferredRosterPartyId], references: [id], onDelete: Cascade)
   member GuildMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
@@ -444,4 +461,71 @@ model PreferredRosterMember {
   @@unique([preferredRosterPartyId, memberId])
   @@index([preferredRosterPartyId])
   @@index([memberId])
+}
+
+model PlatformGuildCreator {
+  id String @id @default(cuid())
+  discordUserId String @unique
+  discordUsername String
+  maxGuilds Int @default(1)
+  active Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([active])
+}
+
+model Plan {
+  id String @id @default(cuid())
+  name String @unique
+  description String?
+  priceCents Int
+  currency String @default("usd")
+  billingInterval BillingInterval @default(MONTH)
+  active Boolean @default(true)
+  modules PlanModule[]
+  subscriptions GuildSubscription[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PlanModule {
+  id String @id @default(cuid())
+  planId String
+  module SaaSModule
+  plan Plan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  @@unique([planId, module])
+  @@index([module])
+}
+
+model GuildSubscription {
+  id String @id @default(cuid())
+  guildId String
+  planId String
+  status SubscriptionStatus @default(INCOMPLETE)
+  provider String?
+  providerCustomerId String?
+  providerSubscriptionId String? @unique
+  currentPeriodStart DateTime?
+  currentPeriodEnd DateTime?
+  cancelAtPeriodEnd Boolean @default(false)
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  plan Plan @relation(fields: [planId], references: [id], onDelete: Restrict)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([guildId, status])
+  @@index([planId])
+  @@index([providerCustomerId])
+}
+
+model GuildModuleEntitlement {
+  id String @id @default(cuid())
+  guildId String
+  module SaaSModule
+  enabled Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  @@unique([guildId, module])
+  @@index([module, enabled])
 }
