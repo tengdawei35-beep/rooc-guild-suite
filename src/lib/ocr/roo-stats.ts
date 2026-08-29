@@ -14,10 +14,7 @@ const LABELS: Record<string, string[]> = {
   ignorePdef: ["IGNORE PDEF", "IGNORE P DEF", "IGNORE P-DEF", "LENORE PDEF"],
   ignoreMdef: ["IGNORE MDEF", "IGNORE M DEF", "IGNORE M-DEF", "LENORE MDEF"],
   pdmgBonus: ["PDMG BONUS", "P DMG BONUS"], mdmgBonus: ["MDMG BONUS", "M DMG BONUS"],
-  pvpDamageReduction: ["PVP DMG REDUCTION", "PVP DMG RED", "P DMG RED", "2VP DMG RED", ">VP DMG RED", ">VP DMG REDU"],
-  pvpDamageBonus: ["PVP DMG BONUS", "PVP DMG BON", "P DMG BONUS", "2VP DMG BONUS", ">VP DMG BONUS"],
-  pveDamageReduction: ["PVE DMG REDUCTION", "PVE DMG RED", "VE DMG RED"],
-  pveDamageBonus: ["PVE DMG BONUS", "PVE DMG BON"],
+  pveDamageReduction: ["PVE DMG REDUCTION", "PVE DMG RED", "VE DMG RED"], pveDamageBonus: ["PVE DMG BONUS", "PVE DMG BON"],
   damageVsSmall: ["DMG VS SMALL ENEMIES", "DMG VS SMALL"], damageReductionVsSmall: ["DMG REDUCTION VS SMALL ENEMIES", "DMG REDUCTION VS SMALL"],
   damageVsMedium: ["DMG VS MEDIUM ENEMIES", "DMG VS MEDIUM"], damageReductionVsMedium: ["DMG REDUCTION VS MEDIUM ENEMIES", "DMG REDUCTION VS MEDIUM"],
   damageVsLarge: ["DMG VS LARGE ENEMIES", "DMG VS LARGE"], damageReductionVsLarge: ["DMG REDUCTION VS LARGE MONSTERS", "DMG REDUCTION VS LARGE"],
@@ -31,9 +28,6 @@ function repairNumber(text: string) { return text.replace(/,/g, "").replace(/[Oo
 function numberMatches(text: string) { return [...text.replace(/,/g, "").matchAll(/-?\d+(?:\.\d+)?%?/g)]; }
 function escaped(alias: string) { return alias.toUpperCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s*"); }
 
-/** Find a label and only inspect the value immediately following THAT occurrence.
- * This is important for lines such as `Ignore PDEF 3537 Ignore PDEF 0%` and
- * `PDMG 159.62% PDMG.R 98.05%`, where looking at the entire line gives the wrong result. */
 function extractAfterAlias(line: string, alias: string) {
   const re = new RegExp(`(?:^|[^A-Z0-9])${escaped(alias)}(?=$|[^A-Z0-9])`, "ig");
   let match: RegExpExecArray | null;
@@ -55,10 +49,10 @@ function extractLabelValues(text: string): RooStats {
         const found = extractAfterAlias(line, alias);
         if (!found) continue;
         const value = found.value;
-        // Exact-label exclusions are based on the local label occurrence, never the rest of the line.
-        if ((field === "patk" || field === "matk") && /REFINE\s+(?:PATK|MATK)/i.test(line.slice(0, found.start))) continue;
-        if (field === "hp" && /HP\s+RECOVER/i.test(line.slice(0, found.start + 12))) continue;
-        if ((field === "pdmgPercent" || field === "mdmgPercent") && /PDMG\s*\.\s*R|MDMG\s*\.\s*R/i.test(line.slice(found.start - 2, found.start + 4))) continue;
+        const before = line.slice(0, found.start);
+        if ((field === "patk" || field === "matk") && /REFINE\s+(?:PATK|MATK)/i.test(before)) continue;
+        if (field === "hp" && /HP\s+RECOVER/i.test(before)) continue;
+        if ((field === "pdmgPercent" || field === "mdmgPercent") && /(?:PDMG|MDMG)\s*\.\s*R/i.test(line.slice(found.start - 2, found.start + 4))) continue;
         if ((field === "pdmgReductionPercent" || field === "mdmgReductionPercent") && !/%$/.test(value)) continue;
         if ((field === "pdmgPercent" || field === "mdmgPercent") && !/%$/.test(value)) continue;
         if ((field === "equipmentPdefPercent" || field === "equipmentMdefPercent") && !/%$/.test(value)) continue;
@@ -83,22 +77,21 @@ async function recognise(worker: OcrWorker, image: Buffer, psm: PSM, whitelist?:
   return String((await worker.recognize(image)).data.text ?? "");
 }
 
-/** OCR the whole stat panel rather than a fixed ROI. The raw ROO OCR reliably
- * contains the PvP values, but the leading letters are sometimes mangled
- * (`>vP`, `2vP`, `P DMG`). Label-tolerant parsing lets us recover 2282/3145. */
 function extractPvpFromText(texts: string[]) {
   const result: RooStats = {};
-  const patterns: Array<[string, RegExp[]]> = [
-    ["pvpDamageReduction", [/(?:PVP|[>2]VP|P)\s*DMG\s*RED(?:UCTION)?[^\d]{0,20}(\d{3,6})/i]],
-    ["pvpDamageBonus", [/(?:PVP|[>2]VP|P)\s*DMG\s*BON(?:US)?[^\d]{0,20}(\d{3,6})/i]],
+  const reductionPatterns = [
+    /(?:PVP|2VP|>VP|\?VP)\s*DMG\s*RED(?:UCTION|U)?[^0-9]{0,24}(\d{3,6})/i,
+    /[>2]?V?P\s*DMG\s*RED[^0-9]{0,24}(\d{3,6})/i,
   ];
-  for (const [field, regexes] of patterns) {
-    const candidates: string[] = [];
-    for (const text of texts) for (const re of regexes) { const m = normalise(text).match(re); if (m?.[1]) candidates.push(repairNumber(m[1])); }
-    if (candidates.length) {
-      const counts: Record<string, number> = {}; candidates.forEach(v => counts[v] = (counts[v] ?? 0) + 1);
-      result[field] = [...new Set(candidates)].sort((a,b) => counts[b] - counts[a] || b.length - a.length)[0];
-    }
+  const bonusPatterns = [
+    /(?:PVP|2VP|>VP|\?VP)\s*DMG\s*BON(?:US)?[^0-9]{0,24}(\d{3,6})/i,
+    /[>2]?V?P\s*DMG\s*BON[^0-9]{0,24}(\d{3,6})/i,
+  ];
+  const candidates = (patterns: RegExp[]) => texts.flatMap(text => patterns.flatMap(re => [...normalise(text).matchAll(re)].map(m => repairNumber(m[1]))));
+  for (const [key, values] of [["pvpDamageReduction", candidates(reductionPatterns)], ["pvpDamageBonus", candidates(bonusPatterns)]] as const) {
+    if (!values.length) continue;
+    const counts: Record<string, number> = {}; values.forEach(v => counts[v] = (counts[v] ?? 0) + 1);
+    result[key] = [...new Set(values)].sort((a,b) => counts[b] - counts[a] || b.length - a.length)[0];
   }
   return result;
 }
@@ -119,12 +112,13 @@ export async function readRooStats(images: Buffer[]): Promise<{ stats: RooStats;
       }
     }
     Object.assign(stats, extractPvpFromText(raw));
-    // Equipment Notice values are absolute PDEF/MDEF, not the percentages shown elsewhere.
+    // Only Notice-popup absolute Equipment values may populate PDEF/MDEF.
+    // Never let Equipment PDEF/MDEF percentages overwrite those fields.
     const notice = raw.join("\n");
-    const pdef = notice.match(/EQUIPMENT\s*PDEF\s*[:]?\s*(\d{2,6})(?!\s*%)/i);
-    const mdef = notice.match(/EQUIPMENT\s*MDEF\s*[:]?\s*(\d{2,6})(?!\s*%)/i);
-    if (pdef) stats.pdef = repairNumber(pdef[1]);
-    if (mdef) stats.mdef = repairNumber(mdef[1]);
+    const pdef = [...notice.matchAll(/EQUIPMENT\s*PDEF\s*[:：]?\s*(\d{3,6})(?!\s*%)/gi)].map(m => m[1]);
+    const mdef = [...notice.matchAll(/EQUIPMENT\s*MDEF\s*[:：]?\s*(\d{3,6})(?!\s*%)/gi)].map(m => m[1]);
+    if (pdef.length) stats.pdef = pdef.sort((a,b) => Number(b) - Number(a))[0];
+    if (mdef.length) stats.mdef = mdef.sort((a,b) => Number(b) - Number(a))[0];
   } finally { await worker.terminate(); }
   return { stats, rawText: raw.join("\n") };
 }
