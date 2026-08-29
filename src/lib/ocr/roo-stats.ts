@@ -52,7 +52,7 @@ function extractLabelValues(text: string): RooStats {
         const before = line.slice(0, found.start);
         if ((field === "patk" || field === "matk") && /REFINE\s+(?:PATK|MATK)/i.test(before)) continue;
         if (field === "hp" && /HP\s+RECOVER/i.test(before)) continue;
-        if ((field === "pdmgPercent" || field === "mdmgPercent") && /(?:PDMG|MDMG)\s*\.\s*R/i.test(line.slice(found.start - 2, found.start + 4))) continue;
+        if ((field === "pdmgPercent" || field === "mdmgPercent") && /(?:PDMG|MDMG)\s*[.]\s*R/i.test(line.slice(found.start - 2, found.start + 4))) continue;
         if ((field === "pdmgReductionPercent" || field === "mdmgReductionPercent") && !/%$/.test(value)) continue;
         if ((field === "pdmgPercent" || field === "mdmgPercent") && !/%$/.test(value)) continue;
         if ((field === "equipmentPdefPercent" || field === "equipmentMdefPercent") && !/%$/.test(value)) continue;
@@ -80,18 +80,18 @@ async function recognise(worker: OcrWorker, image: Buffer, psm: PSM, whitelist?:
 function extractPvpFromText(texts: string[]) {
   const result: RooStats = {};
   const reductionPatterns = [
-    /(?:PVP|2VP|>VP|\?VP)\s*DMG\s*RED(?:UCTION|U)?[^0-9]{0,24}(\d{3,6})/i,
-    /[>2]?V?P\s*DMG\s*RED[^0-9]{0,24}(\d{3,6})/i,
+    /(?:PVP|2VP|>VP|\?VP)\s*DMG\s*RED(?:UCTION|U)?[^0-9]{0,24}(\d{3,6})/gi,
+    /[>2]?V?P\s*DMG\s*RED[^0-9]{0,24}(\d{3,6})/gi,
   ];
   const bonusPatterns = [
-    /(?:PVP|2VP|>VP|\?VP)\s*DMG\s*BON(?:US)?[^0-9]{0,24}(\d{3,6})/i,
-    /[>2]?V?P\s*DMG\s*BON[^0-9]{0,24}(\d{3,6})/i,
+    /(?:PVP|2VP|>VP|\?VP)\s*DMG\s*BON(?:US)?[^0-9]{0,24}(\d{3,6})/gi,
+    /[>2]?V?P\s*DMG\s*BON[^0-9]{0,24}(\d{3,6})/gi,
   ];
   const candidates = (patterns: RegExp[]) => texts.flatMap(text => patterns.flatMap(re => [...normalise(text).matchAll(re)].map(m => repairNumber(m[1]))));
   for (const [key, values] of [["pvpDamageReduction", candidates(reductionPatterns)], ["pvpDamageBonus", candidates(bonusPatterns)]] as const) {
     if (!values.length) continue;
     const counts: Record<string, number> = {}; values.forEach(v => counts[v] = (counts[v] ?? 0) + 1);
-    result[key] = [...new Set(values)].sort((a,b) => counts[b] - counts[a] || b.length - a.length)[0];
+    result[key] = [...new Set(values)].sort((a,b) => counts[b]-counts[a] || b.length-a.length)[0];
   }
   return result;
 }
@@ -112,13 +112,11 @@ export async function readRooStats(images: Buffer[]): Promise<{ stats: RooStats;
       }
     }
     Object.assign(stats, extractPvpFromText(raw));
-    // Only Notice-popup absolute Equipment values may populate PDEF/MDEF.
-    // Never let Equipment PDEF/MDEF percentages overwrite those fields.
     const notice = raw.join("\n");
     const pdef = [...notice.matchAll(/EQUIPMENT\s*PDEF\s*[:：]?\s*(\d{3,6})(?!\s*%)/gi)].map(m => m[1]);
     const mdef = [...notice.matchAll(/EQUIPMENT\s*MDEF\s*[:：]?\s*(\d{3,6})(?!\s*%)/gi)].map(m => m[1]);
-    if (pdef.length) stats.pdef = pdef.sort((a,b) => Number(b) - Number(a))[0];
-    if (mdef.length) stats.mdef = mdef.sort((a,b) => Number(b) - Number(a))[0];
+    if (pdef.length) stats.pdef = pdef.sort((a,b) => Number(b)-Number(a))[0];
+    if (mdef.length) stats.mdef = mdef.sort((a,b) => Number(b)-Number(a))[0];
   } finally { await worker.terminate(); }
   return { stats, rawText: raw.join("\n") };
 }
