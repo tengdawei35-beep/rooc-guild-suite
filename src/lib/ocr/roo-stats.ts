@@ -58,9 +58,19 @@ function extractLabelValues(text: string): RooStats {
     for (const [field, aliases] of Object.entries(LABELS)) {
       const alias = aliases.map(compact).sort((a, b) => b.length - a.length).find((candidate) => compactLine.includes(candidate));
       if (!alias) continue;
+
       const index = compactLine.indexOf(alias);
       const value = firstNumber(compactLine.slice(index + alias.length));
-      if (value !== null) result[field] = value.replace(/%$/, "");
+      if (value === null) continue;
+
+      // Notice popups contain absolute Equipment PDEF/MDEF values such as
+      // "Equipment PDEF:3333". The percentage fields must only accept values
+      // that visibly contain the percent sign, e.g. "Equipment PDEF 30.00%".
+      if ((field === "equipmentPdefPercent" || field === "equipmentMdefPercent") && !value.endsWith("%")) {
+        continue;
+      }
+
+      result[field] = value.replace(/%$/, "");
     }
   }
 
@@ -122,6 +132,8 @@ export async function readRooStats(images: Buffer[]): Promise<{ stats: RooStats;
         Object.assign(stats, extractLabelValues(text));
       }
 
+      // The game displays absolute equipment PDEF/MDEF in the Notice popups.
+      // These values intentionally override the General Stats base PDEF/MDEF.
       const noticePdef = normalText.match(/EQUIPMENT\s*PDEF\s*[:]?\s*(\d+)/i);
       const noticeMdef = normalText.match(/EQUIPMENT\s*MDEF\s*[:]?\s*(\d+)/i);
       if (noticePdef) stats.pdef = noticePdef[1];
