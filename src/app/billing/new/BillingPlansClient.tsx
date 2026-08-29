@@ -54,7 +54,7 @@ export default function BillingPlansClient({ plans, ownedGuildCount, guilds, com
     } catch (submitError) { setError(submitError instanceof Error ? submitError.message : "Unable to update the subscription."); setLoading(false); }
   }
 
-  return <main className="min-h-screen bg-zinc-950 px-4 py-12 text-white"><div className="mx-auto max-w-5xl">
+  return <div className="text-white">
     <header className="max-w-3xl"><p className="text-sm font-medium uppercase tracking-widest text-zinc-500">ROO Guild Suite</p><h1 className="mt-3 text-4xl font-bold tracking-tight">Subscriptions</h1><p className="mt-3 text-zinc-400">Manage your guild subscriptions. You currently own {ownedGuildCount} guild{ownedGuildCount === 1 ? "" : "s"}.</p></header>
 
     {activeGuilds.length > 0 && <section className="mt-8 rounded-2xl border border-zinc-800 bg-zinc-900 p-6"><h2 className="text-lg font-semibold">Current subscriptions</h2><p className="mt-1 text-sm text-zinc-500">Your active guilds are renewed automatically. Use Manage subscription to update payment details, change or cancel the subscription, or resume a scheduled cancellation.</p><div className="mt-4 space-y-3">{activeGuilds.map((guild) => <div key={guild.id} className="flex flex-col gap-4 rounded-xl border border-zinc-800 bg-zinc-950 p-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-semibold">{guild.name}</p><p className="mt-1 text-sm text-zinc-500">{guild.planName ?? "Subscription"}{guild.expiresAt ? ` • Renews ${new Date(guild.expiresAt).toLocaleDateString()}` : ""}{guild.cancelAtPeriodEnd ? " • Scheduled to cancel" : ""}</p></div><button disabled={portalGuildId === guild.id || !guild.providerCustomerId} onClick={() => openPortal(guild.id)} className="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-medium text-white hover:border-zinc-500 disabled:cursor-not-allowed disabled:opacity-50">{portalGuildId === guild.id ? "Opening…" : "Manage subscription"}</button></div>)}</div></section>}
@@ -69,7 +69,7 @@ export default function BillingPlansClient({ plans, ownedGuildCount, guilds, com
     {error && <p className="mt-4 rounded-lg border border-red-900 bg-red-950/30 px-4 py-3 text-sm text-red-300">{error}</p>}
     <button disabled={loading || !plans.length} onClick={() => submit("/api/billing/checkout")} className="mt-6 w-full rounded-lg bg-white px-5 py-3 font-semibold text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50">{loading ? "Redirecting to Stripe…" : renewing ? "Renew subscription" : "Continue to secure payment"}</button>
     <p className="mt-3 text-center text-xs text-zinc-600">Payment is securely processed by Stripe.</p>
-  </div></main>;
+  </div>;
 }
 
 function formatPrice(cents: number, currency: string) { return new Intl.NumberFormat("en-MY", { style: "currency", currency: currency.toUpperCase() }).format(cents / 100); }
