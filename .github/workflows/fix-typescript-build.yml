@@ -1,0 +1,41 @@
+name: Fix TypeScript build errors
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply fixes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('src/app/api/events/[eventId]/raids/route.ts'); s=p.read_text()
+          s=s.replace('select: { id: true, raids: { select: { raidId: true } } },','select: { id: true },')
+          s=s.replace('if (parties.some((party) => party.raids.length > 0)) return NextResponse.json({ error: "A selected party is already assigned to a raid." }, { status: 409 });','const assigned = await prisma.raidParty.findMany({ where: { partyId: { in: partyIds } }, select: { partyId: true } });\n    if (assigned.length > 0) return NextResponse.json({ error: "A selected party is already assigned to a raid." }, { status: 409 });')
+          s=s.replace('if (parties.some((party) => party.raids.some((entry) => entry.raidId !== raidId))) return NextResponse.json({ error: "A selected party is already assigned to another raid." }, { status: 409 });','const assigned = await prisma.raidParty.findMany({ where: { partyId: { in: partyIds }, raidId: { not: raidId } }, select: { partyId: true } });\n      if (assigned.length > 0) return NextResponse.json({ error: "A selected party is already assigned to another raid." }, { status: 409 });')
+          s=s.replace('const partyIds = validatePartyIds(body.partyIds);','const partyIds = validatePartyIds(body.partyIds);\n    if (!partyIds) return NextResponse.json({ error: "partyIds must be an array." }, { status: 400 });',1)
+          s=s.replace('if (body.partyIds !== undefined && !partyIds) return NextResponse.json({ error: "partyIds must be an array." }, { status: 400 });','if (body.partyIds !== undefined && !partyIds) return NextResponse.json({ error: "partyIds must be an array." }, { status: 400 });',1)
+          p.write_text(s)
+          p=Path('src/app/guild/members/[memberId]/MemberProfileClient.tsx'); s=p.read_text()
+          s=s.replace('  rawPdef,\n}: {\n  memberId: string;\n  rawPdef: number;\n}) {','  rawPdef,\n  rawMdef,\n}: {\n  memberId: string;\n  rawPdef: number;\n  rawMdef: number;\n}) {',1)
+          s=s.replace('              "RAW PDEF",\n              rawPdef,\n            ],\n          ]}','              "RAW PDEF",\n              rawPdef,\n            ],\n            [\n              "RAW MDEF",\n              rawMdef,\n            ],\n          ]}',1)
+          p.write_text(s)
+          PY
+      - name: Commit fixes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/app/api/events/[eventId]/raids/route.ts src/app/guild/members/[memberId]/MemberProfileClient.tsx
+          git commit -m "fix: resolve raid API and member profile types" || exit 0
+          git push origin main
+          rm -f .github/workflows/fix-typescript-build.yml
+          git add .github/workflows/fix-typescript-build.yml
+          git commit -m "chore: remove temporary build fix workflow" || exit 0
+          git push origin main
