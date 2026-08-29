@@ -88,14 +88,17 @@ export async function POST(request: Request) {
   const existingMember = await prisma.guildMember.findFirst({ where: { guildId: auth.guild.id, discordUserId: applicant.discordUserId } });
   if (existingMember) return NextResponse.json({ error: "This Discord account is already a guild member." }, { status: 409 });
   if (!applicant.userId) return NextResponse.json({ error: "Applicant Discord account is not linked to a user record." }, { status: 409 });
-  if (!applicant.characterName?.trim()) return NextResponse.json({ error: "Applicant character name is required before acceptance." }, { status: 409 });
-  if (!applicant.job?.trim()) return NextResponse.json({ error: "Applicant job is required before acceptance." }, { status: 409 });
+
+  const characterName = applicant.characterName?.trim();
+  const job = applicant.job?.trim();
+  if (!characterName) return NextResponse.json({ error: "Applicant character name is required before acceptance." }, { status: 409 });
+  if (!job) return NextResponse.json({ error: "Applicant job is required before acceptance." }, { status: 409 });
 
   const created = await prisma.$transaction(async (tx) => {
     const member = await tx.guildMember.create({
       data: {
         guildId: auth.guild.id, userId: applicant.userId, discordUserId: applicant.discordUserId, discordUsername: applicant.discordUsername,
-        characterName: applicant.characterName.trim(), job: applicant.job.trim(), active: true, eligible: true,
+        characterName, job, active: true, eligible: true,
         pdef: applicant.pdef, mdef: applicant.mdef, pvpDamageBonus: applicant.pvpDamageBonus, pvpDamageReduction: applicant.pvpDamageReduction,
         pdmgPercent: applicant.pdmgPercent, mdmgPercent: applicant.mdmgPercent, pdmgReductionPercent: applicant.pdmgReductionPercent,
         mdmgReductionPercent: applicant.mdmgReductionPercent, critRes: applicant.critRes, ignorePdef: applicant.ignorePdef, ignoreMdef: applicant.ignoreMdef,
