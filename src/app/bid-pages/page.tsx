@@ -3,10 +3,14 @@ import { redirect } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
 import { requirePageAuth } from "@/lib/auth";
+import { hasPermission } from "@/lib/permissions";
 
 export default async function BidPagesPage() {
-  const auth =
-    await requirePageAuth();
+  const auth = await requirePageAuth();
+  const canManageAllocation = hasPermission(
+    auth.role,
+    "allocation.view"
+  );
 
   // ==========================================================
   // LOAD AUTHENTICATED GUILD
@@ -19,18 +23,16 @@ export default async function BidPagesPage() {
   //
   // ==========================================================
 
-  const guild =
-    await prisma.guild.findUnique({
-      where: {
-        id:
-          auth.guild.id,
-      },
+  const guild = await prisma.guild.findUnique({
+    where: {
+      id: auth.guild.id,
+    },
 
-      select: {
-        id: true,
-        name: true,
-      },
-    });
+    select: {
+      id: true,
+      name: true,
+    },
+  });
 
   if (!guild) {
     return (
@@ -52,12 +54,14 @@ export default async function BidPagesPage() {
               Configure your guild before viewing bid pages.
             </p>
 
-            <Link
-              href="/guild"
-              className="mt-6 inline-flex rounded-lg bg-white px-5 py-3 font-medium text-black hover:bg-zinc-200"
-            >
-              Configure Guild
-            </Link>
+            {canManageAllocation && (
+              <Link
+                href="/guild"
+                className="mt-6 inline-flex rounded-lg bg-white px-5 py-3 font-medium text-black hover:bg-zinc-200"
+              >
+                Configure Guild
+              </Link>
+            )}
           </section>
         </div>
       </main>
@@ -68,34 +72,26 @@ export default async function BidPagesPage() {
   // FIND LATEST COMPLETED RUN
   // ==========================================================
 
-  const latestRun =
-    await prisma.allocationRun.findFirst({
-      where: {
-        guildId:
-          auth.guild.id,
-
-        status:
-          "COMPLETED",
-
-        bidPages: {
-          some: {},
-        },
+  const latestRun = await prisma.allocationRun.findFirst({
+    where: {
+      guildId: auth.guild.id,
+      status: "COMPLETED",
+      bidPages: {
+        some: {},
       },
+    },
 
-      orderBy: {
-        createdAt:
-          "desc",
-      },
+    orderBy: {
+      createdAt: "desc",
+    },
 
-      select: {
-        id: true,
-      },
-    });
+    select: {
+      id: true,
+    },
+  });
 
   if (latestRun) {
-    redirect(
-      `/allocation/${latestRun.id}/bids`
-    );
+    redirect(`/allocation/${latestRun.id}/bids`);
   }
 
   return (
@@ -118,21 +114,23 @@ export default async function BidPagesPage() {
             bidding pages yet.
           </p>
 
-          <div className="mt-6 flex justify-center gap-3">
-            <Link
-              href="/allocation"
-              className="rounded-lg bg-white px-5 py-3 font-medium text-black hover:bg-zinc-200"
-            >
-              Create Allocation
-            </Link>
+          {canManageAllocation && (
+            <div className="mt-6 flex justify-center gap-3">
+              <Link
+                href="/allocation"
+                className="rounded-lg bg-white px-5 py-3 font-medium text-black hover:bg-zinc-200"
+              >
+                Create Allocation
+              </Link>
 
-            <Link
-              href="/allocation/history"
-              className="rounded-lg border border-zinc-700 bg-zinc-900 px-5 py-3 font-medium text-white hover:bg-zinc-800"
-            >
-              Allocation History
-            </Link>
-          </div>
+              <Link
+                href="/allocation/history"
+                className="rounded-lg border border-zinc-700 bg-zinc-900 px-5 py-3 font-medium text-white hover:bg-zinc-800"
+              >
+                Allocation History
+              </Link>
+            </div>
+          )}
         </section>
       </div>
     </main>
