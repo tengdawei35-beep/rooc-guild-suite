@@ -18,10 +18,7 @@ function cleanNumber(value: unknown) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-export async function POST(
-  request: Request,
-  context: { params: Promise<{ token: string }> },
-) {
+export async function POST(request: Request, context: { params: Promise<{ token: string }> }) {
   const session = await getApplicantSession();
   if (!session) return NextResponse.json({ error: "Discord authentication required." }, { status: 401 });
 
@@ -32,22 +29,16 @@ export async function POST(
   const user = await prisma.user.findUnique({ where: { id: session.userId } });
   if (!user) return NextResponse.json({ error: "Discord identity could not be found." }, { status: 401 });
 
-  const existingMember = await prisma.guildMember.findFirst({
-    where: { guildId: invite.guildId, discordUserId: user.discordId },
-    select: { id: true },
-  });
+  const existingMember = await prisma.guildMember.findFirst({ where: { guildId: invite.guildId, discordUserId: user.discordId }, select: { id: true } });
   if (existingMember) return NextResponse.json({ error: "You are already a member of this guild." }, { status: 409 });
 
   const body = (await request.json()) as Record<string, unknown>;
   const characterName = String(body.characterName ?? "").trim();
   const job = String(body.job ?? "").trim();
-
   if (!characterName) return NextResponse.json({ error: "Character Name is required." }, { status: 400 });
   if (!job) return NextResponse.json({ error: "Job is required." }, { status: 400 });
 
-  const applicantStats = Object.fromEntries(
-    STAT_FIELDS.map((field) => [field, cleanNumber(body[field])]),
-  ) as Record<(typeof STAT_FIELDS)[number], number>;
+  const applicantStats = Object.fromEntries(STAT_FIELDS.map((field) => [field, cleanNumber(body[field])])) as Record<(typeof STAT_FIELDS)[number], number>;
 
   const members = await prisma.guildMember.findMany({
     where: { guildId: invite.guildId, active: true },
@@ -63,46 +54,35 @@ export async function POST(
 
   const scored = scoreRooPlayers([...members, { ...applicantStats, job }]);
   const applicant = scored[scored.length - 1];
+  const existingApplicationId = typeof body.applicationId === "string" ? body.applicationId : null;
+  const existingApplication = existingApplicationId
+    ? await prisma.guildApplicant.findFirst({ where: { id: existingApplicationId, guildId: invite.guildId, discordUserId: user.discordId } })
+    : null;
 
-  const saved = await prisma.guildApplicant.upsert({
-    where: { id: String(body.applicationId ?? "") },
-    update: {
-      inviteId: invite.id,
-      discordUserId: user.discordId,
-      discordUsername: user.username,
-      userId: user.id,
-      characterName,
-      job,
-      ...applicantStats,
-      dpsScore: applicant.dpsScore,
-      tankScore: applicant.tankScore,
-      pvpScore: applicant.pvpScore,
-      dpsPercentile: applicant.dpsPercentile,
-      tankPercentile: applicant.tankPercentile,
-      pvpPercentile: applicant.pvpPercentile,
-      status: "PENDING",
-      reviewedAt: null,
-      reviewedByUserId: null,
-      decidedAt: null,
-      decidedByUserId: null,
-    },
-    create: {
-      guildId: invite.guildId,
-      inviteId: invite.id,
-      discordUserId: user.discordId,
-      discordUsername: user.username,
-      userId: user.id,
-      characterName,
-      job,
-      ...applicantStats,
-      dpsScore: applicant.dpsScore,
-      tankScore: applicant.tankScore,
-      pvpScore: applicant.pvpScore,
-      dpsPercentile: applicant.dpsPercentile,
-      tankPercentile: applicant.tankPercentile,
-      pvpPercentile: applicant.pvpPercentile,
-    },
-  });
+  const payload = {
+    inviteId: invite.id,
+    discordUserId: user.discordId,
+    discordUsername: user.username,
+    userId: user.id,
+    characterName,
+    job,
+    ...applicantStats,
+    dpsScore: applicant.dpsScore,
+    tankScore: applicant.tankScore,
+    pvpScore: applicant.pvpScore,
+    dpsPercentile: applicant.dpsPercentile,
+    tankPercentile: applicant.tankPercentile,
+    pvpPercentile: applicant.pvpPercentile,
+    status: "PENDING" as const,
+    reviewedAt: null,
+    reviewedByUserId: null,
+    decidedAt: null,
+    decidedByUserId: null,
+  };
+
+  const saved = existingApplication
+    ? await prisma.guildApplicant.update({ where: { id: existingApplication.id }, data: payload })
+    : await prisma.guildApplicant.create({ data: { guildId: invite.guildId, ...payload } });
 
   return NextResponse.json({ application: saved });
 }
