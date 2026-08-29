@@ -11,6 +11,11 @@ import {
 } from "@/lib/permissions";
 
 import {
+  hasGuildModule,
+  RESOURCE_SUITE_MODULE,
+} from "@/lib/auth/modules";
+
+import {
   buildAllocation,
 } from "@/lib/allocation/engine";
 
@@ -18,10 +23,6 @@ export async function POST(
   request: Request
 ) {
   try {
-    // ==========================================================
-    // AUTHENTICATION
-    // ==========================================================
-
     const auth =
       await getCurrentAuth();
 
@@ -33,6 +34,18 @@ export async function POST(
         },
         {
           status: 401,
+        }
+      );
+    }
+
+    if (!(await hasGuildModule(auth.guild.id, RESOURCE_SUITE_MODULE))) {
+      return NextResponse.json(
+        {
+          error:
+            "The Resource Suite is not subscribed for this guild.",
+        },
+        {
+          status: 403,
         }
       );
     }
@@ -119,25 +132,14 @@ export async function POST(
     // ==========================================================
     // LOAD EVENT
     // ==========================================================
-    //
-    // IMPORTANT:
-    //
-    // Use findFirst rather than findUnique because the event ID
-    // alone is not sufficient for authorization.
-    //
-    // The event must belong to the authenticated guild.
-    //
-    // ==========================================================
 
     const event =
       await prisma.event.findFirst({
         where: {
           id: eventId,
-
           guildId:
             auth.guild.id,
         },
-
         select: {
           id: true,
           guildId: true,
@@ -158,45 +160,24 @@ export async function POST(
       );
     }
 
-    // ==========================================================
-    // BUILD ALLOCATION PREVIEW
-    // ==========================================================
-    //
-    // The event date is passed into the allocation engine.
-    //
-    // This means members with a MemberLeave entry matching
-    // this event date are excluded from the bidding pool.
-    //
-    // ==========================================================
-
     const preview =
       await buildAllocation({
         guildId:
           auth.guild.id,
-
         nonReservedMemberCount,
-
         eventDate:
           event.date,
       });
 
-    // ==========================================================
-    // RESPONSE
-    // ==========================================================
-
     return NextResponse.json({
       preview,
-
       event: {
         id:
           event.id,
-
         guildId:
           event.guildId,
-
         type:
           event.type,
-
         date:
           event.date,
       },
