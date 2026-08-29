@@ -1,0 +1,132 @@
+name: Apply member profile UI fixes
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Apply targeted UI changes
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          page = Path('src/app/guild/members/[memberId]/page.tsx')
+          text = page.read_text()
+
+          banner = '''      <div className="border-b border-zinc-800 bg-zinc-950 px-6 py-4 text-white">
+            <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">Derived Character Stat</p>
+                <p className="mt-1 text-sm text-zinc-400">RAW PDEF = Equipment PDEF ÷ (1 + Equipment PDEF %)</p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs uppercase tracking-wide text-zinc-500">RAW PDEF</p>
+                <p className="mt-1 text-xl font-bold">{rawPdef.toFixed(2)}</p>
+              </div>
+            </div>
+          </div>
+'''
+          if banner not in text:
+              raise SystemExit('Expected RAW PDEF banner not found')
+          text = text.replace(banner, '')
+          text = text.replace(
+              '<MemberProfileClient memberId={memberId} />',
+              '<MemberProfileClient memberId={memberId} rawPdef={rawPdef} />'
+          )
+          page.write_text(text)
+
+          client = Path('src/app/guild/members/[memberId]/MemberProfileClient.tsx')
+          text = client.read_text()
+
+          old = '''export default function MemberProfileClient({
+  memberId,
+}: {
+  memberId: string;
+}) {'''
+          new = '''export default function MemberProfileClient({
+  memberId,
+  rawPdef,
+}: {
+  memberId: string;
+  rawPdef: number;
+}) {'''
+          if old not in text:
+              raise SystemExit('Expected MemberProfileClient props not found')
+          text = text.replace(old, new, 1)
+
+          marker = '''        {/* ====================================================== */}
+        {/* CORE STATS */}
+        {/* ====================================================== */}
+'''
+          derived = '''        {/* ====================================================== */}
+        {/* DERIVED CHARACTER STATS */}
+        {/* ====================================================== */}
+
+        <StatSection
+          title="Derived Character Stats"
+          stats={[
+            [
+              "RAW PDEF",
+              rawPdef,
+            ],
+          ]}
+        />
+
+'''
+          if marker not in text:
+              raise SystemExit('Expected Core Stats marker not found')
+          text = text.replace(marker, derived + marker, 1)
+
+          old = '''              <div className="mt-1 text-base font-semibold text-zinc-200">
+                {formatValue(
+                  value,
+                  percentage
+                )}
+              </div>'''
+          new = '''              <div className="mt-1 text-base font-semibold text-zinc-200">
+                {formatValue(
+                  value,
+                  percentage &&
+                    ![
+                      "Ignore P.DEF",
+                      "Ignore M.DEF",
+                      "PvP Damage Bonus",
+                      "PvP Damage Reduction",
+                    ].includes(label)
+                )}
+              </div>'''
+          if old not in text:
+              raise SystemExit('Expected StatSection formatter not found')
+          text = text.replace(old, new, 1)
+          client.write_text(text)
+
+      - name: Verify changes
+        run: |
+          grep -q 'rawPdef={rawPdef}' 'src/app/guild/members/[memberId]/page.tsx'
+          grep -q 'title="Derived Character Stats"' 'src/app/guild/members/[memberId]/MemberProfileClient.tsx'
+          grep -q '"Ignore P.DEF"' 'src/app/guild/members/[memberId]/MemberProfileClient.tsx'
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add 'src/app/guild/members/[memberId]/page.tsx' 'src/app/guild/members/[memberId]/MemberProfileClient.tsx'
+          git commit -m "fix: improve member profile stat presentation"
+          git push
+
+      - name: Remove temporary workflow
+        if: always()
+        run: |
+          git rm -f .github/workflows/fix-member-profile-ui.yml || true
+          git commit -m "chore: remove temporary UI fix workflow" || true
+          git push || true
