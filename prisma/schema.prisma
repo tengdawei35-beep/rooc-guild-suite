@@ -54,9 +54,7 @@ enum RosterGenerationMode {
 
 enum SaaSModule {
   CORE
-  RESOURCES
-  BIDDING
-  ALLOCATION
+  RESOURCE_SUITE
 }
 
 enum SubscriptionStatus {
@@ -527,5 +525,5 @@ model GuildModuleEntitlement {
   updatedAt DateTime @updatedAt
   guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
   @@unique([guildId, module])
-  @@index([module, enabled])
+  @@index([module])
 }
