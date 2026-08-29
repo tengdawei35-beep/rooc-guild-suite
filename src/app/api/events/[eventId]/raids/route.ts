@@ -16,9 +16,12 @@ async function getEvent(eventId: string) {
   return { auth, event };
 }
 
-function validatePartyIds(value: unknown): string[] | null {
+function parsePartyIds(value: unknown): string[] | null {
   if (!Array.isArray(value)) return null;
-  const ids = value.filter((id): id is string => typeof id === "string" && id.trim().length > 0);
+  const ids = value.filter(
+    (id): id is string =>
+      typeof id === "string" && id.trim().length > 0
+  );
   return [...new Set(ids)];
 }
 
@@ -27,9 +30,15 @@ export async function GET(_request: Request, context: RouteContext) {
     const { eventId } = await context.params;
     const { auth, event } = await getEvent(eventId);
 
-    if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
-    if (!event) return NextResponse.json({ error: "Event not found." }, { status: 404 });
-    if (!hasPermission(auth.role, "events.view")) return NextResponse.json({ error: "You do not have permission to view events." }, { status: 403 });
+    if (!auth) {
+      return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+    }
+    if (!event) {
+      return NextResponse.json({ error: "Event not found." }, { status: 404 });
+    }
+    if (!hasPermission(auth.role, "events.view")) {
+      return NextResponse.json({ error: "You do not have permission to view events." }, { status: 403 });
+    }
 
     const rosters = await prisma.roster.findMany({
       where: { eventId },
@@ -37,9 +46,7 @@ export async function GET(_request: Request, context: RouteContext) {
       include: {
         parties: {
           orderBy: [{ battlefield: "asc" }, { partyNumber: "asc" }],
-          include: {
-            raids: { include: { raid: true } },
-          },
+          include: { raids: { include: { raid: true } } },
         },
       },
     });
@@ -50,7 +57,14 @@ export async function GET(_request: Request, context: RouteContext) {
       include: {
         parties: {
           include: {
-            party: { select: { id: true, rosterId: true, partyNumber: true, battlefield: true } },
+            party: {
+              select: {
+                id: true,
+                rosterId: true,
+                partyNumber: true,
+                battlefield: true,
+              },
+            },
           },
           orderBy: { createdAt: "asc" },
         },
@@ -77,7 +91,10 @@ export async function GET(_request: Request, context: RouteContext) {
     });
   } catch (error) {
     console.error("[RAIDS GET]", error);
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to load raids." }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Failed to load raids." },
+      { status: 500 }
+    );
   }
 }
 
@@ -88,24 +105,34 @@ export async function POST(request: Request, context: RouteContext) {
 
     if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
     if (!event) return NextResponse.json({ error: "Event not found." }, { status: 404 });
-    if (!hasPermission(auth.role, "rosters.edit")) return NextResponse.json({ error: "You do not have permission to manage raids." }, { status: 403 });
+    if (!hasPermission(auth.role, "rosters.edit")) {
+      return NextResponse.json({ error: "You do not have permission to manage raids." }, { status: 403 });
+    }
 
     const body = await request.json();
     const name = typeof body.name === "string" ? body.name.trim() : "";
-    const partyIds = validatePartyIds(body.partyIds);
-    if (!partyIds) return NextResponse.json({ error: "partyIds must be an array." }, { status: 400 });
+    const partyIds = parsePartyIds(body.partyIds);
 
     if (!name) return NextResponse.json({ error: "Raid name is required." }, { status: 400 });
-    if (!partyIds) return NextResponse.json({ error: "partyIds must be an array." }, { status: 400 });
+    if (partyIds === null) return NextResponse.json({ error: "partyIds must be an array." }, { status: 400 });
+    if (partyIds.length === 0) return NextResponse.json({ error: "At least one party is required." }, { status: 400 });
 
     const parties = await prisma.rosterParty.findMany({
       where: { id: { in: partyIds }, roster: { eventId } },
       select: { id: true },
     });
 
-    if (parties.length !== partyIds.length) return NextResponse.json({ error: "One or more selected parties do not belong to this event." }, { status: 400 });
-    const assigned = await prisma.raidParty.findMany({ where: { partyId: { in: partyIds } }, select: { partyId: true } });
-    if (assigned.length > 0) return NextResponse.json({ error: "A selected party is already assigned to a raid." }, { status: 409 });
+    if (parties.length !== partyIds.length) {
+      return NextResponse.json({ error: "One or more selected parties do not belong to this event." }, { status: 400 });
+    }
+
+    const assigned = await prisma.raidParty.findMany({
+      where: { partyId: { in: partyIds } },
+      select: { partyId: true },
+    });
+    if (assigned.length > 0) {
+      return NextResponse.json({ error: "A selected party is already assigned to a raid." }, { status: 409 });
+    }
 
     const raid = await prisma.raid.create({
       data: {
@@ -115,10 +142,16 @@ export async function POST(request: Request, context: RouteContext) {
       include: { parties: true },
     });
 
-    return NextResponse.json({ raid: { id: raid.id, name: raid.name, partyIds: raid.parties.map((entry) => entry.partyId) } }, { status: 201 });
+    return NextResponse.json(
+      { raid: { id: raid.id, name: raid.name, partyIds: raid.parties.map((entry) => entry.partyId) } },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("[RAIDS POST]", error);
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to create raid." }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Failed to create raid." },
+      { status: 500 }
+    );
   }
 }
 
@@ -129,16 +162,27 @@ export async function PATCH(request: Request, context: RouteContext) {
 
     if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
     if (!event) return NextResponse.json({ error: "Event not found." }, { status: 404 });
-    if (!hasPermission(auth.role, "rosters.edit")) return NextResponse.json({ error: "You do not have permission to manage raids." }, { status: 403 });
+    if (!hasPermission(auth.role, "rosters.edit")) {
+      return NextResponse.json({ error: "You do not have permission to manage raids." }, { status: 403 });
+    }
 
     const body = await request.json();
     const raidId = typeof body.raidId === "string" ? body.raidId : "";
     const name = typeof body.name === "string" ? body.name.trim() : undefined;
-    const partyIds = body.partyIds === undefined ? undefined : validatePartyIds(body.partyIds);
 
     if (!raidId) return NextResponse.json({ error: "raidId is required." }, { status: 400 });
-    if (name !== undefined && !name) return NextResponse.json({ error: "Raid name cannot be empty." }, { status: 400 });
-    if (body.partyIds !== undefined && !partyIds) return NextResponse.json({ error: "partyIds must be an array." }, { status: 400 });
+    if (name !== undefined && !name) {
+      return NextResponse.json({ error: "Raid name cannot be empty." }, { status: 400 });
+    }
+
+    let partyIds: string[] | undefined;
+    if (body.partyIds !== undefined) {
+      const parsedPartyIds = parsePartyIds(body.partyIds);
+      if (parsedPartyIds === null) {
+        return NextResponse.json({ error: "partyIds must be an array." }, { status: 400 });
+      }
+      partyIds = parsedPartyIds;
+    }
 
     const raid = await prisma.raid.findFirst({
       where: { id: raidId, parties: { some: { party: { roster: { eventId } } } } },
@@ -151,23 +195,49 @@ export async function PATCH(request: Request, context: RouteContext) {
         where: { id: { in: partyIds }, roster: { eventId } },
         select: { id: true },
       });
-      if (parties.length !== partyIds.length) return NextResponse.json({ error: "One or more selected parties do not belong to this event." }, { status: 400 });
-      const assigned = await prisma.raidParty.findMany({ where: { partyId: { in: partyIds }, raidId: { not: raidId } }, select: { partyId: true } });
-      if (assigned.length > 0) return NextResponse.json({ error: "A selected party is already assigned to another raid." }, { status: 409 });
+      if (parties.length !== partyIds.length) {
+        return NextResponse.json({ error: "One or more selected parties do not belong to this event." }, { status: 400 });
+      }
+
+      const assigned = await prisma.raidParty.findMany({
+        where: { partyId: { in: partyIds }, raidId: { not: raidId } },
+        select: { partyId: true },
+      });
+      if (assigned.length > 0) {
+        return NextResponse.json({ error: "A selected party is already assigned to another raid." }, { status: 409 });
+      }
     }
 
     const updated = await prisma.$transaction(async (tx) => {
       if (partyIds !== undefined) {
         await tx.raidParty.deleteMany({ where: { raidId } });
-        if (partyIds.length) await tx.raidParty.createMany({ data: partyIds.map((partyId) => ({ raidId, partyId })) });
+        if (partyIds.length > 0) {
+          await tx.raidParty.createMany({
+            data: partyIds.map((partyId) => ({ raidId, partyId })),
+          });
+        }
       }
-      return tx.raid.update({ where: { id: raidId }, data: name === undefined ? {} : { name }, include: { parties: true } });
+
+      return tx.raid.update({
+        where: { id: raidId },
+        data: name === undefined ? {} : { name },
+        include: { parties: true },
+      });
     });
 
-    return NextResponse.json({ raid: { id: updated.id, name: updated.name, partyIds: updated.parties.map((entry) => entry.partyId) } });
+    return NextResponse.json({
+      raid: {
+        id: updated.id,
+        name: updated.name,
+        partyIds: updated.parties.map((entry) => entry.partyId),
+      },
+    });
   } catch (error) {
     console.error("[RAIDS PATCH]", error);
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to update raid." }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Failed to update raid." },
+      { status: 500 }
+    );
   }
 }
 
@@ -178,19 +248,27 @@ export async function DELETE(request: Request, context: RouteContext) {
 
     if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
     if (!event) return NextResponse.json({ error: "Event not found." }, { status: 404 });
-    if (!hasPermission(auth.role, "rosters.edit")) return NextResponse.json({ error: "You do not have permission to manage raids." }, { status: 403 });
+    if (!hasPermission(auth.role, "rosters.edit")) {
+      return NextResponse.json({ error: "You do not have permission to manage raids." }, { status: 403 });
+    }
 
     const body = await request.json();
     const raidId = typeof body.raidId === "string" ? body.raidId : "";
     if (!raidId) return NextResponse.json({ error: "raidId is required." }, { status: 400 });
 
-    const raid = await prisma.raid.findFirst({ where: { id: raidId, parties: { some: { party: { roster: { eventId } } } } }, select: { id: true } });
+    const raid = await prisma.raid.findFirst({
+      where: { id: raidId, parties: { some: { party: { roster: { eventId } } } } },
+      select: { id: true },
+    });
     if (!raid) return NextResponse.json({ error: "Raid not found." }, { status: 404 });
 
     await prisma.raid.delete({ where: { id: raidId } });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("[RAIDS DELETE]", error);
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to delete raid." }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Failed to delete raid." },
+      { status: 500 }
+    );
   }
 }
