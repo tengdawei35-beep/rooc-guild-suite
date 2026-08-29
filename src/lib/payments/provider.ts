@@ -1,9 +1,13 @@
 export type CheckoutRequest = {
-  guildId: string;
+  guildId?: string;
   planId: string;
   customer: {
     discordUserId: string;
     username: string;
+  };
+  onboarding?: {
+    guildName: string;
+    discordGuildId: string;
   };
   successUrl: string;
   cancelUrl: string;
