@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getCurrentPlatformUser } from "@/lib/auth/platform";
 import { prisma } from "@/lib/prisma";
 import BillingPlansClient from "./BillingPlansClient";
@@ -21,14 +22,17 @@ export default async function NewGuildBillingPage() {
     const subscription = guild.subscriptions[0] ?? null;
     const active = subscription?.status === "ACTIVE" || subscription?.status === "TRIALING";
     const periodActive = !subscription?.currentPeriodEnd || subscription.currentPeriodEnd > now;
-    return { id: guild.id, name: guild.name, discordGuildId: guild.discordGuildId, planName: subscription?.plan.name ?? null, active: active && periodActive, expiresAt: subscription?.currentPeriodEnd?.toISOString() ?? null };
+    return { id: guild.id, name: guild.name, discordGuildId: guild.discordGuildId, planName: subscription?.plan.name ?? null, active: active && periodActive, expiresAt: subscription?.currentPeriodEnd?.toISOString() ?? null, providerCustomerId: subscription?.providerCustomerId ?? null, cancelAtPeriodEnd: subscription?.cancelAtPeriodEnd ?? false };
   });
 
   const complimentaryAvailable = creator?.active === true && ownedGuilds.length < creator.maxGuilds;
-  return <BillingPlansClient
-    plans={plans.map((plan) => ({ id: plan.id, name: plan.name, description: plan.description, priceCents: plan.priceCents, currency: plan.currency, billingInterval: plan.billingInterval, modules: plan.modules.map((module) => module.module) }))}
-    ownedGuildCount={ownedGuilds.length}
-    guilds={guilds}
-    complimentary={complimentaryAvailable ? { freeMonths: creator.freeMonths, remainingGuilds: creator.maxGuilds - ownedGuilds.length } : null}
-  />;
+  return <main className="min-h-screen bg-zinc-950 px-4 py-12 text-white"><div className="mx-auto max-w-5xl">
+    <Link href="/" className="text-sm text-zinc-500 hover:text-white">← Dashboard</Link>
+    <div className="mt-6"><BillingPlansClient
+      plans={plans.map((plan) => ({ id: plan.id, name: plan.name, description: plan.description, priceCents: plan.priceCents, currency: plan.currency, billingInterval: plan.billingInterval, modules: plan.modules.map((module) => module.module) }))}
+      ownedGuildCount={ownedGuilds.length}
+      guilds={guilds}
+      complimentary={complimentaryAvailable ? { freeMonths: creator.freeMonths, remainingGuilds: creator.maxGuilds - ownedGuilds.length } : null}
+    /></div>
+  </div></main>;
 }
