@@ -1,6 +1,7 @@
 export type CheckoutRequest = {
   guildId?: string;
   planId: string;
+  stripePriceId: string;
   customer: {
     discordUserId: string;
     username: string;
