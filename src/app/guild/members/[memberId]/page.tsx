@@ -1,6 +1,6 @@
 import MemberProfileClient from "./MemberProfileClient";
 import { hasPermission, requirePageAuth } from "@/lib/auth";
-import { calculateRawPdef } from "@/lib/scoring/roo-scoring";
+import { calculateRawPdef, calculateRawMdef } from "@/lib/scoring/roo-scoring";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 
@@ -16,7 +16,7 @@ export default async function MemberProfilePage({ params }: PageProps) {
   const { memberId } = await params;
   const member = await prisma.guildMember.findFirst({
     where: { id: memberId, guildId: auth.guild.id },
-    select: { pdef: true, equipmentPdefPercent: true },
+    select: { pdef: true, mdef: true, equipmentPdefPercent: true, equipmentMdefPercent: true },
   });
 
   if (!member) {
@@ -24,10 +24,11 @@ export default async function MemberProfilePage({ params }: PageProps) {
   }
 
   const rawPdef = calculateRawPdef(member.pdef, member.equipmentPdefPercent);
+  const rawMdef = calculateRawMdef(member.mdef, member.equipmentMdefPercent);
 
   return (
     <>
-      <MemberProfileClient memberId={memberId} rawPdef={rawPdef} />
+      <MemberProfileClient memberId={memberId} rawPdef={rawPdef} rawMdef={rawMdef} />
     </>
   );
 }
