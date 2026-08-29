@@ -45,6 +45,15 @@ export async function getSession() {
   return token ? verifySessionToken(token) : null;
 }
 
+async function getCurrentMembership() {
+  const session = await getSession();
+  if (!session) return null;
+  return prisma.guildMembership.findUnique({
+    where: { userId_guildId: { userId: session.userId, guildId: session.guildId } },
+    include: { user: true, guild: true },
+  });
+}
+
 async function hasActiveSubscription(guildId: string) {
   const subscription = await prisma.guildSubscription.findFirst({
     where: { guildId, status: { in: ["ACTIVE", "TRIALING"] }, OR: [{ currentPeriodEnd: null }, { currentPeriodEnd: { gt: new Date() } }] },
@@ -54,13 +63,8 @@ async function hasActiveSubscription(guildId: string) {
 }
 
 export async function getCurrentAuth() {
-  const session = await getSession();
-  if (!session) return null;
-  const membership = await prisma.guildMembership.findUnique({
-    where: { userId_guildId: { userId: session.userId, guildId: session.guildId } },
-    include: { user: true, guild: true },
-  });
-  if (!membership || !(await hasActiveSubscription(session.guildId))) return null;
+  const membership = await getCurrentMembership();
+  if (!membership) return null;
   return { user: membership.user, guild: membership.guild, membership, role: membership.role };
 }
 
@@ -69,15 +73,30 @@ export async function requireAuth() {
   if (!auth) throw new Error("UNAUTHORIZED");
   return auth;
 }
+
+/**
+ * Page authentication only verifies the user's session and guild membership.
+ * Subscription entitlement is checked separately by protected functionality.
+ * This allows expired users to reach the dashboard and billing pages so they
+ * can renew their subscription instead of being trapped in a redirect loop.
+ */
 export async function requirePageAuth() {
   const auth = await getCurrentAuth();
-  if (!auth) redirect("/billing/new?expired=1");
+  if (!auth) redirect("/login?error=authentication_required");
   return auth;
 }
+
+export async function requireActiveSubscription() {
+  const auth = await requireAuth();
+  if (!(await hasActiveSubscription(auth.guild.id))) throw new Error("SUBSCRIPTION_INACTIVE");
+  return auth;
+}
+
 export { hasPermission };
 export type { Permission, UserRole };
 export async function requirePermission(permission: Permission) {
   const auth = await requireAuth();
+  if (!(await hasActiveSubscription(auth.guild.id))) throw new Error("SUBSCRIPTION_INACTIVE");
   if (!hasPermission(auth.role, permission)) throw new Error("FORBIDDEN");
   return auth;
 }
