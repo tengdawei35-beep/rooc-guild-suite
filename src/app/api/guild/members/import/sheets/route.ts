@@ -5,22 +5,66 @@ import {
   hasPermission,
 } from "@/lib/auth";
 
-function extractSheetId(
+function extractSheetInfo(
   url: string
-): string | null {
+): {
+  sheetId: string;
+  gid: string;
+} | null {
   try {
-    const parsed =
-      new URL(url);
+    const parsed = new URL(url);
 
-    const match =
-      parsed.pathname.match(
-        /\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/
-      );
-
-    return (
-      match?.[1] ??
-      null
+    const match = parsed.pathname.match(
+      /\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/
     );
+
+    if (!match?.[1]) {
+      return null;
+    }
+
+    return {
+      sheetId: match[1],
+      gid: parsed.searchParams.get("gid") ?? "0",
+    };
+  } catch {
+    return null;
+  }
+}
+
+async function fetchCsv(
+  url: string
+): Promise<string | null> {
+  try {
+    const response = await fetch(url, {
+      cache: "no-store",
+      redirect: "follow",
+      headers: {
+        Accept: "text/csv,text/plain,*/*",
+      },
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const contentType =
+      response.headers.get("content-type") ?? "";
+    const text = await response.text();
+    const trimmed = text.trimStart();
+
+    if (!text.trim()) {
+      return null;
+    }
+
+    if (
+      contentType.includes("text/html") ||
+      trimmed.startsWith("<!DOCTYPE") ||
+      trimmed.startsWith("<html")
+    ) {
+      return null;
+    }
+
+    return text;
   } catch {
     return null;
   }
@@ -30,25 +74,16 @@ export async function POST(
   request: Request
 ) {
   try {
-    const auth =
-      await getCurrentAuth();
+    const auth = await getCurrentAuth();
 
     if (!auth) {
       return NextResponse.json(
-        {
-          error:
-            "Authentication required.",
-        },
+        { error: "Authentication required." },
         { status: 401 }
       );
     }
 
-    if (
-      !hasPermission(
-        auth.role,
-        "members.import"
-      )
-    ) {
+    if (!hasPermission(auth.role, "members.import")) {
       return NextResponse.json(
         {
           error:
@@ -58,74 +93,50 @@ export async function POST(
       );
     }
 
-    const body =
-      await request.json();
-
+    const body = await request.json();
     const url =
-      typeof body.url ===
-      "string"
+      typeof body.url === "string"
         ? body.url.trim()
         : "";
 
     if (!url) {
       return NextResponse.json(
-        {
-          error:
-            "Google Sheets URL is required.",
-        },
+        { error: "Google Sheets URL is required." },
         { status: 400 }
       );
     }
 
-    const sheetId =
-      extractSheetId(url);
+    const sheetInfo = extractSheetInfo(url);
 
-    if (!sheetId) {
+    if (!sheetInfo) {
       return NextResponse.json(
-        {
-          error:
-            "Invalid Google Sheets URL.",
-        },
+        { error: "Invalid Google Sheets URL." },
         { status: 400 }
       );
     }
 
     const gid =
-      typeof body.gid ===
-        "string" &&
-      body.gid.trim()
+      typeof body.gid === "string" && body.gid.trim()
         ? body.gid.trim()
-        : "0";
+        : sheetInfo.gid;
 
-    const csvUrl =
-      `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${encodeURIComponent(gid)}`;
+    const exportUrl =
+      `https://docs.google.com/spreadsheets/d/${sheetInfo.sheetId}/export?format=csv&gid=${encodeURIComponent(gid)}`;
 
-    const response =
-      await fetch(
-        csvUrl,
-        {
-          cache: "no-store",
-        }
-      );
+    const gvizUrl =
+      `https://docs.google.com/spreadsheets/d/${sheetInfo.sheetId}/gviz/tq?tqx=out:csv&gid=${encodeURIComponent(gid)}`;
 
-    if (!response.ok) {
+    let csv = await fetchCsv(exportUrl);
+
+    if (!csv) {
+      csv = await fetchCsv(gvizUrl);
+    }
+
+    if (!csv) {
       return NextResponse.json(
         {
           error:
             "Unable to access the Google Sheet. Make sure the sheet is accessible without requiring a Google login.",
-        },
-        { status: 400 }
-      );
-    }
-
-    const csv =
-      await response.text();
-
-    if (!csv.trim()) {
-      return NextResponse.json(
-        {
-          error:
-            "The Google Sheet appears to be empty.",
         },
         { status: 400 }
       );
