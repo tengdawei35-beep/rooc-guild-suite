@@ -2,11 +2,7 @@ import { getApplicantSession } from "@/lib/auth/applicant";
 import { prisma } from "@/lib/prisma";
 import ApplicantApplyClient from "./ApplicantApplyClient";
 
-export default async function ApplicantApplyPage({
-  params,
-}: {
-  params: Promise<{ token: string }>;
-}) {
+export default async function ApplicantApplyPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   const invite = await prisma.applicantInvite.findFirst({ where: { token, active: true } });
 
@@ -24,7 +20,7 @@ export default async function ApplicantApplyPage({
   }
 
   const existing = await prisma.guildApplicant.findFirst({
-    where: { guildId: invite.guildId, discordUserId: user.discordId, status: "PENDING" },
+    where: { guildId: invite.guildId, discordUserId: user.discordId },
     orderBy: { updatedAt: "desc" },
   });
 
@@ -37,6 +33,7 @@ export default async function ApplicantApplyPage({
       id: existing.id,
       characterName: existing.characterName,
       job: existing.job,
+      status: existing.status,
       pdef: existing.pdef,
       mdef: existing.mdef,
       pvpDamageBonus: existing.pvpDamageBonus,
