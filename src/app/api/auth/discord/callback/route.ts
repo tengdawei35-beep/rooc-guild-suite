@@ -2,12 +2,14 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
 import { createSession } from "@/lib/auth";
+import { setApplicantSession } from "@/lib/auth/applicant";
 import { setPlatformUserSession } from "@/lib/auth/platform";
 import { prisma } from "@/lib/prisma";
 import { ensureGuildMembershipsForDiscordUser } from "@/lib/auth/ensure-guild-membership";
 import { GUILD_SELECTION_COOKIE, createGuildSelectionToken } from "@/lib/guild-selection";
 
 const OAUTH_STATE_COOKIE = "rooc_discord_oauth_state";
+const OAUTH_RETURN_COOKIE = "rooc_discord_oauth_return";
 
 type DiscordUser = { id: string; username: string; avatar?: string | null };
 type DiscordTokenResponse = { access_token: string; token_type: string };
@@ -21,6 +23,7 @@ export async function GET(request: Request) {
     const state = url.searchParams.get("state");
     const cookieStore = await cookies();
     const expectedState = cookieStore.get(OAUTH_STATE_COOKIE)?.value;
+    const applicantReturn = cookieStore.get(OAUTH_RETURN_COOKIE)?.value;
 
     if (!code || !state || !expectedState || state.length !== expectedState.length || state !== expectedState) {
       return NextResponse.redirect(new URL("/login?error=invalid_oauth_state", appUrl ?? url.origin));
@@ -70,8 +73,13 @@ export async function GET(request: Request) {
       create: { discordId: discordUserId, username: discordUsername, avatarUrl },
     });
 
-    await setPlatformUserSession(user.id);
+    if (applicantReturn && /^\/apply\/[A-Za-z0-9_-]{20,200}$/.test(applicantReturn)) {
+      cookieStore.set(OAUTH_RETURN_COOKIE, "", { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 0 });
+      await setApplicantSession(user.id);
+      return NextResponse.redirect(new URL(applicantReturn, appBaseUrl));
+    }
 
+    await setPlatformUserSession(user.id);
     await ensureGuildMembershipsForDiscordUser({ userId: user.id, discordId: discordUserId, username: discordUsername });
 
     let memberships = await prisma.guildMembership.findMany({
@@ -80,24 +88,12 @@ export async function GET(request: Request) {
       orderBy: { createdAt: "asc" },
     });
 
-    // Paid checkout creates the guild with ownerUserId. Recover any missing
-    // membership here as a defensive repair for guilds provisioned before the
-    // owner-membership webhook fix, or for a webhook replay that encountered an
-    // older provisioning path. Ownership is authoritative and does not depend
-    // on GuildMember identity linking.
     if (memberships.length === 0) {
-      const ownedGuilds = await prisma.guild.findMany({
-        where: { ownerUserId: user.id },
-        select: { id: true },
-      });
+      const ownedGuilds = await prisma.guild.findMany({ where: { ownerUserId: user.id }, select: { id: true } });
 
       if (ownedGuilds.length > 0) {
         await prisma.guildMembership.createMany({
-          data: ownedGuilds.map((guild) => ({
-            userId: user.id,
-            guildId: guild.id,
-            role: "ADMIN" as const,
-          })),
+          data: ownedGuilds.map((guild) => ({ userId: user.id, guildId: guild.id, role: "ADMIN" as const })),
           skipDuplicates: true,
         });
 
@@ -134,9 +130,7 @@ export async function GET(request: Request) {
       return NextResponse.redirect(new URL("/guild/select", appBaseUrl));
     }
 
-    if (!membership) {
-      return NextResponse.redirect(new URL("/billing/new", appBaseUrl));
-    }
+    if (!membership) return NextResponse.redirect(new URL("/billing/new", appBaseUrl));
 
     cookieStore.set(GUILD_SELECTION_COOKIE, createGuildSelectionToken(user.id), {
       httpOnly: true,
