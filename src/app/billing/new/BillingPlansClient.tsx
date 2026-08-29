@@ -2,16 +2,18 @@
 import { useState } from "react";
 
 type Plan = { id: string; name: string; description: string | null; priceCents: number; currency: string; billingInterval: "MONTH" | "YEAR"; modules: string[] };
-type Guild = { id: string; name: string; discordGuildId: string; planName: string | null; active: boolean; expiresAt: string | null };
+type Guild = { id: string; name: string; discordGuildId: string; planName: string | null; active: boolean; expiresAt: string | null; providerCustomerId: string | null; cancelAtPeriodEnd: boolean };
 type Complimentary = { freeMonths: number; remainingGuilds: number };
 
 export default function BillingPlansClient({ plans, ownedGuildCount, guilds, complimentary }: { plans: Plan[]; ownedGuildCount: number; guilds: Guild[]; complimentary: Complimentary | null }) {
   const renewableGuilds = guilds.filter((guild) => !guild.active);
+  const activeGuilds = guilds.filter((guild) => guild.active);
   const [selectedPlan, setSelectedPlan] = useState(plans[0]?.id ?? "");
   const [selectedGuildId, setSelectedGuildId] = useState("");
   const [guildName, setGuildName] = useState("");
   const [discordGuildId, setDiscordGuildId] = useState("");
   const [loading, setLoading] = useState(false);
+  const [portalGuildId, setPortalGuildId] = useState("");
   const [error, setError] = useState("");
 
   const renewing = selectedGuildId !== "";
@@ -23,6 +25,20 @@ export default function BillingPlansClient({ plans, ownedGuildCount, guilds, com
     if (guild) { setGuildName(guild.name); setDiscordGuildId(guild.discordGuildId); }
     else { setGuildName(""); setDiscordGuildId(""); }
     setError("");
+  }
+
+  async function openPortal(guildId: string) {
+    setError("");
+    setPortalGuildId(guildId);
+    try {
+      const response = await fetch("/api/billing/portal", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ guildId }) });
+      const data = await response.json() as { url?: string; error?: string };
+      if (!response.ok || !data.url) throw new Error(data.error ?? "Unable to open subscription management.");
+      window.location.assign(data.url);
+    } catch (portalError) {
+      setError(portalError instanceof Error ? portalError.message : "Unable to open subscription management.");
+      setPortalGuildId("");
+    }
   }
 
   async function submit(path: string) {
@@ -40,6 +56,8 @@ export default function BillingPlansClient({ plans, ownedGuildCount, guilds, com
 
   return <main className="min-h-screen bg-zinc-950 px-4 py-12 text-white"><div className="mx-auto max-w-5xl">
     <header className="max-w-3xl"><p className="text-sm font-medium uppercase tracking-widest text-zinc-500">ROO Guild Suite</p><h1 className="mt-3 text-4xl font-bold tracking-tight">Subscriptions</h1><p className="mt-3 text-zinc-400">Manage your guild subscriptions. You currently own {ownedGuildCount} guild{ownedGuildCount === 1 ? "" : "s"}.</p></header>
+
+    {activeGuilds.length > 0 && <section className="mt-8 rounded-2xl border border-zinc-800 bg-zinc-900 p-6"><h2 className="text-lg font-semibold">Current subscriptions</h2><p className="mt-1 text-sm text-zinc-500">Your active guilds are renewed automatically. Use Manage subscription to update payment details, change or cancel the subscription, or resume a scheduled cancellation.</p><div className="mt-4 space-y-3">{activeGuilds.map((guild) => <div key={guild.id} className="flex flex-col gap-4 rounded-xl border border-zinc-800 bg-zinc-950 p-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-semibold">{guild.name}</p><p className="mt-1 text-sm text-zinc-500">{guild.planName ?? "Subscription"}{guild.expiresAt ? ` • Renews ${new Date(guild.expiresAt).toLocaleDateString()}` : ""}{guild.cancelAtPeriodEnd ? " • Scheduled to cancel" : ""}</p></div><button disabled={portalGuildId === guild.id || !guild.providerCustomerId} onClick={() => openPortal(guild.id)} className="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-medium text-white hover:border-zinc-500 disabled:cursor-not-allowed disabled:opacity-50">{portalGuildId === guild.id ? "Opening…" : "Manage subscription"}</button></div>)}</div></section>}
 
     {renewableGuilds.length > 0 && <section className="mt-8 rounded-2xl border border-amber-800/60 bg-amber-950/20 p-6"><h2 className="text-lg font-semibold text-amber-200">Renew an existing guild</h2><p className="mt-1 text-sm text-amber-100/70">Select an expired or cancelled guild to restore access. You do not need to re-enter its Discord details.</p><select value={selectedGuildId} onChange={(event) => selectGuild(event.target.value)} className="mt-4 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-4 py-3 text-white"><option value="">Select a guild…</option>{renewableGuilds.map((guild) => <option key={guild.id} value={guild.id}>{guild.name}{guild.planName ? ` — ${guild.planName}` : ""}</option>)}</select>{selectedGuild && <p className="mt-2 text-xs text-zinc-500">Discord Guild ID: {selectedGuild.discordGuildId}{selectedGuild.expiresAt ? ` • Expired ${new Date(selectedGuild.expiresAt).toLocaleDateString()}` : ""}</p>}</section>}
 
