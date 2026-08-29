@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ROO Guild Suite",
+  title: "HMDL",
   description:
     "Guild management suite for Ragnarok Online Origin Classic and future games.",
 };
