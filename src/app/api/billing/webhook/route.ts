@@ -9,14 +9,14 @@ export const runtime = "nodejs";
 function subscriptionStatus(status: Stripe.Subscription.Status) {
   switch (status) {
     case "active":
-    case "trialing":
       return "ACTIVE" as const;
+    case "trialing":
+      return "TRIALING" as const;
     case "past_due":
+    case "unpaid":
       return "PAST_DUE" as const;
     case "canceled":
       return "CANCELED" as const;
-    case "unpaid":
-      return "UNPAID" as const;
     default:
       return "INCOMPLETE" as const;
   }
