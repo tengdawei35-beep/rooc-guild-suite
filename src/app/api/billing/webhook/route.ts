@@ -22,6 +22,10 @@ function subscriptionStatus(status: Stripe.Subscription.Status) {
   }
 }
 
+function subscriptionIsEntitled(status: Stripe.Subscription.Status) {
+  return status === "active" || status === "trialing";
+}
+
 export async function POST(request: Request) {
   const payload = await request.text();
   const signature = request.headers.get("stripe-signature");
@@ -64,18 +68,11 @@ export async function POST(request: Request) {
       }
 
       await prisma.$transaction(async (tx) => {
-        const creator = await tx.platformGuildCreator.findUnique({
-          where: { discordUserId },
-        });
+        const creator = await tx.platformGuildCreator.findUnique({ where: { discordUserId } });
         const user = await tx.user.findUnique({ where: { discordId: discordUserId } });
-        const plan = await tx.plan.findFirst({
-          where: { id: planId, active: true },
-          include: { modules: true },
-        });
+        const plan = await tx.plan.findFirst({ where: { id: planId, active: true }, include: { modules: true } });
 
-        if (!creator?.active || !user || !plan) {
-          throw new Error("CHECKOUT_CREATOR_USER_OR_PLAN_INVALID");
-        }
+        if (!creator?.active || !user || !plan) throw new Error("CHECKOUT_CREATOR_USER_OR_PLAN_INVALID");
 
         const existingGuild = await tx.guild.findUnique({ where: { discordGuildId } });
         if (existingGuild) {
@@ -87,18 +84,9 @@ export async function POST(request: Request) {
         }
 
         const ownedGuildCount = await tx.guild.count({ where: { ownerUserId: user.id } });
-        if (ownedGuildCount >= creator.maxGuilds) {
-          throw new Error("GUILD_CREATION_LIMIT_REACHED");
-        }
+        if (ownedGuildCount >= creator.maxGuilds) throw new Error("GUILD_CREATION_LIMIT_REACHED");
 
-        const guild = await tx.guild.create({
-          data: {
-            name: guildName,
-            discordGuildId,
-            ownerUserId: user.id,
-          },
-        });
-
+        const guild = await tx.guild.create({ data: { name: guildName, discordGuildId, ownerUserId: user.id } });
         await tx.guildSubscription.create({
           data: {
             guildId: guild.id,
@@ -109,13 +97,8 @@ export async function POST(request: Request) {
             providerSubscriptionId: subscriptionId,
           },
         });
-
         await tx.guildModuleEntitlement.createMany({
-          data: plan.modules.map((module) => ({
-            guildId: guild.id,
-            module: module.module,
-            enabled: true,
-          })),
+          data: plan.modules.map((module) => ({ guildId: guild.id, module: module.module, enabled: true })),
         });
       });
     }
@@ -123,14 +106,33 @@ export async function POST(request: Request) {
     if (event.type === "customer.subscription.updated" || event.type === "customer.subscription.deleted") {
       const subscription = event.data.object as Stripe.Subscription;
       const status = subscriptionStatus(subscription.status);
-      await prisma.guildSubscription.updateMany({
-        where: { providerSubscriptionId: subscription.id },
-        data: {
-          status,
-          cancelAtPeriodEnd: subscription.cancel_at_period_end,
-          currentPeriodStart: new Date(subscription.items.data[0]?.current_period_start ? subscription.items.data[0].current_period_start * 1000 : Date.now()),
-          currentPeriodEnd: new Date(subscription.items.data[0]?.current_period_end ? subscription.items.data[0].current_period_end * 1000 : Date.now()),
-        },
+      const entitled = subscriptionIsEntitled(subscription.status);
+
+      await prisma.$transaction(async (tx) => {
+        const existing = await tx.guildSubscription.findUnique({
+          where: { providerSubscriptionId: subscription.id },
+          include: { plan: { include: { modules: true } } },
+        });
+
+        if (!existing) return;
+
+        await tx.guildSubscription.update({
+          where: { id: existing.id },
+          data: {
+            status,
+            cancelAtPeriodEnd: subscription.cancel_at_period_end,
+            currentPeriodStart: new Date(subscription.items.data[0]?.current_period_start ? subscription.items.data[0].current_period_start * 1000 : Date.now()),
+            currentPeriodEnd: new Date(subscription.items.data[0]?.current_period_end ? subscription.items.data[0].current_period_end * 1000 : Date.now()),
+          },
+        });
+
+        for (const module of existing.plan.modules) {
+          await tx.guildModuleEntitlement.upsert({
+            where: { guildId_module: { guildId: existing.guildId, module: module.module } },
+            create: { guildId: existing.guildId, module: module.module, enabled: entitled },
+            update: { enabled: entitled },
+          });
+        }
       });
     }
 
