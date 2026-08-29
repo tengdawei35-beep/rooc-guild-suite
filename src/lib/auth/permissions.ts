@@ -1,20 +1,17 @@
-import type { Role } from "./roles";
+import type { Permission, UserRole } from "@/lib/permissions";
 
-export const PERMISSIONS = {
-  "guild.manage": ["ADMIN"],
-  "events.manage": ["ADMIN", "MANAGER", "OFFICER"],
-  "rosters.edit": ["ADMIN", "MANAGER", "OFFICER"],
-  "allocation.view": ["ADMIN", "MANAGER", "OFFICER"],
-  "allocation.run": ["ADMIN", "MANAGER", "OFFICER"],
-  "users.view": ["ADMIN", "MANAGER", "OFFICER"],
-  "users.manage": ["ADMIN", "MANAGER"],
-} as const satisfies Record<string, readonly Role[]>;
+export { hasPermission } from "@/lib/permissions";
+export type { Permission, UserRole } from "@/lib/permissions";
 
-export type Permission = keyof typeof PERMISSIONS;
-
-export function hasPermission(
-  role: Role,
+export async function requirePermission(
+  auth: { role: UserRole },
   permission: Permission
-): boolean {
-  return PERMISSIONS[permission].includes(role);
+) {
+  const { hasPermission } = await import("@/lib/permissions");
+
+  if (!hasPermission(auth.role, permission)) {
+    throw new Error("FORBIDDEN");
+  }
+
+  return auth;
 }
