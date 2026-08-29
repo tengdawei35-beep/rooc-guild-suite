@@ -58,6 +58,13 @@ export async function POST(request: Request) {
       const customerId = typeof session.customer === "string" ? session.customer : session.customer?.id;
       if (!subscriptionId) return NextResponse.json({ error: "MISSING_STRIPE_SUBSCRIPTION" }, { status: 400 });
 
+      const stripeSubscription = await stripePaymentProvider.getSubscription(subscriptionId) as Stripe.Subscription;
+      const stripeStatus = subscriptionStatus(stripeSubscription.status);
+      const periodStart = stripeSubscription.items.data[0]?.current_period_start;
+      const periodEnd = stripeSubscription.items.data[0]?.current_period_end;
+      const currentPeriodStart = periodStart ? new Date(periodStart * 1000) : null;
+      const currentPeriodEnd = periodEnd ? new Date(periodEnd * 1000) : null;
+
       await prisma.$transaction(async (tx) => {
         const user = await tx.user.findUnique({ where: { discordId: discordUserId } });
         const plan = await tx.plan.findFirst({ where: { id: planId, active: true }, include: { modules: true } });
@@ -70,24 +77,30 @@ export async function POST(request: Request) {
           });
           if (!existingSubscription) throw new Error("DISCORD_GUILD_ALREADY_REGISTERED");
 
-          // The first provisioning attempt may have created the guild before the
-          // owner membership was added. Replaying the webhook must repair that
-          // partial state instead of returning early.
           await tx.guildMembership.upsert({
             where: { userId_guildId: { userId: user.id, guildId: existingGuild.id } },
             update: { role: "ADMIN" },
             create: { userId: user.id, guildId: existingGuild.id, role: "ADMIN" },
           });
 
+          await tx.guildSubscription.update({
+            where: { id: existingSubscription.id },
+            data: {
+              status: stripeStatus,
+              providerCustomerId: customerId,
+              currentPeriodStart,
+              currentPeriodEnd,
+              cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
+            },
+          });
+
           await tx.guildModuleEntitlement.createMany({
-            data: plan.modules.map((module) => ({ guildId: existingGuild.id, module: module.module, enabled: true })),
+            data: plan.modules.map((module) => ({ guildId: existingGuild.id, module: module.module, enabled: subscriptionIsEntitled(stripeSubscription.status) })),
             skipDuplicates: true,
           });
           return;
         }
 
-        // Paid checkout authorizes guild creation for any authenticated user.
-        // Complimentary creator grants are a separate admin-controlled bypass.
         const guild = await tx.guild.create({
           data: { name: guildName, discordGuildId, ownerUserId: user.id },
         });
@@ -100,15 +113,18 @@ export async function POST(request: Request) {
           data: {
             guildId: guild.id,
             planId: plan.id,
-            status: "ACTIVE",
+            status: stripeStatus,
             provider: "stripe",
             providerCustomerId: customerId,
             providerSubscriptionId: subscriptionId,
+            currentPeriodStart,
+            currentPeriodEnd,
+            cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
           },
         });
 
         await tx.guildModuleEntitlement.createMany({
-          data: plan.modules.map((module) => ({ guildId: guild.id, module: module.module, enabled: true })),
+          data: plan.modules.map((module) => ({ guildId: guild.id, module: module.module, enabled: subscriptionIsEntitled(stripeSubscription.status) })),
         });
       });
     }
