@@ -2877,6 +2877,7 @@ export const PlatformGuildCreatorScalarFieldEnum = {
   discordUserId: 'discordUserId',
   discordUsername: 'discordUsername',
   maxGuilds: 'maxGuilds',
+  freeMonths: 'freeMonths',
   active: 'active',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

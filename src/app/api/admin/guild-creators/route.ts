@@ -16,7 +16,7 @@ export async function GET() {
   return NextResponse.json({ creators });
 }
 
-function parsePositiveInt(value: unknown, fallback: number) {
+function parsePositiveInt(value: unknown, fallback: number): number | null {
   const n = Number(value ?? fallback);
   return Number.isInteger(n) && n > 0 ? n : null;
 }
@@ -45,14 +45,78 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   const denied = await requireAdminResponse();
   if (denied) return denied;
-  const body = (await request.json()) as { id?: string; discordUsername?: string; maxGuilds?: number; freeMonths?: number; active?: boolean };
-  if (!body.id) return NextResponse.json({ error: "Creator ID is required." }, { status: 400 });
-  const maxGuilds = body.maxGuilds === undefined ? undefined : parsePositiveInt(body.maxGuilds, 1);
-  const freeMonths = body.freeMonths === undefined ? undefined : parsePositiveInt(body.freeMonths, 1);
-  if (body.maxGuilds !== undefined && !maxGuilds) return NextResponse.json({ error: "maxGuilds must be a positive integer." }, { status: 400 });
-  if (body.freeMonths !== undefined && !freeMonths) return NextResponse.json({ error: "freeMonths must be a positive integer." }, { status: 400 });
-  const creator = await prisma.platformGuildCreator.update({ where: { id: body.id }, data: { ...(body.discordUsername !== undefined ? { discordUsername: body.discordUsername.trim() } : {}), ...(maxGuilds !== undefined ? { maxGuilds } : {}), ...(freeMonths !== undefined ? { freeMonths } : {}), ...(body.active !== undefined ? { active: body.active } : {}) } });
-  return NextResponse.json({ creator });
+
+  const body = (await request.json()) as {
+    id?: string;
+    discordUsername?: string;
+    maxGuilds?: number;
+    freeMonths?: number;
+    active?: boolean;
+  };
+
+  if (!body.id) {
+    return NextResponse.json(
+      { error: "Creator ID is required." },
+      { status: 400 }
+    );
+  }
+
+  const data: {
+    discordUsername?: string;
+    maxGuilds?: number;
+    freeMonths?: number;
+    active?: boolean;
+  } = {};
+
+  if (body.discordUsername !== undefined) {
+    data.discordUsername = body.discordUsername.trim();
+  }
+
+  if (body.maxGuilds !== undefined) {
+    const maxGuilds = parsePositiveInt(body.maxGuilds, 1);
+
+    if (!maxGuilds) {
+      return NextResponse.json(
+        { error: "maxGuilds must be a positive integer." },
+        { status: 400 }
+      );
+    }
+
+    data.maxGuilds = maxGuilds;
+  }
+
+  if (body.freeMonths !== undefined) {
+    const freeMonths = parsePositiveInt(body.freeMonths, 1);
+
+    if (!freeMonths) {
+      return NextResponse.json(
+        { error: "freeMonths must be a positive integer." },
+        { status: 400 }
+      );
+    }
+
+    data.freeMonths = freeMonths;
+  }
+
+  if (body.active !== undefined) {
+    data.active = body.active;
+  }
+
+  try {
+    const creator = await prisma.platformGuildCreator.update({
+      where: { id: body.id },
+      data,
+    });
+
+    return NextResponse.json({ creator });
+  } catch (error) {
+    console.error("[ADMIN] Failed to update guild creator:", error);
+
+    return NextResponse.json(
+      { error: "Failed to update guild creator." },
+      { status: 500 }
+    );
+  }
 }
 
 export async function DELETE(request: Request) {

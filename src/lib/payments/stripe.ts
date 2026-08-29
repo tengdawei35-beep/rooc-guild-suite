@@ -9,6 +9,9 @@ function getStripe() {
 }
 
 export class StripePaymentProvider implements PaymentProvider {
+  async getSubscription(subscriptionId: string): Promise<Stripe.Subscription> {
+    return getStripe().subscriptions.retrieve(subscriptionId);
+  }
   async createCheckout(request: CheckoutRequest): Promise<CheckoutSession> {
     const stripe = getStripe();
     const metadata: Record<string, string> = {

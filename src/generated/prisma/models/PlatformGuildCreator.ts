@@ -28,10 +28,12 @@ export type AggregatePlatformGuildCreator = {
 
 export type PlatformGuildCreatorAvgAggregateOutputType = {
   maxGuilds: number | null
+  freeMonths: number | null
 }
 
 export type PlatformGuildCreatorSumAggregateOutputType = {
   maxGuilds: number | null
+  freeMonths: number | null
 }
 
 export type PlatformGuildCreatorMinAggregateOutputType = {
@@ -39,6 +41,7 @@ export type PlatformGuildCreatorMinAggregateOutputType = {
   discordUserId: string | null
   discordUsername: string | null
   maxGuilds: number | null
+  freeMonths: number | null
   active: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -49,6 +52,7 @@ export type PlatformGuildCreatorMaxAggregateOutputType = {
   discordUserId: string | null
   discordUsername: string | null
   maxGuilds: number | null
+  freeMonths: number | null
   active: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -59,6 +63,7 @@ export type PlatformGuildCreatorCountAggregateOutputType = {
   discordUserId: number
   discordUsername: number
   maxGuilds: number
+  freeMonths: number
   active: number
   createdAt: number
   updatedAt: number
@@ -68,10 +73,12 @@ export type PlatformGuildCreatorCountAggregateOutputType = {
 
 export type PlatformGuildCreatorAvgAggregateInputType = {
   maxGuilds?: true
+  freeMonths?: true
 }
 
 export type PlatformGuildCreatorSumAggregateInputType = {
   maxGuilds?: true
+  freeMonths?: true
 }
 
 export type PlatformGuildCreatorMinAggregateInputType = {
@@ -79,6 +86,7 @@ export type PlatformGuildCreatorMinAggregateInputType = {
   discordUserId?: true
   discordUsername?: true
   maxGuilds?: true
+  freeMonths?: true
   active?: true
   createdAt?: true
   updatedAt?: true
@@ -89,6 +97,7 @@ export type PlatformGuildCreatorMaxAggregateInputType = {
   discordUserId?: true
   discordUsername?: true
   maxGuilds?: true
+  freeMonths?: true
   active?: true
   createdAt?: true
   updatedAt?: true
@@ -99,6 +108,7 @@ export type PlatformGuildCreatorCountAggregateInputType = {
   discordUserId?: true
   discordUsername?: true
   maxGuilds?: true
+  freeMonths?: true
   active?: true
   createdAt?: true
   updatedAt?: true
@@ -196,6 +206,7 @@ export type PlatformGuildCreatorGroupByOutputType = {
   discordUserId: string
   discordUsername: string
   maxGuilds: number
+  freeMonths: number
   active: boolean
   createdAt: Date
   updatedAt: Date
@@ -229,6 +240,7 @@ export type PlatformGuildCreatorWhereInput = {
   discordUserId?: Prisma.StringFilter<"PlatformGuildCreator"> | string
   discordUsername?: Prisma.StringFilter<"PlatformGuildCreator"> | string
   maxGuilds?: Prisma.IntFilter<"PlatformGuildCreator"> | number
+  freeMonths?: Prisma.IntFilter<"PlatformGuildCreator"> | number
   active?: Prisma.BoolFilter<"PlatformGuildCreator"> | boolean
   createdAt?: Prisma.DateTimeFilter<"PlatformGuildCreator"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PlatformGuildCreator"> | Date | string
@@ -239,6 +251,7 @@ export type PlatformGuildCreatorOrderByWithRelationInput = {
   discordUserId?: Prisma.SortOrder
   discordUsername?: Prisma.SortOrder
   maxGuilds?: Prisma.SortOrder
+  freeMonths?: Prisma.SortOrder
   active?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -252,6 +265,7 @@ export type PlatformGuildCreatorWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.PlatformGuildCreatorWhereInput | Prisma.PlatformGuildCreatorWhereInput[]
   discordUsername?: Prisma.StringFilter<"PlatformGuildCreator"> | string
   maxGuilds?: Prisma.IntFilter<"PlatformGuildCreator"> | number
+  freeMonths?: Prisma.IntFilter<"PlatformGuildCreator"> | number
   active?: Prisma.BoolFilter<"PlatformGuildCreator"> | boolean
   createdAt?: Prisma.DateTimeFilter<"PlatformGuildCreator"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PlatformGuildCreator"> | Date | string
@@ -262,6 +276,7 @@ export type PlatformGuildCreatorOrderByWithAggregationInput = {
   discordUserId?: Prisma.SortOrder
   discordUsername?: Prisma.SortOrder
   maxGuilds?: Prisma.SortOrder
+  freeMonths?: Prisma.SortOrder
   active?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -280,6 +295,7 @@ export type PlatformGuildCreatorScalarWhereWithAggregatesInput = {
   discordUserId?: Prisma.StringWithAggregatesFilter<"PlatformGuildCreator"> | string
   discordUsername?: Prisma.StringWithAggregatesFilter<"PlatformGuildCreator"> | string
   maxGuilds?: Prisma.IntWithAggregatesFilter<"PlatformGuildCreator"> | number
+  freeMonths?: Prisma.IntWithAggregatesFilter<"PlatformGuildCreator"> | number
   active?: Prisma.BoolWithAggregatesFilter<"PlatformGuildCreator"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"PlatformGuildCreator"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"PlatformGuildCreator"> | Date | string
@@ -290,6 +306,7 @@ export type PlatformGuildCreatorCreateInput = {
   discordUserId: string
   discordUsername: string
   maxGuilds?: number
+  freeMonths?: number
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -300,6 +317,7 @@ export type PlatformGuildCreatorUncheckedCreateInput = {
   discordUserId: string
   discordUsername: string
   maxGuilds?: number
+  freeMonths?: number
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -310,6 +328,7 @@ export type PlatformGuildCreatorUpdateInput = {
   discordUserId?: Prisma.StringFieldUpdateOperationsInput | string
   discordUsername?: Prisma.StringFieldUpdateOperationsInput | string
   maxGuilds?: Prisma.IntFieldUpdateOperationsInput | number
+  freeMonths?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -320,6 +339,7 @@ export type PlatformGuildCreatorUncheckedUpdateInput = {
   discordUserId?: Prisma.StringFieldUpdateOperationsInput | string
   discordUsername?: Prisma.StringFieldUpdateOperationsInput | string
   maxGuilds?: Prisma.IntFieldUpdateOperationsInput | number
+  freeMonths?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -330,6 +350,7 @@ export type PlatformGuildCreatorCreateManyInput = {
   discordUserId: string
   discordUsername: string
   maxGuilds?: number
+  freeMonths?: number
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -340,6 +361,7 @@ export type PlatformGuildCreatorUpdateManyMutationInput = {
   discordUserId?: Prisma.StringFieldUpdateOperationsInput | string
   discordUsername?: Prisma.StringFieldUpdateOperationsInput | string
   maxGuilds?: Prisma.IntFieldUpdateOperationsInput | number
+  freeMonths?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -350,6 +372,7 @@ export type PlatformGuildCreatorUncheckedUpdateManyInput = {
   discordUserId?: Prisma.StringFieldUpdateOperationsInput | string
   discordUsername?: Prisma.StringFieldUpdateOperationsInput | string
   maxGuilds?: Prisma.IntFieldUpdateOperationsInput | number
+  freeMonths?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -360,6 +383,7 @@ export type PlatformGuildCreatorCountOrderByAggregateInput = {
   discordUserId?: Prisma.SortOrder
   discordUsername?: Prisma.SortOrder
   maxGuilds?: Prisma.SortOrder
+  freeMonths?: Prisma.SortOrder
   active?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -367,6 +391,7 @@ export type PlatformGuildCreatorCountOrderByAggregateInput = {
 
 export type PlatformGuildCreatorAvgOrderByAggregateInput = {
   maxGuilds?: Prisma.SortOrder
+  freeMonths?: Prisma.SortOrder
 }
 
 export type PlatformGuildCreatorMaxOrderByAggregateInput = {
@@ -374,6 +399,7 @@ export type PlatformGuildCreatorMaxOrderByAggregateInput = {
   discordUserId?: Prisma.SortOrder
   discordUsername?: Prisma.SortOrder
   maxGuilds?: Prisma.SortOrder
+  freeMonths?: Prisma.SortOrder
   active?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -384,6 +410,7 @@ export type PlatformGuildCreatorMinOrderByAggregateInput = {
   discordUserId?: Prisma.SortOrder
   discordUsername?: Prisma.SortOrder
   maxGuilds?: Prisma.SortOrder
+  freeMonths?: Prisma.SortOrder
   active?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -391,6 +418,7 @@ export type PlatformGuildCreatorMinOrderByAggregateInput = {
 
 export type PlatformGuildCreatorSumOrderByAggregateInput = {
   maxGuilds?: Prisma.SortOrder
+  freeMonths?: Prisma.SortOrder
 }
 
 
@@ -400,6 +428,7 @@ export type PlatformGuildCreatorSelect<ExtArgs extends runtime.Types.Extensions.
   discordUserId?: boolean
   discordUsername?: boolean
   maxGuilds?: boolean
+  freeMonths?: boolean
   active?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -410,6 +439,7 @@ export type PlatformGuildCreatorSelectCreateManyAndReturn<ExtArgs extends runtim
   discordUserId?: boolean
   discordUsername?: boolean
   maxGuilds?: boolean
+  freeMonths?: boolean
   active?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -420,6 +450,7 @@ export type PlatformGuildCreatorSelectUpdateManyAndReturn<ExtArgs extends runtim
   discordUserId?: boolean
   discordUsername?: boolean
   maxGuilds?: boolean
+  freeMonths?: boolean
   active?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -430,12 +461,13 @@ export type PlatformGuildCreatorSelectScalar = {
   discordUserId?: boolean
   discordUsername?: boolean
   maxGuilds?: boolean
+  freeMonths?: boolean
   active?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type PlatformGuildCreatorOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "discordUserId" | "discordUsername" | "maxGuilds" | "active" | "createdAt" | "updatedAt", ExtArgs["result"]["platformGuildCreator"]>
+export type PlatformGuildCreatorOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "discordUserId" | "discordUsername" | "maxGuilds" | "freeMonths" | "active" | "createdAt" | "updatedAt", ExtArgs["result"]["platformGuildCreator"]>
 
 export type $PlatformGuildCreatorPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "PlatformGuildCreator"
@@ -445,6 +477,7 @@ export type $PlatformGuildCreatorPayload<ExtArgs extends runtime.Types.Extension
     discordUserId: string
     discordUsername: string
     maxGuilds: number
+    freeMonths: number
     active: boolean
     createdAt: Date
     updatedAt: Date
@@ -875,6 +908,7 @@ export interface PlatformGuildCreatorFieldRefs {
   readonly discordUserId: Prisma.FieldRef<"PlatformGuildCreator", 'String'>
   readonly discordUsername: Prisma.FieldRef<"PlatformGuildCreator", 'String'>
   readonly maxGuilds: Prisma.FieldRef<"PlatformGuildCreator", 'Int'>
+  readonly freeMonths: Prisma.FieldRef<"PlatformGuildCreator", 'Int'>
   readonly active: Prisma.FieldRef<"PlatformGuildCreator", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"PlatformGuildCreator", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"PlatformGuildCreator", 'DateTime'>
