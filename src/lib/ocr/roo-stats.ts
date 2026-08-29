@@ -40,8 +40,6 @@ function findExactLabel(line:string,field:string,aliases:string[]){
     if(field==="pdmgReductionPercent"&&!/PDMG\s*\.\s*R/i.test(upper)) continue;
     if(field==="mdmgReductionPercent"&&!/MDMG\s*\.\s*R/i.test(upper)) continue;
     if((field==="ignorePdef"||field==="ignoreMdef")&&/%/.test(upper.slice(match.index))) continue;
-    if(field==="equipmentPdefPercent"&&!/EQUIPMENT\s+PDEF/i.test(upper)) continue;
-    if(field==="equipmentMdefPercent"&&!/EQUIPMENT\s+MDEF/i.test(upper)) continue;
     return match.index+match[0].length;
   }
   return -1;
@@ -56,9 +54,6 @@ function extractLabelValues(text:string):RooStats{
       if((field==="equipmentPdefPercent"||field==="equipmentMdefPercent")&&!value.endsWith("%")) continue;
       if((field==="ignorePdef"||field==="ignoreMdef")&&value.endsWith("%")) continue;
       if((field==="pdmgPercent"||field==="mdmgPercent"||field==="pdmgReductionPercent"||field==="mdmgReductionPercent")&&!value.endsWith("%")) continue;
-      if(field==="pdmgBonus"||field==="mdmgBonus"||field==="pveDamageReduction"||field==="pveDamageBonus"){
-        // These are absolute values in the ROO Quasi-Stats screen.
-      }
       r[field]=repairNumber(value).replace(/%$/," ").trim();
     }
   }
@@ -86,11 +81,9 @@ async function recognise(worker:OcrWorker,image:Buffer,psm:PSM,whitelist?:string
 
 function choosePvpNumber(texts:string[], expectedMinLength:number){
   const candidates:string[]=[];
-  for(const text of texts){
-    for(const n of allNumbers(text)){ if(n.length>=expectedMinLength) candidates.push(n); }
-  }
-  if(!candidates.length) return null;
-  const counts:Record<string,number>={}; for(const c of candidates) counts[c]=(counts[c]||0)+1;
+  for(const text of texts){for(const n of allNumbers(text)){if(n.length>=expectedMinLength)candidates.push(n);}}
+  if(!candidates.length)return null;
+  const counts:Record<string,number>={}; for(const c of candidates)counts[c]=(counts[c]||0)+1;
   return [...new Set(candidates)].sort((a,b)=>counts[b]-counts[a]||b.length-a.length)[0];
 }
 
@@ -105,15 +98,15 @@ export async function readRooStats(images:Buffer[]):Promise<{stats:RooStats;rawT
       for(const [field,roi] of Object.entries(PVP_ROIS)){
         const crop=await preprocessRoi(image,roi);
         for(let pass=0;pass<3;pass++){
-          const text=await recognise(numericWorker,crop,PSM.SINGLE_LINE,"0123456789"); pvpTexts[field].push(text);
+          pvpTexts[field].push(await recognise(numericWorker,crop,PSM.SINGLE_LINE,"0123456789"));
         }
       }
-      const reduction=choosePvpNumber(pvpTexts.pvpDamageReduction,4); const bonus=choosePvpNumber(pvpTexts.pvpDamageBonus,4);
+      const reduction=choosePvpNumber(pvpTexts.pvpDamageReduction,4),bonus=choosePvpNumber(pvpTexts.pvpDamageBonus,4);
       if(reduction)stats.pvpDamageReduction=reduction;
       if(bonus)stats.pvpDamageBonus=bonus;
       const notice=raw.slice(-3).join("\n");
-      const p=notice.match(/EQUIPMENT\s*PDEF\s*[:]?\s*(\d+(?:\.\d+)?)(?!\s*%)/i); if(p)stats.pdef=repairNumber(p[1]);
-      const m=notice.match(/EQUIPMENT\s*MDEF\s*[:]?\s*(\d+(?:\.\d+)?)(?!\s*%)/i); if(m)stats.mdef=repairNumber(m[1]);
+      const p=notice.match(/EQUIPMENT\s*PDEF\s*[:]?\s*(\d+(?:\.\d+)?)(?!\s*%)/i);if(p)stats.pdef=repairNumber(p[1]);
+      const m=notice.match(/EQUIPMENT\s*MDEF\s*[:]?\s*(\d+(?:\.\d+)?)(?!\s*%)/i);if(m)stats.mdef=repairNumber(m[1]);
     }
   }finally{await Promise.allSettled([worker.terminate(),numericWorker.terminate()]);}
   return{stats,rawText:raw.join("\n")};
