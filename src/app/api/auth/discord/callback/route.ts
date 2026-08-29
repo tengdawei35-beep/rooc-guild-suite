@@ -93,7 +93,7 @@ export async function GET(request: Request) {
       orderBy: { createdAt: "asc" },
     });
 
-    let membership = memberships[0] ?? null;
+    const membership = memberships[0] ?? null;
 
     if (!membership && discordUserId === process.env.INITIAL_LEADER_DISCORD_ID) {
       const initialGuildDiscordId = process.env.INITIAL_GUILD_DISCORD_ID;
@@ -102,13 +102,11 @@ export async function GET(request: Request) {
       const guild = await prisma.guild.findUnique({ where: { discordGuildId: initialGuildDiscordId } });
       if (!guild) throw new Error("The configured initial Discord guild does not exist in the database.");
 
-      membership = await prisma.guildMembership.create({
+      const initialMembership = await prisma.guildMembership.create({
         data: { userId: user.id, guildId: guild.id, role: "ADMIN" },
         include: { guild: true },
       });
-    }
 
-    if (memberships.length > 1 && membership) {
       cookieStore.set(GUILD_SELECTION_COOKIE, createGuildSelectionToken(user.id), {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
@@ -116,6 +114,7 @@ export async function GET(request: Request) {
         path: "/",
         maxAge: 5 * 60,
       });
+      await createSession(user.id, initialMembership.guildId);
       return NextResponse.redirect(new URL("/guild/select", appBaseUrl));
     }
 
@@ -123,8 +122,17 @@ export async function GET(request: Request) {
       return NextResponse.redirect(new URL("/billing/new", appBaseUrl));
     }
 
-    await createSession(user.id, membership.guildId);
-    return NextResponse.redirect(new URL("/", appBaseUrl));
+    // Always use the guild selector when the user has an existing membership.
+    // It also provides the optional "Create another guild" action when the
+    // platform creator allowance permits it.
+    cookieStore.set(GUILD_SELECTION_COOKIE, createGuildSelectionToken(user.id), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 5 * 60,
+    });
+    return NextResponse.redirect(new URL("/guild/select", appBaseUrl));
   } catch (error) {
     console.error("[DISCORD AUTH]", error);
     const fallbackUrl = appUrl ? new URL(appUrl) : new URL(request.url);
