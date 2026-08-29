@@ -85,7 +85,22 @@ export async function POST(request: Request) {
         // Paid checkout is the authorization to create the guild. Complimentary
         // creator grants are a separate admin-controlled bypass and must not gate
         // or limit users who have paid for a subscription.
-        const guild = await tx.guild.create({ data: { name: guildName, discordGuildId, ownerUserId: user.id } });
+        const guild = await tx.guild.create({
+          data: {
+            name: guildName,
+            discordGuildId,
+            ownerUserId: user.id,
+          },
+        });
+
+        await tx.guildMembership.create({
+          data: {
+            guildId: guild.id,
+            userId: user.id,
+            role: "ADMIN",
+          },
+        });
+
         await tx.guildSubscription.create({
           data: {
             guildId: guild.id,
@@ -96,8 +111,13 @@ export async function POST(request: Request) {
             providerSubscriptionId: subscriptionId,
           },
         });
+
         await tx.guildModuleEntitlement.createMany({
-          data: plan.modules.map((module) => ({ guildId: guild.id, module: module.module, enabled: true })),
+          data: plan.modules.map((module) => ({
+            guildId: guild.id,
+            module: module.module,
+            enabled: true,
+          })),
         });
       });
     }
