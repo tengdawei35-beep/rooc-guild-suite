@@ -1,464 +1,67 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { requirePageAuth } from "@/lib/auth";
+import { requirePageAuth, hasPermission } from "@/lib/auth";
+import { hasGuildModule, RESOURCE_SUITE_MODULE } from "@/lib/auth/modules";
+import { getGuildSubscriptionEntitlement } from "@/lib/billing/entitlement-status";
 
 export default async function Home() {
   const auth = await requirePageAuth();
-
+  const subscription = await getGuildSubscriptionEntitlement(auth.guild.id);
+  const hasResourceSuite = await hasGuildModule(auth.guild.id, RESOURCE_SUITE_MODULE);
   const guild = await prisma.guild.findUnique({
-    where: {
-      id: auth.guild.id,
-    },
+    where: { id: auth.guild.id },
     include: {
-      members: {
-        where: {
-          active: true,
-        },
-      },
-
-      resources: {
-        where: {
-          active: true,
-        },
-      },
-
-      reservedAllocations: true,
-
-      allocationRuns: true,
-
-      events: {
-        orderBy: {
-          date: "desc",
-        },
-
-        take: 5,
-
-        include: {
-          rosters: true,
-        },
-      },
+      members: { where: { active: true }, orderBy: { updatedAt: "desc" }, take: 6 },
+      resources: { where: { active: true } }, reservedAllocations: true,
+      allocationRuns: { orderBy: { createdAt: "desc" }, take: 5, include: { event: true, bidPages: true } },
+      events: { orderBy: { date: "desc" }, take: 5, include: { rosters: true } },
     },
   });
-
-  const memberCount =
-    guild?.members.length ?? 0;
-
-  const resourceCount =
-    guild?.resources.length ?? 0;
-
-  const reservationCount =
-    guild?.reservedAllocations.length ?? 0;
-
-  const allocationRunCount =
-    guild?.allocationRuns.length ?? 0;
-
-  const eventCount =
-    guild?.events.length ?? 0;
-
-  const rosterCount =
-    guild?.events.reduce(
-      (total, event) =>
-        total + event.rosters.length,
-      0
-    ) ?? 0;
-
-  return (
-    <main className="min-h-screen bg-zinc-950 text-white">
-      <div className="mx-auto max-w-7xl px-6 py-10">
-        {/* =====================================================
-            HEADER
-        ===================================================== */}
-
-        <header className="mb-10">
-          <p className="mb-2 text-sm font-medium uppercase tracking-widest text-zinc-500">
-            ROO Guild Suite
-          </p>
-
-          <h1 className="text-4xl font-bold tracking-tight">
-            Guild Dashboard
-          </h1>
-
-          <p className="mt-2 text-zinc-400">
-            Manage your guild, events, rosters,
-            resources and allocations.
-          </p>
-        </header>
-
-        {/* =====================================================
-            NO GUILD
-        ===================================================== */}
-
-        {!guild ? (
-          <section className="rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/50 p-10 text-center">
-            <h2 className="text-xl font-semibold">
-              No guild configured
-            </h2>
-
-            <p className="mt-2 text-sm text-zinc-400">
-              Your ROO Guild Suite database is
-              connected, but no guild has been
-              created yet.
-            </p>
-
-            <Link
-              href="/guild"
-              className="mt-6 inline-flex rounded-lg bg-white px-5 py-3 font-medium text-black transition hover:bg-zinc-200"
-            >
-              Configure Guild
-            </Link>
-          </section>
-        ) : (
-          <>
-            {/* =================================================
-                GUILD INFORMATION
-            ================================================= */}
-
-            <section className="mb-6 rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
-              <p className="text-sm text-zinc-500">
-                Guild
-              </p>
-
-              <h2 className="mt-1 text-2xl font-semibold">
-                {guild.name}
-              </h2>
-
-              <p className="mt-1 text-sm text-zinc-500">
-                Discord Guild ID:{" "}
-                {guild.discordGuildId}
-              </p>
-            </section>
-
-            {/* =================================================
-                STATISTICS
-            ================================================= */}
-
-            <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
-              <StatCard
-                label="Active Members"
-                value={memberCount}
-              />
-
-              <StatCard
-                label="Active Resources"
-                value={resourceCount}
-              />
-
-              <StatCard
-                label="Reservations"
-                value={reservationCount}
-              />
-
-              <StatCard
-                label="Allocation Runs"
-                value={allocationRunCount}
-              />
-
-              <StatCard
-                label="Events"
-                value={eventCount}
-              />
-
-              <StatCard
-                label="Rosters"
-                value={rosterCount}
-              />
-            </section>
-
-            {/* =================================================
-                EVENTS & ROSTERS
-            ================================================= */}
-
-            <section className="mt-10">
-              <div className="mb-4 flex items-end justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold">
-                    Events & Rosters
-                  </h2>
-
-                  <p className="mt-1 text-sm text-zinc-500">
-                    Manage events, generate rosters
-                    and organize parties.
-                  </p>
-                </div>
-
-                <Link
-                  href="/events"
-                  className="text-sm font-medium text-zinc-400 hover:text-white"
-                >
-                  View all →
-                </Link>
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {/* EVENTS */}
-
-                <DashboardCard
-                  href="/events"
-                  title="Events"
-                  description="Create and manage Guild League and Emperium Overrun events."
-                  featured
-                />
-
-                {/* ROSTERS */}
-
-                <DashboardCard
-                  href="/events?view=rosters"
-                  title="Rosters"
-                  description="View events with rosters, generate automatic rosters and manage party assignments."
-                />
-
-                {/* PREFERRED ROSTERS */}
-
-                <DashboardCard
-                  href="/events?view=preferred"
-                  title="Preferred Rosters"
-                  description="Manage preferred roster arrangements used as the starting point for future events."
-                />
-              </div>
-            </section>
-
-            {/* =================================================
-                GUILD MANAGEMENT
-            ================================================= */}
-
-            <section className="mt-10">
-              <h2 className="mb-4 text-lg font-semibold">
-                Guild Management
-              </h2>
-
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <DashboardCard
-                  href="/guild/members"
-                  title="Members"
-                  description="Manage guild members, eligibility, priority and character information."
-                />
-
-                <DashboardCard
-                  href="/guild/rankings"
-                  title="Guild Rankings"
-                  description="Compare overall, DPS, Tank and PvP performance across the guild."
-                  featured
-                />
-
-                <DashboardCard
-                  href="/guild/resources"
-                  title="Resources"
-                  description="Manage feathers, cards and resource limits."
-                />
-
-                <DashboardCard
-                  href="/guild/reservations"
-                  title="Reservations"
-                  description="Manage reserved resource allocations."
-                />
-
-                <DashboardCard
-                  href="/guild"
-                  title="Guild Settings"
-                  description="Configure your guild and Discord server."
-                />
-              </div>
-            </section>
-
-            {/* =================================================
-                ALLOCATION
-            ================================================= */}
-
-            <section className="mt-10">
-              <h2 className="mb-4 text-lg font-semibold">
-                Allocation
-              </h2>
-
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <DashboardCard
-                  href="/allocation"
-                  title="Allocation"
-                  description="Preview and run the next resource allocation."
-                  featured
-                />
-
-                <DashboardCard
-                  href="/allocation/history"
-                  title="Allocation History"
-                  description="Review previous allocation runs, results and bidding pages."
-                />
-
-                <DashboardCard
-                  href="/bid-pages"
-                  title="Bid Pages"
-                  description="View active and previous bidding pages and find assigned slots."
-                />
-              </div>
-            </section>
-
-            {/* =================================================
-                RECENT EVENTS
-            ================================================= */}
-
-            {guild.events.length > 0 && (
-              <section className="mt-10">
-                <div className="mb-4 flex items-end justify-between">
-                  <div>
-                    <h2 className="text-lg font-semibold">
-                      Recent Events
-                    </h2>
-
-                    <p className="mt-1 text-sm text-zinc-500">
-                      Your latest events and
-                      available rosters.
-                    </p>
-                  </div>
-
-                  <Link
-                    href="/events"
-                    className="text-sm font-medium text-zinc-400 hover:text-white"
-                  >
-                    View all →
-                  </Link>
-                </div>
-
-                <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900">
-                  <div className="divide-y divide-zinc-800">
-                    {guild.events.map(
-                      (event) => (
-                        <Link
-                          key={event.id}
-                          href={`/events/${event.id}`}
-                          className="flex items-center justify-between gap-4 px-5 py-4 transition hover:bg-zinc-800"
-                        >
-                          <div>
-                            <p className="font-medium">
-                              {formatEventType(
-                                event.type
-                              )}
-                            </p>
-
-                            <p className="mt-1 text-xs text-zinc-500">
-                              {formatDate(
-                                event.date
-                              )}
-                            </p>
-                          </div>
-
-                          <div className="text-right">
-                            <p className="text-sm font-medium">
-                              {
-                                event.rosters
-                                  .length
-                              }
-                            </p>
-
-                            <p className="text-xs text-zinc-500">
-                              {event.rosters
-                                .length === 1
-                                ? "Roster"
-                                : "Rosters"}
-                            </p>
-                          </div>
-                        </Link>
-                      )
-                    )}
-                  </div>
-                </div>
-              </section>
-            )}
-          </>
-        )}
-      </div>
-    </main>
-  );
+  const memberCount = guild?.members.length ?? 0;
+  const resourceCount = guild?.resources.length ?? 0;
+  const reservationCount = guild?.reservedAllocations.length ?? 0;
+  const allocationRunCount = guild?.allocationRuns.length ?? 0;
+  const eventCount = guild?.events.length ?? 0;
+  const rosterCount = guild?.events.reduce((total, event) => total + event.rosters.length, 0) ?? 0;
+  const canViewAllocation = hasResourceSuite && hasPermission(auth.role, "allocation.view");
+  const canViewApplicants = hasPermission(auth.role, "applicants.view");
+  const ownMember = auth.role === "MEMBER" ? await prisma.guildMember.findFirst({ where: { guildId: auth.guild.id, OR: [{ userId: auth.user.id }, { discordUserId: auth.user.discordId }] }, select: { id: true, characterName: true } }) : null;
+  const memberActivity = (guild?.members ?? []).map((member) => ({ date: member.updatedAt, title: member.characterName || member.discordUsername || "Member", detail: member.job ? `Member profile updated · ${member.job}` : "Member profile updated", href: "/guild/members" }));
+  const leaveActivity = guild ? await prisma.memberLeave.findMany({ where: { member: { guildId: guild.id } }, orderBy: { createdAt: "desc" }, take: 5, include: { member: { select: { characterName: true, discordUsername: true } } } }) : [];
+  const rosterActivity = (guild?.events ?? []).flatMap((event) => event.rosters.map((roster) => ({ date: roster.createdAt, title: "Roster generated", detail: `${formatEventType(event.type)} · ${roster.name}`, href: `/events/${event.id}` })));
+  const biddingActivity = (guild?.allocationRuns ?? []).flatMap((run) => run.bidPages.map((page) => ({ date: page.createdAt, title: "Bidding generated", detail: `${page.type} bid page · Page ${page.pageNumber}`, href: "/bid-pages" })));
+  const applicantRecords = canViewApplicants ? await prisma.guildApplicant.findMany({ where: { guildId: auth.guild.id }, orderBy: { createdAt: "desc" }, take: 10, select: { characterName: true, discordUsername: true, status: true, createdAt: true, decidedAt: true } }) : [];
+  const applicantActivity = applicantRecords.flatMap((applicant) => {
+    const name = applicant.characterName || applicant.discordUsername || "Applicant";
+    const applied = [{ date: applicant.createdAt, title: name, detail: "Application submitted", href: "/guild/applicants" }];
+    if (!applicant.decidedAt || applicant.status === "PENDING") return applied;
+    const decision = applicant.status === "ACCEPTED" ? "Application accepted" : "Application rejected";
+    return [...applied, { date: applicant.decidedAt, title: name, detail: decision, href: "/guild/applicants" }];
+  });
+  const leaveItems = leaveActivity.map((leave) => ({ date: leave.createdAt, title: leave.member.characterName || leave.member.discordUsername || "Member", detail: "Leave recorded", href: "/guild/members" }));
+  const recentMemberActivity = memberActivity.sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 5);
+  const recentLeaveActivity = leaveItems.slice(0, 5);
+  const recentRosterActivity = [...rosterActivity, ...biddingActivity].sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 5);
+  const recentApplicantActivity = applicantActivity.sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 5);
+  return <main className="min-h-screen bg-zinc-950 text-white"><div className="mx-auto max-w-7xl px-6 py-10">
+    <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"><div><p className="mb-2 text-sm font-medium uppercase tracking-widest text-zinc-500">ROO Guild Suite</p><h1 className="text-4xl font-bold tracking-tight">Guild Dashboard</h1><p className="mt-2 text-zinc-400">Manage your guild, events, rosters, resources and allocations.</p></div><div className="flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2"><span className="max-w-40 truncate text-sm text-zinc-300">{auth.user.username}</span><form action="/api/auth/logout" method="POST"><button type="submit" className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-300 transition hover:border-zinc-500 hover:bg-zinc-800 hover:text-white">Log out</button></form></div></header>
+    {!guild ? <section className="rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/50 p-10 text-center"><h2 className="text-xl font-semibold">No guild configured</h2><p className="mt-2 text-sm text-zinc-400">Your ROO Guild Suite database is connected, but no guild has been created yet.</p><Link href="/guild" className="mt-6 inline-flex rounded-lg bg-white px-5 py-3 font-medium text-black">Configure Guild</Link></section> : <>
+      <section className="mb-6 rounded-2xl border border-zinc-800 bg-zinc-900 p-6"><p className="text-sm text-zinc-500">Guild</p><h2 className="mt-1 text-2xl font-semibold">{guild.name}</h2><p className="mt-1 text-sm text-zinc-500">Discord Guild ID: {guild.discordGuildId}</p></section>
+      {auth.role === "MEMBER" && <section className="mb-6 rounded-2xl border border-zinc-700 bg-zinc-900 p-6"><div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-sm font-medium uppercase tracking-widest text-zinc-500">Your Character</p><h2 className="mt-1 text-xl font-semibold">{ownMember?.characterName ?? "Member profile"}</h2><p className="mt-1 text-sm text-zinc-400">Keep your ROO stats up to date by uploading your latest character screenshots.</p></div>{ownMember ? <Link href={`/guild/members/ocr?memberId=${ownMember.id}`} className="inline-flex w-fit rounded-lg bg-white px-5 py-2.5 text-sm font-medium text-black transition hover:bg-zinc-200">Update stats via OCR →</Link> : <Link href="/guild/members" className="inline-flex w-fit rounded-lg border border-zinc-700 px-5 py-2.5 text-sm font-medium text-white transition hover:border-zinc-500 hover:bg-zinc-800">View member profile</Link>}</div></section>}
+      <section className={`grid gap-4 sm:grid-cols-2 ${canViewAllocation ? "lg:grid-cols-6" : "lg:grid-cols-3"}`}><StatCard label="Active Members" value={memberCount} />{canViewAllocation && <StatCard label="Active Resources" value={resourceCount} />}{canViewAllocation && <StatCard label="Reservations" value={reservationCount} />}{canViewAllocation && <StatCard label="Allocation Runs" value={allocationRunCount} />}<StatCard label="Events" value={eventCount} /><StatCard label="Rosters" value={rosterCount} /></section>
+      <section className="mt-10"><div className="mb-4"><h2 className="text-lg font-semibold">Activity</h2><p className="mt-1 text-sm text-zinc-500">Recent member, leave, applicant, roster and bidding activity.</p></div><div className={`grid gap-4 ${canViewApplicants ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}><ActivityPanel title="Member Activity" items={recentMemberActivity} empty="No recent member activity." /><ActivityPanel title="Leave" items={recentLeaveActivity} empty="No leave records yet." />{canViewApplicants && <ActivityPanel title="Applicants" items={recentApplicantActivity} empty="No applicant activity yet." />}<ActivityPanel title="Roster & Bidding" items={recentRosterActivity} empty="No rosters or bidding pages generated yet." /></div></section>
+      {hasPermission(auth.role, "events.view") && <section className="mt-10"><div className="mb-4 flex items-end justify-between"><div><h2 className="text-lg font-semibold">Events & Rosters</h2><p className="mt-1 text-sm text-zinc-500">Manage events, generate rosters and organize parties.</p></div><Link href="/events" className="text-sm font-medium text-zinc-400 hover:text-white">View all →</Link></div><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"><DashboardCard href="/events" title="Events" description="Create and manage Guild League and Emperium Overrun events." featured /><DashboardCard href="/events?view=rosters" title="Rosters" description="View events with rosters, generate automatic rosters and manage party assignments." /><DashboardCard href="/events?view=preferred" title="Preferred Rosters" description="Manage preferred roster arrangements used as the starting point for future events." /></div></section>}
+      {(hasPermission(auth.role, "members.view") || hasPermission(auth.role, "users.view") || hasPermission(auth.role, "guild.manage") || canViewApplicants) && <section className="mt-10"><h2 className="mb-4 text-lg font-semibold">Guild Management</h2><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{hasPermission(auth.role, "members.view") && <DashboardCard href="/guild/members" title="Members" description="Manage guild members, eligibility, priority and character information." />}{hasPermission(auth.role, "members.view") && <DashboardCard href="/guild/rankings" title="Guild Rankings" description="Compare overall, DPS, Tank and PvP performance across the guild." featured />}{canViewApplicants && <DashboardCard href="/guild/applicants" title="Applicants" description="Generate recruitment links and review applicant ROO stats, scores and projected guild percentile." featured />}{canViewAllocation && <DashboardCard href="/guild/resources" title="Resources" description="Manage feathers, cards and resource limits." />}{canViewAllocation && <DashboardCard href="/guild/reservations" title="Reservations" description="Manage reserved resource allocations." />}{hasPermission(auth.role, "users.view") && <DashboardCard href="/guild/users" title="Users" description="View Discord accounts and their guild access." />}{hasPermission(auth.role, "guild.manage") && <DashboardCard href="/guild" title="Guild Settings" description="Configure your guild and Discord server." />}</div></section>}
+      {canViewAllocation && <section className="mt-10"><h2 className="mb-4 text-lg font-semibold">Allocation</h2><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"><DashboardCard href="/allocation" title="Allocation" description="Preview and run the next resource allocation." featured /><DashboardCard href="/allocation/history" title="Allocation History" description="Review previous allocation runs, results and bidding pages." /></div></section>}
+      {hasResourceSuite && <section className="mt-10"><h2 className="mb-4 text-lg font-semibold">Bid Pages</h2><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"><DashboardCard href="/bid-pages" title="Bid Pages" description="View active and previous bidding pages and find assigned slots." featured /></div></section>}
+      {hasPermission(auth.role, "events.view") && guild.events.length > 0 && <section className="mt-10"><div className="mb-4 flex items-end justify-between"><div><h2 className="text-lg font-semibold">Recent Events</h2><p className="mt-1 text-sm text-zinc-500">Your latest events and available rosters.</p></div><Link href="/events" className="text-sm font-medium text-zinc-400 hover:text-white">View all →</Link></div><div className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900"><div className="divide-y divide-zinc-800">{guild.events.map((event) => <Link key={event.id} href={`/events/${event.id}`} className="flex items-center justify-between gap-4 px-5 py-4 transition hover:bg-zinc-800"><div><p className="font-medium">{formatEventType(event.type)}</p><p className="mt-1 text-xs text-zinc-500">{formatDate(event.date)}</p></div><div className="text-right"><p className="text-sm font-medium">{event.rosters.length}</p><p className="text-xs text-zinc-500">{event.rosters.length === 1 ? "Roster" : "Rosters"}</p></div></Link>)}</div></div></section>}
+      <section className="mt-10 border-t border-zinc-800 pt-6"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-sm text-zinc-500">Subscription</p><div className="mt-1 flex flex-wrap items-center gap-3"><h2 className="text-lg font-semibold">{subscription.planName ?? "No active subscription"}</h2><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${subscription.enabled ? "bg-emerald-950 text-emerald-300" : "bg-red-950 text-red-300"}`}>{subscription.enabled ? "Active" : "Inactive"}</span>{subscription.cancelAtPeriodEnd && subscription.enabled && <span className="rounded-full bg-amber-950 px-2.5 py-1 text-xs font-semibold text-amber-300">Cancels at period end</span>}</div><p className="mt-1 text-sm text-zinc-500">{subscription.expiresAt ? `${subscription.cancelAtPeriodEnd ? "Access until" : "Renews"} ${formatDate(subscription.expiresAt)}` : subscription.enabled ? "No expiry date" : "Renew to restore full guild access."}</p></div><Link href="/billing/new" className="inline-flex w-fit rounded-lg border border-zinc-700 px-4 py-2.5 text-sm font-medium text-white transition hover:border-zinc-500 hover:bg-zinc-800">Manage subscription →</Link></div></section>
+      {subscription.warning && subscription.daysRemaining !== null && <section className="mt-4 rounded-2xl border border-amber-800/60 bg-amber-950/30 p-5"><h2 className="font-semibold text-amber-200">{subscription.planName ?? "Subscription"} expires in {subscription.daysRemaining} {subscription.daysRemaining === 1 ? "day" : "days"}</h2><p className="mt-1 text-sm text-amber-100/70">Renew before expiry to keep your guild accessible. {subscription.cancelAtPeriodEnd ? "Your subscription is scheduled to cancel at the end of this period." : ""}</p><Link href="/billing/new" className="mt-3 inline-flex rounded-lg bg-amber-200 px-4 py-2 text-sm font-medium text-zinc-950 hover:bg-amber-100">Manage subscription</Link></section>}
+    </>}</div></main>;
 }
-
-// =============================================================
-// STAT CARD
-// =============================================================
-
-function StatCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: number;
-}) {
-  return (
-    <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
-      <p className="text-sm text-zinc-500">
-        {label}
-      </p>
-
-      <p className="mt-2 text-3xl font-bold">
-        {value}
-      </p>
-    </div>
-  );
-}
-
-// =============================================================
-// DASHBOARD CARD
-// =============================================================
-
-function DashboardCard({
-  href,
-  title,
-  description,
-  featured = false,
-}: {
-  href: string;
-  title: string;
-  description: string;
-  featured?: boolean;
-}) {
-  return (
-    <Link
-      href={href}
-      className={`group block rounded-2xl border p-6 transition ${
-        featured
-          ? "border-zinc-600 bg-zinc-900 hover:border-zinc-400 hover:bg-zinc-800"
-          : "border-zinc-800 bg-zinc-900 hover:border-zinc-600 hover:bg-zinc-800"
-      }`}
-    >
-      <div className="flex items-start justify-between gap-4">
-        <h3 className="font-semibold">
-          {title}
-        </h3>
-
-        <span className="text-zinc-600 transition group-hover:translate-x-1 group-hover:text-zinc-300">
-          →
-        </span>
-      </div>
-
-      <p className="mt-2 text-sm leading-6 text-zinc-400">
-        {description}
-      </p>
-    </Link>
-  );
-}
-
-// =============================================================
-// EVENT HELPERS
-// =============================================================
-
-function formatEventType(type: string) {
-  switch (type) {
-    case "GUILD_LEAGUE":
-      return "Guild League";
-
-    case "EMPERIUM_OVERRUN":
-      return "Emperium Overrun";
-
-    default:
-      return type;
-  }
-}
-
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat(
-    "en-GB",
-    {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-      timeZone: "Asia/Bangkok",
-    }
-  ).format(date);
-}
+function StatCard({ label, value }: { label: string; value: number }) { return <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5"><p className="text-sm text-zinc-500">{label}</p><p className="mt-2 text-3xl font-bold">{value}</p></div>; }
+function ActivityPanel({ title, items, empty }: { title: string; items: { date: Date; title: string; detail: string; href: string }[]; empty: string }) { return <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900"><div className="border-b border-zinc-800 px-5 py-4"><h3 className="font-semibold">{title}</h3></div>{items.length > 0 ? <div className="divide-y divide-zinc-800">{items.map((item, index) => <Link key={`${item.href}-${item.date.getTime()}-${index}`} href={item.href} className="flex items-center gap-3 px-5 py-4 transition hover:bg-zinc-800"><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{item.title}</p><p className="mt-1 truncate text-xs text-zinc-500">{item.detail}</p></div><time className="shrink-0 text-xs text-zinc-500">{formatRelative(item.date)}</time></Link>)}</div> : <div className="p-5 text-sm text-zinc-500">{empty}</div>}</div>; }
+function DashboardCard({ href, title, description, featured = false }: { href: string; title: string; description: string; featured?: boolean }) { return <Link href={href} className={`group block rounded-2xl border p-6 transition ${featured ? "border-zinc-600 bg-zinc-900 hover:border-zinc-400 hover:bg-zinc-800" : "border-zinc-800 bg-zinc-900 hover:border-zinc-600 hover:bg-zinc-800"}`}><div className="flex items-start justify-between gap-4"><h3 className="font-semibold">{title}</h3><span className="text-zinc-600 transition group-hover:translate-x-1 group-hover:text-zinc-300">→</span></div><p className="mt-2 text-sm leading-6 text-zinc-400">{description}</p></Link>; }
+function formatEventType(type: string) { switch (type) { case "GUILD_LEAGUE": return "Guild League"; case "EMPERIUM_OVERRUN": return "Emperium Overrun"; default: return type; } }
+function formatDate(date: Date) { return new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Bangkok" }).format(date); }
+function formatRelative(date: Date) { const diff = Date.now() - date.getTime(); const minutes = Math.floor(diff / 60000); if (minutes < 1) return "just now"; if (minutes < 60) return `${minutes}m ago`; const hours = Math.floor(minutes / 60); if (hours < 24) return `${hours}h ago`; const days = Math.floor(hours / 24); if (days < 7) return `${days}d ago`; return formatDate(date); }

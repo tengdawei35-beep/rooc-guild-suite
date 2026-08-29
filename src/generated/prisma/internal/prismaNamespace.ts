@@ -419,7 +419,12 @@ export const ModelName = {
   RaidParty: 'RaidParty',
   PreferredRoster: 'PreferredRoster',
   PreferredRosterParty: 'PreferredRosterParty',
-  PreferredRosterMember: 'PreferredRosterMember'
+  PreferredRosterMember: 'PreferredRosterMember',
+  PlatformGuildCreator: 'PlatformGuildCreator',
+  Plan: 'Plan',
+  PlanModule: 'PlanModule',
+  GuildSubscription: 'GuildSubscription',
+  GuildModuleEntitlement: 'GuildModuleEntitlement'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -435,7 +440,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "guild" | "guildMembership" | "guildMember" | "memberLeave" | "resource" | "reservedAllocation" | "rotationState" | "allocationRun" | "allocationResult" | "resourceResult" | "bidPage" | "bidSlot" | "event" | "eventParticipation" | "roster" | "rosterParty" | "rosterMember" | "raid" | "raidParty" | "preferredRoster" | "preferredRosterParty" | "preferredRosterMember"
+    modelProps: "user" | "guild" | "guildMembership" | "guildMember" | "memberLeave" | "resource" | "reservedAllocation" | "rotationState" | "allocationRun" | "allocationResult" | "resourceResult" | "bidPage" | "bidSlot" | "event" | "eventParticipation" | "roster" | "rosterParty" | "rosterMember" | "raid" | "raidParty" | "preferredRoster" | "preferredRosterParty" | "preferredRosterMember" | "platformGuildCreator" | "plan" | "planModule" | "guildSubscription" | "guildModuleEntitlement"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2141,6 +2146,376 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    PlatformGuildCreator: {
+      payload: Prisma.$PlatformGuildCreatorPayload<ExtArgs>
+      fields: Prisma.PlatformGuildCreatorFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PlatformGuildCreatorFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlatformGuildCreatorPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PlatformGuildCreatorFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlatformGuildCreatorPayload>
+        }
+        findFirst: {
+          args: Prisma.PlatformGuildCreatorFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlatformGuildCreatorPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PlatformGuildCreatorFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlatformGuildCreatorPayload>
+        }
+        findMany: {
+          args: Prisma.PlatformGuildCreatorFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlatformGuildCreatorPayload>[]
+        }
+        create: {
+          args: Prisma.PlatformGuildCreatorCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlatformGuildCreatorPayload>
+        }
+        createMany: {
+          args: Prisma.PlatformGuildCreatorCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PlatformGuildCreatorCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlatformGuildCreatorPayload>[]
+        }
+        delete: {
+          args: Prisma.PlatformGuildCreatorDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlatformGuildCreatorPayload>
+        }
+        update: {
+          args: Prisma.PlatformGuildCreatorUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlatformGuildCreatorPayload>
+        }
+        deleteMany: {
+          args: Prisma.PlatformGuildCreatorDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PlatformGuildCreatorUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PlatformGuildCreatorUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlatformGuildCreatorPayload>[]
+        }
+        upsert: {
+          args: Prisma.PlatformGuildCreatorUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlatformGuildCreatorPayload>
+        }
+        aggregate: {
+          args: Prisma.PlatformGuildCreatorAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePlatformGuildCreator>
+        }
+        groupBy: {
+          args: Prisma.PlatformGuildCreatorGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PlatformGuildCreatorGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PlatformGuildCreatorCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PlatformGuildCreatorCountAggregateOutputType> | number
+        }
+      }
+    }
+    Plan: {
+      payload: Prisma.$PlanPayload<ExtArgs>
+      fields: Prisma.PlanFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PlanFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlanPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PlanFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlanPayload>
+        }
+        findFirst: {
+          args: Prisma.PlanFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlanPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PlanFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlanPayload>
+        }
+        findMany: {
+          args: Prisma.PlanFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlanPayload>[]
+        }
+        create: {
+          args: Prisma.PlanCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlanPayload>
+        }
+        createMany: {
+          args: Prisma.PlanCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PlanCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlanPayload>[]
+        }
+        delete: {
+          args: Prisma.PlanDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlanPayload>
+        }
+        update: {
+          args: Prisma.PlanUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlanPayload>
+        }
+        deleteMany: {
+          args: Prisma.PlanDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PlanUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PlanUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlanPayload>[]
+        }
+        upsert: {
+          args: Prisma.PlanUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlanPayload>
+        }
+        aggregate: {
+          args: Prisma.PlanAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePlan>
+        }
+        groupBy: {
+          args: Prisma.PlanGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PlanGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PlanCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PlanCountAggregateOutputType> | number
+        }
+      }
+    }
+    PlanModule: {
+      payload: Prisma.$PlanModulePayload<ExtArgs>
+      fields: Prisma.PlanModuleFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PlanModuleFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlanModulePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PlanModuleFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlanModulePayload>
+        }
+        findFirst: {
+          args: Prisma.PlanModuleFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlanModulePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PlanModuleFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlanModulePayload>
+        }
+        findMany: {
+          args: Prisma.PlanModuleFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlanModulePayload>[]
+        }
+        create: {
+          args: Prisma.PlanModuleCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlanModulePayload>
+        }
+        createMany: {
+          args: Prisma.PlanModuleCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PlanModuleCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlanModulePayload>[]
+        }
+        delete: {
+          args: Prisma.PlanModuleDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlanModulePayload>
+        }
+        update: {
+          args: Prisma.PlanModuleUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlanModulePayload>
+        }
+        deleteMany: {
+          args: Prisma.PlanModuleDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PlanModuleUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PlanModuleUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlanModulePayload>[]
+        }
+        upsert: {
+          args: Prisma.PlanModuleUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlanModulePayload>
+        }
+        aggregate: {
+          args: Prisma.PlanModuleAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePlanModule>
+        }
+        groupBy: {
+          args: Prisma.PlanModuleGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PlanModuleGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PlanModuleCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PlanModuleCountAggregateOutputType> | number
+        }
+      }
+    }
+    GuildSubscription: {
+      payload: Prisma.$GuildSubscriptionPayload<ExtArgs>
+      fields: Prisma.GuildSubscriptionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.GuildSubscriptionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildSubscriptionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.GuildSubscriptionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildSubscriptionPayload>
+        }
+        findFirst: {
+          args: Prisma.GuildSubscriptionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildSubscriptionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.GuildSubscriptionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildSubscriptionPayload>
+        }
+        findMany: {
+          args: Prisma.GuildSubscriptionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildSubscriptionPayload>[]
+        }
+        create: {
+          args: Prisma.GuildSubscriptionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildSubscriptionPayload>
+        }
+        createMany: {
+          args: Prisma.GuildSubscriptionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.GuildSubscriptionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildSubscriptionPayload>[]
+        }
+        delete: {
+          args: Prisma.GuildSubscriptionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildSubscriptionPayload>
+        }
+        update: {
+          args: Prisma.GuildSubscriptionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildSubscriptionPayload>
+        }
+        deleteMany: {
+          args: Prisma.GuildSubscriptionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.GuildSubscriptionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.GuildSubscriptionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildSubscriptionPayload>[]
+        }
+        upsert: {
+          args: Prisma.GuildSubscriptionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildSubscriptionPayload>
+        }
+        aggregate: {
+          args: Prisma.GuildSubscriptionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateGuildSubscription>
+        }
+        groupBy: {
+          args: Prisma.GuildSubscriptionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GuildSubscriptionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.GuildSubscriptionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GuildSubscriptionCountAggregateOutputType> | number
+        }
+      }
+    }
+    GuildModuleEntitlement: {
+      payload: Prisma.$GuildModuleEntitlementPayload<ExtArgs>
+      fields: Prisma.GuildModuleEntitlementFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.GuildModuleEntitlementFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildModuleEntitlementPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.GuildModuleEntitlementFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildModuleEntitlementPayload>
+        }
+        findFirst: {
+          args: Prisma.GuildModuleEntitlementFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildModuleEntitlementPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.GuildModuleEntitlementFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildModuleEntitlementPayload>
+        }
+        findMany: {
+          args: Prisma.GuildModuleEntitlementFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildModuleEntitlementPayload>[]
+        }
+        create: {
+          args: Prisma.GuildModuleEntitlementCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildModuleEntitlementPayload>
+        }
+        createMany: {
+          args: Prisma.GuildModuleEntitlementCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.GuildModuleEntitlementCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildModuleEntitlementPayload>[]
+        }
+        delete: {
+          args: Prisma.GuildModuleEntitlementDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildModuleEntitlementPayload>
+        }
+        update: {
+          args: Prisma.GuildModuleEntitlementUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildModuleEntitlementPayload>
+        }
+        deleteMany: {
+          args: Prisma.GuildModuleEntitlementDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.GuildModuleEntitlementUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.GuildModuleEntitlementUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildModuleEntitlementPayload>[]
+        }
+        upsert: {
+          args: Prisma.GuildModuleEntitlementUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildModuleEntitlementPayload>
+        }
+        aggregate: {
+          args: Prisma.GuildModuleEntitlementAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateGuildModuleEntitlement>
+        }
+        groupBy: {
+          args: Prisma.GuildModuleEntitlementGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GuildModuleEntitlementGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.GuildModuleEntitlementCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GuildModuleEntitlementCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2196,6 +2571,7 @@ export const GuildScalarFieldEnum = {
   id: 'id',
   discordGuildId: 'discordGuildId',
   name: 'name',
+  ownerUserId: 'ownerUserId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -2496,6 +2872,75 @@ export const PreferredRosterMemberScalarFieldEnum = {
 export type PreferredRosterMemberScalarFieldEnum = (typeof PreferredRosterMemberScalarFieldEnum)[keyof typeof PreferredRosterMemberScalarFieldEnum]
 
 
+export const PlatformGuildCreatorScalarFieldEnum = {
+  id: 'id',
+  discordUserId: 'discordUserId',
+  discordUsername: 'discordUsername',
+  maxGuilds: 'maxGuilds',
+  freeMonths: 'freeMonths',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PlatformGuildCreatorScalarFieldEnum = (typeof PlatformGuildCreatorScalarFieldEnum)[keyof typeof PlatformGuildCreatorScalarFieldEnum]
+
+
+export const PlanScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  priceCents: 'priceCents',
+  currency: 'currency',
+  billingInterval: 'billingInterval',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PlanScalarFieldEnum = (typeof PlanScalarFieldEnum)[keyof typeof PlanScalarFieldEnum]
+
+
+export const PlanModuleScalarFieldEnum = {
+  id: 'id',
+  planId: 'planId',
+  module: 'module',
+  createdAt: 'createdAt'
+} as const
+
+export type PlanModuleScalarFieldEnum = (typeof PlanModuleScalarFieldEnum)[keyof typeof PlanModuleScalarFieldEnum]
+
+
+export const GuildSubscriptionScalarFieldEnum = {
+  id: 'id',
+  guildId: 'guildId',
+  planId: 'planId',
+  status: 'status',
+  provider: 'provider',
+  providerCustomerId: 'providerCustomerId',
+  providerSubscriptionId: 'providerSubscriptionId',
+  currentPeriodStart: 'currentPeriodStart',
+  currentPeriodEnd: 'currentPeriodEnd',
+  cancelAtPeriodEnd: 'cancelAtPeriodEnd',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type GuildSubscriptionScalarFieldEnum = (typeof GuildSubscriptionScalarFieldEnum)[keyof typeof GuildSubscriptionScalarFieldEnum]
+
+
+export const GuildModuleEntitlementScalarFieldEnum = {
+  id: 'id',
+  guildId: 'guildId',
+  module: 'module',
+  enabled: 'enabled',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type GuildModuleEntitlementScalarFieldEnum = (typeof GuildModuleEntitlementScalarFieldEnum)[keyof typeof GuildModuleEntitlementScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -2731,6 +3176,48 @@ export type EnumBattlefieldFieldRefInput<$PrismaModel> = FieldRefInputType<$Pris
 export type ListEnumBattlefieldFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Battlefield[]'>
     
 
+
+/**
+ * Reference to a field of type 'BillingInterval'
+ */
+export type EnumBillingIntervalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BillingInterval'>
+    
+
+
+/**
+ * Reference to a field of type 'BillingInterval[]'
+ */
+export type ListEnumBillingIntervalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BillingInterval[]'>
+    
+
+
+/**
+ * Reference to a field of type 'SaaSModule'
+ */
+export type EnumSaaSModuleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SaaSModule'>
+    
+
+
+/**
+ * Reference to a field of type 'SaaSModule[]'
+ */
+export type ListEnumSaaSModuleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SaaSModule[]'>
+    
+
+
+/**
+ * Reference to a field of type 'SubscriptionStatus'
+ */
+export type EnumSubscriptionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SubscriptionStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'SubscriptionStatus[]'
+ */
+export type ListEnumSubscriptionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SubscriptionStatus[]'>
+    
+
 /**
  * Batch Payload for updateMany & deleteMany & createMany
  */
@@ -2905,6 +3392,11 @@ export type GlobalOmitConfig = {
   preferredRoster?: Prisma.PreferredRosterOmit
   preferredRosterParty?: Prisma.PreferredRosterPartyOmit
   preferredRosterMember?: Prisma.PreferredRosterMemberOmit
+  platformGuildCreator?: Prisma.PlatformGuildCreatorOmit
+  plan?: Prisma.PlanOmit
+  planModule?: Prisma.PlanModuleOmit
+  guildSubscription?: Prisma.GuildSubscriptionOmit
+  guildModuleEntitlement?: Prisma.GuildModuleEntitlementOmit
 }
 
 /* Types for Logging */

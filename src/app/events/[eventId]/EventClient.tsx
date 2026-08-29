@@ -10,8 +10,7 @@ type EventType =
 type Participant = {
   id: string;
   userId: string | null;
-  displayName: string;
-  characterName: string | null;
+  characterName: string;
   job: string | null;
   priority:
     | "LEADER"
@@ -42,8 +41,7 @@ type RosterMember = {
 
   member: {
     id: string;
-    displayName: string;
-    characterName: string | null;
+    characterName: string;
     job: string | null;
     priority:
       | "LEADER"
@@ -151,6 +149,9 @@ export default function EventClient({
 
   const [showUnavailable, setShowUnavailable] =
     useState(true);
+
+  const [showParticipation, setShowParticipation] =
+    useState(false);
 
   // ==========================================================
   // ROSTER EDITING
@@ -979,7 +980,7 @@ export default function EventClient({
             }
 
             return (
-              participant.displayName
+              (participant.characterName ?? "")
                 .toLowerCase()
                 .includes(query) ||
               participant.characterName
@@ -994,11 +995,10 @@ export default function EventClient({
         .sort(
           (a, b) =>
             (
-              a.characterName ||
-              a.displayName
+              a.characterName
             ).localeCompare(
               b.characterName ||
-                b.displayName
+                b.characterName
             )
         );
     }, [
@@ -1019,8 +1019,8 @@ export default function EventClient({
 
         const matchesSearch =
           query.length === 0 ||
-          participant.displayName
-            .toLowerCase()
+          (participant.characterName ?? "")
+                .toLowerCase()
             .includes(query) ||
           participant.characterName
             ?.toLowerCase()
@@ -1133,12 +1133,14 @@ export default function EventClient({
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <Link
-                href={`/allocation?eventId=${data.event.id}`}
-                className="rounded-lg border border-zinc-700 px-4 py-2.5 text-sm font-medium text-zinc-300 transition hover:border-zinc-500 hover:text-white"
-              >
-                Allocation
-              </Link>
+              {canManageEvents && (
+                <Link
+                  href={`/allocation?eventId=${data.event.id}`}
+                  className="rounded-lg border border-zinc-700 px-4 py-2.5 text-sm font-medium text-zinc-300 transition hover:border-zinc-500 hover:text-white"
+                >
+                  Allocation
+                </Link>
+              )}
 
               <button
                 type="button"
@@ -1216,103 +1218,12 @@ export default function EventClient({
           />
         </section>
 
-        {/* ====================================================
-            PARTICIPATION
-        ==================================================== */}
-
-        <section className="mt-10">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <h2 className="text-xl font-semibold">
-                Participation
-              </h2>
-
-              <p className="mt-1 text-sm text-zinc-500">
-                Manage who is available for this event.
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <input
-                value={search}
-                onChange={(event) =>
-                  setSearch(
-                    event.target.value
-                  )
-                }
-                placeholder="Search members..."
-                className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-zinc-500"
-              />
-
-              <button
-                type="button"
-                onClick={() =>
-                  setShowUnavailable(
-                    (value) => !value
-                  )
-                }
-                className="rounded-lg border border-zinc-700 px-4 py-2.5 text-sm text-zinc-300 hover:border-zinc-500 hover:text-white"
-              >
-                {showUnavailable
-                  ? "Hide Unavailable"
-                  : "Show Unavailable"}
-              </button>
-            </div>
-          </div>
-
-          <div className="mt-5 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900">
-            <div className="hidden grid-cols-[2fr_1.2fr_1fr_1fr_120px] gap-4 border-b border-zinc-800 px-5 py-3 text-xs font-medium uppercase tracking-wider text-zinc-600 md:grid">
-              <span>Member</span>
-              <span>Job</span>
-              <span>Priority</span>
-              <span>Status</span>
-              <span className="text-right">
-                Available
-              </span>
-            </div>
-
-            {filteredParticipants.length ===
-            0 ? (
-              <div className="px-6 py-12 text-center text-sm text-zinc-600">
-                No members match the current filters.
-              </div>
-            ) : (
-              <div className="divide-y divide-zinc-800">
-                {filteredParticipants.map(
-                  (participant) => (
-                   <ParticipantRow
-                    key={
-                      participant.id
-                    }
-                    participant={
-                      participant
-                    }
-                    updating={
-                      updatingMember ===
-                      participant.id
-                    }
-                    canEdit={
-                      canManageEvents ||
-                      participant.userId ===
-                        currentUserId
-                    }
-                    onToggle={
-                      updateAvailability
-                    }
-                  />
-                  )
-                )}
-              </div>
-            )}
-          </div>
-        </section>
 
         {/* ====================================================
             ROSTERS
         ==================================================== */}
-
-        <section className="mt-10">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <section className="mt-10">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <h2 className="text-xl font-semibold">
                 Rosters
@@ -1461,12 +1372,131 @@ export default function EventClient({
               </div>
             )}
           </div>
-        </section>
+         </section>
 
+          <div className="mt-6 flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-900 px-5 py-4">
+            <div>
+              <p className="font-medium">
+                Participation
+              </p>
+
+              <p className="mt-1 text-sm text-zinc-500">
+                {data.stats.availableMembers} available ·{" "}
+                {data.stats.totalMembers} total members
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() =>
+                setShowParticipation(
+                  (value) => !value
+                )
+              }
+              className="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-300 transition hover:border-zinc-500 hover:text-white"
+            >
+              {showParticipation
+                ? "Hide Participation"
+                : "Show Participation"}
+            </button>
+          </div>
         {/* ====================================================
-            ALLOCATION
+            PARTICIPATION
         ==================================================== */}
 
+        {showParticipation && (
+          <section className="mt-10">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <h2 className="text-xl font-semibold">
+                Participation
+              </h2>
+
+              <p className="mt-1 text-sm text-zinc-500">
+                Manage who is available for this event.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <input
+                value={search}
+                onChange={(event) =>
+                  setSearch(
+                    event.target.value
+                  )
+                }
+                placeholder="Search members..."
+                className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-zinc-500"
+              />
+
+              <button
+                type="button"
+                onClick={() =>
+                  setShowUnavailable(
+                    (value) => !value
+                  )
+                }
+                className="rounded-lg border border-zinc-700 px-4 py-2.5 text-sm text-zinc-300 hover:border-zinc-500 hover:text-white"
+              >
+                {showUnavailable
+                  ? "Hide Unavailable"
+                  : "Show Unavailable"}
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-5 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900">
+            <div className="hidden grid-cols-[2fr_1.2fr_1fr_1fr_120px] gap-4 border-b border-zinc-800 px-5 py-3 text-xs font-medium uppercase tracking-wider text-zinc-600 md:grid">
+              <span>Member</span>
+              <span>Job</span>
+              <span>Priority</span>
+              <span>Status</span>
+              <span className="text-right">
+                Available
+              </span>
+            </div>
+
+            {filteredParticipants.length ===
+            0 ? (
+              <div className="px-6 py-12 text-center text-sm text-zinc-600">
+                No members match the current filters.
+              </div>
+            ) : (
+              <div className="divide-y divide-zinc-800">
+                {filteredParticipants.map(
+                  (participant) => (
+                   <ParticipantRow
+                    key={
+                      participant.id
+                    }
+                    participant={
+                      participant
+                    }
+                    updating={
+                      updatingMember ===
+                      participant.id
+                    }
+                    canEdit={
+                      canManageEvents ||
+                      participant.userId ===
+                        currentUserId
+                    }
+                    onToggle={
+                      updateAvailability
+                    }
+                  />
+                  )
+                )}
+              </div>
+            )}
+          </div>
+        </section>
+        )}
+      {/* ====================================================
+          ALLOCATION
+      ==================================================== */}
+
+      {canManageEvents && (
         <section className="mt-10 pb-12">
           <div>
             <h2 className="text-xl font-semibold">
@@ -1531,6 +1561,7 @@ export default function EventClient({
             )}
           </div>
         </section>
+        )}
       </div>
 
       {/* ======================================================
@@ -1622,7 +1653,7 @@ export default function EventClient({
                         <div>
                           <p className="text-sm font-medium text-zinc-300">
                             {member.characterName ||
-                              member.displayName}
+                              member.characterName}
                           </p>
 
                           <p className="mt-1 text-xs text-zinc-600">
@@ -1688,9 +1719,9 @@ function ParticipantRow({
           </p>
 
           <div className="mt-1 flex flex-wrap gap-2 text-xs text-zinc-600">
-            {participant.displayName && (
+            {participant.characterName && (
               <span>
-                {participant.displayName}
+                {participant.characterName}
               </span>
             )}
 
@@ -2188,7 +2219,7 @@ function PartyCard({
                         {assignment.member
                           .characterName ||
                           assignment.member
-                            .displayName}
+                            .characterName}
                       </p>
 
                       <p className="truncate text-xs text-zinc-600">

@@ -4,7 +4,7 @@ import { useState } from "react";
 
 type Member = {
   id: string;
-  displayName: string;
+  characterName: string | null;
   priority: string;
   eligible: boolean;
 };
@@ -22,7 +22,7 @@ type Reservation = {
   memberId: string;
   resourceId: string;
   quantity: number;
-  memberName: string;
+  memberName: string | null;
   resourceName: string;
   resourceType: "FEATHER" | "CARD";
   resourceTotal: number;
@@ -549,7 +549,7 @@ function ReservationForm({
                 key={member.id}
                 value={member.id}
               >
-                {member.displayName}
+                {member.characterName}
                 {!member.eligible
                   ? " (Not Eligible)"
                   : ""}

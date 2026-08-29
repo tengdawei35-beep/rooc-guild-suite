@@ -33,7 +33,6 @@ type PreferredRole =
 
 type RankingMember = {
   id: string;
-  displayName: string;
   characterName: string | null;
   job: string | null;
   priority:
@@ -986,7 +985,7 @@ export async function POST(
           )
         ) {
           throw new Error(
-            `Member ${slot.member.displayName} was assigned more than once.`
+            `Member ${slot.member.characterName} was assigned more than once.`
           );
         }
 
@@ -1632,9 +1631,7 @@ function compareByPercentile(
     );
   }
 
-  return a.displayName.localeCompare(
-    b.displayName
-  );
+  return (a.characterName ?? "").localeCompare(b.characterName ?? "");
 }
 
 // =============================================================

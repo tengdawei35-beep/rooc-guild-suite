@@ -14,7 +14,6 @@ import {
 
 type RankingMember = {
   id: string;
-  displayName: string;
   characterName: string | null;
   job: string | null;
   active: boolean;

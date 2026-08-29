@@ -12,8 +12,7 @@ type RankingCategory =
 type RankingMember = {
   id: string;
 
-  displayName: string;
-  characterName: string | null;
+  characterName: string;
   job: string | null;
 
   active: boolean;
@@ -178,7 +177,7 @@ export default function RankingsClient() {
           (member) => {
             const matchesSearch =
               !query ||
-              member.displayName
+              member.characterName
                 .toLowerCase()
                 .includes(query) ||
               (
@@ -729,7 +728,7 @@ function RankingRow({
         >
           <span className="font-semibold text-gray-100 transition group-hover:text-white group-hover:underline">
             {member.characterName ??
-              member.displayName}
+              member.characterName}
           </span>
 
           {!member.active && (
@@ -742,10 +741,10 @@ function RankingRow({
         {/* Discord name is secondary information,
             not the primary roster identity. */}
         {member.characterName &&
-          member.displayName !==
+          member.characterName !==
             member.characterName && (
             <div className="mt-0.5 text-xs text-gray-600">
-              {member.displayName}
+              {member.characterName}
             </div>
           )}
       </td>
@@ -911,10 +910,10 @@ function sortRankings(
 
     return (
       a.characterName ??
-      a.displayName
+      a.characterName
     ).localeCompare(
       b.characterName ??
-        b.displayName
+        b.characterName
     );
   });
 }

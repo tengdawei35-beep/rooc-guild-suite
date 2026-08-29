@@ -63,7 +63,7 @@ export default async function ReservationsPage() {
             },
 
             orderBy: {
-              displayName:
+              characterName:
                 "asc",
             },
           },
@@ -87,7 +87,7 @@ export default async function ReservationsPage() {
             orderBy: [
               {
                 member: {
-                  displayName:
+                  characterName:
                     "asc",
                 },
               },
@@ -135,8 +135,8 @@ export default async function ReservationsPage() {
         id:
           member.id,
 
-        displayName:
-          member.displayName,
+        characterName:
+          member.characterName,
 
         priority:
           member.priority,
@@ -183,7 +183,7 @@ export default async function ReservationsPage() {
 
         memberName:
           reservation.member
-            .displayName,
+            .characterName,
 
         resourceName:
           reservation.resource

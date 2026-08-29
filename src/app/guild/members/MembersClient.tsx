@@ -114,7 +114,6 @@ type MemberForm = {
   discordUserId: string;
   discordUsername: string;
 
-  displayName: string;
   characterName: string;
   job: string;
 
@@ -306,6 +305,11 @@ export default function MembersClient({
   ] = useState<Member | null>(
     null
   );
+
+  const [
+    showMemberForm,
+    setShowMemberForm,
+  ] = useState(false);
 
   const [form, setForm] =
     useState<MemberForm>({
@@ -516,6 +520,7 @@ export default function MembersClient({
     }
 
     setSelectedMember(null);
+    setShowMemberForm(true);
 
     setForm({
       ...EMPTY_FORM,
@@ -536,6 +541,7 @@ export default function MembersClient({
     }
 
     setSelectedMember(member);
+    setShowMemberForm(true);
 
     setForm({
       discordUserId:
@@ -699,6 +705,7 @@ export default function MembersClient({
     }
 
     setSelectedMember(null);
+    setShowMemberForm(false);
 
     setForm({
       ...EMPTY_FORM,
@@ -1226,7 +1233,7 @@ export default function MembersClient({
           const matchesSearch =
             !query ||
             [
-              member.displayName,
+              member.characterName,
               member.characterName,
               member.job,
               member.priority,
@@ -1545,8 +1552,7 @@ export default function MembersClient({
             />
           )}
 
-        {selectedMember !==
-          null && (
+        {showMemberForm && (
           <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 p-4 backdrop-blur-sm">
             <div className="mx-auto my-8 max-w-5xl overflow-hidden rounded-xl border border-zinc-700 bg-zinc-900 shadow-2xl">
               <div className="flex items-center justify-between border-b border-zinc-800 px-6 py-4">
@@ -1557,11 +1563,11 @@ export default function MembersClient({
                       : "Add Member"}
                   </h2>
 
-                  {userRole ===
-                    "MEMBER" &&
-                    isOwnMember(
-                      selectedMember
-                    ) && (
+          {userRole === "MEMBER" &&
+            selectedMember &&
+            isOwnMember(
+              selectedMember
+            ) && (
                       <p className="mt-1 text-xs text-zinc-500">
                         You are editing your
                         own member profile.
@@ -1847,7 +1853,7 @@ export default function MembersClient({
                     </div>
                   </section>
                 </div>
-
+              {selectedMember && (
                 <section className="mt-8 border-t border-zinc-800 pt-6">
                   <div className="mb-4">
                     <h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-400">
@@ -1973,6 +1979,7 @@ export default function MembersClient({
                     )}
                   </div>
                 </section>
+                )}
               </div>
 
               <div className="flex items-center justify-between border-t border-zinc-800 px-6 py-4">

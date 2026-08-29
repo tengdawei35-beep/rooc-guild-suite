@@ -9,6 +9,11 @@ import {
 } from "@/lib/permissions";
 
 import {
+  hasGuildModule,
+  RESOURCE_SUITE_MODULE,
+} from "@/lib/auth/modules";
+
+import {
   prisma,
 } from "@/lib/prisma";
 
@@ -17,6 +22,36 @@ import ResourcesClient from "./ResourcesClient";
 export default async function ResourcesPage() {
   const auth =
     await requirePageAuth();
+
+  if (
+    !(await hasGuildModule(
+      auth.guild.id,
+      RESOURCE_SUITE_MODULE
+    ))
+  ) {
+    return (
+      <main className="min-h-screen bg-zinc-950 text-white">
+        <div className="mx-auto max-w-7xl px-6 py-10">
+          <Link
+            href="/"
+            className="text-sm text-zinc-500 hover:text-white"
+          >
+            ← Dashboard
+          </Link>
+
+          <div className="mt-8 rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/50 p-10 text-center">
+            <h1 className="text-xl font-semibold">
+              Resource Suite required
+            </h1>
+
+            <p className="mt-2 text-sm text-zinc-400">
+              Guild Resources are part of the Resource Suite and are not enabled for this guild.
+            </p>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   if (
     !hasPermission(
@@ -126,33 +161,25 @@ export default async function ResourcesPage() {
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
       <div className="mx-auto max-w-7xl px-6 py-10">
-        <header className="mb-8">
-          <Link
-            href="/"
-            className="text-sm text-zinc-500 hover:text-white"
-          >
-            ← Dashboard
-          </Link>
+        <Link
+          href="/"
+          className="text-sm text-zinc-500 hover:text-white"
+        >
+          ← Dashboard
+        </Link>
 
-          <div className="mt-4">
-            <p className="text-sm font-medium uppercase tracking-widest text-zinc-500">
-              {guild.name}
-            </p>
+        <div className="mt-8">
+          <h1 className="text-3xl font-bold tracking-tight">
+            Guild Resources
+          </h1>
 
-            <h1 className="mt-1 text-3xl font-bold tracking-tight">
-              Resources
-            </h1>
-
-            <p className="mt-2 text-zinc-400">
-              Manage feathers, cards and their allocation limits.
-            </p>
-          </div>
-        </header>
+          <p className="mt-2 text-sm text-zinc-400">
+            Manage the resources available for allocation and bidding.
+          </p>
+        </div>
 
         <ResourcesClient
-          initialResources={
-            resources
-          }
+          initialResources={resources}
         />
       </div>
     </main>

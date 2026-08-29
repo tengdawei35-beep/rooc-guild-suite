@@ -4,7 +4,10 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: [
     "imagine-capabilities-silence-fully.trycloudflare.com",
   ],
+  // Tesseract.js starts a Node worker thread from files inside its package.
+  // Keep the package external so Turbopack/Next.js does not relocate the
+  // worker entrypoint into the generated .next/ server bundle.
+  serverExternalPackages: ["tesseract.js", "tesseract.js-core"],
 };
 
 export default nextConfig;
-

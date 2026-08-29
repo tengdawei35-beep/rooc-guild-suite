@@ -25,7 +25,6 @@ type GuildUser = {
 
   guildMember: {
     id: string;
-    displayName: string;
     characterName: string | null;
     job: string | null;
     active: boolean;
@@ -864,10 +863,7 @@ export default function UsersClient() {
                                   {
                                     user
                                       .guildMember
-                                      .characterName ??
-                                    user
-                                      .guildMember
-                                      .displayName
+                                      .characterName
                                   }
                                 </span>
                               </p>
