@@ -7,9 +7,12 @@ type Creator = {
   discordUserId: string;
   discordUsername: string;
   maxGuilds: number;
+  freeMonths: number;
   active: boolean;
   guildCount: number;
 };
+
+const inputClass = "rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-500";
 
 export default function GuildCreatorsClient({
   initialCreators,
@@ -20,6 +23,7 @@ export default function GuildCreatorsClient({
   const [discordUserId, setDiscordUserId] = useState("");
   const [discordUsername, setDiscordUsername] = useState("");
   const [maxGuilds, setMaxGuilds] = useState("1");
+  const [freeMonths, setFreeMonths] = useState("1");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -32,7 +36,12 @@ export default function GuildCreatorsClient({
       const response = await fetch("/api/admin/guild-creators", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ discordUserId, discordUsername, maxGuilds: Number(maxGuilds) }),
+        body: JSON.stringify({
+          discordUserId,
+          discordUsername,
+          maxGuilds: Number(maxGuilds),
+          freeMonths: Number(freeMonths),
+        }),
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error ?? "Failed to add creator.");
@@ -41,6 +50,7 @@ export default function GuildCreatorsClient({
       setDiscordUserId("");
       setDiscordUsername("");
       setMaxGuilds("1");
+      setFreeMonths("1");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to add creator.");
     } finally {
@@ -78,12 +88,20 @@ export default function GuildCreatorsClient({
     <div className="space-y-8">
       <form onSubmit={addCreator} className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
         <h2 className="text-lg font-semibold">Add Guild Creator</h2>
-        <div className="mt-5 grid gap-4 md:grid-cols-[1fr_1fr_160px_auto]">
-          <input value={discordUserId} onChange={(event) => setDiscordUserId(event.target.value)} placeholder="Discord User ID" className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-500" required />
-          <input value={discordUsername} onChange={(event) => setDiscordUsername(event.target.value)} placeholder="Discord username" className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-500" required />
-          <input value={maxGuilds} onChange={(event) => setMaxGuilds(event.target.value)} type="number" min="1" placeholder="Max guilds" className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-500" required />
+        <div className="mt-5 grid gap-4 md:grid-cols-[1fr_1fr_140px_140px_auto]">
+          <input value={discordUserId} onChange={(event) => setDiscordUserId(event.target.value)} placeholder="Discord User ID" className={inputClass} required />
+          <input value={discordUsername} onChange={(event) => setDiscordUsername(event.target.value)} placeholder="Discord username" className={inputClass} required />
+          <label className="text-xs text-zinc-400">
+            Max guilds
+            <input value={maxGuilds} onChange={(event) => setMaxGuilds(event.target.value)} type="number" min="1" className={`mt-1 w-full ${inputClass}`} required />
+          </label>
+          <label className="text-xs text-zinc-400">
+            Free duration (months)
+            <input value={freeMonths} onChange={(event) => setFreeMonths(event.target.value)} type="number" min="1" className={`mt-1 w-full ${inputClass}`} required />
+          </label>
           <button disabled={saving} className="rounded-lg bg-white px-5 py-2 text-sm font-medium text-black disabled:opacity-50">{saving ? "Adding…" : "Add"}</button>
         </div>
+        <p className="mt-3 text-xs text-zinc-500">The duration applies when this creator provisions a complimentary guild subscription.</p>
         {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
       </form>
 
@@ -96,7 +114,7 @@ export default function GuildCreatorsClient({
         ) : (
           <div className="divide-y divide-zinc-800">
             {creators.map((creator) => (
-              <div key={creator.id} className="grid gap-4 px-6 py-5 md:grid-cols-[1fr_180px_120px_100px] md:items-center">
+              <div key={creator.id} className="grid gap-4 px-6 py-5 md:grid-cols-[1fr_150px_150px_120px_100px] md:items-center">
                 <div>
                   <p className="font-medium">{creator.discordUsername}</p>
                   <p className="mt-1 text-xs text-zinc-500">{creator.discordUserId}</p>
@@ -107,7 +125,11 @@ export default function GuildCreatorsClient({
                 </div>
                 <label className="text-sm text-zinc-400">
                   Max guilds
-                  <input type="number" min="1" value={creator.maxGuilds} onChange={(event) => void updateCreator(creator, { maxGuilds: Number(event.target.value) })} className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white" />
+                  <input type="number" min="1" value={creator.maxGuilds} onChange={(event) => void updateCreator(creator, { maxGuilds: Number(event.target.value) })} className={`mt-1 w-full ${inputClass}`} />
+                </label>
+                <label className="text-sm text-zinc-400">
+                  Free months
+                  <input type="number" min="1" value={creator.freeMonths} onChange={(event) => void updateCreator(creator, { freeMonths: Number(event.target.value) })} className={`mt-1 w-full ${inputClass}`} />
                 </label>
                 <button onClick={() => void updateCreator(creator, { active: !creator.active })} className={`rounded-lg border px-3 py-2 text-sm ${creator.active ? "border-emerald-900 text-emerald-400" : "border-zinc-700 text-zinc-500"}`}>
                   {creator.active ? "Active" : "Disabled"}
