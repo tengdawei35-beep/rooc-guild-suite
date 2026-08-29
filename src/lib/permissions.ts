@@ -41,7 +41,9 @@ export type Permission =
   | "allocation.run"
   | "users.view"
   | "users.manage"
-  | "guild.manage";
+  | "guild.manage"
+  | "applicants.view"
+  | "applicants.manage";
 
 export function hasPermission(role: UserRole, permission: Permission): boolean {
   if (role === "ADMIN") return true;
@@ -52,6 +54,7 @@ export function hasPermission(role: UserRole, permission: Permission): boolean {
       "profile.editOwn", "leave.manageOwn", "leave.manageAny",
       "events.view", "events.manage", "rosters.view", "rosters.edit",
       "allocation.view", "allocation.run", "users.view", "users.manage",
+      "applicants.view", "applicants.manage",
     ].includes(permission);
   }
 
@@ -61,6 +64,7 @@ export function hasPermission(role: UserRole, permission: Permission): boolean {
       "profile.editOwn", "leave.manageOwn", "leave.manageAny",
       "events.view", "events.manage", "rosters.view", "rosters.edit",
       "allocation.view", "allocation.run", "users.view",
+      "applicants.view", "applicants.manage",
     ].includes(permission);
   }
 
