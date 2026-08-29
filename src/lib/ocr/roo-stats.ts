@@ -49,24 +49,65 @@ function firstNumber(text: string): string | null {
   return match?.[0] ?? null;
 }
 
+/**
+ * Match an OCR stat label as an actual label token, not as a substring of
+ * another stat. This is important for ROO because the same screen contains
+ * entries such as "Refine PATK", "Refine MATK", "HP Recover", and "PDMG.R".
+ */
+function findExactLabel(line: string, field: string, aliases: string[]) {
+  const upper = normalise(line);
+
+  const candidates = aliases
+    .slice()
+    .sort((a, b) => b.length - a.length);
+
+  for (const alias of candidates) {
+    const escaped = alias
+      .toUpperCase()
+      .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+      .replace(/\s+/g, "\\s+");
+
+    // PATK/MATK/HP/PDMG/MDMG are deliberately token-boundary matches.
+    // This prevents REFINE PATK, REFINE MATK, HP RECOVER and PDMG.R from
+    // being interpreted as the primary stat.
+    const tokenPattern = new RegExp(`(^|[^A-Z0-9])${escaped}(?=$|[^A-Z0-9])`, "i");
+    const match = tokenPattern.exec(upper);
+    if (!match) continue;
+
+    if (field === "patk" && /REFINE\s*$/.test(upper.slice(0, match.index + match[0].length))) continue;
+    if (field === "matk" && /REFINE\s*$/.test(upper.slice(0, match.index + match[0].length))) continue;
+    if (field === "hp" && /(?:HP\s+)?RECOVER\s*$/.test(upper.slice(0, match.index + match[0].length))) continue;
+
+    if (field === "pdmgPercent" && /PDMG\s*\.\s*R/.test(upper)) continue;
+    if (field === "mdmgPercent" && /MDMG\s*\.\s*R/.test(upper)) continue;
+
+    return match.index + match[0].length;
+  }
+
+  return -1;
+}
+
 function extractLabelValues(text: string): RooStats {
   const result: RooStats = {};
   const lines = text.split(/\r?\n/).map(normalise).filter(Boolean);
 
   for (const line of lines) {
-    const compactLine = compact(line);
     for (const [field, aliases] of Object.entries(LABELS)) {
-      const alias = aliases.map(compact).sort((a, b) => b.length - a.length).find((candidate) => compactLine.includes(candidate));
-      if (!alias) continue;
+      const labelEnd = findExactLabel(line, field, aliases);
+      if (labelEnd < 0) continue;
 
-      const index = compactLine.indexOf(alias);
-      const value = firstNumber(compactLine.slice(index + alias.length));
+      const value = firstNumber(line.slice(labelEnd));
       if (value === null) continue;
 
-      // Notice popups contain absolute Equipment PDEF/MDEF values such as
-      // "Equipment PDEF:3333". The percentage fields must only accept values
-      // that visibly contain the percent sign, e.g. "Equipment PDEF 30.00%".
+      // Equipment percentage fields must contain an actual percent marker.
+      // Absolute Notice values (e.g. Equipment PDEF:3333) belong to pdef/mdef.
       if ((field === "equipmentPdefPercent" || field === "equipmentMdefPercent") && !value.endsWith("%")) {
+        continue;
+      }
+
+      // PDMG/MDMG primary percentage fields must themselves contain a percent
+      // sign. This avoids accidentally consuming neighbouring absolute values.
+      if ((field === "pdmgPercent" || field === "mdmgPercent" || field === "pdmgReductionPercent" || field === "mdmgReductionPercent") && !value.endsWith("%")) {
         continue;
       }
 
