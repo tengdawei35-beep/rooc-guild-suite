@@ -30,9 +30,7 @@ export async function POST(request: Request) {
   const payload = await request.text();
   const signature = request.headers.get("stripe-signature");
 
-  if (!signature) {
-    return NextResponse.json({ error: "MISSING_STRIPE_SIGNATURE" }, { status: 400 });
-  }
+  if (!signature) return NextResponse.json({ error: "MISSING_STRIPE_SIGNATURE" }, { status: 400 });
 
   let event: Stripe.Event;
   try {
@@ -56,21 +54,13 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "INVALID_CHECKOUT_METADATA" }, { status: 400 });
       }
 
-      const subscriptionId = typeof session.subscription === "string"
-        ? session.subscription
-        : session.subscription?.id;
-      const customerId = typeof session.customer === "string"
-        ? session.customer
-        : session.customer?.id;
-
-      if (!subscriptionId) {
-        return NextResponse.json({ error: "MISSING_STRIPE_SUBSCRIPTION" }, { status: 400 });
-      }
+      const subscriptionId = typeof session.subscription === "string" ? session.subscription : session.subscription?.id;
+      const customerId = typeof session.customer === "string" ? session.customer : session.customer?.id;
+      if (!subscriptionId) return NextResponse.json({ error: "MISSING_STRIPE_SUBSCRIPTION" }, { status: 400 });
 
       await prisma.$transaction(async (tx) => {
         const user = await tx.user.findUnique({ where: { discordId: discordUserId } });
         const plan = await tx.plan.findFirst({ where: { id: planId, active: true }, include: { modules: true } });
-
         if (!user || !plan) throw new Error("CHECKOUT_USER_OR_PLAN_INVALID");
 
         const existingGuild = await tx.guild.findUnique({ where: { discordGuildId } });
@@ -79,26 +69,31 @@ export async function POST(request: Request) {
             where: { guildId: existingGuild.id, providerSubscriptionId: subscriptionId },
           });
           if (!existingSubscription) throw new Error("DISCORD_GUILD_ALREADY_REGISTERED");
+
+          // The first provisioning attempt may have created the guild before the
+          // owner membership was added. Replaying the webhook must repair that
+          // partial state instead of returning early.
+          await tx.guildMembership.upsert({
+            where: { userId_guildId: { userId: user.id, guildId: existingGuild.id } },
+            update: { role: "ADMIN" },
+            create: { userId: user.id, guildId: existingGuild.id, role: "ADMIN" },
+          });
+
+          await tx.guildModuleEntitlement.createMany({
+            data: plan.modules.map((module) => ({ guildId: existingGuild.id, module: module.module, enabled: true })),
+            skipDuplicates: true,
+          });
           return;
         }
 
-        // Paid checkout is the authorization to create the guild. Complimentary
-        // creator grants are a separate admin-controlled bypass and must not gate
-        // or limit users who have paid for a subscription.
+        // Paid checkout authorizes guild creation for any authenticated user.
+        // Complimentary creator grants are a separate admin-controlled bypass.
         const guild = await tx.guild.create({
-          data: {
-            name: guildName,
-            discordGuildId,
-            ownerUserId: user.id,
-          },
+          data: { name: guildName, discordGuildId, ownerUserId: user.id },
         });
 
         await tx.guildMembership.create({
-          data: {
-            guildId: guild.id,
-            userId: user.id,
-            role: "ADMIN",
-          },
+          data: { guildId: guild.id, userId: user.id, role: "ADMIN" },
         });
 
         await tx.guildSubscription.create({
@@ -113,11 +108,7 @@ export async function POST(request: Request) {
         });
 
         await tx.guildModuleEntitlement.createMany({
-          data: plan.modules.map((module) => ({
-            guildId: guild.id,
-            module: module.module,
-            enabled: true,
-          })),
+          data: plan.modules.map((module) => ({ guildId: guild.id, module: module.module, enabled: true })),
         });
       });
     }
@@ -132,7 +123,6 @@ export async function POST(request: Request) {
           where: { providerSubscriptionId: subscription.id },
           include: { plan: { include: { modules: true } } },
         });
-
         if (!existing) return;
 
         await tx.guildSubscription.update({
