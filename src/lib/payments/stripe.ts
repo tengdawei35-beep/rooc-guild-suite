@@ -24,7 +24,7 @@ export class StripePaymentProvider implements PaymentProvider {
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
-      line_items: [{ price: request.planId, quantity: 1 }],
+      line_items: [{ price: request.stripePriceId, quantity: 1 }],
       success_url: request.successUrl,
       cancel_url: request.cancelUrl,
       client_reference_id: request.guildId ?? request.customer.discordUserId,
