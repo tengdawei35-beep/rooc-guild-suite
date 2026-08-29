@@ -144,8 +144,10 @@ type ApiResponse = {
 
 export default function MemberProfileClient({
   memberId,
+  rawPdef,
 }: {
   memberId: string;
+  rawPdef: number;
 }) {
   const [data, setData] =
     useState<ApiResponse | null>(
@@ -478,6 +480,20 @@ export default function MemberProfileClient({
             ) : null}
           </div>
         </section>
+
+        {/* ====================================================== */}
+        {/* DERIVED CHARACTER STATS */}
+        {/* ====================================================== */}
+
+        <StatSection
+          title="Derived Character Stats"
+          stats={[
+            [
+              "RAW PDEF",
+              rawPdef,
+            ],
+          ]}
+        />
 
         {/* ====================================================== */}
         {/* CORE STATS */}
@@ -1169,7 +1185,13 @@ function StatSection({
               <div className="mt-1 text-base font-semibold text-zinc-200">
                 {formatValue(
                   value,
-                  percentage
+                  percentage &&
+                    ![
+                      "Ignore P.DEF",
+                      "Ignore M.DEF",
+                      "PvP Damage Bonus",
+                      "PvP Damage Reduction",
+                    ].includes(label)
                 )}
               </div>
             </div>

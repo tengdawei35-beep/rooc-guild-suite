@@ -27,19 +27,7 @@ export default async function MemberProfilePage({ params }: PageProps) {
 
   return (
     <>
-      <div className="border-b border-zinc-800 bg-zinc-950 px-6 py-4 text-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">Derived Character Stat</p>
-            <p className="mt-1 text-sm text-zinc-400">RAW PDEF = Equipment PDEF ÷ (1 + Equipment PDEF %)</p>
-          </div>
-          <div className="text-right">
-            <p className="text-xs uppercase tracking-wide text-zinc-500">RAW PDEF</p>
-            <p className="mt-1 text-xl font-bold">{rawPdef.toFixed(2)}</p>
-          </div>
-        </div>
-      </div>
-      <MemberProfileClient memberId={memberId} />
+      <MemberProfileClient memberId={memberId} rawPdef={rawPdef} />
     </>
   );
 }
