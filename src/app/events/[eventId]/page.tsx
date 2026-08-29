@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import EventClient from "./EventClient";
+import RaidManagement from "./RaidManagement";
 
 import {
   hasPermission,
@@ -16,34 +17,27 @@ type PageProps = {
 export default async function EventPage({
   params,
 }: PageProps) {
-  const auth =
-    await requirePageAuth();
+  const auth = await requirePageAuth();
 
-  if (
-    !hasPermission(
-      auth.role,
-      "events.view"
-    )
-  ) {
+  if (!hasPermission(auth.role, "events.view")) {
     redirect("/");
   }
 
-  const {
-    eventId,
-  } = await params;
+  const { eventId } = await params;
+  const canEditRosters = hasPermission(auth.role, "rosters.edit");
 
   return (
-    <EventClient
-      eventId={eventId}
-      currentUserId={auth.user.id}
-      canManageEvents={hasPermission(
-        auth.role,
-        "events.manage"
-      )}
-      canEditRosters={hasPermission(
-        auth.role,
-        "rosters.edit"
-      )}
-    />
+    <>
+      <EventClient
+        eventId={eventId}
+        currentUserId={auth.user.id}
+        canManageEvents={hasPermission(auth.role, "events.manage")}
+        canEditRosters={canEditRosters}
+      />
+      <RaidManagement
+        eventId={eventId}
+        canEdit={canEditRosters}
+      />
+    </>
   );
 }
