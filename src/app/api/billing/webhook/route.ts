@@ -82,12 +82,9 @@ export async function POST(request: Request) {
           return;
         }
 
-        const creator = await tx.platformGuildCreator.findUnique({ where: { discordUserId } });
-        if (creator?.active) {
-          const ownedGuildCount = await tx.guild.count({ where: { ownerUserId: user.id } });
-          if (ownedGuildCount >= creator.maxGuilds) throw new Error("GUILD_CREATION_LIMIT_REACHED");
-        }
-
+        // Paid checkout is the authorization to create the guild. Complimentary
+        // creator grants are a separate admin-controlled bypass and must not gate
+        // or limit users who have paid for a subscription.
         const guild = await tx.guild.create({ data: { name: guildName, discordGuildId, ownerUserId: user.id } });
         await tx.guildSubscription.create({
           data: {
