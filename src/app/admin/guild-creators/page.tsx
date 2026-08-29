@@ -16,6 +16,29 @@ export default async function GuildCreatorsAdminPage() {
     orderBy: { discordUsername: "asc" },
   });
 
+  const creatorIds = creators.map((creator) => creator.discordUserId);
+  const users = creatorIds.length
+    ? await prisma.user.findMany({
+        where: { discordId: { in: creatorIds } },
+        select: { id: true, discordId: true },
+      })
+    : [];
+  const userIdByDiscordId = new Map(users.map((user) => [user.discordId, user.id]));
+
+  const guildCounts = await Promise.all(
+    creators.map(async (creator) => {
+      const userId = userIdByDiscordId.get(creator.discordUserId);
+      return userId
+        ? prisma.guild.count({ where: { ownerUserId: userId } })
+        : 0;
+    })
+  );
+
+  const creatorsWithCounts = creators.map((creator, index) => ({
+    ...creator,
+    guildCount: guildCounts[index] ?? 0,
+  }));
+
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
       <div className="mx-auto max-w-5xl px-6 py-10">
@@ -36,7 +59,7 @@ export default async function GuildCreatorsAdminPage() {
         </div>
 
         <div className="mt-8">
-          <GuildCreatorsClient initialCreators={creators} />
+          <GuildCreatorsClient initialCreators={creatorsWithCounts} />
         </div>
       </div>
     </main>
