@@ -99,13 +99,13 @@ async function preprocessRoi(image: Buffer, region: Roi) {
 }
 
 async function recognise(worker: OcrWorker, image: Buffer) {
-  await worker.setParameters({ tessedit_pageseg_mode: "6", preserve_interword_spaces: "1", user_defined_dpi: "300" });
+  await worker.setParameters({ tessedit_pageseg_mode: 6, preserve_interword_spaces: "1", user_defined_dpi: "300" });
   const result = await worker.recognize(image);
   return String(result.data.text ?? "");
 }
 
 async function recogniseNumeric(worker: OcrWorker, image: Buffer) {
-  await worker.setParameters({ tessedit_pageseg_mode: "7", tessedit_char_whitelist: "0123456789", user_defined_dpi: "300" });
+  await worker.setParameters({ tessedit_pageseg_mode: 7, tessedit_char_whitelist: "0123456789", user_defined_dpi: "300" });
   const result = await worker.recognize(image);
   return firstNumber(String(result.data.text ?? ""));
 }
