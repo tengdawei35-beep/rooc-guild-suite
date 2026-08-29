@@ -8,15 +8,21 @@ export default async function NewGuildBillingPage() {
   const user = await getCurrentPlatformUser();
   if (!user) redirect("/login?error=authentication_required");
 
-  const plans = await prisma.plan.findMany({
-    where: { active: true },
-    include: { modules: true },
-    orderBy: [{ priceCents: "asc" }, { name: "asc" }],
-  });
+  const [plans, ownedGuildCount, creator] = await Promise.all([
+    prisma.plan.findMany({
+      where: { active: true },
+      include: { modules: true },
+      orderBy: [{ priceCents: "asc" }, { name: "asc" }],
+    }),
+    prisma.guild.count({ where: { ownerUserId: user.id } }),
+    prisma.platformGuildCreator.findUnique({
+      where: { discordUserId: user.discordId },
+      select: { active: true, maxGuilds: true, freeMonths: true },
+    }),
+  ]);
 
-  const ownedGuildCount = await prisma.guild.count({
-    where: { ownerUserId: user.id },
-  });
+  const complimentaryAvailable =
+    creator?.active === true && ownedGuildCount < creator.maxGuilds;
 
   return (
     <BillingPlansClient
@@ -30,6 +36,10 @@ export default async function NewGuildBillingPage() {
         modules: plan.modules.map((module) => module.module),
       }))}
       ownedGuildCount={ownedGuildCount}
+      complimentary={complimentaryAvailable ? {
+        freeMonths: creator.freeMonths,
+        remainingGuilds: creator.maxGuilds - ownedGuildCount,
+      } : null}
     />
   );
 }
