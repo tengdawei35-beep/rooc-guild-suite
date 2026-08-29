@@ -76,3 +76,30 @@ export const RosterGenerationMode = {
 } as const
 
 export type RosterGenerationMode = (typeof RosterGenerationMode)[keyof typeof RosterGenerationMode]
+
+
+export const SaaSModule = {
+  CORE: 'CORE',
+  RESOURCE_SUITE: 'RESOURCE_SUITE'
+} as const
+
+export type SaaSModule = (typeof SaaSModule)[keyof typeof SaaSModule]
+
+
+export const SubscriptionStatus = {
+  ACTIVE: 'ACTIVE',
+  TRIALING: 'TRIALING',
+  PAST_DUE: 'PAST_DUE',
+  CANCELED: 'CANCELED',
+  INCOMPLETE: 'INCOMPLETE'
+} as const
+
+export type SubscriptionStatus = (typeof SubscriptionStatus)[keyof typeof SubscriptionStatus]
+
+
+export const BillingInterval = {
+  MONTH: 'MONTH',
+  YEAR: 'YEAR'
+} as const
+
+export type BillingInterval = (typeof BillingInterval)[keyof typeof BillingInterval]

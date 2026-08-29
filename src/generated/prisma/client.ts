@@ -156,3 +156,28 @@ export type PreferredRosterParty = Prisma.PreferredRosterPartyModel
  * 
  */
 export type PreferredRosterMember = Prisma.PreferredRosterMemberModel
+/**
+ * Model PlatformGuildCreator
+ * 
+ */
+export type PlatformGuildCreator = Prisma.PlatformGuildCreatorModel
+/**
+ * Model Plan
+ * 
+ */
+export type Plan = Prisma.PlanModel
+/**
+ * Model PlanModule
+ * 
+ */
+export type PlanModule = Prisma.PlanModuleModel
+/**
+ * Model GuildSubscription
+ * 
+ */
+export type GuildSubscription = Prisma.GuildSubscriptionModel
+/**
+ * Model GuildModuleEntitlement
+ * 
+ */
+export type GuildModuleEntitlement = Prisma.GuildModuleEntitlementModel

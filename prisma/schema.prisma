@@ -443,6 +443,7 @@ model PreferredRosterParty {
   preferredRoster PreferredRoster @relation(fields: [preferredRosterId], references: [id], onDelete: Cascade)
   members PreferredRosterMember[]
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   @@unique([preferredRosterId, battlefield, partyNumber])
   @@index([preferredRosterId])
 }

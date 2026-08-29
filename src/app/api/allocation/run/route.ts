@@ -14,6 +14,11 @@ import {
   buildAllocation,
 } from "@/lib/allocation/engine";
 
+import {
+  hasGuildModule,
+  RESOURCE_SUITE_MODULE,
+} from "@/lib/auth/modules";
+
 type RunRequest = {
   eventId?: string;
   nonReservedMemberCount?: number;
@@ -45,6 +50,23 @@ export async function POST(
         },
         {
           status: 401,
+        }
+      );
+    }
+
+    if (
+      !(await hasGuildModule(
+        auth.guild.id,
+        RESOURCE_SUITE_MODULE
+      ))
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "The Resource Suite is not subscribed for this guild.",
+        },
+        {
+          status: 403,
         }
       );
     }

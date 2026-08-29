@@ -3,9 +3,44 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requirePageAuth } from "@/lib/auth";
 
+import {
+  hasGuildModule,
+  RESOURCE_SUITE_MODULE,
+} from "@/lib/auth/modules";
+
 export default async function AllocationHistoryPage() {
   const auth =
     await requirePageAuth();
+
+  if (
+    !(await hasGuildModule(
+      auth.guild.id,
+      RESOURCE_SUITE_MODULE
+    ))
+  ) {
+    return (
+      <main className="min-h-screen bg-zinc-950 text-white">
+        <div className="mx-auto max-w-7xl px-6 py-10">
+          <Link
+            href="/"
+            className="text-sm text-zinc-500 hover:text-white"
+          >
+            ← Dashboard
+          </Link>
+
+          <section className="mt-8 rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/50 p-10 text-center">
+            <h1 className="text-xl font-semibold">
+              Resource Suite required
+            </h1>
+
+            <p className="mt-2 text-sm text-zinc-400">
+              Allocation History is part of the Resource Suite and is not enabled for this guild.
+            </p>
+          </section>
+        </div>
+      </main>
+    );
+  }  
 
   const guild =
     await prisma.guild.findUnique({

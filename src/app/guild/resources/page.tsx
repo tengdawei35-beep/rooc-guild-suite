@@ -152,6 +152,9 @@ export default async function ResourcesPage() {
 
         hardCap:
           resource.hardCap,
+
+        active:
+          resource.active,
       })
     );
 
@@ -176,12 +179,7 @@ export default async function ResourcesPage() {
         </div>
 
         <ResourcesClient
-          guildId={guild.id}
-          resources={resources}
-          canManage={hasPermission(
-            auth.role,
-            "allocation.manage"
-          )}
+          initialResources={resources}
         />
       </div>
     </main>

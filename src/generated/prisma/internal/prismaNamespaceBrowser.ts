@@ -73,7 +73,12 @@ export const ModelName = {
   RaidParty: 'RaidParty',
   PreferredRoster: 'PreferredRoster',
   PreferredRosterParty: 'PreferredRosterParty',
-  PreferredRosterMember: 'PreferredRosterMember'
+  PreferredRosterMember: 'PreferredRosterMember',
+  PlatformGuildCreator: 'PlatformGuildCreator',
+  Plan: 'Plan',
+  PlanModule: 'PlanModule',
+  GuildSubscription: 'GuildSubscription',
+  GuildModuleEntitlement: 'GuildModuleEntitlement'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -108,6 +113,7 @@ export const GuildScalarFieldEnum = {
   id: 'id',
   discordGuildId: 'discordGuildId',
   name: 'name',
+  ownerUserId: 'ownerUserId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -406,6 +412,74 @@ export const PreferredRosterMemberScalarFieldEnum = {
 } as const
 
 export type PreferredRosterMemberScalarFieldEnum = (typeof PreferredRosterMemberScalarFieldEnum)[keyof typeof PreferredRosterMemberScalarFieldEnum]
+
+
+export const PlatformGuildCreatorScalarFieldEnum = {
+  id: 'id',
+  discordUserId: 'discordUserId',
+  discordUsername: 'discordUsername',
+  maxGuilds: 'maxGuilds',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PlatformGuildCreatorScalarFieldEnum = (typeof PlatformGuildCreatorScalarFieldEnum)[keyof typeof PlatformGuildCreatorScalarFieldEnum]
+
+
+export const PlanScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  priceCents: 'priceCents',
+  currency: 'currency',
+  billingInterval: 'billingInterval',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PlanScalarFieldEnum = (typeof PlanScalarFieldEnum)[keyof typeof PlanScalarFieldEnum]
+
+
+export const PlanModuleScalarFieldEnum = {
+  id: 'id',
+  planId: 'planId',
+  module: 'module',
+  createdAt: 'createdAt'
+} as const
+
+export type PlanModuleScalarFieldEnum = (typeof PlanModuleScalarFieldEnum)[keyof typeof PlanModuleScalarFieldEnum]
+
+
+export const GuildSubscriptionScalarFieldEnum = {
+  id: 'id',
+  guildId: 'guildId',
+  planId: 'planId',
+  status: 'status',
+  provider: 'provider',
+  providerCustomerId: 'providerCustomerId',
+  providerSubscriptionId: 'providerSubscriptionId',
+  currentPeriodStart: 'currentPeriodStart',
+  currentPeriodEnd: 'currentPeriodEnd',
+  cancelAtPeriodEnd: 'cancelAtPeriodEnd',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type GuildSubscriptionScalarFieldEnum = (typeof GuildSubscriptionScalarFieldEnum)[keyof typeof GuildSubscriptionScalarFieldEnum]
+
+
+export const GuildModuleEntitlementScalarFieldEnum = {
+  id: 'id',
+  guildId: 'guildId',
+  module: 'module',
+  enabled: 'enabled',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type GuildModuleEntitlementScalarFieldEnum = (typeof GuildModuleEntitlementScalarFieldEnum)[keyof typeof GuildModuleEntitlementScalarFieldEnum]
 
 
 export const SortOrder = {
