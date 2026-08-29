@@ -11,129 +11,25 @@ const PVP_ROIS: Record<string, Roi> = {
 };
 
 const LABELS: Record<string, string[]> = {
-  patk: ["PATK", "PHYSICAL ATTACK"],
-  matk: ["MATK", "MAGIC ATTACK"],
-  hp: ["HP", "HEALTH POINTS"],
-  pdmgPercent: ["PDMG"],
-  mdmgPercent: ["MDMG"],
-  pdmgReductionPercent: ["PDMG.R", "PDMG REDUCTION"],
-  mdmgReductionPercent: ["MDMG.R", "MDMG REDUCTION"],
-  critRes: ["CRIT RES", "CRIT RES."],
-  ignorePdef: ["IGNORE PDEF", "IGNORE P DEF", "IGNORE P-DEF"],
-  ignoreMdef: ["IGNORE MDEF", "IGNORE M DEF", "IGNORE M-DEF"],
-  equipmentPdefPercent: ["EQUIPMENT PDEF", "EQUIP PDEF"],
-  equipmentMdefPercent: ["EQUIPMENT MDEF", "EQUIP MDEF"],
+  patk:["PATK","PHYSICAL ATTACK"], matk:["MATK","MAGIC ATTACK"], hp:["HP","HEALTH POINTS"],
+  pdmgPercent:["PDMG"], mdmgPercent:["MDMG"], pdmgReductionPercent:["PDMG.R","PDMG REDUCTION"], mdmgReductionPercent:["MDMG.R","MDMG REDUCTION"],
+  critRes:["CRIT RES","CRIT RES."], ignorePdef:["IGNORE PDEF","IGNORE P DEF","IGNORE P-DEF"], ignoreMdef:["IGNORE MDEF","IGNORE M DEF","IGNORE M-DEF"],
+  pdmgBonus:["PDMG BONUS"], mdmgBonus:["MDMG BONUS"], pveDamageReduction:["PVE DMG REDUCTION","PVE DMG RED"], pveDamageBonus:["PVE DMG BONUS","PVE DMG BON"],
+  damageVsSmall:["DMG VS SMALL ENEMIES","DMG VS SMALL"], damageReductionVsSmall:["DMG REDUCTION VS SMALL ENEMIES","DMG REDUCTION VS SMALL"],
+  damageVsMedium:["DMG VS MEDIUM ENEMIES","DMG VS MEDIUM"], damageReductionVsMedium:["DMG REDUCTION VS MEDIUM ENEMIES","DMG REDUCTION VS MEDIUM"],
+  damageVsLarge:["DMG VS LARGE ENEMIES","DMG VS LARGE"], damageReductionVsLarge:["DMG REDUCTION VS LARGE MONSTERS","DMG REDUCTION VS LARGE"],
+  damageVsBrute:["DMG VS BRUTE"], damageReductionVsBrute:["DMG REDUCTION VS BRUTE"], damageVsDemiHuman:["DMG VS DEMI-HUMAN","DMG VS DEMIHUMAN"], damageReductionVsDemiHuman:["DMG REDUCTION VS DEMI-HUMAN","DMG REDUCTION VS DEMIHUMAN"],
+  equipmentPdefPercent:["EQUIPMENT PDEF"], equipmentMdefPercent:["EQUIPMENT MDEF"]
 };
 
-function normalise(text: string) {
-  return text.toUpperCase().replace(/[|]/g, "I").replace(/\s+/g, " ").trim();
-}
-
-function firstNumber(text: string): string | null {
-  const match = text.replace(/,/g, "").match(/-?\d+(?:\.\d+)?%?/);
-  return match?.[0] ?? null;
-}
-
-function exactLabelRegex(alias: string) {
-  const escaped = alias.toUpperCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+");
-  return new RegExp(`(^|[^A-Z0-9])${escaped}(?=$|[^A-Z0-9])`, "i");
-}
-
-function findExactLabel(line: string, field: string, aliases: string[]) {
-  const upper = normalise(line);
-  for (const alias of aliases.slice().sort((a, b) => b.length - a.length)) {
-    const match = exactLabelRegex(alias).exec(upper);
-    if (!match) continue;
-    const prefix = upper.slice(0, match.index + match[0].length);
-    if ((field === "patk" || field === "matk") && /(?:REFINE\s+)?$/.test(prefix) && /REFINE\s+(?:PATK|MATK)/i.test(upper)) continue;
-    if (field === "hp" && /HP\s+RECOVER/i.test(upper)) continue;
-    if (field === "pdmgPercent" && /PDMG\s*\.\s*R/i.test(upper)) continue;
-    if (field === "mdmgPercent" && /MDMG\s*\.\s*R/i.test(upper)) continue;
-    if (field === "pdmgReductionPercent" && !/PDMG\s*\.\s*R/i.test(upper)) continue;
-    if (field === "mdmgReductionPercent" && !/MDMG\s*\.\s*R/i.test(upper)) continue;
-    return match.index + match[0].length;
-  }
-  return -1;
-}
-
-function extractLabelValues(text: string): RooStats {
-  const result: RooStats = {};
-  const lines = text.split(/\r?\n/).map(normalise).filter(Boolean);
-  for (const line of lines) {
-    for (const [field, aliases] of Object.entries(LABELS)) {
-      const labelEnd = findExactLabel(line, field, aliases);
-      if (labelEnd < 0) continue;
-      const value = firstNumber(line.slice(labelEnd));
-      if (value === null) continue;
-      if ((field === "equipmentPdefPercent" || field === "equipmentMdefPercent") && !value.endsWith("%")) continue;
-      if ((field === "ignorePdef" || field === "ignoreMdef") && value.endsWith("%")) continue;
-      if (field === "patk" && /REFINE\s+PATK/i.test(line)) continue;
-      if (field === "matk" && /REFINE\s+MATK/i.test(line)) continue;
-      if (field === "hp" && /HP\s+RECOVER/i.test(line)) continue;
-      // PDMG and MDMG are the primary damage percentages. The reduction fields are PDMG.R / MDMG.R.
-      if ((field === "pdmgPercent" || field === "mdmgPercent") && !value.endsWith("%")) continue;
-      if ((field === "pdmgReductionPercent" || field === "mdmgReductionPercent") && !value.endsWith("%")) continue;
-      result[field] = value.replace(/%$/, "");
-    }
-  }
-  return result;
-}
-
-async function preprocess(image: Buffer, mode: "normal" | "contrast" | "threshold") {
-  let pipeline = sharp(image).rotate().resize({ width: 2200, withoutEnlargement: false }).grayscale().normalize();
-  if (mode === "contrast") pipeline = pipeline.linear(1.45, -40);
-  if (mode === "threshold") pipeline = pipeline.linear(1.7, -70).threshold(200);
-  return pipeline.sharpen().png().toBuffer();
-}
-
-async function preprocessRoi(image: Buffer, region: Roi) {
-  const metadata = await sharp(image).metadata();
-  const width = Number(metadata.width ?? 0), height = Number(metadata.height ?? 0);
-  if (!width || !height) throw new Error("Unable to determine screenshot dimensions.");
-  const left = Math.max(0, Math.min(Math.round(width * region.x), width - 1));
-  const top = Math.max(0, Math.min(Math.round(height * region.y), height - 1));
-  const cropWidth = Math.max(1, Math.min(Math.round(width * region.width), width - left));
-  const cropHeight = Math.max(1, Math.min(Math.round(height * region.height), height - top));
-  return sharp(image).rotate().extract({ left, top, width: cropWidth, height: cropHeight }).resize({ width: 1000 }).grayscale().normalize().linear(1.6, -45).threshold(185).sharpen().png().toBuffer();
-}
-
-async function recognise(worker: OcrWorker, image: Buffer, psm: PSM) {
-  await worker.setParameters({ tessedit_pageseg_mode: psm, preserve_interword_spaces: "1", user_defined_dpi: "300" });
-  const result = await worker.recognize(image);
-  return String(result.data.text ?? "");
-}
-
-export async function readRooStats(images: Buffer[]): Promise<{ stats: RooStats; rawText: string }> {
-  if (!images.length) throw new Error("At least one screenshot is required.");
-  if (images.length > 12) throw new Error("A maximum of 12 screenshots can be read at once.");
-  const worker = await createWorker("eng", 1);
-  const numericWorker = await createWorker("eng", 1);
-  const stats: RooStats = {};
-  const raw: string[] = [];
-  try {
-    for (const image of images) {
-      const variants = await Promise.all([preprocess(image, "normal"), preprocess(image, "contrast"), preprocess(image, "threshold")]);
-      for (const variant of variants) {
-        const text = await recognise(worker, variant, PSM.SINGLE_BLOCK);
-        raw.push(text);
-        Object.assign(stats, extractLabelValues(text));
-      }
-      const noticeText = raw[raw.length - 3] ?? "";
-      const noticePdef = noticeText.match(/EQUIPMENT\s*PDEF\s*[:]?\s*(\d+(?:\.\d+)?)(?!\s*%)/i);
-      const noticeMdef = noticeText.match(/EQUIPMENT\s*MDEF\s*[:]?\s*(\d+(?:\.\d+)?)(?!\s*%)/i);
-      if (noticePdef) stats.pdef = noticePdef[1];
-      if (noticeMdef) stats.mdef = noticeMdef[1];
-      for (const [field, roi] of Object.entries(PVP_ROIS)) {
-        const cropped = await preprocessRoi(image, roi);
-        const text = await recognise(numericWorker, cropped, PSM.SINGLE_LINE);
-        const value = firstNumber(text);
-        if (value !== null) stats[field] = value.replace(/%$/, "");
-      }
-    }
-  } finally {
-    await Promise.allSettled([worker.terminate(), numericWorker.terminate()]);
-  }
-  return { stats, rawText: raw.join("\n") };
-}
-
+function normalise(text:string){return text.toUpperCase().replace(/[|]/g,"I").replace(/\s+/g," ").trim();}
+function firstNumber(text:string){return text.replace(/,/g,"").match(/-?\d+(?:\.\d+)?%?/)?.[0]??null;}
+function allNumbers(text:string){return [...text.replace(/,/g,"").matchAll(/-?\d+(?:\.\d+)?%?/g)].map(m=>m[0]);}
+function exactLabelRegex(alias:string){const e=alias.toUpperCase().replace(/[.*+?^${}()|[\]\\]/g,"\\$&").replace(/\s+/g,"\\s+");return new RegExp(`(^|[^A-Z0-9])${e}(?=$|[^A-Z0-9])`,"i");}
+function findExactLabel(line:string,field:string,aliases:string[]){const u=normalise(line);for(const a of aliases.slice().sort((x,y)=>y.length-x.length)){const m=exactLabelRegex(a).exec(u);if(!m)continue;const before=u.slice(0,m.index);if((field==="patk"||field==="matk")&&/REFINE\s*$/.test(before))continue;if(field==="hp"&&/HP\s+RECOVER/i.test(u))continue;if(field==="pdmgPercent"&&/PDMG\s*\.\s*R/i.test(u))continue;if(field==="mdmgPercent"&&/MDMG\s*\.\s*R/i.test(u))continue;if(field==="pdmgReductionPercent"&&!/PDMG\s*\.\s*R/i.test(u))continue;if(field==="mdmgReductionPercent"&&!/MDMG\s*\.\s*R/i.test(u))continue;return m.index+m[0].length;}return-1;}
+function extractLabelValues(text:string):RooStats{const r:RooStats={};for(const line of text.split(/\r?\n/).map(normalise).filter(Boolean)){for(const[field,aliases]of Object.entries(LABELS)){const end=findExactLabel(line,field,aliases);if(end<0)continue;const v=firstNumber(line.slice(end));if(v===null)continue;if((field==="equipmentPdefPercent"||field==="equipmentMdefPercent")&&!v.endsWith("%"))continue;if((field==="ignorePdef"||field==="ignoreMdef")&&v.endsWith("%"))continue;if((field==="pdmgPercent"||field==="mdmgPercent"||field.endsWith("ReductionPercent"))&&!v.endsWith("%"))continue;r[field]=v.replace(/%$/," ").trim();}}return r;}
+async function preprocess(image:Buffer,mode:"normal"|"contrast"|"threshold"){let p=sharp(image).rotate().resize({width:2200,withoutEnlargement:false}).grayscale().normalize();if(mode==="contrast")p=p.linear(1.45,-40);if(mode==="threshold")p=p.linear(1.7,-70).threshold(200);return p.sharpen().png().toBuffer();}
+async function preprocessRoi(image:Buffer,region:Roi){const m=await sharp(image).metadata(),w=Number(m.width??0),h=Number(m.height??0);if(!w||!h)throw new Error("Unable to determine screenshot dimensions.");const left=Math.max(0,Math.min(Math.round(w*region.x),w-1)),top=Math.max(0,Math.min(Math.round(h*region.y),h-1));const cw=Math.max(1,Math.min(Math.round(w*region.width),w-left)),ch=Math.max(1,Math.min(Math.round(h*region.height),h-top));return sharp(image).rotate().extract({left,top,width:cw,height:ch}).resize({width:1000}).grayscale().normalize().linear(1.6,-45).threshold(185).sharpen().png().toBuffer();}
+async function recognise(worker:OcrWorker,image:Buffer,psm:PSM,whitelist?:string){await worker.setParameters({tessedit_pageseg_mode:psm,...(whitelist?{tessedit_char_whitelist:whitelist}:{}),preserve_interword_spaces:"1",user_defined_dpi:"300"});return String((await worker.recognize(image)).data.text??"");}
+export async function readRooStats(images:Buffer[]):Promise<{stats:RooStats;rawText:string}>{if(!images.length)throw new Error("At least one screenshot is required.");if(images.length>12)throw new Error("A maximum of 12 screenshots can be read at once.");const worker=await createWorker("eng",1),numericWorker=await createWorker("eng",1);const stats:RooStats={},raw:string[]=[];try{for(const image of images){const variants=await Promise.all([preprocess(image,"normal"),preprocess(image,"contrast"),preprocess(image,"threshold")]);for(const v of variants){const text=await recognise(worker,v,PSM.SINGLE_BLOCK);raw.push(text);Object.assign(stats,extractLabelValues(text));}for(const text of raw.slice(-3)){const p=text.match(/EQUIPMENT\s*PDEF\s*[:]?\s*(\d+(?:\.\d+)?)(?!\s*%)/i),m=text.match(/EQUIPMENT\s*MDEF\s*[:]?\s*(\d+(?:\.\d+)?)(?!\s*%)/i);if(p)stats.pdef=p[1];if(m)stats.mdef=m[1];}for(const[field,roi]of Object.entries(PVP_ROIS)){const crop=await preprocessRoi(image,roi);const text=await recognise(numericWorker,crop,PSM.SINGLE_LINE,"0123456789");const nums=allNumbers(text);if(nums.length)stats[field]=nums.sort((a,b)=>b.replace(/\D/g,"").length-a.replace(/\D/g,"").length)[0];}}}finally{await Promise.allSettled([worker.terminate(),numericWorker.terminate()]);}return{stats,rawText:raw.join("\n")};}
 export default readRooStats;
