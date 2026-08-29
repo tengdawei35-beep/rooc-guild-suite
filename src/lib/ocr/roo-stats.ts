@@ -1,8 +1,9 @@
-import { createWorker, type Worker } from "tesseract.js";
+import { createWorker } from "tesseract.js";
 import sharp from "sharp";
 
 export type RooStats = Record<string, string>;
 
+type OcrWorker = Awaited<ReturnType<typeof createWorker>>;
 type Roi = { x: number; y: number; width: number; height: number };
 
 const PVP_ROIS: Record<string, Roi> = {
@@ -36,12 +37,7 @@ const LABELS: Record<string, string[]> = {
 };
 
 function normalise(text: string) {
-  return text
-    .toUpperCase()
-    .replace(/[|]/g, "I")
-    .replace(/[’‘]/g, "'")
-    .replace(/\s+/g, " ")
-    .trim();
+  return text.toUpperCase().replace(/[|]/g, "I").replace(/[’‘]/g, "'").replace(/\s+/g, " ").trim();
 }
 
 function compact(text: string) {
@@ -59,18 +55,11 @@ function extractLabelValues(text: string): RooStats {
 
   for (const line of lines) {
     const compactLine = compact(line);
-
     for (const [field, aliases] of Object.entries(LABELS)) {
-      const alias = aliases
-        .map(compact)
-        .sort((a, b) => b.length - a.length)
-        .find((candidate) => compactLine.includes(candidate));
-
+      const alias = aliases.map(compact).sort((a, b) => b.length - a.length).find((candidate) => compactLine.includes(candidate));
       if (!alias) continue;
-
       const index = compactLine.indexOf(alias);
-      const after = compactLine.slice(index + alias.length);
-      const value = firstNumber(after);
+      const value = firstNumber(compactLine.slice(index + alias.length));
       if (value !== null) result[field] = value.replace(/%$/, "");
     }
   }
@@ -79,15 +68,9 @@ function extractLabelValues(text: string): RooStats {
 }
 
 async function preprocess(image: Buffer, mode: "normal" | "contrast" | "threshold") {
-  let pipeline = sharp(image)
-    .rotate()
-    .resize({ width: 2200, withoutEnlargement: false })
-    .grayscale()
-    .normalize();
-
+  let pipeline = sharp(image).rotate().resize({ width: 2200, withoutEnlargement: false }).grayscale().normalize();
   if (mode === "contrast") pipeline = pipeline.linear(1.45, -40);
   if (mode === "threshold") pipeline = pipeline.linear(1.7, -70).threshold(200);
-
   return pipeline.sharpen().png().toBuffer();
 }
 
@@ -102,35 +85,17 @@ async function preprocessRoi(image: Buffer, region: Roi) {
   const cropWidth = Math.max(1, Math.min(Math.round(width * region.width), width - left));
   const cropHeight = Math.max(1, Math.min(Math.round(height * region.height), height - top));
 
-  return sharp(image)
-    .rotate()
-    .extract({ left, top, width: cropWidth, height: cropHeight })
-    .resize({ width: 1000, withoutEnlargement: false })
-    .grayscale()
-    .normalize()
-    .linear(1.6, -45)
-    .threshold(185)
-    .sharpen()
-    .png()
-    .toBuffer();
+  return sharp(image).rotate().extract({ left, top, width: cropWidth, height: cropHeight }).resize({ width: 1000, withoutEnlargement: false }).grayscale().normalize().linear(1.6, -45).threshold(185).sharpen().png().toBuffer();
 }
 
-async function recognise(worker: Worker, image: Buffer, psm: "6" | "7") {
-  await worker.setParameters({
-    tessedit_pageseg_mode: psm,
-    preserve_interword_spaces: "1",
-    user_defined_dpi: "300",
-  });
+async function recognise(worker: OcrWorker, image: Buffer) {
+  await worker.setParameters({ tessedit_pageseg_mode: "6", preserve_interword_spaces: "1", user_defined_dpi: "300" });
   const result = await worker.recognize(image);
   return String(result.data.text ?? "");
 }
 
-async function recogniseNumeric(worker: Worker, image: Buffer) {
-  await worker.setParameters({
-    tessedit_pageseg_mode: "7",
-    tessedit_char_whitelist: "0123456789",
-    user_defined_dpi: "300",
-  });
+async function recogniseNumeric(worker: OcrWorker, image: Buffer) {
+  await worker.setParameters({ tessedit_pageseg_mode: "7", tessedit_char_whitelist: "0123456789", user_defined_dpi: "300" });
   const result = await worker.recognize(image);
   return firstNumber(String(result.data.text ?? ""));
 }
@@ -146,21 +111,17 @@ export async function readRooStats(images: Buffer[]): Promise<{ stats: RooStats;
 
   try {
     for (const image of images) {
-      const variants = await Promise.all([
-        preprocess(image, "normal"),
-        preprocess(image, "contrast"),
-        preprocess(image, "threshold"),
-      ]);
+      const variants = await Promise.all([preprocess(image, "normal"), preprocess(image, "contrast"), preprocess(image, "threshold")]);
+      const normalText = await recognise(worker, variants[0]);
+      raw.push(normalText);
+      Object.assign(stats, extractLabelValues(normalText));
 
-      for (const variant of variants) {
-        const text = await recognise(worker, variant, "6");
+      for (const variant of variants.slice(1)) {
+        const text = await recognise(worker, variant);
         raw.push(text);
         Object.assign(stats, extractLabelValues(text));
       }
 
-      // The game displays absolute equipment PDEF/MDEF in the Notice popups.
-      // These values intentionally override the General Stats base PDEF/MDEF.
-      const normalText = raw[raw.length - 3] ?? "";
       const noticePdef = normalText.match(/EQUIPMENT\s*PDEF\s*[:]?\s*(\d+)/i);
       const noticeMdef = normalText.match(/EQUIPMENT\s*MDEF\s*[:]?\s*(\d+)/i);
       if (noticePdef) stats.pdef = noticePdef[1];
