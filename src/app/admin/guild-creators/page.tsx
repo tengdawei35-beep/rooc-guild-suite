@@ -5,13 +5,46 @@ import { prisma } from "@/lib/prisma";
 import { getPlatformAdmin } from "@/lib/platform-admin";
 import GuildCreatorsClient from "./GuildCreatorsClient";
 
+async function ensureAdminPlans() {
+  const definitions = [
+    { name: "Basic", description: "Basic Guild Suite subscription", modules: ["CORE"] as const },
+    { name: "Total", description: "Total Guild Suite subscription", modules: ["CORE", "RESOURCE_SUITE"] as const },
+  ];
+
+  for (const definition of definitions) {
+    const plan = await prisma.plan.upsert({
+      where: { name: definition.name },
+      create: {
+        name: definition.name,
+        description: definition.description,
+        priceCents: 0,
+        currency: "usd",
+        billingInterval: "MONTH",
+        active: true,
+      },
+      update: { active: true, description: definition.description },
+    });
+
+    await prisma.planModule.createMany({
+      data: definition.modules.map((module) => ({ planId: plan.id, module })),
+      skipDuplicates: true,
+    });
+  }
+
+  return prisma.plan.findMany({
+    where: { active: true },
+    orderBy: [{ priceCents: "asc" }, { name: "asc" }],
+    select: { id: true, name: true },
+  });
+}
+
 export default async function GuildCreatorsAdminPage() {
   const admin = await getPlatformAdmin();
   if (!admin) redirect("/login");
 
   const [creators, plans, guilds] = await Promise.all([
     prisma.platformGuildCreator.findMany({ orderBy: { discordUsername: "asc" } }),
-    prisma.plan.findMany({ where: { active: true }, orderBy: [{ priceCents: "asc" }, { name: "asc" }] }),
+    ensureAdminPlans(),
     prisma.guild.findMany({
       orderBy: { name: "asc" },
       select: {
@@ -69,7 +102,7 @@ export default async function GuildCreatorsAdminPage() {
         <div className="mt-8">
           <GuildCreatorsClient
             initialCreators={creatorsWithCounts}
-            plans={plans.map((plan) => ({ id: plan.id, name: plan.name }))}
+            plans={plans}
             initialGuilds={guildAccess}
           />
         </div>
