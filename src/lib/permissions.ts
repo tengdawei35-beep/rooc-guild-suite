@@ -83,7 +83,7 @@ export function canManageRole(
   if (actorRole === "MANAGER") {
     return (
       (targetCurrentRole === "OFFICER" || targetCurrentRole === "MEMBER") &&
-      targetNewRole !== "MANAGER"
+      (targetNewRole === "OFFICER" || targetNewRole === "MEMBER")
     );
   }
 
