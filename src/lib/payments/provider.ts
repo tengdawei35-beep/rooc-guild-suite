@@ -22,5 +22,6 @@ export type CheckoutSession = {
 export interface PaymentProvider {
   createCheckout(request: CheckoutRequest): Promise<CheckoutSession>;
   getSubscription(subscriptionId: string): Promise<unknown>;
+  createCustomerPortal(customerId: string, returnUrl: string): Promise<{ url: string }>;
   verifyWebhook(payload: string, signature: string): Promise<unknown>;
 }
