@@ -13,6 +13,14 @@ export class StripePaymentProvider implements PaymentProvider {
     return getStripe().subscriptions.retrieve(subscriptionId);
   }
 
+  async createCustomerPortal(customerId: string, returnUrl: string): Promise<{ url: string }> {
+    const session = await getStripe().billingPortal.sessions.create({
+      customer: customerId,
+      return_url: returnUrl,
+    });
+    return { url: session.url };
+  }
+
   async createCheckout(request: CheckoutRequest): Promise<CheckoutSession> {
     const stripe = getStripe();
     const metadata: Record<string, string> = {
