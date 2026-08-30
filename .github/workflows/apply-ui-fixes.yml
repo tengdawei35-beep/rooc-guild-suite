@@ -1,0 +1,79 @@
+name: Apply requested UI fixes
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/apply-ui-fixes.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Apply fixes
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new):
+              p = Path(path)
+              text = p.read_text(encoding="utf-8")
+              if old not in text:
+                  raise SystemExit(f"Expected text not found in {path}: {old[:100]!r}")
+              p.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+          replace_once(
+              "src/app/page.tsx",
+              "Update stats via OCR â†’",
+              "Update stats via OCR →",
+          )
+
+          members_path = "src/app/guild/members/MembersClient.tsx"
+          members = Path(members_path).read_text(encoding="utf-8")
+          jobs_anchor = 'const EMPTY_FORM: MemberForm = {'
+          jobs_block = '''const AVAILABLE_JOBS = [\n  "Lord Knight",\n  "High Priest",\n  "High Wizard",\n  "Whitesmith",\n  "Sniper",\n  "Assassin Cross",\n  "Paladin",\n  "Champion",\n  "Professor",\n  "Stalker",\n  "Creator",\n  "Clown",\n  "Gypsy",\n  "Gunslinger",\n] as const;\n\n'''
+          if "const AVAILABLE_JOBS = [" not in members:
+              if jobs_anchor not in members:
+                  raise SystemExit("Could not find EMPTY_FORM anchor in MembersClient.tsx")
+              members = members.replace(jobs_anchor, jobs_block + jobs_anchor, 1)
+
+          old_job_input = '''                        <input\n                          type="text"\n                          value={\n                            form.job\n                          }\n                          onChange={(event) =>\n                            setField(\n                              "job",\n                              event.target.value\n                            )\n                          }\n                          className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-zinc-500"\n                        />'''
+          new_job_select = '''                        <select\n                          value={form.job}\n                          onChange={(event) =>\n                            setField("job", event.target.value)\n                          }\n                          className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-zinc-500"\n                        >\n                          <option value="">Select a job</option>\n                          {AVAILABLE_JOBS.map((job) => (\n                            <option key={job} value={job}>\n                              {job}\n                            </option>\n                          ))}\n                        </select>'''
+          if old_job_input not in members:
+              raise SystemExit("Could not find Job input in MembersClient.tsx")
+          members = members.replace(old_job_input, new_job_select, 1)
+          Path(members_path).write_text(members, encoding="utf-8")
+
+          rankings_path = "src/app/guild/rankings/RankingsClient.tsx"
+          rankings = Path(rankings_path).read_text(encoding="utf-8")
+          response_anchor = '''type RankingsResponse = {'''
+          dps_block = '''const DPS_JOBS = new Set([\n  "Lord Knight",\n  "High Wizard",\n  "Sniper",\n  "Assassin Cross",\n  "Stalker",\n  "Champion",\n  "Whitesmith",\n  "Creator",\n  "Gunslinger",\n]);\n\n'''
+          if "const DPS_JOBS = new Set([" not in rankings:
+              if response_anchor not in rankings:
+                  raise SystemExit("Could not find RankingsResponse anchor in RankingsClient.tsx")
+              rankings = rankings.replace(response_anchor, dps_block + response_anchor, 1)
+
+          old_return = '''            return (\n              matchesSearch &&\n              matchesJob &&\n              matchesStatus\n            );'''
+          new_return = '''            const matchesCategory =\n              category !== "DPS" ||\n              DPS_JOBS.has(member.job ?? "");\n\n            return (\n              matchesSearch &&\n              matchesJob &&\n              matchesStatus &&\n              matchesCategory\n            );'''
+          if old_return not in rankings:
+              raise SystemExit("Could not find rankings filter return block")
+          rankings = rankings.replace(old_return, new_return, 1)
+          Path(rankings_path).write_text(rankings, encoding="utf-8")
+          PY
+
+      - name: Commit fixes and remove temporary workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/app/page.tsx src/app/guild/members/MembersClient.tsx src/app/guild/rankings/RankingsClient.tsx
+          git rm .github/workflows/apply-ui-fixes.yml
+          git commit -m "fix: clean up character actions and job rankings"
+          git push origin main
