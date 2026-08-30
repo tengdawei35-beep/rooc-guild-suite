@@ -46,7 +46,6 @@ export async function GET(_request: Request, context: RouteContext) {
       include: {
         parties: {
           orderBy: [{ battlefield: "asc" }, { partyNumber: "asc" }],
-          include: { raids: { include: { raid: true } } },
         },
       },
     });
@@ -56,20 +55,17 @@ export async function GET(_request: Request, context: RouteContext) {
       orderBy: { createdAt: "asc" },
       include: {
         parties: {
-          include: {
-            party: {
-              select: {
-                id: true,
-                rosterId: true,
-                partyNumber: true,
-                battlefield: true,
-              },
-            },
-          },
           orderBy: { createdAt: "asc" },
         },
       },
     });
+
+    const raidByParty = new Map<string, string>();
+    for (const raid of raids) {
+      for (const entry of raid.parties) {
+        raidByParty.set(entry.partyId, raid.id);
+      }
+    }
 
     return NextResponse.json({
       raids: raids.map((raid) => ({
