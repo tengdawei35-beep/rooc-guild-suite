@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
+import { notifyBidComplete } from "@/lib/discord-notifications";
 
 import {
   getCurrentAuth,
@@ -859,6 +860,11 @@ export async function POST(
         }
       );
     }
+
+    await notifyBidComplete({
+      guildId: auth.guild.id,
+      allocationRunId: result.allocationRun.id,
+    });
 
     // ==========================================================
     // RESPONSE

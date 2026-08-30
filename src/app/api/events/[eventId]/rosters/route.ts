@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { notifyRosterUpdate } from "@/lib/discord-notifications";
 
 import {
   getCurrentAuth,
@@ -1238,6 +1239,12 @@ export async function POST(
         }
       );
 
+    await notifyRosterUpdate({
+      guildId: auth.guild.id,
+      eventId: event.id,
+      rosterId: roster.id,
+    });
+
     // ==========================================================
     // RESPONSE
     // ==========================================================
@@ -2344,6 +2351,12 @@ export async function DELETE(
       where: {
         id: roster.id,
       },
+    });
+
+    await notifyRosterUpdate({
+      guildId: auth.guild.id,
+      eventId,
+      rosterId,
     });
 
     return NextResponse.json({

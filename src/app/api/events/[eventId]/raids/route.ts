@@ -84,7 +84,7 @@ export async function GET(_request: Request, context: RouteContext) {
           id: party.id,
           partyNumber: party.partyNumber,
           battlefield: party.battlefield,
-          raidId: party.raids[0]?.raidId ?? null,
+          raidId: raidByParty.get(party.id) ?? null,
         })),
       })),
       canEdit: hasPermission(auth.role, "rosters.edit"),

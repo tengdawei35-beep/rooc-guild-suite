@@ -6,6 +6,7 @@ import {
 } from "@/lib/auth";
 
 import { prisma } from "@/lib/prisma";
+import { notifyRosterUpdate } from "@/lib/discord-notifications";
 
 const PARTY_SIZE = 5;
 const TEMP_SLOT_BASE = 1_000_000;
@@ -480,6 +481,12 @@ export async function POST(
         }
       );
 
+    await notifyRosterUpdate({
+      guildId: auth.guild.id,
+      eventId: party.roster.event.id,
+      rosterId: party.roster.id,
+    });
+
     return NextResponse.json({
       success: true,
       assignment,
@@ -754,6 +761,12 @@ export async function PATCH(
           }
         );
 
+      await notifyRosterUpdate({
+        guildId: auth.guild.id,
+        eventId: source.party.roster.event.id,
+        rosterId: source.party.roster.id,
+      });
+
       return NextResponse.json({
         success: true,
         action: "moved",
@@ -863,6 +876,12 @@ export async function PATCH(
           });
         }
       );
+
+    await notifyRosterUpdate({
+      guildId: auth.guild.id,
+      eventId: source.party.roster.event.id,
+      rosterId: source.party.roster.id,
+    });
 
     return NextResponse.json({
       success: true,
@@ -1054,6 +1073,12 @@ export async function DELETE(
         )
       );
     }
+
+    await notifyRosterUpdate({
+      guildId: auth.guild.id,
+      eventId: assignment.party.roster.event.id,
+      rosterId: assignment.party.roster.id,
+    });
 
     return NextResponse.json({
       success: true,
