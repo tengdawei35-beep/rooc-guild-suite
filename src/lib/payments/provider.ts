@@ -2,6 +2,7 @@ export type CheckoutRequest = {
   guildId?: string;
   planId: string;
   stripePriceId: string;
+  billingTerm?: "monthly" | "quarterly" | "semiannual" | "annual";
   customer: {
     discordUserId: string;
     username: string;

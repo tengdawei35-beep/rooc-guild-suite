@@ -3,20 +3,38 @@ import { getCurrentPlatformUser } from "@/lib/auth/platform";
 import { prisma } from "@/lib/prisma";
 import { stripePaymentProvider } from "@/lib/payments/stripe";
 
-function getStripePriceId(planName: string) {
+const BILLING_TERMS = {
+  monthly: { env: "MONTHLY", months: 1 },
+  quarterly: { env: "3_MONTH", months: 3 },
+  semiannual: { env: "6_MONTH", months: 6 },
+  annual: { env: "YEARLY", months: 12 },
+} as const;
+
+type BillingTerm = keyof typeof BILLING_TERMS;
+
+function getStripePriceId(planName: string, billingTerm: BillingTerm) {
   const normalized = planName.trim().toUpperCase().replace(/[^A-Z0-9]+/g, "_");
-  return process.env[`STRIPE_PRICE_${normalized}`] ?? process.env[`${normalized}_PRICE_ID`];
+  const term = BILLING_TERMS[billingTerm].env;
+  const candidates = [
+    process.env[`STRIPE_PRICE_${normalized}_${term}`],
+    process.env[`${normalized}_PRICE_${term}`],
+    process.env[`${normalized}_${term}_PRICE_ID`],
+    billingTerm === "monthly" ? process.env[`STRIPE_PRICE_${normalized}`] : undefined,
+    billingTerm === "monthly" ? process.env[`${normalized}_PRICE_ID`] : undefined,
+  ];
+  return candidates.find(Boolean);
 }
 
 export async function POST(request: Request) {
   try {
     const user = await getCurrentPlatformUser();
     if (!user) return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
-    const body = await request.json() as { planId?: string; guildId?: string; guildName?: string; discordGuildId?: string };
+    const body = await request.json() as { planId?: string; guildId?: string; guildName?: string; discordGuildId?: string; billingTerm?: BillingTerm };
     const planId = body.planId?.trim();
     const guildId = body.guildId?.trim();
     const guildName = body.guildName?.trim();
     const discordGuildId = body.discordGuildId?.trim();
+    const billingTerm: BillingTerm = body.billingTerm && body.billingTerm in BILLING_TERMS ? body.billingTerm : "monthly";
     if (!planId) return NextResponse.json({ error: "PLAN_REQUIRED" }, { status: 400 });
 
     const plan = await prisma.plan.findFirst({ where: { id: planId, active: true }, include: { modules: true } });
@@ -37,11 +55,11 @@ export async function POST(request: Request) {
       onboarding = { guildName, discordGuildId };
     }
 
-    const stripePriceId = getStripePriceId(plan.name);
-    if (!stripePriceId) return NextResponse.json({ error: `STRIPE_PRICE_NOT_CONFIGURED_FOR_PLAN:${plan.name}` }, { status: 500 });
+    const stripePriceId = getStripePriceId(plan.name, billingTerm);
+    if (!stripePriceId) return NextResponse.json({ error: `STRIPE_PRICE_NOT_CONFIGURED_FOR_PLAN_AND_TERM:${plan.name}:${billingTerm}` }, { status: 500 });
     const appUrl = process.env.APP_URL ?? new URL(request.url).origin;
     const session = await stripePaymentProvider.createCheckout({
-      ...(guildId ? { guildId } : {}), planId, stripePriceId,
+      ...(guildId ? { guildId } : {}), planId, stripePriceId, billingTerm,
       customer: { discordUserId: user.discordId, username: user.username }, onboarding,
       successUrl: `${appUrl}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${appUrl}/billing/new?canceled=1`,

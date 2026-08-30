@@ -8,6 +8,13 @@ function getStripe() {
   return new Stripe(secretKey);
 }
 
+function getLaunchDiscount(): Stripe.Checkout.SessionCreateParams.Discount | null {
+  const promotionCode = process.env.STRIPE_LAUNCH_PROMOTION_CODE_ID;
+  if (promotionCode) return { promotion_code: promotionCode };
+  const coupon = process.env.STRIPE_LAUNCH_COUPON_ID ?? process.env.STRIPE_COUPON_ID;
+  return coupon ? { coupon } : null;
+}
+
 export class StripePaymentProvider implements PaymentProvider {
   async getSubscription(subscriptionId: string): Promise<Stripe.Subscription> {
     return getStripe().subscriptions.retrieve(subscriptionId);
@@ -26,12 +33,18 @@ export class StripePaymentProvider implements PaymentProvider {
     const metadata: Record<string, string> = {
       planId: request.planId,
       discordUserId: request.customer.discordUserId,
+      billingTerm: request.billingTerm ?? "monthly",
     };
 
     if (request.guildId) metadata.guildId = request.guildId;
     if (request.onboarding) {
       metadata.guildName = request.onboarding.guildName;
       metadata.discordGuildId = request.onboarding.discordGuildId;
+    }
+
+    const discounts = request.billingTerm === "monthly" ? getLaunchDiscount() : null;
+    if (request.billingTerm === "monthly" && !discounts) {
+      throw new Error("STRIPE_LAUNCH_COUPON_ID or STRIPE_LAUNCH_PROMOTION_CODE_ID is not configured.");
     }
 
     const session = await stripe.checkout.sessions.create({
@@ -42,6 +55,7 @@ export class StripePaymentProvider implements PaymentProvider {
       client_reference_id: request.guildId ?? request.customer.discordUserId,
       metadata,
       subscription_data: { metadata },
+      ...(discounts ? { discounts: [discounts] } : {}),
     });
 
     if (!session.url) throw new Error("Stripe did not return a checkout URL.");
