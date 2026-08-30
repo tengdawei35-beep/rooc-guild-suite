@@ -14,7 +14,7 @@ type Raid = { id: string; name: string; partyIds: string[] };
 
 type RaidResponse = { raids: Raid[]; rosters: Roster[]; canEdit: boolean };
 
-export default function RaidManagement({ eventId, canEdit }: { eventId: string; canEdit: boolean }) {
+export default function RaidManagement({ eventId, rosterId, canEdit }: { eventId: string; rosterId: string; canEdit: boolean }) {
   const [data, setData] = useState<RaidResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -114,14 +114,33 @@ export default function RaidManagement({ eventId, canEdit }: { eventId: string; 
   if (loading) return <div className="mt-5 rounded-xl border border-zinc-800 bg-zinc-900 px-5 py-4 text-sm text-zinc-600">Loading raids...</div>;
   if (!data) return null;
 
-  const ungrouped = data.rosters.flatMap((roster) => roster.parties.filter((party) => !party.raidId).map((party) => ({ ...party, rosterName: roster.name })));
+  const currentRoster = data.rosters.find(
+    (roster) => roster.id === rosterId
+  );
+
+  if (!currentRoster) {
+    return (
+      <div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
+        <p className="text-sm text-zinc-500">
+          Roster not found.
+        </p>
+      </div>
+    );
+  }
+
+  const ungrouped = currentRoster.parties
+    .filter((party) => !party.raidId)
+    .map((party) => ({
+      ...party,
+      rosterName: currentRoster.name,
+    }));
 
   return (
     <div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h3 className="font-semibold">Raids</h3>
-          <p className="mt-1 text-sm text-zinc-600">Group roster parties into larger raid groups. Parties remain part of the roster.</p>
+          <p className="mt-1 text-sm text-zinc-600">Group this roster's parties into larger raid groups.</p>
         </div>
       </div>
 
@@ -166,12 +185,12 @@ export default function RaidManagement({ eventId, canEdit }: { eventId: string; 
                 <details className="mt-4">
                   <summary className="cursor-pointer text-xs text-zinc-600 hover:text-zinc-300">Manage parties</summary>
                   <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                    {data.rosters.flatMap((roster) => roster.parties.map((party) => (
+                    {(currentRoster?.parties ?? []).map((party) => (
                       <label key={party.id} className="flex cursor-pointer items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs text-zinc-400">
                         <input type="checkbox" checked={raid.partyIds.includes(party.id)} disabled={saving} onChange={() => updateRaidParties(raid, party.id)} />
                         <span>Party {party.partyNumber} · {party.battlefield === "BATTLEFIELD_1" ? "BF1" : "BF2"}</span>
                       </label>
-                    )))}
+                    ))}
                   </div>
                 </details>
               )}

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import RaidManagement from "./RaidManagement";
 
 type EventType =
   | "GUILD_LEAGUE"
@@ -1357,6 +1358,7 @@ export default function EventClient({
               <div className="space-y-6">
                 {data.rosters.map(
                   (roster) => (
+                    <>
                     <RosterCard
                       key={
                         roster.id
@@ -1438,6 +1440,13 @@ export default function EventClient({
                         removeRosterMember
                       }
                     />
+
+                    <RaidManagement
+                      eventId={eventId}
+                      rosterId={roster.id}
+                      canEdit={canEditRosters}
+                    />
+                    </>
                   )
                 )}
               </div>

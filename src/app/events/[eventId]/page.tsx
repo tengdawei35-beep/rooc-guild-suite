@@ -1,7 +1,5 @@
 import { redirect } from "next/navigation";
-
 import EventClient from "./EventClient";
-import RaidManagement from "./RaidManagement";
 
 import {
   hasPermission,
@@ -24,20 +22,20 @@ export default async function EventPage({
   }
 
   const { eventId } = await params;
-  const canEditRosters = hasPermission(auth.role, "rosters.edit");
+  const canEditRosters = hasPermission(
+    auth.role,
+    "rosters.edit"
+  );
 
   return (
-    <>
-      <EventClient
-        eventId={eventId}
-        currentUserId={auth.user.id}
-        canManageEvents={hasPermission(auth.role, "events.manage")}
-        canEditRosters={canEditRosters}
-      />
-      <RaidManagement
-        eventId={eventId}
-        canEdit={canEditRosters}
-      />
-    </>
+    <EventClient
+      eventId={eventId}
+      currentUserId={auth.user.id}
+      canManageEvents={hasPermission(
+        auth.role,
+        "events.manage"
+      )}
+      canEditRosters={canEditRosters}
+    />
   );
 }
