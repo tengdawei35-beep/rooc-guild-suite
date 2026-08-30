@@ -1,12 +1,19 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 
-const DISCORD_URL = "https://discord.gg/48yTtF9UxP";
+const DISCORD_URL = "https://discord.gg/NrT2RKnh8M";
 
 const moduleLabels: Record<string, string> = {
   CORE: "Core guild management",
   RESOURCE_SUITE: "Resources, bidding & allocation",
 };
+
+const TERMS = [
+  { id: "monthly", label: "1 month", months: 1, days: 30, discount: 0 },
+  { id: "quarterly", label: "3 months", months: 3, days: 90, discount: 10 },
+  { id: "semiannual", label: "6 months", months: 6, days: 180, discount: 15 },
+  { id: "annual", label: "1 year", months: 12, days: 365, discount: 25 },
+] as const;
 
 export default async function PricingPage() {
   const plans = await prisma.plan.findMany({
@@ -40,6 +47,8 @@ export default async function PricingPage() {
           <section className="mx-auto mt-12 grid max-w-5xl gap-5 md:grid-cols-2">
             {plans.map((plan) => {
               const total = plan.name.toLowerCase().includes("total");
+              const base = plan.priceCents;
+
               return (
                 <article key={plan.id} className={`rounded-2xl border p-7 ${total ? "border-zinc-500 bg-zinc-900" : "border-zinc-800 bg-zinc-950"}`}>
                   <div className="flex items-start justify-between gap-5">
@@ -48,11 +57,54 @@ export default async function PricingPage() {
                       {total && <span className="mt-2 inline-flex rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-black">Everything included</span>}
                     </div>
                     <div className="text-right">
-                      <p className="text-2xl font-bold">{formatPrice(plan.priceCents, plan.currency)}</p>
-                      <p className="text-xs uppercase tracking-wide text-zinc-500">per {plan.billingInterval.toLowerCase()}</p>
+                      <p className="text-2xl font-bold">{formatPrice(base, plan.currency)}</p>
+                      <p className="text-xs uppercase tracking-wide text-zinc-500">per month</p>
                     </div>
                   </div>
+
                   <p className="mt-5 min-h-12 text-sm leading-6 text-zinc-400">{plan.description ?? "Guild management tools for your community."}</p>
+
+                  <div className="mt-6 border-t border-zinc-800 pt-5">
+                    <p className="text-sm font-semibold text-zinc-200">Choose your billing term</p>
+                    <p className="mt-1 text-xs text-zinc-500">Longer commitments save more.</p>
+
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      {TERMS.map((term) => {
+                        const original = base * term.months;
+                        const discounted = Math.round(original * (1 - term.discount / 100));
+                        const daily = discounted / term.days;
+                        const monthlyEquivalent = discounted / term.months;
+
+                        return (
+                          <div key={term.id} className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <p className="font-semibold text-white">{term.label}</p>
+                                {term.discount > 0 ? (
+                                  <span className="mt-1 inline-flex rounded-full border border-zinc-700 px-2 py-0.5 text-[11px] font-semibold text-zinc-300">
+                                    Save {term.discount}%
+                                  </span>
+                                ) : (
+                                  <span className="mt-1 text-[11px] text-zinc-500">Standard price</span>
+                                )}
+                              </div>
+                              <div className="text-right">
+                                {term.discount > 0 && (
+                                  <p className="text-xs text-zinc-600 line-through">{formatPrice(original, plan.currency)}</p>
+                                )}
+                                <p className="text-lg font-bold">{formatPrice(discounted, plan.currency)}</p>
+                              </div>
+                            </div>
+                            <div className="mt-3 flex items-center justify-between border-t border-zinc-800 pt-3 text-xs text-zinc-500">
+                              <span>{formatPrice(monthlyEquivalent, plan.currency)}/month equivalent</span>
+                              <span>{formatPrice(daily, plan.currency)}/day</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   <div className="mt-6 space-y-3 border-t border-zinc-800 pt-5">
                     {plan.modules.map((module) => (
                       <p key={module.module} className="text-sm text-zinc-200">✓ {moduleLabels[module.module] ?? module.module}</p>
@@ -61,6 +113,7 @@ export default async function PricingPage() {
                       <p className="text-sm text-zinc-600">— Resources, bidding & allocation not included</p>
                     )}
                   </div>
+
                   <Link href="/login" className={`mt-8 flex w-full items-center justify-center rounded-lg px-5 py-3 text-sm font-semibold ${total ? "bg-white text-black hover:bg-zinc-200" : "border border-zinc-700 text-white hover:bg-zinc-800"}`}>
                     Get started with {plan.name}
                   </Link>
@@ -70,12 +123,12 @@ export default async function PricingPage() {
           </section>
         )}
 
-        <p className="mt-10 text-center text-xs text-zinc-600">Secure subscription checkout is handled after Discord login.</p>
+        <p className="mt-10 text-center text-xs text-zinc-600">Monthly subscriptions are 50% off for the first month during the launch offer. Longer subscriptions receive the advertised commitment discount. Secure checkout is handled after Discord login.</p>
       </div>
     </main>
   );
 }
 
-function formatPrice(cents: number, currency: string) {
-  return new Intl.NumberFormat("en-MY", { style: "currency", currency: currency.toUpperCase() }).format(cents / 100);
+function formatPrice(value: number, currency: string) {
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: currency.toUpperCase() }).format(value / 100);
 }
