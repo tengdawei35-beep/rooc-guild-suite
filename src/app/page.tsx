@@ -33,10 +33,7 @@ export default async function Home() {
   const rosterCount = guild?.events.reduce((total, event) => total + event.rosters.length, 0) ?? 0;
   const canViewAllocation = hasResourceSuite && hasPermission(auth.role, "allocation.view");
   const canViewApplicants = hasPermission(auth.role, "applicants.view");
-  const ownMember = auth.role === "MEMBER" ? await prisma.guildMember.findFirst({ where: {
-    guildId: auth.guild.id,
-    OR: [{ userId: auth.user.id }, { discordUserId: auth.user.discordId }]
-  }, select: { id: true, characterName: true } }) : null;
+  const ownMember = await prisma.guildMember.findFirst({ where: { guildId: auth.guild.id, userId: auth.user.id, active: true }, select: { id: true, characterName: true } });
   const memberActivity = (guild?.members ?? []).map((member) => ({ date: member.updatedAt, title: member.characterName || member.discordUsername || "Member", detail: member.job ? `Member profile updated · ${member.job}` : "Member profile updated", href: `/guild/members/${member.id}` }));
   const leaveActivity = guild ? await prisma.memberLeave.findMany({ where: { member: { guildId: guild.id } }, orderBy: { createdAt: "desc" }, take: 5, include: { member: { select: { id: true, characterName: true, discordUsername: true } } } }) : [];
   const rosterActivity = (guild?.events ?? []).flatMap((event) => event.rosters.map((roster) => ({ date: roster.createdAt, title: "Roster generated", detail: `${formatEventType(event.type)} · ${roster.name}`, href: `/events/${event.id}` })));
