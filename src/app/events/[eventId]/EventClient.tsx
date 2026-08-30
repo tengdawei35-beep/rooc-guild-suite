@@ -319,6 +319,74 @@ export default function EventClient({
   }
 
   // ==========================================================
+  // DELETE ROSTER
+  // ==========================================================
+
+  async function deleteRoster(rosterId: string) {
+    if (
+      !window.confirm(
+        "Delete this roster? This cannot be undone."
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `/api/events/${eventId}/rosters`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            rosterId,
+          }),
+        }
+      );
+
+      const result =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.error ??
+            "Failed to delete roster."
+        );
+      }
+
+      setData((current) => {
+        if (!current) {
+          return current;
+        }
+
+        return {
+          ...current,
+          rosters: current.rosters.filter(
+            (roster) =>
+              roster.id !== rosterId
+          ),
+        };
+      });
+
+      if (
+        editingRosterId ===
+        rosterId
+      ) {
+        setEditingRosterId(null);
+      }
+    } catch (error) {
+      console.error(error);
+
+      window.alert(
+        error instanceof Error
+          ? error.message
+          : "Failed to delete roster."
+      );
+    }
+  }
+
+  // ==========================================================
   // UPDATE PARTICIPATION
   // ==========================================================
 
@@ -1311,6 +1379,9 @@ export default function EventClient({
                             : roster.id
                         )
                       }
+                      onDeleteRoster={() =>
+                        deleteRoster(roster.id)
+                      }
                       draggedAssignmentId={
                         draggedAssignmentId
                       }
@@ -1825,6 +1896,7 @@ function RosterCard({
   canEdit,
   editing,
   onEdit,
+  onDeleteRoster,
   draggedAssignmentId,
   movingAssignmentId,
   removingAssignmentId,
@@ -1839,6 +1911,7 @@ function RosterCard({
   editing: boolean;
 
   onEdit: () => void;
+  onDeleteRoster: () => void;
 
   draggedAssignmentId:
     | string
@@ -1919,20 +1992,31 @@ function RosterCard({
           </span>
 
           {canEdit && (
-            <button
-              type="button"
-              onClick={onEdit}
-              className={`rounded-lg border px-3 py-2 text-xs font-medium transition ${
-                editing
-                  ? "border-white bg-white text-black"
-                  : "border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-white"
-              }`}
-            >
-              {editing
-                ? "Done Editing"
-                : "Edit Roster"}
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={onEdit}
+                className={`rounded-lg border px-3 py-2 text-xs font-medium transition ${
+                  editing
+                    ? "border-white bg-white text-black"
+                    : "border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-white"
+                }`}
+              >
+                {editing
+                  ? "Done Editing"
+                  : "Edit Roster"}
+              </button>
+
+              <button
+                type="button"
+                onClick={onDeleteRoster}
+                className="rounded-lg border border-red-900/60 px-3 py-2 text-xs font-medium text-red-400 transition hover:border-red-700 hover:bg-red-950/30 hover:text-red-300"
+              >
+                Delete Roster
+              </button>
+            </>
           )}
+            
         </div>
       </div>
 

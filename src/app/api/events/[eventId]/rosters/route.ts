@@ -2259,3 +2259,107 @@ function formatDate(
     }
   ).format(value);
 }
+
+// =============================================================
+// DELETE ROSTER
+// =============================================================
+
+export async function DELETE(
+  request: Request,
+  context: RouteContext
+) {
+  try {
+    const auth = await getCurrentAuth();
+
+    if (!auth?.user?.id || !auth.guild?.id) {
+      return NextResponse.json(
+        { error: "Unauthorized." },
+        { status: 401 }
+      );
+    }
+
+    const canEdit = hasPermission(
+      auth.role,
+      "rosters.edit"
+    );
+
+    if (!canEdit) {
+      return NextResponse.json(
+        { error: "You do not have permission to delete rosters." },
+        { status: 403 }
+      );
+    }
+
+    const { eventId } = await context.params;
+
+    const body = await request.json();
+
+    const rosterId =
+      typeof body?.rosterId === "string"
+        ? body.rosterId
+        : null;
+
+    if (!rosterId) {
+      return NextResponse.json(
+        { error: "rosterId is required." },
+        { status: 400 }
+      );
+    }
+
+    const event = await prisma.event.findFirst({
+      where: {
+        id: eventId,
+        guildId: auth.guild.id,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!event) {
+      return NextResponse.json(
+        { error: "Event not found." },
+        { status: 404 }
+      );
+    }
+
+    const roster = await prisma.roster.findFirst({
+      where: {
+        id: rosterId,
+        eventId: event.id,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!roster) {
+      return NextResponse.json(
+        { error: "Roster not found." },
+        { status: 404 }
+      );
+    }
+
+    await prisma.roster.delete({
+      where: {
+        id: roster.id,
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+    });
+  } catch (error) {
+    console.error("[ROSTER DELETE]", error);
+
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to delete roster.",
+      },
+      { status: 500 }
+    );
+  }
+}
