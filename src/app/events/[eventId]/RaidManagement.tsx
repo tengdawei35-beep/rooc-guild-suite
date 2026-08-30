@@ -58,122 +58,101 @@ export default function RaidManagement({ eventId, rosterId, canEdit }: { eventId
     return map;
   }, [data]);
 
-  // Visually group the roster's existing PartyCard elements by raid.
-  // This keeps the existing roster/editing implementation intact while
-  // adding a clear wrapper and raid label around each assigned group.
+  // Highlight raid membership directly on the existing PartyCard DOM nodes.
+  // We intentionally do not move/reparent React-owned nodes here.
   useEffect(() => {
     if (!data || loading) return;
 
     const currentRoster = data.rosters.find((roster) => roster.id === rosterId);
     if (!currentRoster) return;
 
-    const restorePreviousLayout = () => {
-      document.querySelectorAll<HTMLElement>('[data-rooc-raid-wrapper="true"]').forEach((wrapper) => {
-        const grid = wrapper.parentElement;
-        if (!grid) return;
+    const styleId = "rooc-raid-party-highlighting";
+    let style = document.getElementById(styleId) as HTMLStyleElement | null;
 
-        const cards = Array.from(
-          wrapper.querySelectorAll<HTMLElement>('[data-rooc-party-card="true"]')
-        );
+    if (!style) {
+      style = document.createElement("style");
+      style.id = styleId;
+      style.textContent = `
+        [data-rooc-raid-party="true"] {
+          position: relative;
+          border-width: 2px !important;
+          box-shadow: inset 0 3px 0 var(--rooc-raid-color), inset 3px 0 0 var(--rooc-raid-color), inset -3px 0 0 var(--rooc-raid-color);
+          background: var(--rooc-raid-bg) !important;
+        }
+        [data-rooc-raid-party="true"][data-rooc-raid-first="true"]::before {
+          content: attr(data-rooc-raid-name);
+          position: absolute;
+          top: -11px;
+          left: 12px;
+          padding: 1px 7px;
+          border-radius: 4px;
+          background: #18181b;
+          color: var(--rooc-raid-color);
+          font-size: 11px;
+          font-weight: 700;
+          line-height: 16px;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          z-index: 2;
+        }
+      `;
+      document.head.appendChild(style);
+    }
 
-        cards.forEach((card) => {
-          card.style.borderColor = "";
-          grid.appendChild(card);
+    const partyCards = Array.from(
+      document.querySelectorAll<HTMLElement>(
+        'div.rounded-xl.border.border-zinc-800.bg-zinc-950.p-4'
+      )
+    ).filter((card) => {
+      const header = card.firstElementChild;
+      const partyLabel = header?.querySelector("p")?.textContent?.trim() ?? "";
+      const countLabel = header?.querySelector("span")?.textContent?.trim() ?? "";
+      return /^Party \d+$/.test(partyLabel) && /^\d+\/5$/.test(countLabel);
+    });
+
+    // Clear previous raid styling first so renamed/reassigned raids update cleanly.
+    partyCards.forEach((card) => {
+      card.removeAttribute("data-rooc-raid-party");
+      card.removeAttribute("data-rooc-raid-first");
+      card.removeAttribute("data-rooc-raid-name");
+      card.style.removeProperty("--rooc-raid-color");
+      card.style.removeProperty("--rooc-raid-bg");
+      card.style.removeProperty("border-color");
+    });
+
+    for (const [raidIndex, raid] of data.raids.entries()) {
+      const accent = RAID_ACCENTS[raidIndex % RAID_ACCENTS.length];
+      const raidParties = currentRoster.parties
+        .filter((party) => raid.partyIds.includes(party.id))
+        .sort((a, b) => {
+          if (a.battlefield !== b.battlefield) {
+            return a.battlefield === "BATTLEFIELD_1" ? -1 : 1;
+          }
+          return a.partyNumber - b.partyNumber;
         });
 
-        wrapper.remove();
-      });
-    };
+      raidParties.forEach((party, index) => {
+        const battlefieldName = party.battlefield === "BATTLEFIELD_1" ? "Battlefield 1" : "Battlefield 2";
+        const card = partyCards.find((candidate) => {
+          const header = candidate.firstElementChild;
+          const partyLabel = header?.querySelector("p")?.textContent?.trim() ?? "";
+          const partyNumber = Number(partyLabel.replace("Party ", ""));
+          const battlefieldHeading = candidate.parentElement?.parentElement?.querySelector("h4")?.textContent?.trim();
+          return partyNumber === party.partyNumber && battlefieldHeading === battlefieldName;
+        });
 
-    const enhanceLayout = () => {
-      restorePreviousLayout();
+        if (!card) return;
 
-      const currentPartyIds = new Set(currentRoster.parties.map((party) => party.id));
-
-      const partyCards = Array.from(
-        document.querySelectorAll<HTMLElement>(
-          'div.rounded-xl.border.border-zinc-800.bg-zinc-950.p-4'
-        )
-      ).filter((card) => {
-        const header = card.firstElementChild;
-        const partyLabel = header?.querySelector("p")?.textContent?.trim() ?? "";
-        const countLabel = header?.querySelector("span")?.textContent?.trim() ?? "";
-        return /^Party \d+$/.test(partyLabel) && /^\d+\/5$/.test(countLabel);
-      });
-
-      const cardsByKey = new Map<string, HTMLElement>();
-
-      for (const card of partyCards) {
-        const header = card.firstElementChild;
-        const partyLabel = header?.querySelector("p")?.textContent?.trim() ?? "";
-        const partyNumber = Number(partyLabel.replace("Party ", ""));
-        if (!Number.isFinite(partyNumber)) continue;
-
-        const battlefieldHeading = card.parentElement?.parentElement?.querySelector("h4")?.textContent?.trim();
-        const battlefield = battlefieldHeading === "Battlefield 2" ? "BATTLEFIELD_2" : "BATTLEFIELD_1";
-        const matchingParty = currentRoster.parties.find(
-          (party) => party.partyNumber === partyNumber && party.battlefield === battlefield
-        );
-
-        if (!matchingParty || !currentPartyIds.has(matchingParty.id)) continue;
-
-        card.dataset.roocPartyCard = "true";
-        card.dataset.roocPartyId = matchingParty.id;
-        cardsByKey.set(`${battlefield}:${partyNumber}`, card);
-      }
-
-      for (const [raidIndex, raid] of data.raids.entries()) {
-        const raidParties = currentRoster.parties.filter((party) => raid.partyIds.includes(party.id));
-        if (raidParties.length === 0) continue;
-
-        for (const battlefield of ["BATTLEFIELD_1", "BATTLEFIELD_2"] as const) {
-          const cards = raidParties
-            .filter((party) => party.battlefield === battlefield)
-            .sort((a, b) => a.partyNumber - b.partyNumber)
-            .map((party) => cardsByKey.get(`${battlefield}:${party.partyNumber}`))
-            .filter((card): card is HTMLElement => Boolean(card));
-
-          if (cards.length === 0) continue;
-
-          const grid = cards[0].parentElement;
-          if (!grid) continue;
-
-          const accent = RAID_ACCENTS[raidIndex % RAID_ACCENTS.length];
-          const wrapper = document.createElement("div");
-          wrapper.dataset.roocRaidWrapper = "true";
-          wrapper.className = "rounded-2xl p-3 sm:p-4";
-          wrapper.style.gridColumn = "1 / -1";
-          wrapper.style.border = `2px solid ${accent.border}`;
-          wrapper.style.background = accent.bg;
-          wrapper.style.position = "relative";
-          wrapper.style.marginTop = "0.25rem";
-
-          const label = document.createElement("div");
-          label.textContent = raid.name;
-          label.className = "absolute -top-3 left-4 px-2 text-xs font-semibold uppercase tracking-wide";
-          label.style.color = accent.text;
-          label.style.background = "#18181b";
-
-          const innerGrid = document.createElement("div");
-          innerGrid.className = "grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4";
-
-          wrapper.appendChild(label);
-          wrapper.appendChild(innerGrid);
-
-          grid.insertBefore(wrapper, cards[0]);
-          cards.forEach((card) => {
-            card.style.borderColor = accent.border;
-            innerGrid.appendChild(card);
-          });
+        card.dataset.roocRaidParty = "true";
+        card.dataset.roocRaidName = raid.name;
+        if (index === 0) {
+          card.dataset.roocRaidFirst = "true";
         }
-      }
-    };
-
-    const timer = window.setTimeout(enhanceLayout, 0);
-    return () => {
-      window.clearTimeout(timer);
-      restorePreviousLayout();
-    };
+        card.style.setProperty("--rooc-raid-color", accent.border);
+        card.style.setProperty("--rooc-raid-bg", accent.bg);
+        card.style.borderColor = accent.border;
+      });
+    }
   }, [data, loading, rosterId]);
 
   function toggleParty(partyId: string) {
