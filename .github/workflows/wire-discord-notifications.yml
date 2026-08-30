@@ -1,0 +1,131 @@
+name: Wire Discord Notifications
+
+on:
+  push:
+    branches:
+      - feat/discord-notification-wiring
+    paths:
+      - .github/discord-notification-wiring.trigger
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.event.head_commit.message != 'feat: wire Discord notifications'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/discord-notification-wiring
+          fetch-depth: 0
+
+      - name: Apply notification hooks
+        shell: python
+        run: |
+          from pathlib import Path
+
+          def read(path):
+              return Path(path).read_text(encoding='utf-8')
+
+          def write(path, text):
+              Path(path).write_text(text, encoding='utf-8')
+
+          def replace_once(text, old, new, label):
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected 1 match, found {count}')
+              return text.replace(old, new, 1)
+
+          # Roster member mutations
+          path = 'src/app/api/events/rosters/members/route.ts'
+          text = read(path)
+          if 'from "@/lib/discord-notifications"' not in text:
+              text = replace_once(
+                  text,
+                  'import { prisma } from "@/lib/prisma";\n',
+                  'import { prisma } from "@/lib/prisma";\nimport { notifyRosterUpdate } from "@/lib/discord-notifications";\n',
+                  'members import',
+              )
+
+          text = replace_once(
+              text,
+              '    return NextResponse.json({\n      success: true,\n      assignment,\n    });',
+              '    await notifyRosterUpdate({\n      guildId: auth.guild.id,\n      eventId: party.roster.event.id,\n      rosterId: party.roster.id,\n    });\n\n    return NextResponse.json({\n      success: true,\n      assignment,\n    });',
+              'members POST hook',
+          )
+
+          text = replace_once(
+              text,
+              '      return NextResponse.json({\n        success: true,\n        action: "moved",\n        assignment: updated,\n      });',
+              '      await notifyRosterUpdate({\n        guildId: auth.guild.id,\n        eventId: source.party.roster.event.id,\n        rosterId: source.party.roster.id,\n      });\n\n      return NextResponse.json({\n        success: true,\n        action: "moved",\n        assignment: updated,\n      });',
+              'members moved hook',
+          )
+
+          text = replace_once(
+              text,
+              '    return NextResponse.json({\n      success: true,\n      action: "swapped",\n      assignments: swapped,\n    });',
+              '    await notifyRosterUpdate({\n      guildId: auth.guild.id,\n      eventId: source.party.roster.event.id,\n      rosterId: source.party.roster.id,\n    });\n\n    return NextResponse.json({\n      success: true,\n      action: "swapped",\n      assignments: swapped,\n    });',
+              'members swapped hook',
+          )
+
+          text = replace_once(
+              text,
+              '    return NextResponse.json({\n      success: true,\n    });',
+              '    await notifyRosterUpdate({\n      guildId: auth.guild.id,\n      eventId: assignment.party.roster.event.id,\n      rosterId: assignment.party.roster.id,\n    });\n\n    return NextResponse.json({\n      success: true,\n    });',
+              'members DELETE hook',
+          )
+          write(path, text)
+
+          # Roster generation/deletion
+          path = 'src/app/api/events/[eventId]/rosters/route.ts'
+          text = read(path)
+          if 'from "@/lib/discord-notifications"' not in text:
+              text = replace_once(
+                  text,
+                  'import { prisma } from "@/lib/prisma";\n',
+                  'import { prisma } from "@/lib/prisma";\nimport { notifyRosterUpdate } from "@/lib/discord-notifications";\n',
+                  'rosters import',
+              )
+
+          text = replace_once(
+              text,
+              '    // ==========================================================\n    // RESPONSE\n    // ==========================================================\n\n    return NextResponse.json(',
+              '    await notifyRosterUpdate({\n      guildId: auth.guild.id,\n      eventId: event.id,\n      rosterId: roster.id,\n    });\n\n    // ==========================================================\n    // RESPONSE\n    // ==========================================================\n\n    return NextResponse.json(',
+              'roster generation hook',
+          )
+
+          delete_anchor = '''    await prisma.roster.delete({\n      where: {\n        id: roster.id,\n      },\n    });\n\n    return NextResponse.json({'''
+          delete_replacement = '''    await prisma.roster.delete({\n      where: {\n        id: roster.id,\n      },\n    });\n\n    await notifyRosterUpdate({\n      guildId: auth.guild.id,\n      eventId,\n      rosterId,\n    });\n\n    return NextResponse.json({'''
+          text = replace_once(text, delete_anchor, delete_replacement, 'roster deletion hook')
+          write(path, text)
+
+          # Allocation completion -> bid pages ready
+          path = 'src/app/api/allocation/run/route.ts'
+          text = read(path)
+          if 'from "@/lib/discord-notifications"' not in text:
+              text = replace_once(
+                  text,
+                  'import { prisma } from "@/lib/prisma";\n',
+                  'import { prisma } from "@/lib/prisma";\nimport { notifyBidComplete } from "@/lib/discord-notifications";\n',
+                  'allocation import',
+              )
+
+          text = replace_once(
+              text,
+              '    // ==========================================================\n    // RESPONSE\n    // ==========================================================\n\n    return NextResponse.json({',
+              '    await notifyBidComplete({\n      guildId: auth.guild.id,\n      allocationRunId: result.allocationRun.id,\n    });\n\n    // ==========================================================\n    // RESPONSE\n    // ==========================================================\n\n    return NextResponse.json({',
+              'bid completion hook',
+          )
+          write(path, text)
+
+          # Remove the trigger so the patch commit itself does not retrigger this workflow.
+          Path('.github/discord-notification-wiring.trigger').unlink()
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/app/api/events/rosters/members/route.ts src/app/api/events/[eventId]/rosters/route.ts src/app/api/allocation/run/route.ts .github/discord-notification-wiring.trigger
+          git commit -m "feat: wire Discord notifications"
+          git push origin feat/discord-notification-wiring
