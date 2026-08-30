@@ -6,7 +6,6 @@ import { useEffect, useMemo, useState } from "react";
 type Stats = {
   members: { total: number; active: number; inactive: number };
   jobs: { job: string; count: number }[];
-  attendance: { events: number; attended: number; rate: number };
   events: { total: number; completed: number; upcoming: number };
   rosters: { total: number };
   resources: { total: number; allocations: number; reservations: number };
@@ -34,10 +33,7 @@ export default function GuildStatisticsClient() {
 
   useEffect(() => { load(); }, []);
 
-  const maxJobCount = useMemo(
-    () => Math.max(...(stats?.jobs.map((item) => item.count) ?? [1]), 1),
-    [stats]
-  );
+  const maxJobCount = useMemo(() => Math.max(...(stats?.jobs.map((item) => item.count) ?? [1]), 1), [stats]);
 
   return (
     <main className="min-h-screen bg-[#0b0b0b] px-4 py-6 text-gray-100 md:px-6">
@@ -48,9 +44,7 @@ export default function GuildStatisticsClient() {
             <h1 className="text-2xl font-bold text-white md:text-3xl">Guild Statistics</h1>
             <p className="mt-1 text-sm text-gray-400">A snapshot of your guild's members and activity.</p>
           </div>
-          <button onClick={load} disabled={loading} className="rounded-lg border border-gray-700 bg-[#151515] px-4 py-2 text-sm hover:bg-[#1c1c1c] disabled:opacity-50">
-            {loading ? "Refreshing..." : "Refresh"}
-          </button>
+          <button onClick={load} disabled={loading} className="rounded-lg border border-gray-700 bg-[#151515] px-4 py-2 text-sm hover:bg-[#1c1c1c] disabled:opacity-50">{loading ? "Refreshing..." : "Refresh"}</button>
         </div>
 
         {error && <div className="mb-6 rounded-lg border border-red-900 bg-red-950/40 p-4 text-sm text-red-300">{error}</div>}
@@ -60,18 +54,10 @@ export default function GuildStatisticsClient() {
               <StatCard label="Total Members" value={stats.members.total} />
               <StatCard label="Active Members" value={stats.members.active} />
               <StatCard label="Events" value={stats.events.total} />
-              <StatCard label="Attendance" value={`${stats.attendance.rate.toFixed(1)}%`} />
+              <StatCard label="Rosters" value={stats.rosters.total} />
             </section>
 
-            <section className="mt-6 grid gap-6 lg:grid-cols-2">
-              <Panel title="Guild Attendance">
-                <div className="mb-5 flex items-end justify-between">
-                  <div><div className="text-3xl font-bold text-white">{stats.attendance.rate.toFixed(1)}%</div><div className="mt-1 text-sm text-gray-500">Attendance across all members</div></div>
-                  <div className="text-right text-sm text-gray-400">{stats.attendance.attended} / {stats.attendance.events} recorded</div>
-                </div>
-                <div className="h-3 overflow-hidden rounded-full bg-gray-800"><div className="h-full rounded-full bg-gray-500" style={{ width: `${Math.min(100, Math.max(0, stats.attendance.rate))}%` }} /></div>
-              </Panel>
-
+            <section className="mt-6">
               <Panel title="Member Composition">
                 <div className="space-y-3">
                   {stats.jobs.length === 0 ? <div className="text-sm text-gray-500">No job data available.</div> : stats.jobs.map((item) => (
@@ -87,8 +73,8 @@ export default function GuildStatisticsClient() {
             <section className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
               <StatCard label="Completed Events" value={stats.events.completed} />
               <StatCard label="Upcoming Events" value={stats.events.upcoming} />
-              <StatCard label="Rosters" value={stats.rosters.total} />
               <StatCard label="Resources" value={stats.resources.total} />
+              <StatCard label="Allocations" value={stats.resources.allocations} />
             </section>
 
             <section className="mt-6 grid gap-6 md:grid-cols-2">
