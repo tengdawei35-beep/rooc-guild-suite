@@ -157,7 +157,7 @@ export async function notifyRosterUpdate(input: {
     await sendWebhook(input.guildId, "roster", {
       content: roster
         ? `📋 **Roster saved:** ${roster.name}${eventLink}`
-        : `📋 **Roster saved.${eventLink}`,
+        : `📋 **Roster saved**${eventLink}`,
     });
   } catch (error) {
     console.error("[DISCORD] Roster notification failed:", error);
