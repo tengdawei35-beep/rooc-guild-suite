@@ -4,7 +4,7 @@ import { getCurrentAuth, hasPermission } from "@/lib/auth";
 import { hasGuildModule, RESOURCE_SUITE_MODULE } from "@/lib/auth/modules";
 import { getGuildSubscriptionEntitlement } from "@/lib/billing/entitlement-status";
 
-const DISCORD_URL = "https://discord.gg/48yTtF9UxP";
+const DISCORD_URL = "https://discord.gg/NrT2RKnh8M";
 
 export default async function Home() {
   const auth = await getCurrentAuth();
