@@ -1,4 +1,5 @@
 import { createHash, randomUUID } from "crypto";
+import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 
 type NotificationType = "roster" | "bid" | "stats";
