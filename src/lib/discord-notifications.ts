@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import { createHash, randomUUID } from "crypto";
 import { prisma } from "@/lib/prisma";
 
 type NotificationType = "roster" | "bid" | "stats";
@@ -9,6 +9,13 @@ type NotificationConfig = {
   rosterWebhookUrl: string | null;
   bidWebhookUrl: string | null;
   statsWebhookUrl: string | null;
+};
+
+type StatsSnapshot = {
+  memberId: string;
+  statsHash: string;
+  lastChangedAt: Date;
+  lastReminderAt: Date | null;
 };
 
 async function ensureNotificationTable() {
@@ -22,6 +29,22 @@ async function ensureNotificationTable() {
       "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
       "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
+  `;
+}
+
+async function ensureStatsSnapshotTable() {
+  await prisma.$executeRaw`
+    CREATE TABLE IF NOT EXISTS "GuildMemberStatsSnapshot" (
+      "memberId" TEXT PRIMARY KEY REFERENCES "GuildMember"("id") ON DELETE CASCADE,
+      "statsHash" TEXT NOT NULL,
+      "lastChangedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      "lastReminderAt" TIMESTAMP(3)
+    )
+  `;
+
+  await prisma.$executeRaw`
+    CREATE INDEX IF NOT EXISTS "GuildMemberStatsSnapshot_lastChangedAt_idx"
+    ON "GuildMemberStatsSnapshot" ("lastChangedAt")
   `;
 }
 
@@ -171,30 +194,143 @@ export async function notifyBidComplete(input: {
   }
 }
 
+const STATS_FIELDS = [
+  "pdef",
+  "mdef",
+  "pvpDamageBonus",
+  "pvpDamageReduction",
+  "pdmgPercent",
+  "mdmgPercent",
+  "pdmgReductionPercent",
+  "mdmgReductionPercent",
+  "critRes",
+  "ignorePdef",
+  "ignoreMdef",
+  "damageVsMedium",
+  "damageReductionVsMedium",
+  "damageVsSmall",
+  "damageReductionVsSmall",
+  "damageVsDemiHuman",
+  "damageReductionVsDemiHuman",
+  "damageVsBrute",
+  "damageReductionVsBrute",
+  "equipmentPdefPercent",
+  "equipmentMdefPercent",
+  "patk",
+  "matk",
+  "hp",
+] as const;
+
+function statsHash(member: Record<(typeof STATS_FIELDS)[number], number | null>) {
+  const values = STATS_FIELDS.map((field) => [field, member[field] ?? null]);
+  return createHash("sha256").update(JSON.stringify(values)).digest("hex");
+}
+
+function sevenDaysAgo() {
+  return new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+}
+
 export async function notifyStatsReminder(guildId: string) {
   try {
+    await ensureStatsSnapshotTable();
+
     const members = await prisma.guildMember.findMany({
-      where: {
-        guildId,
-        active: true,
-        OR: [
-          { pdef: null }, { mdef: null }, { patk: null }, { matk: null }, { hp: null },
-          { pvpDamageBonus: null }, { pvpDamageReduction: null },
-        ],
+      where: { guildId, active: true },
+      select: {
+        id: true,
+        characterName: true,
+        discordUserId: true,
+        pdef: true,
+        mdef: true,
+        pvpDamageBonus: true,
+        pvpDamageReduction: true,
+        pdmgPercent: true,
+        mdmgPercent: true,
+        pdmgReductionPercent: true,
+        mdmgReductionPercent: true,
+        critRes: true,
+        ignorePdef: true,
+        ignoreMdef: true,
+        damageVsMedium: true,
+        damageReductionVsMedium: true,
+        damageVsSmall: true,
+        damageReductionVsSmall: true,
+        damageVsDemiHuman: true,
+        damageReductionVsDemiHuman: true,
+        damageVsBrute: true,
+        damageReductionVsBrute: true,
+        equipmentPdefPercent: true,
+        equipmentMdefPercent: true,
+        patk: true,
+        matk: true,
+        hp: true,
       },
-      select: { characterName: true, discordUserId: true },
       orderBy: { characterName: "asc" },
     });
-    if (members.length === 0) return;
 
-    const users = members.map((member) => member.discordUserId).filter((id): id is string => !!id);
-    const names = members.slice(0, 10).map((member) => member.characterName).join(", ");
-    const suffix = members.length > 10 ? ` and ${members.length - 10} more` : "";
+    const memberIds = members.map((member) => member.id);
+    const snapshots = memberIds.length
+      ? await prisma.$queryRaw<StatsSnapshot[]>`
+          SELECT "memberId", "statsHash", "lastChangedAt", "lastReminderAt"
+          FROM "GuildMemberStatsSnapshot"
+          WHERE "memberId" IN (${Prisma.join(memberIds)})
+        `
+      : [];
 
-    await sendWebhook(guildId, "stats", {
-      content: `📊 **Stats reminder:** ${members.length} guild member${members.length === 1 ? " needs" : "s need"} updated stats. ${names}${suffix}\n${Array.from(new Set(users)).map((id) => `<@${id}>`).join(" ")}`,
+    const snapshotMap = new Map(snapshots.map((snapshot) => [snapshot.memberId, snapshot]));
+    const cutoff = sevenDaysAgo();
+    const due: typeof members = [];
+    const now = new Date();
+
+    for (const member of members) {
+      const hash = statsHash(member);
+      const snapshot = snapshotMap.get(member.id);
+
+      if (!snapshot) {
+        await prisma.$executeRaw`
+          INSERT INTO "GuildMemberStatsSnapshot" ("memberId", "statsHash", "lastChangedAt", "lastReminderAt")
+          VALUES (${member.id}, ${hash}, ${now}, NULL)
+        `;
+        continue;
+      }
+
+      if (snapshot.statsHash !== hash) {
+        await prisma.$executeRaw`
+          UPDATE "GuildMemberStatsSnapshot"
+          SET "statsHash" = ${hash}, "lastChangedAt" = ${now}, "lastReminderAt" = NULL
+          WHERE "memberId" = ${member.id}
+        `;
+        continue;
+      }
+
+      const reminderDue = snapshot.lastChangedAt <= cutoff &&
+        (!snapshot.lastReminderAt || snapshot.lastReminderAt <= cutoff);
+
+      if (reminderDue) due.push(member);
+    }
+
+    if (due.length === 0) return;
+
+    const users = due
+      .map((member) => member.discordUserId)
+      .filter((id): id is string => !!id);
+    const names = due.slice(0, 10).map((member) => member.characterName ?? "Unknown").join(", ");
+    const suffix = due.length > 10 ? ` and ${due.length - 10} more` : "";
+
+    const sent = await sendWebhook(guildId, "stats", {
+      content: `📊 **Stats reminder:** ${due.length} guild member${due.length === 1 ? "'s stats are" : "s' stats are"} at least 1 week old without an actual stat change. ${names}${suffix}\n${Array.from(new Set(users)).map((id) => `<@${id}>`).join(" ")}`,
       users,
     });
+
+    if (sent) {
+      for (const member of due) {
+        await prisma.$executeRaw`
+          UPDATE "GuildMemberStatsSnapshot"
+          SET "lastReminderAt" = ${now}
+          WHERE "memberId" = ${member.id}
+        `;
+      }
+    }
   } catch (error) {
     console.error("[DISCORD] Stats reminder failed:", error);
   }
