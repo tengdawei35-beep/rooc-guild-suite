@@ -8,32 +8,22 @@ export async function GET() {
     const auth = await getCurrentAuth();
     if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
     if (!hasPermission(auth.role, "members.view")) return NextResponse.json({ error: "You do not have permission to view guild statistics." }, { status: 403 });
-
     const guildId = auth.guild.id;
-    const [members, events, rosters, resources, reservations, allocations, assignments] = await Promise.all([
+    const [members, events, rosters, resources, reservations, allocationRuns, assignments] = await Promise.all([
       prisma.guildMember.findMany({ where: { guildId }, select: { active: true, job: true } }),
       prisma.event.findMany({ where: { guildId }, select: { date: true } }),
       prisma.roster.findMany({ where: { event: { guildId } }, select: { id: true } }),
       prisma.resource.findMany({ where: { guildId }, select: { id: true } }),
-      prisma.resourceReservation.count({ where: { guildId } }),
-      prisma.resourceAllocation.count({ where: { guildId } }),
-      prisma.rosterAssignment.findMany({
+      prisma.reservedAllocation.count({ where: { guildId } }),
+      prisma.allocationRun.count({ where: { guildId } }),
+      prisma.rosterMember.findMany({
         where: { party: { roster: { event: { guildId } } } },
-        orderBy: { createdAt: "desc" },
-        distinct: ["memberId"],
-        select: {
-          memberId: true,
-          guildPercentile: true,
-          dpsPercentile: true,
-          tankPercentile: true,
-          pvpPercentile: true,
-        },
+        orderBy: { createdAt: "desc" }, distinct: ["memberId"],
+        select: { memberId: true, guildPercentile: true, dpsPercentile: true, tankPercentile: true, pvpPercentile: true },
       }),
     ]);
-
     const now = new Date();
     const completed = events.filter((event) => event.date < now).length;
-    const upcoming = events.length - completed;
     const jobs = new Map<string, number>();
     for (const member of members) if (member.job) jobs.set(member.job, (jobs.get(member.job) ?? 0) + 1);
     const avg = (values: number[]) => values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
@@ -41,20 +31,13 @@ export async function GET() {
     const dps = assignments.map((a) => Number(a.dpsPercentile));
     const tank = assignments.map((a) => Number(a.tankPercentile));
     const pvp = assignments.map((a) => Number(a.pvpPercentile));
-
     return NextResponse.json({
       members: { total: members.length, active: members.filter((m) => m.active).length, inactive: members.filter((m) => !m.active).length },
       jobs: [...jobs.entries()].map(([job, count]) => ({ job, count })).sort((a, b) => b.count - a.count),
-      rankings: {
-        ranked: assignments.length,
-        averageOverallPercentile: Number(avg(overall).toFixed(1)),
-        averageDpsPercentile: Number(avg(dps).toFixed(1)),
-        averageTankPercentile: Number(avg(tank).toFixed(1)),
-        averagePvpPercentile: Number(avg(pvp).toFixed(1)),
-      },
-      events: { total: events.length, completed, upcoming },
+      rankings: { ranked: assignments.length, averageOverallPercentile: Number(avg(overall).toFixed(1)), averageDpsPercentile: Number(avg(dps).toFixed(1)), averageTankPercentile: Number(avg(tank).toFixed(1)), averagePvpPercentile: Number(avg(pvp).toFixed(1)) },
+      events: { total: events.length, completed, upcoming: events.length - completed },
       rosters: { total: rosters.length },
-      resources: { total: resources.length, allocations, reservations },
+      resources: { total: resources.length, allocations: allocationRuns, reservations },
     });
   } catch (error) {
     console.error("[GUILD STATISTICS] Failed to fetch:", error);
