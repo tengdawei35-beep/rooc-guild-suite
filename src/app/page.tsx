@@ -1,11 +1,18 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { requirePageAuth, hasPermission } from "@/lib/auth";
+import { getCurrentAuth, hasPermission } from "@/lib/auth";
 import { hasGuildModule, RESOURCE_SUITE_MODULE } from "@/lib/auth/modules";
 import { getGuildSubscriptionEntitlement } from "@/lib/billing/entitlement-status";
 
+const DISCORD_URL = "https://discord.gg/48yTtF9UxP";
+
 export default async function Home() {
-  const auth = await requirePageAuth();
+  const auth = await getCurrentAuth();
+
+  if (!auth) {
+    return <PublicLanding />;
+  }
+
   const subscription = await getGuildSubscriptionEntitlement(auth.guild.id);
   const hasResourceSuite = await hasGuildModule(auth.guild.id, RESOURCE_SUITE_MODULE);
   const guild = await prisma.guild.findUnique({
@@ -60,6 +67,18 @@ export default async function Home() {
       {subscription.warning && subscription.daysRemaining !== null && <section className="mt-4 rounded-2xl border border-amber-800/60 bg-amber-950/30 p-5"><h2 className="font-semibold text-amber-200">{subscription.planName ?? "Subscription"} expires in {subscription.daysRemaining} {subscription.daysRemaining === 1 ? "day" : "days"}</h2><p className="mt-1 text-sm text-amber-100/70">Renew before expiry to keep your guild accessible. {subscription.cancelAtPeriodEnd ? "Your subscription is scheduled to cancel at the end of this period." : ""}</p><Link href="/billing/new" className="mt-3 inline-flex rounded-lg bg-amber-200 px-4 py-2 text-sm font-medium text-zinc-950 hover:bg-amber-100">Manage subscription</Link></section>}
     </>}</div></main>;
 }
+
+function PublicLanding() {
+  return <main className="min-h-screen bg-zinc-950 text-white"><div className="mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-8 sm:px-10">
+    <header className="flex items-center justify-between"><Link href="/" className="text-2xl font-bold tracking-tight">HMDL</Link><a href={DISCORD_URL} target="_blank" rel="noreferrer" className="text-sm text-zinc-400 transition hover:text-white">Discord ↗</a></header>
+    <section className="flex flex-1 flex-col justify-center py-16"><div className="mx-auto max-w-3xl text-center"><p className="text-sm font-medium uppercase tracking-[0.35em] text-zinc-500">HEIMDALL · HMDL</p><h1 className="mt-5 text-5xl font-bold tracking-tight sm:text-7xl">Guild management,<br />without the mess.</h1><p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-zinc-400 sm:text-lg">Manage members, events, rosters, resources, bidding and allocation in one place — built for modern guilds.</p></div>
+      <div className="mx-auto mt-14 grid w-full max-w-4xl gap-4 md:grid-cols-3"><LandingCard href="/pricing" title="New User" description="Explore HMDL packages and features, then get started with your guild." action="View packages →" /><LandingCard href="/login" title="Login" description="Already using HMDL? Sign in with Discord and continue to your guild." action="Continue with Discord →" /><a href={DISCORD_URL} target="_blank" rel="noreferrer" className="group rounded-2xl border border-zinc-800 bg-zinc-900 p-7 transition hover:border-zinc-600 hover:bg-zinc-800"><div className="flex items-start justify-between gap-4"><h2 className="text-xl font-semibold">Discord</h2><span className="text-zinc-600 transition group-hover:translate-x-1 group-hover:text-zinc-300">↗</span></div><p className="mt-3 min-h-14 text-sm leading-6 text-zinc-400">Join the HMDL community for announcements, support, updates and discussion.</p><p className="mt-7 text-sm font-semibold text-white">Join HMDL Discord →</p></a></div>
+    </section>
+    <footer className="border-t border-zinc-900 py-5 text-center text-xs text-zinc-600">HMDL · Heimdall</footer>
+  </div></main>;
+}
+
+function LandingCard({ href, title, description, action }: { href: string; title: string; description: string; action: string }) { return <Link href={href} className="group rounded-2xl border border-zinc-800 bg-zinc-900 p-7 transition hover:border-zinc-600 hover:bg-zinc-800"><div className="flex items-start justify-between gap-4"><h2 className="text-xl font-semibold">{title}</h2><span className="text-zinc-600 transition group-hover:translate-x-1 group-hover:text-zinc-300">→</span></div><p className="mt-3 min-h-14 text-sm leading-6 text-zinc-400">{description}</p><p className="mt-7 text-sm font-semibold text-white">{action}</p></Link>; }
 function StatCard({ label, value }: { label: string; value: number }) { return <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5"><p className="text-sm text-zinc-500">{label}</p><p className="mt-2 text-3xl font-bold">{value}</p></div>; }
 function ActivityPanel({ title, items, empty }: { title: string; items: { date: Date; title: string; detail: string; href: string }[]; empty: string }) { return <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900"><div className="border-b border-zinc-800 px-5 py-4"><h3 className="font-semibold">{title}</h3></div>{items.length > 0 ? <div className="divide-y divide-zinc-800">{items.map((item, index) => <Link key={`${item.href}-${item.date.getTime()}-${index}`} href={item.href} className="flex items-center gap-3 px-5 py-4 transition hover:bg-zinc-800"><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{item.title}</p><p className="mt-1 truncate text-xs text-zinc-500">{item.detail}</p></div><time className="shrink-0 text-xs text-zinc-500">{formatRelative(item.date)}</time></Link>)}</div> : <div className="p-5 text-sm text-zinc-500">{empty}</div>}</div>; }
 function DashboardCard({ href, title, description, featured = false }: { href: string; title: string; description: string; featured?: boolean }) { return <Link href={href} className={`group block rounded-2xl border p-6 transition ${featured ? "border-zinc-600 bg-zinc-900 hover:border-zinc-400 hover:bg-zinc-800" : "border-zinc-800 bg-zinc-900 hover:border-zinc-600 hover:bg-zinc-800"}`}><div className="flex items-start justify-between gap-4"><h3 className="font-semibold">{title}</h3><span className="text-zinc-600 transition group-hover:translate-x-1 group-hover:text-zinc-300">→</span></div><p className="mt-2 text-sm leading-6 text-zinc-400">{description}</p></Link>; }
