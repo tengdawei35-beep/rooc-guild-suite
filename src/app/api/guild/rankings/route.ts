@@ -1,16 +1,8 @@
 import { NextResponse } from "next/server";
 
-import {
-  getCurrentAuth,
-} from "@/lib/auth";
-
-import {
-  hasPermission,
-} from "@/lib/permissions";
-
-import {
-  prisma,
-} from "@/lib/prisma";
+import { getCurrentAuth } from "@/lib/auth";
+import { hasPermission } from "@/lib/permissions";
+import { prisma } from "@/lib/prisma";
 
 type RankingMember = {
   id: string;
@@ -41,8 +33,40 @@ type RankingMember = {
   totalRanked: number;
 };
 
+const DPS_JOBS = new Set([
+  "Lord Knight",
+  "Paladin",
+  "High Wizard",
+  "Sniper",
+  "Assassin Cross",
+  "Stalker",
+  "Champion",
+  "Mastersmith",
+  "Biochemist (Physical)",
+  "Doram (Physical)",
+  "Gunslinger",
+  "Super Novice",
+  "Doram (Magic)",
+  "Shiranui",
+]);
+
 function round(value: number) {
   return Math.round(value * 100) / 100;
+}
+
+function percentile(value: number, values: number[]) {
+  const unique = [...new Set(values)].sort((a, b) => a - b);
+
+  if (unique.length <= 1) {
+    return 100;
+  }
+
+  let lower = 0;
+  for (const candidate of unique) {
+    if (candidate < value) lower += 1;
+  }
+
+  return (lower / (unique.length - 1)) * 100;
 }
 
 export async function GET() {
@@ -117,9 +141,7 @@ export async function GET() {
     });
 
     const rankings: RankingMember[] = members
-      .filter(
-        (member) => member.rosterAssignments.length > 0
-      )
+      .filter((member) => member.rosterAssignments.length > 0)
       .map((member) => {
         const snapshot = member.rosterAssignments[0];
 
@@ -142,6 +164,25 @@ export async function GET() {
           totalRanked: 0,
         };
       });
+
+    // Recalculate role percentiles from the current guild snapshot scores.
+    // Older roster snapshots can contain the default 0 percentile values even
+    // when their role scores are valid. Keeping this calculation at read time
+    // makes the rankings page resilient without mutating historical snapshots.
+    const tankValues = rankings.map((member) => member.tankScore);
+    const dpsRanked = rankings.filter((member) => DPS_JOBS.has(member.job ?? ""));
+    const dpsValues = dpsRanked.map((member) => member.dpsScore);
+    const pvpValues = rankings.map((member) => member.pvpScore);
+
+    rankings.forEach((member) => {
+      member.tankPercentile = round(percentile(member.tankScore, tankValues));
+      member.dpsPercentile = round(
+        dpsRanked.length > 0
+          ? percentile(member.dpsScore, dpsValues)
+          : 100
+      );
+      member.pvpPercentile = round(percentile(member.pvpScore, pvpValues));
+    });
 
     rankings.sort((a, b) => {
       const difference = b.guildPercentile - a.guildPercentile;
