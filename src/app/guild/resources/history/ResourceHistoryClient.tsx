@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 type Allocation = {
@@ -31,6 +32,9 @@ export default function ResourceHistoryClient() {
   return (
     <main className="min-h-screen bg-[#0b0b0b] px-4 py-6 text-gray-100 md:px-6">
       <div className="mx-auto max-w-6xl">
+        <Link href="/guild/resources" className="mb-5 inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white">
+          <span aria-hidden="true">←</span> Back to Resources
+        </Link>
         <h1 className="text-2xl font-bold text-white md:text-3xl">Resource Allocation History</h1>
         <p className="mt-1 text-sm text-gray-400">A transparent record of resources distributed to guild members.</p>
 
