@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-
 import { prisma } from "@/lib/prisma";
 import BidsClient from "./BidsClient";
 
@@ -74,8 +73,8 @@ export default async function BidsPage({ params }: Props) {
     <main className="min-h-screen bg-zinc-950 text-white">
       <div className="mx-auto max-w-7xl px-6 py-8">
         <div className="flex flex-wrap items-center gap-4">
-          <Link href="/bid-pages" className="text-sm text-zinc-500 hover:text-white">
-            ← Bid Pages
+          <Link href="/" className="text-sm text-zinc-500 hover:text-white">
+            ← Dashboard
           </Link>
         </div>
 
