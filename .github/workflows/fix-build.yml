@@ -8,13 +8,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Patch files
         run: |
           python - <<'PY'
           from pathlib import Path
+
+          def replace_once(text, old, new, label):
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected 1 match, found {count}')
+              return text.replace(old, new, 1)
+
+          # Existing build fixes
           p=Path('src/app/api/events/[eventId]/raids/route.ts')
           s=p.read_text()
-          s=s.replace('    const rosters = await prisma.roster.findMany({', '    const rosters = await prisma.roster.findMany({')
           old='''        parties: {\n          orderBy: [{ battlefield: "asc" }, { partyNumber: "asc" }],\n          include: {\n            raids: { include: { raid: true } },\n          },\n        },'''
           new='''        parties: {\n          orderBy: [{ battlefield: "asc" }, { partyNumber: "asc" }],\n        },'''
           s=s.replace(old,new)
@@ -37,15 +45,47 @@ jobs:
           s=s.replace('''}: {\n  memberId: string;\n  rawPdef: number;\n}) {''','''}: {\n  memberId: string;\n  rawPdef: number;\n  rawMdef: number;\n}) {''')
           s=s.replace('''          stats={[\n            [\n              "RAW PDEF",\n              rawPdef,\n            ],\n          ]}''','''          stats={[\n            [\n              "RAW PDEF",\n              rawPdef,\n            ],\n            [\n              "RAW MDEF",\n              rawMdef,\n            ],\n          ]}''')
           p.write_text(s)
+
+          # Discord roster mutation notifications
+          p=Path('src/app/api/events/rosters/members/route.ts')
+          s=p.read_text()
+          if 'from "@/lib/discord-notifications"' not in s:
+              s=replace_once(s, 'import { prisma } from "@/lib/prisma";\n', 'import { prisma } from "@/lib/prisma";\nimport { notifyRosterUpdate } from "@/lib/discord-notifications";\n', 'members import')
+          s=replace_once(s, '    return NextResponse.json({\n      success: true,\n      assignment,\n    });', '    await notifyRosterUpdate({\n      guildId: auth.guild.id,\n      eventId: party.roster.event.id,\n      rosterId: party.roster.id,\n    });\n\n    return NextResponse.json({\n      success: true,\n      assignment,\n    });', 'members POST hook')
+          s=replace_once(s, '      return NextResponse.json({\n        success: true,\n        action: "moved",\n        assignment: updated,\n      });', '      await notifyRosterUpdate({\n        guildId: auth.guild.id,\n        eventId: source.party.roster.event.id,\n        rosterId: source.party.roster.id,\n      });\n\n      return NextResponse.json({\n        success: true,\n        action: "moved",\n        assignment: updated,\n      });', 'members moved hook')
+          s=replace_once(s, '    return NextResponse.json({\n      success: true,\n      action: "swapped",\n      assignments: swapped,\n    });', '    await notifyRosterUpdate({\n      guildId: auth.guild.id,\n      eventId: source.party.roster.event.id,\n      rosterId: source.party.roster.id,\n    });\n\n    return NextResponse.json({\n      success: true,\n      action: "swapped",\n      assignments: swapped,\n    });', 'members swapped hook')
+          s=replace_once(s, '    return NextResponse.json({\n      success: true,\n    });', '    await notifyRosterUpdate({\n      guildId: auth.guild.id,\n      eventId: assignment.party.roster.event.id,\n      rosterId: assignment.party.roster.id,\n    });\n\n    return NextResponse.json({\n      success: true,\n    });', 'members DELETE hook')
+          p.write_text(s)
+
+          # Discord roster generation/deletion notifications
+          p=Path('src/app/api/events/[eventId]/rosters/route.ts')
+          s=p.read_text()
+          if 'from "@/lib/discord-notifications"' not in s:
+              s=replace_once(s, 'import { prisma } from "@/lib/prisma";\n', 'import { prisma } from "@/lib/prisma";\nimport { notifyRosterUpdate } from "@/lib/discord-notifications";\n', 'rosters import')
+          s=replace_once(s, '    // ==========================================================\n    // RESPONSE\n    // ==========================================================\n\n    return NextResponse.json(', '    await notifyRosterUpdate({\n      guildId: auth.guild.id,\n      eventId: event.id,\n      rosterId: roster.id,\n    });\n\n    // ==========================================================\n    // RESPONSE\n    // ==========================================================\n\n    return NextResponse.json(', 'roster generation hook')
+          delete_anchor='''    await prisma.roster.delete({\n      where: {\n        id: roster.id,\n      },\n    });\n\n    return NextResponse.json({'''
+          delete_replacement='''    await prisma.roster.delete({\n      where: {\n        id: roster.id,\n      },\n    });\n\n    await notifyRosterUpdate({\n      guildId: auth.guild.id,\n      eventId,\n      rosterId,\n    });\n\n    return NextResponse.json({'''
+          s=replace_once(s, delete_anchor, delete_replacement, 'roster deletion hook')
+          p.write_text(s)
+
+          # Bid notification only after allocation run is complete
+          p=Path('src/app/api/allocation/run/route.ts')
+          s=p.read_text()
+          if 'from "@/lib/discord-notifications"' not in s:
+              s=replace_once(s, 'import { prisma } from "@/lib/prisma";\n', 'import { prisma } from "@/lib/prisma";\nimport { notifyBidComplete } from "@/lib/discord-notifications";\n', 'allocation import')
+          s=replace_once(s, '    // ==========================================================\n    // RESPONSE\n    // ==========================================================\n\n    return NextResponse.json({', '    await notifyBidComplete({\n      guildId: auth.guild.id,\n      allocationRunId: result.allocationRun.id,\n    });\n\n    // ==========================================================\n    // RESPONSE\n    // ==========================================================\n\n    return NextResponse.json({', 'bid completion hook')
+          p.write_text(s)
           PY
+
       - name: Commit fixes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/app/api/events/[eventId]/raids/route.ts src/app/guild/members/[memberId]/MemberProfileClient.tsx
+          git add src/app/api/events/[eventId]/raids/route.ts src/app/guild/members/[memberId]/MemberProfileClient.tsx src/app/api/events/rosters/members/route.ts 'src/app/api/events/[eventId]/rosters/route.ts' src/app/api/allocation/run/route.ts
           git diff --cached --check
-          git commit -m "fix: resolve raid and raw mdef type errors" || exit 0
+          git commit -m "feat: wire Discord notifications" || exit 0
           git push
+
       - name: Remove workflow
         if: always()
         run: |
