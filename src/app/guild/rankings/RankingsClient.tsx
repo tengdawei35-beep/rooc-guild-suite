@@ -49,14 +49,19 @@ type RankingMember = {
 
 const DPS_JOBS = new Set([
   "Lord Knight",
+  "Paladin",
   "High Wizard",
   "Sniper",
   "Assassin Cross",
   "Stalker",
   "Champion",
-  "Whitesmith",
-  "Creator",
+  "Mastersmith",
+  "Biochemist (Physical)",
+  "Doram (Physical)",
   "Gunslinger",
+  "Super Novice",
+  "Doram (Magic)",
+  "Shiranui",
 ]);
 
 type RankingsResponse = {
