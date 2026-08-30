@@ -1,17 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 type Stats = {
   members: { total: number; active: number; inactive: number };
   jobs: { job: string; count: number }[];
-  rankings: {
-    ranked: number;
-    averageOverallPercentile: number;
-    averageDpsPercentile: number;
-    averageTankPercentile: number;
-    averagePvpPercentile: number;
-  };
+  attendance: { events: number; attended: number; rate: number };
   events: { total: number; completed: number; upcoming: number };
   rosters: { total: number };
   resources: { total: number; allocations: number; reservations: number };
@@ -49,8 +44,9 @@ export default function GuildStatisticsClient() {
       <div className="mx-auto max-w-7xl">
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
+            <Link href="/" className="mb-4 inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white"><span aria-hidden="true">←</span> Back to Dashboard</Link>
             <h1 className="text-2xl font-bold text-white md:text-3xl">Guild Statistics</h1>
-            <p className="mt-1 text-sm text-gray-400">A snapshot of your guild's members, performance and activity.</p>
+            <p className="mt-1 text-sm text-gray-400">A snapshot of your guild's members and activity.</p>
           </div>
           <button onClick={load} disabled={loading} className="rounded-lg border border-gray-700 bg-[#151515] px-4 py-2 text-sm hover:bg-[#1c1c1c] disabled:opacity-50">
             {loading ? "Refreshing..." : "Refresh"}
@@ -63,29 +59,25 @@ export default function GuildStatisticsClient() {
             <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
               <StatCard label="Total Members" value={stats.members.total} />
               <StatCard label="Active Members" value={stats.members.active} />
-              <StatCard label="Ranked Members" value={stats.rankings.ranked} />
               <StatCard label="Events" value={stats.events.total} />
+              <StatCard label="Attendance" value={`${stats.attendance.rate.toFixed(1)}%`} />
             </section>
 
             <section className="mt-6 grid gap-6 lg:grid-cols-2">
-              <Panel title="Performance">
-                <Metric label="Overall Percentile" value={stats.rankings.averageOverallPercentile} />
-                <Metric label="DPS Percentile" value={stats.rankings.averageDpsPercentile} />
-                <Metric label="Tank Percentile" value={stats.rankings.averageTankPercentile} />
-                <Metric label="PvP Percentile" value={stats.rankings.averagePvpPercentile} />
+              <Panel title="Guild Attendance">
+                <div className="mb-5 flex items-end justify-between">
+                  <div><div className="text-3xl font-bold text-white">{stats.attendance.rate.toFixed(1)}%</div><div className="mt-1 text-sm text-gray-500">Attendance across all members</div></div>
+                  <div className="text-right text-sm text-gray-400">{stats.attendance.attended} / {stats.attendance.events} recorded</div>
+                </div>
+                <div className="h-3 overflow-hidden rounded-full bg-gray-800"><div className="h-full rounded-full bg-gray-500" style={{ width: `${Math.min(100, Math.max(0, stats.attendance.rate))}%` }} /></div>
               </Panel>
 
               <Panel title="Member Composition">
                 <div className="space-y-3">
                   {stats.jobs.length === 0 ? <div className="text-sm text-gray-500">No job data available.</div> : stats.jobs.map((item) => (
                     <div key={item.job}>
-                      <div className="mb-1 flex justify-between text-xs">
-                        <span className="text-gray-300">{item.job}</span>
-                        <span className="text-gray-500">{item.count}</span>
-                      </div>
-                      <div className="h-2 overflow-hidden rounded-full bg-gray-800">
-                        <div className="h-full rounded-full bg-gray-500" style={{ width: `${(item.count / maxJobCount) * 100}%` }} />
-                      </div>
+                      <div className="mb-1 flex justify-between text-xs"><span className="text-gray-300">{item.job}</span><span className="text-gray-500">{item.count}</span></div>
+                      <div className="h-2 overflow-hidden rounded-full bg-gray-800"><div className="h-full rounded-full bg-gray-500" style={{ width: `${(item.count / maxJobCount) * 100}%` }} /></div>
                     </div>
                   ))}
                 </div>
@@ -100,18 +92,8 @@ export default function GuildStatisticsClient() {
             </section>
 
             <section className="mt-6 grid gap-6 md:grid-cols-2">
-              <Panel title="Resource Activity">
-                <div className="grid grid-cols-2 gap-4">
-                  <StatCard label="Reservations" value={stats.resources.reservations} compact />
-                  <StatCard label="Allocations" value={stats.resources.allocations} compact />
-                </div>
-              </Panel>
-              <Panel title="Member Status">
-                <div className="grid grid-cols-2 gap-4">
-                  <StatCard label="Active" value={stats.members.active} compact />
-                  <StatCard label="Inactive" value={stats.members.inactive} compact />
-                </div>
-              </Panel>
+              <Panel title="Resource Activity"><div className="grid grid-cols-2 gap-4"><StatCard label="Reservations" value={stats.resources.reservations} compact /><StatCard label="Allocations" value={stats.resources.allocations} compact /></div></Panel>
+              <Panel title="Member Status"><div className="grid grid-cols-2 gap-4"><StatCard label="Active" value={stats.members.active} compact /><StatCard label="Inactive" value={stats.members.inactive} compact /></div></Panel>
             </section>
           </>
         )}
@@ -120,14 +102,5 @@ export default function GuildStatisticsClient() {
   );
 }
 
-function Panel({ title, children }: { title: string; children: React.ReactNode }) {
-  return <div className="rounded-xl border border-gray-800 bg-[#111] p-5"><h2 className="mb-5 text-sm font-semibold uppercase tracking-wide text-gray-400">{title}</h2>{children}</div>;
-}
-
-function StatCard({ label, value, compact = false }: { label: string; value: number; compact?: boolean }) {
-  return <div className="rounded-xl border border-gray-800 bg-[#111] p-4"><div className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">{label}</div><div className={`${compact ? "text-xl" : "text-2xl"} mt-1 font-bold text-white`}>{value}</div></div>;
-}
-
-function Metric({ label, value }: { label: string; value: number }) {
-  return <div className="mb-4 last:mb-0"><div className="mb-1 flex justify-between text-sm"><span className="text-gray-300">{label}</span><span className="font-semibold tabular-nums text-white">{value.toFixed(1)}%</span></div><div className="h-2 overflow-hidden rounded-full bg-gray-800"><div className="h-full rounded-full bg-gray-500" style={{ width: `${Math.min(100, Math.max(0, value))}%` }} /></div></div>;
-}
+function Panel({ title, children }: { title: string; children: React.ReactNode }) { return <div className="rounded-xl border border-gray-800 bg-[#111] p-5"><h2 className="mb-5 text-sm font-semibold uppercase tracking-wide text-gray-400">{title}</h2>{children}</div>; }
+function StatCard({ label, value, compact = false }: { label: string; value: number | string; compact?: boolean }) { return <div className="rounded-xl border border-gray-800 bg-[#111] p-4"><div className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">{label}</div><div className={`${compact ? "text-xl" : "text-2xl"} mt-1 font-bold text-white`}>{value}</div></div>; }
