@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import EventClient from "./EventClient";
+import RosterSaveNotificationBridge from "./RosterSaveNotificationBridge";
 
 import {
   hasPermission,
@@ -28,14 +29,17 @@ export default async function EventPage({
   );
 
   return (
-    <EventClient
-      eventId={eventId}
-      currentUserId={auth.user.id}
-      canManageEvents={hasPermission(
-        auth.role,
-        "events.manage"
-      )}
-      canEditRosters={canEditRosters}
-    />
+    <>
+      <EventClient
+        eventId={eventId}
+        currentUserId={auth.user.id}
+        canManageEvents={hasPermission(
+          auth.role,
+          "events.manage"
+        )}
+        canEditRosters={canEditRosters}
+      />
+      <RosterSaveNotificationBridge eventId={eventId} />
+    </>
   );
 }
