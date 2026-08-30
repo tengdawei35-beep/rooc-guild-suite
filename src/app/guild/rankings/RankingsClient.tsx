@@ -47,6 +47,18 @@ type RankingMember = {
   totalRanked: number;
 };
 
+const DPS_JOBS = new Set([
+  "Lord Knight",
+  "High Wizard",
+  "Sniper",
+  "Assassin Cross",
+  "Stalker",
+  "Champion",
+  "Whitesmith",
+  "Creator",
+  "Gunslinger",
+]);
+
 type RankingsResponse = {
   rankings: RankingMember[];
 
@@ -213,10 +225,15 @@ export default function RankingsClient() {
                 !member.active
               );
 
+            const matchesCategory =
+              category !== "DPS" ||
+              DPS_JOBS.has(member.job ?? "");
+
             return (
               matchesSearch &&
               matchesJob &&
-              matchesStatus
+              matchesStatus &&
+              matchesCategory
             );
           }
         );
