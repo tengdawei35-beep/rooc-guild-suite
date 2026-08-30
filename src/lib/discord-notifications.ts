@@ -131,7 +131,11 @@ export async function notifyRosterUpdate(input: {
   guildId: string;
   eventId: string;
   rosterId?: string | null;
+  saved?: boolean;
+  eventUrl?: string | null;
 }) {
+  if (!input.saved) return;
+
   try {
     const event = await prisma.event.findFirst({
       where: { id: input.eventId, guildId: input.guildId },
@@ -146,10 +150,14 @@ export async function notifyRosterUpdate(input: {
         })
       : null;
 
+    const eventLink = input.eventUrl
+      ? `\n🔗 ${input.eventUrl}`
+      : "";
+
     await sendWebhook(input.guildId, "roster", {
       content: roster
-        ? `📋 **Roster updated:** ${roster.name}`
-        : "📋 **Roster updated or removed.**",
+        ? `📋 **Roster saved:** ${roster.name}${eventLink}`
+        : `📋 **Roster saved.${eventLink}`,
     });
   } catch (error) {
     console.error("[DISCORD] Roster notification failed:", error);
