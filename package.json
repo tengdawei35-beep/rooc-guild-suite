@@ -7,7 +7,8 @@
     "dev": "next dev",
     "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "call-to-arms:reminder": "node scripts/call-to-arms-reminder.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.0",
