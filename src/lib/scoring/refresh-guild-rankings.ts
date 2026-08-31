@@ -64,6 +64,7 @@ export async function refreshGuildRankings(guildId: string) {
     where: {
       guildId,
       active: true,
+      eligible: true,
     },
     select: {
       id: true,
@@ -103,6 +104,8 @@ export async function refreshGuildRankings(guildId: string) {
   const dpsValues = dpsRanked.map((member) => member.dpsScore);
   const pvpValues = scored.map((member) => member.pvpScore);
 
+  // The scoring model exposes the same PVP-derived overall score used by the
+  // existing rankings page, so guild percentile/rank must be based on pvpScore.
   const rows = scored.map((member) => ({
     id: member.id,
     guildPercentile: percentile(member.pvpScore, pvpValues),
@@ -116,8 +119,10 @@ export async function refreshGuildRankings(guildId: string) {
 
   const guildOrder = [...rows].sort((a, b) => b.guildPercentile - a.guildPercentile);
   const tankOrder = [...rows].sort((a, b) => b.tankScore - a.tankScore);
-  const dpsOrder = [...dpsRanked]
-    .map((member) => rows.find((row) => row.id === member.id)!)
+  const dpsRowsById = new Map(rows.map((row) => [row.id, row]));
+  const dpsOrder = dpsRanked
+    .map((member) => dpsRowsById.get(member.id))
+    .filter((row): row is (typeof rows)[number] => Boolean(row))
     .sort((a, b) => b.dpsScore - a.dpsScore);
   const pvpOrder = [...rows].sort((a, b) => b.pvpScore - a.pvpScore);
 
