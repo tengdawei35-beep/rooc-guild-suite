@@ -12,21 +12,23 @@ async function syncSubscription(tx: Parameters<Parameters<typeof prisma.$transac
   await tx.guildModuleEntitlement.updateMany({ where: { guildId: existing.guildId }, data: { enabled: false } });
   for (const module of existing.plan.modules) await tx.guildModuleEntitlement.upsert({ where: { guildId_module: { guildId: existing.guildId, module: module.module } }, create: { guildId: existing.guildId, module: module.module, enabled: entitled }, update: { enabled: entitled } });
 }
-
 async function recordAffiliateReferral(guildId: string, subscriptionId: string, affiliateId: string) {
   await prisma.$executeRawUnsafe('INSERT INTO "AffiliateReferral" ("id", "affiliateId", "guildId", "stripeSubscriptionId") VALUES ($1,$2,$3,$4) ON CONFLICT ("guildId") DO UPDATE SET "stripeSubscriptionId" = EXCLUDED."stripeSubscriptionId", "updatedAt" = NOW()', crypto.randomUUID(), affiliateId, guildId, subscriptionId);
 }
-
 async function recordAffiliateCommission(invoice: Stripe.Invoice) {
   const subscriptionId = typeof (invoice as unknown as { subscription?: string | { id: string } }).subscription === "string" ? (invoice as unknown as { subscription: string }).subscription : (invoice as unknown as { subscription?: { id: string } }).subscription?.id;
   if (!subscriptionId || invoice.amount_paid <= 0) return;
-  const referrals = await prisma.$queryRawUnsafe<Array<{ id: string; affiliateId: string; commissionPercent: number }>>('SELECT r."id", r."affiliateId", a."commissionPercent" FROM "AffiliateReferral" r JOIN "Affiliate" a ON a."id" = r."affiliateId" WHERE r."stripeSubscriptionId" = $1 LIMIT 1', subscriptionId);
+  const subscription = await stripePaymentProvider.getSubscription(subscriptionId) as Stripe.Subscription;
+  const affiliateId = subscription.metadata?.affiliateId;
+  if (!affiliateId) return;
+  const subscriptionRow = await prisma.$queryRawUnsafe<Array<{ guildId: string }>>('SELECT "guildId" FROM "GuildSubscription" WHERE "providerSubscriptionId" = $1 LIMIT 1', subscriptionId);
+  const guildId = subscriptionRow[0]?.guildId; if (!guildId) return;
+  await recordAffiliateReferral(guildId, subscriptionId, affiliateId);
+  const referrals = await prisma.$queryRawUnsafe<Array<{ id: string; affiliateId: string; commissionPercent: number }>>('SELECT r."id", r."affiliateId", a."commissionPercent" FROM "AffiliateReferral" r JOIN "Affiliate" a ON a."id" = r."affiliateId" WHERE r."stripeSubscriptionId" = $1 AND a."active" = TRUE LIMIT 1', subscriptionId);
   const referral = referrals[0]; if (!referral) return;
-  const amountCents = Math.round(invoice.amount_paid * referral.commissionPercent / 100);
-  if (amountCents <= 0) return;
+  const amountCents = Math.round(invoice.amount_paid * referral.commissionPercent / 100); if (amountCents <= 0) return;
   await prisma.$executeRawUnsafe('INSERT INTO "AffiliateCommission" ("id", "affiliateId", "referralId", "stripeInvoiceId", "amountCents", "currency", "status") VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT ("stripeInvoiceId") DO NOTHING', crypto.randomUUID(), referral.affiliateId, referral.id, invoice.id, amountCents, invoice.currency, "PENDING");
 }
-
 export async function POST(request: Request) {
   const payload = await request.text(); const signature = request.headers.get("stripe-signature"); if (!signature) return NextResponse.json({ error: "MISSING_STRIPE_SIGNATURE" }, { status: 400 });
   let event: Stripe.Event; try { event = await stripePaymentProvider.verifyWebhook(payload, signature) as Stripe.Event; } catch (error) { console.error("[STRIPE WEBHOOK] Invalid signature", error); return NextResponse.json({ error: "INVALID_STRIPE_SIGNATURE" }, { status: 400 }); }
