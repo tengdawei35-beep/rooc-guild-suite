@@ -26,7 +26,7 @@ BEGIN
 
   IF preferred_job IS NOT NULL THEN
     INSERT INTO "RosterJobOverride" ("id", "rosterMemberId", "job")
-    VALUES (gen_random_uuid()::text, NEW.id, preferred_job)
+    VALUES (CONCAT('ro-', NEW.id), NEW.id, preferred_job)
     ON CONFLICT ("rosterMemberId")
     DO UPDATE SET "job" = EXCLUDED."job", "updatedAt" = CURRENT_TIMESTAMP;
   END IF;
@@ -39,4 +39,4 @@ DROP TRIGGER IF EXISTS "RosterMember_inherit_preferred_job_override" ON "RosterM
 CREATE TRIGGER "RosterMember_inherit_preferred_job_override"
 AFTER INSERT ON "RosterMember"
 FOR EACH ROW
-EXECUTE FUNCTION inherit_preferred_roster_job_override();
+EXECUTE FUNCTION inherit_preferred_roster_job_override;
