@@ -18,7 +18,13 @@ export async function POST(request: Request) {
     if (body.validateReferralCode !== undefined) {
       const code = body.validateReferralCode.trim().toUpperCase();
       if (!code) return NextResponse.json({ valid: false }, { status: 400 });
-      const affiliate = await prisma.affiliate.findFirst({ where: { code: { equals: code, mode: "insensitive" }, active: true }, select: { name: true, discountPercent: true } });
+      const rows = await prisma.$queryRaw<Array<{ name: string; discountPercent: number }>>`
+        SELECT "name", "discountPercent"
+        FROM "Affiliate"
+        WHERE UPPER("code") = ${code} AND "active" = true
+        LIMIT 1
+      `;
+      const affiliate = rows[0];
       if (!affiliate) return NextResponse.json({ valid: false, error: "INVALID_REFERRAL_CODE" }, { status: 400 });
       return NextResponse.json({ valid: true, affiliateName: affiliate.name, discountPercent: affiliate.discountPercent });
     }
@@ -46,7 +52,13 @@ export async function POST(request: Request) {
     let affiliate: { id: string; code: string; discountPercent: number } | undefined;
     if (body.referralCode?.trim()) {
       const code = body.referralCode.trim().toUpperCase();
-      const found = await prisma.affiliate.findFirst({ where: { code: { equals: code, mode: "insensitive" }, active: true }, select: { id: true, code: true, discountPercent: true } });
+      const rows = await prisma.$queryRaw<Array<{ id: string; code: string; discountPercent: number }>>`
+        SELECT "id", "code", "discountPercent"
+        FROM "Affiliate"
+        WHERE UPPER("code") = ${code} AND "active" = true
+        LIMIT 1
+      `;
+      const found = rows[0];
       if (!found) return NextResponse.json({ error: "INVALID_REFERRAL_CODE" }, { status: 400 });
       affiliate = found;
     }
