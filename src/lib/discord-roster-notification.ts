@@ -71,6 +71,21 @@ export async function notifyRosterPublished(input: {
     });
     if (!roster) return false;
 
+    const overrideRows = await prisma.$queryRawUnsafe<Array<{ rosterMemberId: string; job: string }>>(
+      `SELECT "rosterMemberId", job
+       FROM "RosterJobOverride"
+       WHERE "rosterMemberId" IN (
+         SELECT rm.id
+         FROM "RosterMember" rm
+         JOIN "RosterParty" rp ON rp.id = rm."partyId"
+         WHERE rp."rosterId" = $1
+       )`,
+      roster.id
+    );
+    const overrideMap = new Map(
+      overrideRows.map((row) => [row.rosterMemberId, row.job])
+    );
+
     const eventLabel = event.type === "GUILD_LEAGUE" ? "Guild League" : "Emperium Overrun";
     const url = input.eventUrl || `${appUrl()}/events/${input.eventId}`;
 
@@ -80,7 +95,8 @@ export async function notifyRosterPublished(input: {
         party.members
           .map((entry) => {
             const name = entry.member.characterName || entry.member.discordUsername || "Member";
-            return `${name}${entry.member.job ? ` — ${entry.member.job}` : ""}`;
+            const job = overrideMap.get(entry.id) ?? entry.member.job;
+            return `${name}${job ? ` — ${job}` : ""}`;
           })
           .join("\n") || "No members",
       inline: true,
