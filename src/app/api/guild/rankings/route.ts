@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getCurrentAuth } from "@/lib/auth";
 import { hasPermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
+import { refreshGuildRankings } from "@/lib/scoring/refresh-guild-rankings";
 
 type RankingMember = {
   id: string;
@@ -10,11 +11,7 @@ type RankingMember = {
   job: string | null;
   active: boolean;
   eligible: boolean;
-  priority:
-    | "LEADER"
-    | "OFFICER"
-    | "COUNCIL"
-    | "MEMBER";
+  priority: "LEADER" | "OFFICER" | "COUNCIL" | "MEMBER";
   guildPercentile: number;
   tankScore: number;
   tankPercentile: number;
@@ -22,11 +19,13 @@ type RankingMember = {
   dpsPercentile: number;
   pvpScore: number;
   pvpPercentile: number;
+  guildRank: number;
+  tankRank: number;
+  dpsRank: number | null;
+  pvpRank: number;
   event: {
     id: string;
-    type:
-      | "GUILD_LEAGUE"
-      | "EMPERIUM_OVERRUN";
+    type: "GUILD_LEAGUE" | "EMPERIUM_OVERRUN";
     date: Date;
   } | null;
   overallRank: number;
@@ -54,30 +53,12 @@ function round(value: number) {
   return Math.round(value * 100) / 100;
 }
 
-function percentile(value: number, values: number[]) {
-  const unique = [...new Set(values)].sort((a, b) => a - b);
-
-  if (unique.length <= 1) {
-    return 100;
-  }
-
-  let lower = 0;
-  for (const candidate of unique) {
-    if (candidate < value) lower += 1;
-  }
-
-  return (lower / (unique.length - 1)) * 100;
-}
-
 export async function GET() {
   try {
     const auth = await getCurrentAuth();
 
     if (!auth) {
-      return NextResponse.json(
-        { error: "Authentication required." },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Authentication required." }, { status: 401 });
     }
 
     if (!hasPermission(auth.role, "members.view")) {
@@ -87,10 +68,27 @@ export async function GET() {
       );
     }
 
-    const members = await prisma.guildMember.findMany({
+    const guildId = auth.guild.id;
+
+    const missingLiveRankings = await prisma.guildMember.count({
       where: {
-        guildId: auth.guild.id,
+        guildId,
+        active: true,
+        OR: [
+          { guildPercentile: null },
+          { tankScore: null },
+          { dpsScore: null },
+          { pvpScore: null },
+        ],
       },
+    });
+
+    if (missingLiveRankings > 0) {
+      await refreshGuildRankings(guildId);
+    }
+
+    const members = await prisma.guildMember.findMany({
+      where: { guildId },
       select: {
         id: true,
         characterName: true,
@@ -98,28 +96,28 @@ export async function GET() {
         active: true,
         eligible: true,
         priority: true,
+        guildPercentile: true,
+        tankScore: true,
+        tankPercentile: true,
+        dpsScore: true,
+        dpsPercentile: true,
+        pvpScore: true,
+        pvpPercentile: true,
+        guildRank: true,
+        tankRank: true,
+        dpsRank: true,
+        pvpRank: true,
         rosterAssignments: {
           where: {
             party: {
               roster: {
-                event: {
-                  guildId: auth.guild.id,
-                },
+                event: { guildId },
               },
             },
           },
-          orderBy: {
-            createdAt: "desc",
-          },
+          orderBy: { createdAt: "desc" },
           take: 1,
           select: {
-            guildPercentile: true,
-            tankScore: true,
-            tankPercentile: true,
-            dpsScore: true,
-            dpsPercentile: true,
-            pvpScore: true,
-            pvpPercentile: true,
             party: {
               select: {
                 roster: {
@@ -141,7 +139,17 @@ export async function GET() {
     });
 
     const rankings: RankingMember[] = members
-      .filter((member) => member.rosterAssignments.length > 0)
+      .filter(
+        (member) =>
+          member.active &&
+          member.guildPercentile !== null &&
+          member.tankScore !== null &&
+          member.dpsScore !== null &&
+          member.pvpScore !== null &&
+          member.guildRank !== null &&
+          member.tankRank !== null &&
+          member.pvpRank !== null
+      )
       .map((member) => {
         const snapshot = member.rosterAssignments[0];
 
@@ -152,54 +160,30 @@ export async function GET() {
           active: member.active,
           eligible: member.eligible,
           priority: member.priority,
-          guildPercentile: round(Number(snapshot.guildPercentile)),
-          tankScore: round(Number(snapshot.tankScore)),
-          tankPercentile: round(Number(snapshot.tankPercentile)),
-          dpsScore: round(Number(snapshot.dpsScore)),
-          dpsPercentile: round(Number(snapshot.dpsPercentile)),
-          pvpScore: round(Number(snapshot.pvpScore)),
-          pvpPercentile: round(Number(snapshot.pvpPercentile)),
-          event: snapshot.party.roster.event,
-          overallRank: 0,
+          guildPercentile: round(Number(member.guildPercentile)),
+          tankScore: round(Number(member.tankScore)),
+          tankPercentile: round(Number(member.tankPercentile ?? 0)),
+          dpsScore: round(Number(member.dpsScore)),
+          dpsPercentile: round(Number(member.dpsPercentile ?? 0)),
+          pvpScore: round(Number(member.pvpScore)),
+          pvpPercentile: round(Number(member.pvpPercentile ?? 0)),
+          guildRank: member.guildRank!,
+          tankRank: member.tankRank!,
+          dpsRank: DPS_JOBS.has(member.job ?? "") ? member.dpsRank : null,
+          pvpRank: member.pvpRank!,
+          event: snapshot?.party.roster.event ?? null,
+          overallRank: member.guildRank!,
           totalRanked: 0,
         };
       });
 
-    // Recalculate role percentiles from the current guild snapshot scores.
-    // Older roster snapshots can contain the default 0 percentile values even
-    // when their role scores are valid. Keeping this calculation at read time
-    // makes the rankings page resilient without mutating historical snapshots.
-    const tankValues = rankings.map((member) => member.tankScore);
-    const dpsRanked = rankings.filter((member) => DPS_JOBS.has(member.job ?? ""));
-    const dpsValues = dpsRanked.map((member) => member.dpsScore);
-    const pvpValues = rankings.map((member) => member.pvpScore);
-
-    rankings.forEach((member) => {
-      member.tankPercentile = round(percentile(member.tankScore, tankValues));
-      member.dpsPercentile = round(
-        dpsRanked.length > 0
-          ? percentile(member.dpsScore, dpsValues)
-          : 100
-      );
-      member.pvpPercentile = round(percentile(member.pvpScore, pvpValues));
-    });
-
     rankings.sort((a, b) => {
-      const difference = b.guildPercentile - a.guildPercentile;
-
-      if (difference !== 0) {
-        return difference;
-      }
-
-      return (a.characterName ?? "").localeCompare(
-        b.characterName ?? ""
-      );
+      if (a.guildRank !== b.guildRank) return a.guildRank - b.guildRank;
+      return (a.characterName ?? "").localeCompare(b.characterName ?? "");
     });
 
     const totalRanked = rankings.length;
-
-    rankings.forEach((member, index) => {
-      member.overallRank = index + 1;
+    rankings.forEach((member) => {
       member.totalRanked = totalRanked;
     });
 
@@ -215,7 +199,6 @@ export async function GET() {
     });
   } catch (error) {
     console.error("[GUILD RANKINGS] Failed to fetch:", error);
-
     return NextResponse.json(
       { error: "Failed to fetch guild rankings." },
       { status: 500 }
