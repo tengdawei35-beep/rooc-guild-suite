@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { getCurrentAuth, hasPermission } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import { announceFilledCall, ensureCallTables, newId, refreshCallStatus, requirementMatchesJob } from "@/lib/call-to-arms";
 
 async function getCall(id: string, guildId: string) {
@@ -20,7 +19,8 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
   const participants = await prisma.$queryRawUnsafe<any[]>(`SELECT p.id, p.requirement_id AS "requirementId", p.status, p.signed_up_at AS "signedUpAt", p.member_id AS "memberId", m.character_name AS "characterName", m.discord_username AS "discordUsername", m.discord_user_id AS "discordUserId", m.job FROM "guild_call_participants" p JOIN "GuildMember" m ON m.id = p.member_id WHERE p.call_id = $1 ORDER BY p.signed_up_at`, id);
   const currentMember = await prisma.guildMember.findFirst({ where: { guildId: auth.guild.id, userId: auth.user.id, active: true }, select: { id: true } });
   const webhook = await prisma.$queryRawUnsafe<Array<{ webhook_url: string }>>(`SELECT webhook_url FROM "guild_call_webhooks" WHERE guild_id = $1`, auth.guild.id);
-  return NextResponse.json({ call, requirements, participants, signedUp: participants.some((p) => p.memberId === currentMember?.id), webhookConfigured: Boolean(webhook[0]) });
+  const canManage = call.creatorUserId === auth.user.id || ["ADMIN", "MANAGER", "OFFICER"].includes(auth.role);
+  return NextResponse.json({ call, requirements, participants, signedUp: participants.some((p) => p.memberId === currentMember?.id), webhookConfigured: Boolean(webhook[0]), canManage });
 }
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -35,7 +35,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const action = body.action;
   const member = await prisma.guildMember.findFirst({ where: { guildId: auth.guild.id, userId: auth.user.id, active: true }, select: { id: true, job: true, characterName: true, discordUsername: true, discordUserId: true } });
   if (!member) return NextResponse.json({ error: "You need an active guild member profile to sign up." }, { status: 400 });
-
   if (action === "signup") {
     if (["CANCELLED", "COMPLETED"].includes(call.status)) return NextResponse.json({ error: "This call is no longer open." }, { status: 400 });
     const requirementId = String(body.requirementId ?? "");
@@ -47,12 +46,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const status = Number(activeCount[0]?.count ?? 0) < requirement.quantity ? "ACTIVE" : "WAITLIST";
     await prisma.$executeRawUnsafe(`INSERT INTO "guild_call_participants" (id, call_id, requirement_id, member_id, status) VALUES ($1,$2,$3,$4,$5)`, newId("participant"), id, requirementId, member.id, status);
     const next = await refreshCallStatus(id);
-    if (next === "FILLED") {
-      try { await announceFilledCall(id); } catch (error) { console.error("[CALL TO ARMS] announcement failed", error); }
-    }
+    if (next === "FILLED") { try { await announceFilledCall(id); } catch (error) { console.error("[CALL TO ARMS] announcement failed", error); } }
     return NextResponse.json({ status });
   }
-
   if (action === "leave") {
     await prisma.$executeRawUnsafe(`DELETE FROM "guild_call_participants" WHERE call_id = $1 AND member_id = $2`, id, member.id);
     const reqs = await prisma.$queryRawUnsafe<any[]>(`SELECT id, quantity FROM "guild_call_requirements" WHERE call_id = $1`, id);
@@ -67,7 +63,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     await refreshCallStatus(id);
     return NextResponse.json({ ok: true });
   }
-
   if (action === "cancel" || action === "confirm") {
     if (call.creatorUserId !== auth.user.id && !["ADMIN", "MANAGER", "OFFICER"].includes(auth.role)) return NextResponse.json({ error: "Only the creator or guild managers can do this." }, { status: 403 });
     const status = action === "cancel" ? "CANCELLED" : "CONFIRMED";
