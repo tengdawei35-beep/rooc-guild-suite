@@ -7,21 +7,26 @@ export async function GET(request: Request) {
   const auth = await getCurrentAuth();
   if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   if (!hasPermission(auth.role, "events.view")) return NextResponse.json({ error: "You do not have permission to view calls." }, { status: 403 });
-  await ensureCallTables();
-  const url = new URL(request.url);
-  const mine = url.searchParams.get("mine") === "true";
-  const calls = await prisma.$queryRawUnsafe<any[]>(`
-    SELECT c.id, c.title, c.description, c.start_at AS "startAt", c.status, c.creator_user_id AS "creatorUserId",
-      u.username AS "creatorUsername",
-      COALESCE((SELECT SUM(quantity) FROM "guild_call_requirements" r WHERE r.call_id = c.id), 0) AS "requiredCount",
-      COALESCE((SELECT COUNT(*) FROM "guild_call_participants" p WHERE p.call_id = c.id AND p.status = 'ACTIVE'), 0) AS "activeCount",
-      EXISTS(SELECT 1 FROM "guild_call_participants" p JOIN "GuildMember" m ON m.id = p.member_id WHERE p.call_id = c.id AND m.user_id = $2) AS "signedUp"
-    FROM "guild_calls" c
-    JOIN "User" u ON u.id = c.creator_user_id
-    WHERE c.guild_id = $1 ${mine ? "AND EXISTS(SELECT 1 FROM \"guild_call_participants\" p JOIN \"GuildMember\" m ON m.id = p.member_id WHERE p.call_id = c.id AND m.user_id = $2)" : ""}
-    ORDER BY c.start_at ASC
-  `, auth.guild.id, auth.user.id);
-  return NextResponse.json({ calls });
+  try {
+    await ensureCallTables();
+    const url = new URL(request.url);
+    const mine = url.searchParams.get("mine") === "true";
+    const calls = await prisma.$queryRawUnsafe<any[]>(`
+      SELECT c.id, c.title, c.description, c.start_at AS "startAt", c.status, c.creator_user_id AS "creatorUserId",
+        u.username AS "creatorUsername",
+        COALESCE((SELECT SUM(quantity) FROM "guild_call_requirements" r WHERE r.call_id = c.id), 0) AS "requiredCount",
+        COALESCE((SELECT COUNT(*) FROM "guild_call_participants" p WHERE p.call_id = c.id AND p.status = 'ACTIVE'), 0) AS "activeCount",
+        EXISTS(SELECT 1 FROM "guild_call_participants" p JOIN "GuildMember" m ON m.id = p.member_id WHERE p.call_id = c.id AND m.user_id = $2) AS "signedUp"
+      FROM "guild_calls" c
+      JOIN "User" u ON u.id = c.creator_user_id
+      WHERE c.guild_id = $1 ${mine ? "AND EXISTS(SELECT 1 FROM \"guild_call_participants\" p JOIN \"GuildMember\" m ON m.id = p.member_id WHERE p.call_id = c.id AND m.user_id = $2)" : ""}
+      ORDER BY c.start_at ASC
+    `, auth.guild.id, auth.user.id);
+    return NextResponse.json({ calls });
+  } catch (error) {
+    console.error("[CALL TO ARMS] list failed", error);
+    return NextResponse.json({ error: "Failed to load Call To Arms. Please try again." }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {
@@ -41,9 +46,7 @@ export async function POST(request: Request) {
     const webhookRows = await prisma.$queryRawUnsafe<Array<{ webhook_url: string }>>(`SELECT webhook_url FROM "guild_call_webhooks" WHERE guild_id = $1`, auth.guild.id);
     const id = newId("call");
     await prisma.$executeRawUnsafe(`INSERT INTO "guild_calls" (id, guild_id, creator_user_id, title, description, start_at, discord_webhook_url) VALUES ($1,$2,$3,$4,$5,$6,$7)`, id, auth.guild.id, auth.user.id, title, description, startAt, webhookRows[0]?.webhook_url ?? null);
-    for (const requirement of requirements) {
-      await prisma.$executeRawUnsafe(`INSERT INTO "guild_call_requirements" (id, call_id, requirement, quantity) VALUES ($1,$2,$3,$4)`, newId("req"), id, String(requirement.requirement).trim(), Number(requirement.quantity));
-    }
+    for (const requirement of requirements) await prisma.$executeRawUnsafe(`INSERT INTO "guild_call_requirements" (id, call_id, requirement, quantity) VALUES ($1,$2,$3,$4)`, newId("req"), id, String(requirement.requirement).trim(), Number(requirement.quantity));
     await refreshCallStatus(id);
     return NextResponse.json({ id }, { status: 201 });
   } catch (error) {
