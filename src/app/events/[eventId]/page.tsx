@@ -30,6 +30,9 @@ export default async function EventPage({
 
   return (
     <>
+      {canEditRosters && (
+        <FinalRosterControls eventId={eventId} />
+      )}
       <EventClient
         eventId={eventId}
         currentUserId={auth.user.id}
