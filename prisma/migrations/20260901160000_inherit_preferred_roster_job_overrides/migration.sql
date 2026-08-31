@@ -39,4 +39,4 @@ DROP TRIGGER IF EXISTS "RosterMember_inherit_preferred_job_override" ON "RosterM
 CREATE TRIGGER "RosterMember_inherit_preferred_job_override"
 AFTER INSERT ON "RosterMember"
 FOR EACH ROW
-EXECUTE FUNCTION inherit_preferred_roster_job_override;
+EXECUTE FUNCTION inherit_preferred_roster_job_override();
