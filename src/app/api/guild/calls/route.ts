@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     await prisma.$executeRawUnsafe(`INSERT INTO "guild_calls" (id,guild_id,creator_user_id,title,description,start_at,discord_webhook_url) VALUES ($1,$2,$3,$4,$5,$6,$7)`,id,auth.guild.id,auth.user.id,title,description,startAt,webhookUrl);
     for(const requirement of requirements)await prisma.$executeRawUnsafe(`INSERT INTO "guild_call_requirements" (id,call_id,requirement,quantity) VALUES ($1,$2,$3,$4)`,newId("req"),id,String(requirement.requirement).trim(),Number(requirement.quantity));
     await refreshCallStatus(id);
-    try { await announceNewCall(id); } catch(error) { console.error("[CALL TO ARMS] creation announcement failed",error); }
+    try { await announceNewCall(id,new URL(request.url).origin); } catch(error) { console.error("[CALL TO ARMS] creation announcement failed",error); }
     return NextResponse.json({id},{status:201});
   } catch(error) { console.error("[CALL TO ARMS] create failed",error); return NextResponse.json({error:"Failed to create Call To Arms."},{status:500}); }
 }
