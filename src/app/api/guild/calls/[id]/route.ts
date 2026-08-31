@@ -18,7 +18,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
     const call = await getCall(id, auth.guild.id);
     if (!call) return NextResponse.json({ error: "Call not found." }, { status: 404 });
     const requirements = await prisma.$queryRawUnsafe<any[]>(`SELECT id, requirement, quantity FROM "guild_call_requirements" WHERE call_id = $1 ORDER BY created_at`, id);
-    const participants = await prisma.$queryRawUnsafe<any[]>(`SELECT p.id, p.requirement_id AS "requirementId", p.status, p.signed_up_at AS "signedUpAt", p.member_id AS "memberId", m.character_name AS "characterName", m.discord_username AS "discordUsername", m.discord_user_id AS "discordUserId", m.job FROM "guild_call_participants" p JOIN "GuildMember" m ON m.id = p.member_id WHERE p.call_id = $1 ORDER BY p.signed_up_at`, id);
+    const participants = await prisma.$queryRawUnsafe<any[]>(`SELECT p.id, p.requirement_id AS "requirementId", p.status, p.signed_up_at AS "signedUpAt", p.member_id AS "memberId", m."characterName" AS "characterName", m."discordUsername" AS "discordUsername", m."discordUserId" AS "discordUserId", m.job FROM "guild_call_participants" p JOIN "GuildMember" m ON m.id = p.member_id WHERE p.call_id = $1 ORDER BY p.signed_up_at`, id);
     const currentMember = await prisma.guildMember.findFirst({ where: { guildId: auth.guild.id, userId: auth.user.id, active: true }, select: { id: true } });
     const webhook = await prisma.$queryRawUnsafe<Array<{ webhook_url: string }>>(`SELECT webhook_url FROM "guild_call_webhooks" WHERE guild_id = $1`, auth.guild.id);
     const canManage = call.creatorUserId === auth.user.id || ["ADMIN", "MANAGER", "OFFICER"].includes(auth.role);
