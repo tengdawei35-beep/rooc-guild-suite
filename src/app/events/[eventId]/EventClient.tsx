@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import RaidManagement from "./RaidManagement";
+import RosterJobOverrides from "./RosterJobOverrides";
 
 type EventType =
   | "GUILD_LEAGUE"
@@ -154,6 +155,9 @@ export default function EventClient({
   const [showParticipation, setShowParticipation] =
     useState(false);
 
+  const [rosterJobOverrides, setRosterJobOverrides] =
+    useState<Record<string, string | null>>({});
+
   // ==========================================================
   // ROSTER EDITING
   // ==========================================================
@@ -225,6 +229,51 @@ export default function EventClient({
 
   useEffect(() => {
     loadEvent();
+  }, [eventId]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadRosterJobOverrides() {
+      try {
+        const response = await fetch(
+          `/api/events/${eventId}/roster-job-overrides`,
+          {
+            cache: "no-store",
+          }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            result.error ?? "Failed to load roster job overrides."
+          );
+        }
+
+        if (cancelled) return;
+
+        const next: Record<string, string | null> = {};
+
+        for (const assignment of result.assignments ?? []) {
+          next[assignment.assignmentId] =
+            assignment.overrideJob ?? null;
+        }
+
+        setRosterJobOverrides(next);
+      } catch (error) {
+        console.error(
+          "[EVENT CLIENT] Failed to load roster job overrides:",
+          error
+        );
+      }
+    }
+
+    loadRosterJobOverrides();
+
+    return () => {
+      cancelled = true;
+    };
   }, [eventId]);
 
   // ==========================================================
@@ -384,6 +433,16 @@ export default function EventClient({
       );
     }
   }
+
+  function handleRosterJobSaved(
+  assignmentId: string,
+  overrideJob: string | null
+) {
+  setRosterJobOverrides((current) => ({
+    ...current,
+    [assignmentId]: overrideJob,
+  }));
+}
 
   // ==========================================================
   // UPDATE PARTICIPATION
@@ -1294,6 +1353,7 @@ export default function EventClient({
                       key={
                         roster.id
                       }
+                      eventId={eventId}
                       roster={
                         roster
                       }
@@ -1324,6 +1384,8 @@ export default function EventClient({
                       removingAssignmentId={
                         removingAssignmentId
                       }
+                      rosterJobOverrides={rosterJobOverrides}
+                      onRosterJobSaved={handleRosterJobSaved}
                       onDragStart={(
                         assignmentId
                       ) =>
@@ -1815,6 +1877,7 @@ function ParticipantRow({
 
 function RosterCard({
   roster,
+  eventId,
   canEdit,
   editing,
   onEdit,
@@ -1827,8 +1890,11 @@ function RosterCard({
   onDrop,
   onEmptySlotClick,
   onRemoveMember,
+  rosterJobOverrides,
+  onRosterJobSaved,
 }: {
   roster: RosterSummary;
+  eventId: string;
   canEdit: boolean;
   editing: boolean;
   onEdit: () => void;
@@ -1841,6 +1907,11 @@ function RosterCard({
   onDrop: (targetPartyId: string, targetSlotNumber: number) => void;
   onEmptySlotClick: (partyId: string, slotNumber: number) => void;
   onRemoveMember: (assignmentId: string) => void;
+  rosterJobOverrides: Record<string, string | null>;
+  onRosterJobSaved: (
+    assignmentId: string,
+    overrideJob: string | null
+  ) => void;
 }) {
   const parties = roster.parties ?? [];
   const battlefields = Array.from(new Set(parties.map((party) => party.battlefield)));
@@ -1892,11 +1963,14 @@ function RosterCard({
                       draggedAssignmentId={draggedAssignmentId}
                       movingAssignmentId={movingAssignmentId}
                       removingAssignmentId={removingAssignmentId}
+                      eventId={eventId}
                       onDragStart={onDragStart}
                       onDragEnd={onDragEnd}
                       onDrop={onDrop}
                       onEmptySlotClick={onEmptySlotClick}
                       onRemoveMember={onRemoveMember}
+                      rosterJobOverrides={rosterJobOverrides}
+                      onRosterJobSaved={onRosterJobSaved}
                     />
                   ))}
                 </div>
@@ -1918,6 +1992,7 @@ function RosterCard({
 function PartyCard({
   party,
   canEdit,
+  eventId,
   editing,
   draggedAssignmentId,
   movingAssignmentId,
@@ -1927,6 +2002,8 @@ function PartyCard({
   onDrop,
   onEmptySlotClick,
   onRemoveMember,
+  rosterJobOverrides,
+  onRosterJobSaved,
 }: {
   party: RosterParty;
   canEdit: boolean;
@@ -1939,6 +2016,12 @@ function PartyCard({
   onDrop: (targetPartyId: string, targetSlotNumber: number) => void;
   onEmptySlotClick: (partyId: string, slotNumber: number) => void;
   onRemoveMember: (assignmentId: string) => void;
+  eventId: string;
+  rosterJobOverrides: Record<string, string | null>;
+  onRosterJobSaved: (
+    assignmentId: string,
+    overrideJob: string | null
+  ) => void;
 }) {
   const membersBySlot = new Map(party.members.map((member) => [member.slotNumber, member]));
 
@@ -1983,7 +2066,16 @@ function PartyCard({
                   <span className="w-4 shrink-0 text-xs text-zinc-700">{slotNumber}</span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm text-zinc-300">{assignment.member.characterName || assignment.member.characterName}</p>
-                    <p className="truncate text-xs text-zinc-600">{assignment.member.job || "Unknown Job"}</p>
+                    <RosterJobOverrides
+                      eventId={eventId}
+                      assignmentId={assignment.id}
+                      submittedJob={assignment.member.job ?? null}
+                      overrideJob={
+                        rosterJobOverrides[assignment.id] ?? null
+                      }
+                      canEdit={canEdit}
+                      onSaved={onRosterJobSaved}
+                    />
                   </div>
                   {editing && (
                     <button type="button" draggable={false} disabled={removingAssignmentId === assignment.id} onClick={(event) => { event.stopPropagation(); onRemoveMember(assignment.id); }} className="shrink-0 rounded-md border border-red-900/60 px-2 py-1 text-[10px] text-red-500 transition hover:border-red-700 hover:bg-red-950/50 hover:text-red-400 disabled:cursor-wait disabled:opacity-50">

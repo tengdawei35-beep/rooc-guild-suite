@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import EventClient from "./EventClient";
 import FinalRosterControls from "./FinalRosterControls";
-import RosterJobOverrides from "./RosterJobOverrides";
 
 import {
   hasPermission,
@@ -31,12 +30,6 @@ export default async function EventPage({
 
   return (
     <>
-      {canEditRosters && (
-        <FinalRosterControls eventId={eventId} />
-      )}
-      {canEditRosters && (
-        <RosterJobOverrides eventId={eventId} />
-      )}
       <EventClient
         eventId={eventId}
         currentUserId={auth.user.id}

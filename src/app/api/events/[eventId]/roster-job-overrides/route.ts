@@ -2,6 +2,7 @@ import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentAuth, hasPermission } from "@/lib/auth";
+import { JOBS } from "@/lib/constants/jobs";
 
 const JOB_MAX_LENGTH = 60;
 
@@ -88,6 +89,14 @@ export async function PATCH(request: Request, context: RouteContext) {
     }
 
     const rawJob = typeof body.job === "string" ? body.job.trim() : "";
+    if (
+      rawJob &&
+      !JOBS.includes(
+        rawJob as (typeof JOBS)[number]
+      )
+    ) {
+      return errorResponse("Invalid job.", 400);
+    }
     if (rawJob.length > JOB_MAX_LENGTH) {
       return errorResponse(`Job must be ${JOB_MAX_LENGTH} characters or fewer.`, 400);
     }

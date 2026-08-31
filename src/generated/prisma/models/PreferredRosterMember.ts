@@ -40,6 +40,7 @@ export type PreferredRosterMemberMinAggregateOutputType = {
   memberId: string | null
   slotNumber: number | null
   createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type PreferredRosterMemberMaxAggregateOutputType = {
@@ -48,6 +49,7 @@ export type PreferredRosterMemberMaxAggregateOutputType = {
   memberId: string | null
   slotNumber: number | null
   createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type PreferredRosterMemberCountAggregateOutputType = {
@@ -56,6 +58,7 @@ export type PreferredRosterMemberCountAggregateOutputType = {
   memberId: number
   slotNumber: number
   createdAt: number
+  updatedAt: number
   _all: number
 }
 
@@ -74,6 +77,7 @@ export type PreferredRosterMemberMinAggregateInputType = {
   memberId?: true
   slotNumber?: true
   createdAt?: true
+  updatedAt?: true
 }
 
 export type PreferredRosterMemberMaxAggregateInputType = {
@@ -82,6 +86,7 @@ export type PreferredRosterMemberMaxAggregateInputType = {
   memberId?: true
   slotNumber?: true
   createdAt?: true
+  updatedAt?: true
 }
 
 export type PreferredRosterMemberCountAggregateInputType = {
@@ -90,6 +95,7 @@ export type PreferredRosterMemberCountAggregateInputType = {
   memberId?: true
   slotNumber?: true
   createdAt?: true
+  updatedAt?: true
   _all?: true
 }
 
@@ -185,6 +191,7 @@ export type PreferredRosterMemberGroupByOutputType = {
   memberId: string
   slotNumber: number
   createdAt: Date
+  updatedAt: Date
   _count: PreferredRosterMemberCountAggregateOutputType | null
   _avg: PreferredRosterMemberAvgAggregateOutputType | null
   _sum: PreferredRosterMemberSumAggregateOutputType | null
@@ -216,6 +223,7 @@ export type PreferredRosterMemberWhereInput = {
   memberId?: Prisma.StringFilter<"PreferredRosterMember"> | string
   slotNumber?: Prisma.IntFilter<"PreferredRosterMember"> | number
   createdAt?: Prisma.DateTimeFilter<"PreferredRosterMember"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"PreferredRosterMember"> | Date | string
   preferredRosterParty?: Prisma.XOR<Prisma.PreferredRosterPartyScalarRelationFilter, Prisma.PreferredRosterPartyWhereInput>
   member?: Prisma.XOR<Prisma.GuildMemberScalarRelationFilter, Prisma.GuildMemberWhereInput>
 }
@@ -226,6 +234,7 @@ export type PreferredRosterMemberOrderByWithRelationInput = {
   memberId?: Prisma.SortOrder
   slotNumber?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   preferredRosterParty?: Prisma.PreferredRosterPartyOrderByWithRelationInput
   member?: Prisma.GuildMemberOrderByWithRelationInput
 }
@@ -241,6 +250,7 @@ export type PreferredRosterMemberWhereUniqueInput = Prisma.AtLeast<{
   memberId?: Prisma.StringFilter<"PreferredRosterMember"> | string
   slotNumber?: Prisma.IntFilter<"PreferredRosterMember"> | number
   createdAt?: Prisma.DateTimeFilter<"PreferredRosterMember"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"PreferredRosterMember"> | Date | string
   preferredRosterParty?: Prisma.XOR<Prisma.PreferredRosterPartyScalarRelationFilter, Prisma.PreferredRosterPartyWhereInput>
   member?: Prisma.XOR<Prisma.GuildMemberScalarRelationFilter, Prisma.GuildMemberWhereInput>
 }, "id" | "preferredRosterPartyId_slotNumber" | "preferredRosterPartyId_memberId">
@@ -251,6 +261,7 @@ export type PreferredRosterMemberOrderByWithAggregationInput = {
   memberId?: Prisma.SortOrder
   slotNumber?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   _count?: Prisma.PreferredRosterMemberCountOrderByAggregateInput
   _avg?: Prisma.PreferredRosterMemberAvgOrderByAggregateInput
   _max?: Prisma.PreferredRosterMemberMaxOrderByAggregateInput
@@ -267,12 +278,14 @@ export type PreferredRosterMemberScalarWhereWithAggregatesInput = {
   memberId?: Prisma.StringWithAggregatesFilter<"PreferredRosterMember"> | string
   slotNumber?: Prisma.IntWithAggregatesFilter<"PreferredRosterMember"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"PreferredRosterMember"> | Date | string
+  updatedAt?: Prisma.DateTimeWithAggregatesFilter<"PreferredRosterMember"> | Date | string
 }
 
 export type PreferredRosterMemberCreateInput = {
   id?: string
   slotNumber: number
   createdAt?: Date | string
+  updatedAt?: Date | string
   preferredRosterParty: Prisma.PreferredRosterPartyCreateNestedOneWithoutMembersInput
   member: Prisma.GuildMemberCreateNestedOneWithoutPreferredRosterAssignmentsInput
 }
@@ -283,12 +296,14 @@ export type PreferredRosterMemberUncheckedCreateInput = {
   memberId: string
   slotNumber: number
   createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type PreferredRosterMemberUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   slotNumber?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   preferredRosterParty?: Prisma.PreferredRosterPartyUpdateOneRequiredWithoutMembersNestedInput
   member?: Prisma.GuildMemberUpdateOneRequiredWithoutPreferredRosterAssignmentsNestedInput
 }
@@ -299,6 +314,7 @@ export type PreferredRosterMemberUncheckedUpdateInput = {
   memberId?: Prisma.StringFieldUpdateOperationsInput | string
   slotNumber?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type PreferredRosterMemberCreateManyInput = {
@@ -307,12 +323,14 @@ export type PreferredRosterMemberCreateManyInput = {
   memberId: string
   slotNumber: number
   createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type PreferredRosterMemberUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   slotNumber?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type PreferredRosterMemberUncheckedUpdateManyInput = {
@@ -321,6 +339,7 @@ export type PreferredRosterMemberUncheckedUpdateManyInput = {
   memberId?: Prisma.StringFieldUpdateOperationsInput | string
   slotNumber?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type PreferredRosterMemberListRelationFilter = {
@@ -349,6 +368,7 @@ export type PreferredRosterMemberCountOrderByAggregateInput = {
   memberId?: Prisma.SortOrder
   slotNumber?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type PreferredRosterMemberAvgOrderByAggregateInput = {
@@ -361,6 +381,7 @@ export type PreferredRosterMemberMaxOrderByAggregateInput = {
   memberId?: Prisma.SortOrder
   slotNumber?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type PreferredRosterMemberMinOrderByAggregateInput = {
@@ -369,6 +390,7 @@ export type PreferredRosterMemberMinOrderByAggregateInput = {
   memberId?: Prisma.SortOrder
   slotNumber?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type PreferredRosterMemberSumOrderByAggregateInput = {
@@ -463,6 +485,7 @@ export type PreferredRosterMemberCreateWithoutMemberInput = {
   id?: string
   slotNumber: number
   createdAt?: Date | string
+  updatedAt?: Date | string
   preferredRosterParty: Prisma.PreferredRosterPartyCreateNestedOneWithoutMembersInput
 }
 
@@ -471,6 +494,7 @@ export type PreferredRosterMemberUncheckedCreateWithoutMemberInput = {
   preferredRosterPartyId: string
   slotNumber: number
   createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type PreferredRosterMemberCreateOrConnectWithoutMemberInput = {
@@ -508,12 +532,14 @@ export type PreferredRosterMemberScalarWhereInput = {
   memberId?: Prisma.StringFilter<"PreferredRosterMember"> | string
   slotNumber?: Prisma.IntFilter<"PreferredRosterMember"> | number
   createdAt?: Prisma.DateTimeFilter<"PreferredRosterMember"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"PreferredRosterMember"> | Date | string
 }
 
 export type PreferredRosterMemberCreateWithoutPreferredRosterPartyInput = {
   id?: string
   slotNumber: number
   createdAt?: Date | string
+  updatedAt?: Date | string
   member: Prisma.GuildMemberCreateNestedOneWithoutPreferredRosterAssignmentsInput
 }
 
@@ -522,6 +548,7 @@ export type PreferredRosterMemberUncheckedCreateWithoutPreferredRosterPartyInput
   memberId: string
   slotNumber: number
   createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type PreferredRosterMemberCreateOrConnectWithoutPreferredRosterPartyInput = {
@@ -555,12 +582,14 @@ export type PreferredRosterMemberCreateManyMemberInput = {
   preferredRosterPartyId: string
   slotNumber: number
   createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type PreferredRosterMemberUpdateWithoutMemberInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   slotNumber?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   preferredRosterParty?: Prisma.PreferredRosterPartyUpdateOneRequiredWithoutMembersNestedInput
 }
 
@@ -569,6 +598,7 @@ export type PreferredRosterMemberUncheckedUpdateWithoutMemberInput = {
   preferredRosterPartyId?: Prisma.StringFieldUpdateOperationsInput | string
   slotNumber?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type PreferredRosterMemberUncheckedUpdateManyWithoutMemberInput = {
@@ -576,6 +606,7 @@ export type PreferredRosterMemberUncheckedUpdateManyWithoutMemberInput = {
   preferredRosterPartyId?: Prisma.StringFieldUpdateOperationsInput | string
   slotNumber?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type PreferredRosterMemberCreateManyPreferredRosterPartyInput = {
@@ -583,12 +614,14 @@ export type PreferredRosterMemberCreateManyPreferredRosterPartyInput = {
   memberId: string
   slotNumber: number
   createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type PreferredRosterMemberUpdateWithoutPreferredRosterPartyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   slotNumber?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   member?: Prisma.GuildMemberUpdateOneRequiredWithoutPreferredRosterAssignmentsNestedInput
 }
 
@@ -597,6 +630,7 @@ export type PreferredRosterMemberUncheckedUpdateWithoutPreferredRosterPartyInput
   memberId?: Prisma.StringFieldUpdateOperationsInput | string
   slotNumber?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type PreferredRosterMemberUncheckedUpdateManyWithoutPreferredRosterPartyInput = {
@@ -604,6 +638,7 @@ export type PreferredRosterMemberUncheckedUpdateManyWithoutPreferredRosterPartyI
   memberId?: Prisma.StringFieldUpdateOperationsInput | string
   slotNumber?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -614,6 +649,7 @@ export type PreferredRosterMemberSelect<ExtArgs extends runtime.Types.Extensions
   memberId?: boolean
   slotNumber?: boolean
   createdAt?: boolean
+  updatedAt?: boolean
   preferredRosterParty?: boolean | Prisma.PreferredRosterPartyDefaultArgs<ExtArgs>
   member?: boolean | Prisma.GuildMemberDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["preferredRosterMember"]>
@@ -624,6 +660,7 @@ export type PreferredRosterMemberSelectCreateManyAndReturn<ExtArgs extends runti
   memberId?: boolean
   slotNumber?: boolean
   createdAt?: boolean
+  updatedAt?: boolean
   preferredRosterParty?: boolean | Prisma.PreferredRosterPartyDefaultArgs<ExtArgs>
   member?: boolean | Prisma.GuildMemberDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["preferredRosterMember"]>
@@ -634,6 +671,7 @@ export type PreferredRosterMemberSelectUpdateManyAndReturn<ExtArgs extends runti
   memberId?: boolean
   slotNumber?: boolean
   createdAt?: boolean
+  updatedAt?: boolean
   preferredRosterParty?: boolean | Prisma.PreferredRosterPartyDefaultArgs<ExtArgs>
   member?: boolean | Prisma.GuildMemberDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["preferredRosterMember"]>
@@ -644,9 +682,10 @@ export type PreferredRosterMemberSelectScalar = {
   memberId?: boolean
   slotNumber?: boolean
   createdAt?: boolean
+  updatedAt?: boolean
 }
 
-export type PreferredRosterMemberOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "preferredRosterPartyId" | "memberId" | "slotNumber" | "createdAt", ExtArgs["result"]["preferredRosterMember"]>
+export type PreferredRosterMemberOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "preferredRosterPartyId" | "memberId" | "slotNumber" | "createdAt" | "updatedAt", ExtArgs["result"]["preferredRosterMember"]>
 export type PreferredRosterMemberInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   preferredRosterParty?: boolean | Prisma.PreferredRosterPartyDefaultArgs<ExtArgs>
   member?: boolean | Prisma.GuildMemberDefaultArgs<ExtArgs>
@@ -672,6 +711,7 @@ export type $PreferredRosterMemberPayload<ExtArgs extends runtime.Types.Extensio
     memberId: string
     slotNumber: number
     createdAt: Date
+    updatedAt: Date
   }, ExtArgs["result"]["preferredRosterMember"]>
   composites: {}
 }
@@ -1102,6 +1142,7 @@ export interface PreferredRosterMemberFieldRefs {
   readonly memberId: Prisma.FieldRef<"PreferredRosterMember", 'String'>
   readonly slotNumber: Prisma.FieldRef<"PreferredRosterMember", 'Int'>
   readonly createdAt: Prisma.FieldRef<"PreferredRosterMember", 'DateTime'>
+  readonly updatedAt: Prisma.FieldRef<"PreferredRosterMember", 'DateTime'>
 }
     
 

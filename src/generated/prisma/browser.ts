@@ -157,3 +157,13 @@ export type GuildSubscription = Prisma.GuildSubscriptionModel
  * 
  */
 export type GuildModuleEntitlement = Prisma.GuildModuleEntitlementModel
+/**
+ * Model ApplicantInvite
+ * 
+ */
+export type ApplicantInvite = Prisma.ApplicantInviteModel
+/**
+ * Model GuildApplicant
+ * 
+ */
+export type GuildApplicant = Prisma.GuildApplicantModel

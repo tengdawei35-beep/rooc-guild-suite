@@ -103,3 +103,12 @@ export const BillingInterval = {
 } as const
 
 export type BillingInterval = (typeof BillingInterval)[keyof typeof BillingInterval]
+
+
+export const ApplicantStatus = {
+  PENDING: 'PENDING',
+  ACCEPTED: 'ACCEPTED',
+  DENIED: 'DENIED'
+} as const
+
+export type ApplicantStatus = (typeof ApplicantStatus)[keyof typeof ApplicantStatus]

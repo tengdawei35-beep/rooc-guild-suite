@@ -78,7 +78,9 @@ export const ModelName = {
   Plan: 'Plan',
   PlanModule: 'PlanModule',
   GuildSubscription: 'GuildSubscription',
-  GuildModuleEntitlement: 'GuildModuleEntitlement'
+  GuildModuleEntitlement: 'GuildModuleEntitlement',
+  ApplicantInvite: 'ApplicantInvite',
+  GuildApplicant: 'GuildApplicant'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -169,6 +171,17 @@ export const GuildMemberScalarFieldEnum = {
   patk: 'patk',
   matk: 'matk',
   hp: 'hp',
+  guildPercentile: 'guildPercentile',
+  tankScore: 'tankScore',
+  tankPercentile: 'tankPercentile',
+  dpsScore: 'dpsScore',
+  dpsPercentile: 'dpsPercentile',
+  pvpScore: 'pvpScore',
+  pvpPercentile: 'pvpPercentile',
+  guildRank: 'guildRank',
+  tankRank: 'tankRank',
+  dpsRank: 'dpsRank',
+  pvpRank: 'pvpRank',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -298,6 +311,7 @@ export const EventScalarFieldEnum = {
   guildId: 'guildId',
   type: 'type',
   date: 'date',
+  finalRosterId: 'finalRosterId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -408,7 +422,8 @@ export const PreferredRosterMemberScalarFieldEnum = {
   preferredRosterPartyId: 'preferredRosterPartyId',
   memberId: 'memberId',
   slotNumber: 'slotNumber',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 } as const
 
 export type PreferredRosterMemberScalarFieldEnum = (typeof PreferredRosterMemberScalarFieldEnum)[keyof typeof PreferredRosterMemberScalarFieldEnum]
@@ -481,6 +496,71 @@ export const GuildModuleEntitlementScalarFieldEnum = {
 } as const
 
 export type GuildModuleEntitlementScalarFieldEnum = (typeof GuildModuleEntitlementScalarFieldEnum)[keyof typeof GuildModuleEntitlementScalarFieldEnum]
+
+
+export const ApplicantInviteScalarFieldEnum = {
+  id: 'id',
+  guildId: 'guildId',
+  token: 'token',
+  active: 'active',
+  createdByUserId: 'createdByUserId',
+  createdAt: 'createdAt',
+  revokedAt: 'revokedAt'
+} as const
+
+export type ApplicantInviteScalarFieldEnum = (typeof ApplicantInviteScalarFieldEnum)[keyof typeof ApplicantInviteScalarFieldEnum]
+
+
+export const GuildApplicantScalarFieldEnum = {
+  id: 'id',
+  guildId: 'guildId',
+  inviteId: 'inviteId',
+  discordUserId: 'discordUserId',
+  discordUsername: 'discordUsername',
+  userId: 'userId',
+  characterName: 'characterName',
+  job: 'job',
+  status: 'status',
+  remarks: 'remarks',
+  pdef: 'pdef',
+  mdef: 'mdef',
+  pvpDamageBonus: 'pvpDamageBonus',
+  pvpDamageReduction: 'pvpDamageReduction',
+  pdmgPercent: 'pdmgPercent',
+  mdmgPercent: 'mdmgPercent',
+  pdmgReductionPercent: 'pdmgReductionPercent',
+  mdmgReductionPercent: 'mdmgReductionPercent',
+  critRes: 'critRes',
+  ignorePdef: 'ignorePdef',
+  ignoreMdef: 'ignoreMdef',
+  damageVsMedium: 'damageVsMedium',
+  damageReductionVsMedium: 'damageReductionVsMedium',
+  damageVsSmall: 'damageVsSmall',
+  damageReductionVsSmall: 'damageReductionVsSmall',
+  damageVsDemiHuman: 'damageVsDemiHuman',
+  damageReductionVsDemiHuman: 'damageReductionVsDemiHuman',
+  damageVsBrute: 'damageVsBrute',
+  damageReductionVsBrute: 'damageReductionVsBrute',
+  equipmentPdefPercent: 'equipmentPdefPercent',
+  equipmentMdefPercent: 'equipmentMdefPercent',
+  patk: 'patk',
+  matk: 'matk',
+  hp: 'hp',
+  dpsScore: 'dpsScore',
+  tankScore: 'tankScore',
+  pvpScore: 'pvpScore',
+  dpsPercentile: 'dpsPercentile',
+  tankPercentile: 'tankPercentile',
+  pvpPercentile: 'pvpPercentile',
+  reviewedAt: 'reviewedAt',
+  reviewedByUserId: 'reviewedByUserId',
+  decidedAt: 'decidedAt',
+  decidedByUserId: 'decidedByUserId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type GuildApplicantScalarFieldEnum = (typeof GuildApplicantScalarFieldEnum)[keyof typeof GuildApplicantScalarFieldEnum]
 
 
 export const SortOrder = {

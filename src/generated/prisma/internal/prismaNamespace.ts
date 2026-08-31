@@ -424,7 +424,9 @@ export const ModelName = {
   Plan: 'Plan',
   PlanModule: 'PlanModule',
   GuildSubscription: 'GuildSubscription',
-  GuildModuleEntitlement: 'GuildModuleEntitlement'
+  GuildModuleEntitlement: 'GuildModuleEntitlement',
+  ApplicantInvite: 'ApplicantInvite',
+  GuildApplicant: 'GuildApplicant'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -440,7 +442,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "guild" | "guildMembership" | "guildMember" | "memberLeave" | "resource" | "reservedAllocation" | "rotationState" | "allocationRun" | "allocationResult" | "resourceResult" | "bidPage" | "bidSlot" | "event" | "eventParticipation" | "roster" | "rosterParty" | "rosterMember" | "raid" | "raidParty" | "preferredRoster" | "preferredRosterParty" | "preferredRosterMember" | "platformGuildCreator" | "plan" | "planModule" | "guildSubscription" | "guildModuleEntitlement"
+    modelProps: "user" | "guild" | "guildMembership" | "guildMember" | "memberLeave" | "resource" | "reservedAllocation" | "rotationState" | "allocationRun" | "allocationResult" | "resourceResult" | "bidPage" | "bidSlot" | "event" | "eventParticipation" | "roster" | "rosterParty" | "rosterMember" | "raid" | "raidParty" | "preferredRoster" | "preferredRosterParty" | "preferredRosterMember" | "platformGuildCreator" | "plan" | "planModule" | "guildSubscription" | "guildModuleEntitlement" | "applicantInvite" | "guildApplicant"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2516,6 +2518,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ApplicantInvite: {
+      payload: Prisma.$ApplicantInvitePayload<ExtArgs>
+      fields: Prisma.ApplicantInviteFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ApplicantInviteFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApplicantInvitePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ApplicantInviteFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApplicantInvitePayload>
+        }
+        findFirst: {
+          args: Prisma.ApplicantInviteFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApplicantInvitePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ApplicantInviteFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApplicantInvitePayload>
+        }
+        findMany: {
+          args: Prisma.ApplicantInviteFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApplicantInvitePayload>[]
+        }
+        create: {
+          args: Prisma.ApplicantInviteCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApplicantInvitePayload>
+        }
+        createMany: {
+          args: Prisma.ApplicantInviteCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ApplicantInviteCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApplicantInvitePayload>[]
+        }
+        delete: {
+          args: Prisma.ApplicantInviteDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApplicantInvitePayload>
+        }
+        update: {
+          args: Prisma.ApplicantInviteUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApplicantInvitePayload>
+        }
+        deleteMany: {
+          args: Prisma.ApplicantInviteDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ApplicantInviteUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ApplicantInviteUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApplicantInvitePayload>[]
+        }
+        upsert: {
+          args: Prisma.ApplicantInviteUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApplicantInvitePayload>
+        }
+        aggregate: {
+          args: Prisma.ApplicantInviteAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateApplicantInvite>
+        }
+        groupBy: {
+          args: Prisma.ApplicantInviteGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ApplicantInviteGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ApplicantInviteCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ApplicantInviteCountAggregateOutputType> | number
+        }
+      }
+    }
+    GuildApplicant: {
+      payload: Prisma.$GuildApplicantPayload<ExtArgs>
+      fields: Prisma.GuildApplicantFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.GuildApplicantFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildApplicantPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.GuildApplicantFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildApplicantPayload>
+        }
+        findFirst: {
+          args: Prisma.GuildApplicantFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildApplicantPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.GuildApplicantFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildApplicantPayload>
+        }
+        findMany: {
+          args: Prisma.GuildApplicantFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildApplicantPayload>[]
+        }
+        create: {
+          args: Prisma.GuildApplicantCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildApplicantPayload>
+        }
+        createMany: {
+          args: Prisma.GuildApplicantCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.GuildApplicantCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildApplicantPayload>[]
+        }
+        delete: {
+          args: Prisma.GuildApplicantDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildApplicantPayload>
+        }
+        update: {
+          args: Prisma.GuildApplicantUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildApplicantPayload>
+        }
+        deleteMany: {
+          args: Prisma.GuildApplicantDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.GuildApplicantUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.GuildApplicantUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildApplicantPayload>[]
+        }
+        upsert: {
+          args: Prisma.GuildApplicantUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuildApplicantPayload>
+        }
+        aggregate: {
+          args: Prisma.GuildApplicantAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateGuildApplicant>
+        }
+        groupBy: {
+          args: Prisma.GuildApplicantGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GuildApplicantGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.GuildApplicantCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GuildApplicantCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2627,6 +2777,17 @@ export const GuildMemberScalarFieldEnum = {
   patk: 'patk',
   matk: 'matk',
   hp: 'hp',
+  guildPercentile: 'guildPercentile',
+  tankScore: 'tankScore',
+  tankPercentile: 'tankPercentile',
+  dpsScore: 'dpsScore',
+  dpsPercentile: 'dpsPercentile',
+  pvpScore: 'pvpScore',
+  pvpPercentile: 'pvpPercentile',
+  guildRank: 'guildRank',
+  tankRank: 'tankRank',
+  dpsRank: 'dpsRank',
+  pvpRank: 'pvpRank',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -2756,6 +2917,7 @@ export const EventScalarFieldEnum = {
   guildId: 'guildId',
   type: 'type',
   date: 'date',
+  finalRosterId: 'finalRosterId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -2866,7 +3028,8 @@ export const PreferredRosterMemberScalarFieldEnum = {
   preferredRosterPartyId: 'preferredRosterPartyId',
   memberId: 'memberId',
   slotNumber: 'slotNumber',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 } as const
 
 export type PreferredRosterMemberScalarFieldEnum = (typeof PreferredRosterMemberScalarFieldEnum)[keyof typeof PreferredRosterMemberScalarFieldEnum]
@@ -2939,6 +3102,71 @@ export const GuildModuleEntitlementScalarFieldEnum = {
 } as const
 
 export type GuildModuleEntitlementScalarFieldEnum = (typeof GuildModuleEntitlementScalarFieldEnum)[keyof typeof GuildModuleEntitlementScalarFieldEnum]
+
+
+export const ApplicantInviteScalarFieldEnum = {
+  id: 'id',
+  guildId: 'guildId',
+  token: 'token',
+  active: 'active',
+  createdByUserId: 'createdByUserId',
+  createdAt: 'createdAt',
+  revokedAt: 'revokedAt'
+} as const
+
+export type ApplicantInviteScalarFieldEnum = (typeof ApplicantInviteScalarFieldEnum)[keyof typeof ApplicantInviteScalarFieldEnum]
+
+
+export const GuildApplicantScalarFieldEnum = {
+  id: 'id',
+  guildId: 'guildId',
+  inviteId: 'inviteId',
+  discordUserId: 'discordUserId',
+  discordUsername: 'discordUsername',
+  userId: 'userId',
+  characterName: 'characterName',
+  job: 'job',
+  status: 'status',
+  remarks: 'remarks',
+  pdef: 'pdef',
+  mdef: 'mdef',
+  pvpDamageBonus: 'pvpDamageBonus',
+  pvpDamageReduction: 'pvpDamageReduction',
+  pdmgPercent: 'pdmgPercent',
+  mdmgPercent: 'mdmgPercent',
+  pdmgReductionPercent: 'pdmgReductionPercent',
+  mdmgReductionPercent: 'mdmgReductionPercent',
+  critRes: 'critRes',
+  ignorePdef: 'ignorePdef',
+  ignoreMdef: 'ignoreMdef',
+  damageVsMedium: 'damageVsMedium',
+  damageReductionVsMedium: 'damageReductionVsMedium',
+  damageVsSmall: 'damageVsSmall',
+  damageReductionVsSmall: 'damageReductionVsSmall',
+  damageVsDemiHuman: 'damageVsDemiHuman',
+  damageReductionVsDemiHuman: 'damageReductionVsDemiHuman',
+  damageVsBrute: 'damageVsBrute',
+  damageReductionVsBrute: 'damageReductionVsBrute',
+  equipmentPdefPercent: 'equipmentPdefPercent',
+  equipmentMdefPercent: 'equipmentMdefPercent',
+  patk: 'patk',
+  matk: 'matk',
+  hp: 'hp',
+  dpsScore: 'dpsScore',
+  tankScore: 'tankScore',
+  pvpScore: 'pvpScore',
+  dpsPercentile: 'dpsPercentile',
+  tankPercentile: 'tankPercentile',
+  pvpPercentile: 'pvpPercentile',
+  reviewedAt: 'reviewedAt',
+  reviewedByUserId: 'reviewedByUserId',
+  decidedAt: 'decidedAt',
+  decidedByUserId: 'decidedByUserId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type GuildApplicantScalarFieldEnum = (typeof GuildApplicantScalarFieldEnum)[keyof typeof GuildApplicantScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -3066,20 +3294,6 @@ export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaMode
 
 
 /**
- * Reference to a field of type 'ResourceType'
- */
-export type EnumResourceTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ResourceType'>
-    
-
-
-/**
- * Reference to a field of type 'ResourceType[]'
- */
-export type ListEnumResourceTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ResourceType[]'>
-    
-
-
-/**
  * Reference to a field of type 'Int'
  */
 export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
@@ -3090,6 +3304,20 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
  * Reference to a field of type 'Int[]'
  */
 export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ResourceType'
+ */
+export type EnumResourceTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ResourceType'>
+    
+
+
+/**
+ * Reference to a field of type 'ResourceType[]'
+ */
+export type ListEnumResourceTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ResourceType[]'>
     
 
 
@@ -3216,6 +3444,20 @@ export type EnumSubscriptionStatusFieldRefInput<$PrismaModel> = FieldRefInputTyp
  * Reference to a field of type 'SubscriptionStatus[]'
  */
 export type ListEnumSubscriptionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SubscriptionStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ApplicantStatus'
+ */
+export type EnumApplicantStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ApplicantStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'ApplicantStatus[]'
+ */
+export type ListEnumApplicantStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ApplicantStatus[]'>
     
 
 /**
@@ -3397,6 +3639,8 @@ export type GlobalOmitConfig = {
   planModule?: Prisma.PlanModuleOmit
   guildSubscription?: Prisma.GuildSubscriptionOmit
   guildModuleEntitlement?: Prisma.GuildModuleEntitlementOmit
+  applicantInvite?: Prisma.ApplicantInviteOmit
+  guildApplicant?: Prisma.GuildApplicantOmit
 }
 
 /* Types for Logging */

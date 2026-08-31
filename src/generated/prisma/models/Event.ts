@@ -29,6 +29,7 @@ export type EventMinAggregateOutputType = {
   guildId: string | null
   type: $Enums.EventType | null
   date: Date | null
+  finalRosterId: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -38,6 +39,7 @@ export type EventMaxAggregateOutputType = {
   guildId: string | null
   type: $Enums.EventType | null
   date: Date | null
+  finalRosterId: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -47,6 +49,7 @@ export type EventCountAggregateOutputType = {
   guildId: number
   type: number
   date: number
+  finalRosterId: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -58,6 +61,7 @@ export type EventMinAggregateInputType = {
   guildId?: true
   type?: true
   date?: true
+  finalRosterId?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -67,6 +71,7 @@ export type EventMaxAggregateInputType = {
   guildId?: true
   type?: true
   date?: true
+  finalRosterId?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -76,6 +81,7 @@ export type EventCountAggregateInputType = {
   guildId?: true
   type?: true
   date?: true
+  finalRosterId?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -158,6 +164,7 @@ export type EventGroupByOutputType = {
   guildId: string
   type: $Enums.EventType
   date: Date
+  finalRosterId: string | null
   createdAt: Date
   updatedAt: Date
   _count: EventCountAggregateOutputType | null
@@ -188,11 +195,13 @@ export type EventWhereInput = {
   guildId?: Prisma.StringFilter<"Event"> | string
   type?: Prisma.EnumEventTypeFilter<"Event"> | $Enums.EventType
   date?: Prisma.DateTimeFilter<"Event"> | Date | string
+  finalRosterId?: Prisma.StringNullableFilter<"Event"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Event"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Event"> | Date | string
   guild?: Prisma.XOR<Prisma.GuildScalarRelationFilter, Prisma.GuildWhereInput>
   participations?: Prisma.EventParticipationListRelationFilter
   rosters?: Prisma.RosterListRelationFilter
+  finalRoster?: Prisma.XOR<Prisma.RosterNullableScalarRelationFilter, Prisma.RosterWhereInput> | null
   allocationRuns?: Prisma.AllocationRunListRelationFilter
 }
 
@@ -201,16 +210,19 @@ export type EventOrderByWithRelationInput = {
   guildId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   date?: Prisma.SortOrder
+  finalRosterId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   guild?: Prisma.GuildOrderByWithRelationInput
   participations?: Prisma.EventParticipationOrderByRelationAggregateInput
   rosters?: Prisma.RosterOrderByRelationAggregateInput
+  finalRoster?: Prisma.RosterOrderByWithRelationInput
   allocationRuns?: Prisma.AllocationRunOrderByRelationAggregateInput
 }
 
 export type EventWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  finalRosterId?: string
   guildId_type_date?: Prisma.EventGuildIdTypeDateCompoundUniqueInput
   AND?: Prisma.EventWhereInput | Prisma.EventWhereInput[]
   OR?: Prisma.EventWhereInput[]
@@ -223,14 +235,16 @@ export type EventWhereUniqueInput = Prisma.AtLeast<{
   guild?: Prisma.XOR<Prisma.GuildScalarRelationFilter, Prisma.GuildWhereInput>
   participations?: Prisma.EventParticipationListRelationFilter
   rosters?: Prisma.RosterListRelationFilter
+  finalRoster?: Prisma.XOR<Prisma.RosterNullableScalarRelationFilter, Prisma.RosterWhereInput> | null
   allocationRuns?: Prisma.AllocationRunListRelationFilter
-}, "id" | "guildId_type_date">
+}, "id" | "guildId_type_date" | "finalRosterId">
 
 export type EventOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   guildId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   date?: Prisma.SortOrder
+  finalRosterId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.EventCountOrderByAggregateInput
@@ -246,6 +260,7 @@ export type EventScalarWhereWithAggregatesInput = {
   guildId?: Prisma.StringWithAggregatesFilter<"Event"> | string
   type?: Prisma.EnumEventTypeWithAggregatesFilter<"Event"> | $Enums.EventType
   date?: Prisma.DateTimeWithAggregatesFilter<"Event"> | Date | string
+  finalRosterId?: Prisma.StringNullableWithAggregatesFilter<"Event"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Event"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Event"> | Date | string
 }
@@ -259,6 +274,7 @@ export type EventCreateInput = {
   guild: Prisma.GuildCreateNestedOneWithoutEventsInput
   participations?: Prisma.EventParticipationCreateNestedManyWithoutEventInput
   rosters?: Prisma.RosterCreateNestedManyWithoutEventInput
+  finalRoster?: Prisma.RosterCreateNestedOneWithoutFinalForEventInput
   allocationRuns?: Prisma.AllocationRunCreateNestedManyWithoutEventInput
 }
 
@@ -267,6 +283,7 @@ export type EventUncheckedCreateInput = {
   guildId: string
   type: $Enums.EventType
   date: Date | string
+  finalRosterId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   participations?: Prisma.EventParticipationUncheckedCreateNestedManyWithoutEventInput
@@ -283,6 +300,7 @@ export type EventUpdateInput = {
   guild?: Prisma.GuildUpdateOneRequiredWithoutEventsNestedInput
   participations?: Prisma.EventParticipationUpdateManyWithoutEventNestedInput
   rosters?: Prisma.RosterUpdateManyWithoutEventNestedInput
+  finalRoster?: Prisma.RosterUpdateOneWithoutFinalForEventNestedInput
   allocationRuns?: Prisma.AllocationRunUpdateManyWithoutEventNestedInput
 }
 
@@ -291,6 +309,7 @@ export type EventUncheckedUpdateInput = {
   guildId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumEventTypeFieldUpdateOperationsInput | $Enums.EventType
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  finalRosterId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   participations?: Prisma.EventParticipationUncheckedUpdateManyWithoutEventNestedInput
@@ -303,6 +322,7 @@ export type EventCreateManyInput = {
   guildId: string
   type: $Enums.EventType
   date: Date | string
+  finalRosterId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -320,6 +340,7 @@ export type EventUncheckedUpdateManyInput = {
   guildId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumEventTypeFieldUpdateOperationsInput | $Enums.EventType
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  finalRosterId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -350,6 +371,7 @@ export type EventCountOrderByAggregateInput = {
   guildId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   date?: Prisma.SortOrder
+  finalRosterId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -359,6 +381,7 @@ export type EventMaxOrderByAggregateInput = {
   guildId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   date?: Prisma.SortOrder
+  finalRosterId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -368,6 +391,7 @@ export type EventMinOrderByAggregateInput = {
   guildId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   date?: Prisma.SortOrder
+  finalRosterId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -459,12 +483,44 @@ export type EventCreateNestedOneWithoutRostersInput = {
   connect?: Prisma.EventWhereUniqueInput
 }
 
+export type EventCreateNestedOneWithoutFinalRosterInput = {
+  create?: Prisma.XOR<Prisma.EventCreateWithoutFinalRosterInput, Prisma.EventUncheckedCreateWithoutFinalRosterInput>
+  connectOrCreate?: Prisma.EventCreateOrConnectWithoutFinalRosterInput
+  connect?: Prisma.EventWhereUniqueInput
+}
+
+export type EventUncheckedCreateNestedOneWithoutFinalRosterInput = {
+  create?: Prisma.XOR<Prisma.EventCreateWithoutFinalRosterInput, Prisma.EventUncheckedCreateWithoutFinalRosterInput>
+  connectOrCreate?: Prisma.EventCreateOrConnectWithoutFinalRosterInput
+  connect?: Prisma.EventWhereUniqueInput
+}
+
 export type EventUpdateOneRequiredWithoutRostersNestedInput = {
   create?: Prisma.XOR<Prisma.EventCreateWithoutRostersInput, Prisma.EventUncheckedCreateWithoutRostersInput>
   connectOrCreate?: Prisma.EventCreateOrConnectWithoutRostersInput
   upsert?: Prisma.EventUpsertWithoutRostersInput
   connect?: Prisma.EventWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.EventUpdateToOneWithWhereWithoutRostersInput, Prisma.EventUpdateWithoutRostersInput>, Prisma.EventUncheckedUpdateWithoutRostersInput>
+}
+
+export type EventUpdateOneWithoutFinalRosterNestedInput = {
+  create?: Prisma.XOR<Prisma.EventCreateWithoutFinalRosterInput, Prisma.EventUncheckedCreateWithoutFinalRosterInput>
+  connectOrCreate?: Prisma.EventCreateOrConnectWithoutFinalRosterInput
+  upsert?: Prisma.EventUpsertWithoutFinalRosterInput
+  disconnect?: Prisma.EventWhereInput | boolean
+  delete?: Prisma.EventWhereInput | boolean
+  connect?: Prisma.EventWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EventUpdateToOneWithWhereWithoutFinalRosterInput, Prisma.EventUpdateWithoutFinalRosterInput>, Prisma.EventUncheckedUpdateWithoutFinalRosterInput>
+}
+
+export type EventUncheckedUpdateOneWithoutFinalRosterNestedInput = {
+  create?: Prisma.XOR<Prisma.EventCreateWithoutFinalRosterInput, Prisma.EventUncheckedCreateWithoutFinalRosterInput>
+  connectOrCreate?: Prisma.EventCreateOrConnectWithoutFinalRosterInput
+  upsert?: Prisma.EventUpsertWithoutFinalRosterInput
+  disconnect?: Prisma.EventWhereInput | boolean
+  delete?: Prisma.EventWhereInput | boolean
+  connect?: Prisma.EventWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EventUpdateToOneWithWhereWithoutFinalRosterInput, Prisma.EventUpdateWithoutFinalRosterInput>, Prisma.EventUncheckedUpdateWithoutFinalRosterInput>
 }
 
 export type EventCreateWithoutGuildInput = {
@@ -475,6 +531,7 @@ export type EventCreateWithoutGuildInput = {
   updatedAt?: Date | string
   participations?: Prisma.EventParticipationCreateNestedManyWithoutEventInput
   rosters?: Prisma.RosterCreateNestedManyWithoutEventInput
+  finalRoster?: Prisma.RosterCreateNestedOneWithoutFinalForEventInput
   allocationRuns?: Prisma.AllocationRunCreateNestedManyWithoutEventInput
 }
 
@@ -482,6 +539,7 @@ export type EventUncheckedCreateWithoutGuildInput = {
   id?: string
   type: $Enums.EventType
   date: Date | string
+  finalRosterId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   participations?: Prisma.EventParticipationUncheckedCreateNestedManyWithoutEventInput
@@ -523,6 +581,7 @@ export type EventScalarWhereInput = {
   guildId?: Prisma.StringFilter<"Event"> | string
   type?: Prisma.EnumEventTypeFilter<"Event"> | $Enums.EventType
   date?: Prisma.DateTimeFilter<"Event"> | Date | string
+  finalRosterId?: Prisma.StringNullableFilter<"Event"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Event"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Event"> | Date | string
 }
@@ -536,6 +595,7 @@ export type EventCreateWithoutAllocationRunsInput = {
   guild: Prisma.GuildCreateNestedOneWithoutEventsInput
   participations?: Prisma.EventParticipationCreateNestedManyWithoutEventInput
   rosters?: Prisma.RosterCreateNestedManyWithoutEventInput
+  finalRoster?: Prisma.RosterCreateNestedOneWithoutFinalForEventInput
 }
 
 export type EventUncheckedCreateWithoutAllocationRunsInput = {
@@ -543,6 +603,7 @@ export type EventUncheckedCreateWithoutAllocationRunsInput = {
   guildId: string
   type: $Enums.EventType
   date: Date | string
+  finalRosterId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   participations?: Prisma.EventParticipationUncheckedCreateNestedManyWithoutEventInput
@@ -574,6 +635,7 @@ export type EventUpdateWithoutAllocationRunsInput = {
   guild?: Prisma.GuildUpdateOneRequiredWithoutEventsNestedInput
   participations?: Prisma.EventParticipationUpdateManyWithoutEventNestedInput
   rosters?: Prisma.RosterUpdateManyWithoutEventNestedInput
+  finalRoster?: Prisma.RosterUpdateOneWithoutFinalForEventNestedInput
 }
 
 export type EventUncheckedUpdateWithoutAllocationRunsInput = {
@@ -581,6 +643,7 @@ export type EventUncheckedUpdateWithoutAllocationRunsInput = {
   guildId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumEventTypeFieldUpdateOperationsInput | $Enums.EventType
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  finalRosterId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   participations?: Prisma.EventParticipationUncheckedUpdateManyWithoutEventNestedInput
@@ -595,6 +658,7 @@ export type EventCreateWithoutParticipationsInput = {
   updatedAt?: Date | string
   guild: Prisma.GuildCreateNestedOneWithoutEventsInput
   rosters?: Prisma.RosterCreateNestedManyWithoutEventInput
+  finalRoster?: Prisma.RosterCreateNestedOneWithoutFinalForEventInput
   allocationRuns?: Prisma.AllocationRunCreateNestedManyWithoutEventInput
 }
 
@@ -603,6 +667,7 @@ export type EventUncheckedCreateWithoutParticipationsInput = {
   guildId: string
   type: $Enums.EventType
   date: Date | string
+  finalRosterId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   rosters?: Prisma.RosterUncheckedCreateNestedManyWithoutEventInput
@@ -633,6 +698,7 @@ export type EventUpdateWithoutParticipationsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   guild?: Prisma.GuildUpdateOneRequiredWithoutEventsNestedInput
   rosters?: Prisma.RosterUpdateManyWithoutEventNestedInput
+  finalRoster?: Prisma.RosterUpdateOneWithoutFinalForEventNestedInput
   allocationRuns?: Prisma.AllocationRunUpdateManyWithoutEventNestedInput
 }
 
@@ -641,6 +707,7 @@ export type EventUncheckedUpdateWithoutParticipationsInput = {
   guildId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumEventTypeFieldUpdateOperationsInput | $Enums.EventType
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  finalRosterId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   rosters?: Prisma.RosterUncheckedUpdateManyWithoutEventNestedInput
@@ -655,6 +722,7 @@ export type EventCreateWithoutRostersInput = {
   updatedAt?: Date | string
   guild: Prisma.GuildCreateNestedOneWithoutEventsInput
   participations?: Prisma.EventParticipationCreateNestedManyWithoutEventInput
+  finalRoster?: Prisma.RosterCreateNestedOneWithoutFinalForEventInput
   allocationRuns?: Prisma.AllocationRunCreateNestedManyWithoutEventInput
 }
 
@@ -663,6 +731,7 @@ export type EventUncheckedCreateWithoutRostersInput = {
   guildId: string
   type: $Enums.EventType
   date: Date | string
+  finalRosterId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   participations?: Prisma.EventParticipationUncheckedCreateNestedManyWithoutEventInput
@@ -672,6 +741,35 @@ export type EventUncheckedCreateWithoutRostersInput = {
 export type EventCreateOrConnectWithoutRostersInput = {
   where: Prisma.EventWhereUniqueInput
   create: Prisma.XOR<Prisma.EventCreateWithoutRostersInput, Prisma.EventUncheckedCreateWithoutRostersInput>
+}
+
+export type EventCreateWithoutFinalRosterInput = {
+  id?: string
+  type: $Enums.EventType
+  date: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  guild: Prisma.GuildCreateNestedOneWithoutEventsInput
+  participations?: Prisma.EventParticipationCreateNestedManyWithoutEventInput
+  rosters?: Prisma.RosterCreateNestedManyWithoutEventInput
+  allocationRuns?: Prisma.AllocationRunCreateNestedManyWithoutEventInput
+}
+
+export type EventUncheckedCreateWithoutFinalRosterInput = {
+  id?: string
+  guildId: string
+  type: $Enums.EventType
+  date: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  participations?: Prisma.EventParticipationUncheckedCreateNestedManyWithoutEventInput
+  rosters?: Prisma.RosterUncheckedCreateNestedManyWithoutEventInput
+  allocationRuns?: Prisma.AllocationRunUncheckedCreateNestedManyWithoutEventInput
+}
+
+export type EventCreateOrConnectWithoutFinalRosterInput = {
+  where: Prisma.EventWhereUniqueInput
+  create: Prisma.XOR<Prisma.EventCreateWithoutFinalRosterInput, Prisma.EventUncheckedCreateWithoutFinalRosterInput>
 }
 
 export type EventUpsertWithoutRostersInput = {
@@ -693,6 +791,7 @@ export type EventUpdateWithoutRostersInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   guild?: Prisma.GuildUpdateOneRequiredWithoutEventsNestedInput
   participations?: Prisma.EventParticipationUpdateManyWithoutEventNestedInput
+  finalRoster?: Prisma.RosterUpdateOneWithoutFinalForEventNestedInput
   allocationRuns?: Prisma.AllocationRunUpdateManyWithoutEventNestedInput
 }
 
@@ -701,9 +800,45 @@ export type EventUncheckedUpdateWithoutRostersInput = {
   guildId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumEventTypeFieldUpdateOperationsInput | $Enums.EventType
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  finalRosterId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   participations?: Prisma.EventParticipationUncheckedUpdateManyWithoutEventNestedInput
+  allocationRuns?: Prisma.AllocationRunUncheckedUpdateManyWithoutEventNestedInput
+}
+
+export type EventUpsertWithoutFinalRosterInput = {
+  update: Prisma.XOR<Prisma.EventUpdateWithoutFinalRosterInput, Prisma.EventUncheckedUpdateWithoutFinalRosterInput>
+  create: Prisma.XOR<Prisma.EventCreateWithoutFinalRosterInput, Prisma.EventUncheckedCreateWithoutFinalRosterInput>
+  where?: Prisma.EventWhereInput
+}
+
+export type EventUpdateToOneWithWhereWithoutFinalRosterInput = {
+  where?: Prisma.EventWhereInput
+  data: Prisma.XOR<Prisma.EventUpdateWithoutFinalRosterInput, Prisma.EventUncheckedUpdateWithoutFinalRosterInput>
+}
+
+export type EventUpdateWithoutFinalRosterInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumEventTypeFieldUpdateOperationsInput | $Enums.EventType
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  guild?: Prisma.GuildUpdateOneRequiredWithoutEventsNestedInput
+  participations?: Prisma.EventParticipationUpdateManyWithoutEventNestedInput
+  rosters?: Prisma.RosterUpdateManyWithoutEventNestedInput
+  allocationRuns?: Prisma.AllocationRunUpdateManyWithoutEventNestedInput
+}
+
+export type EventUncheckedUpdateWithoutFinalRosterInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  guildId?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumEventTypeFieldUpdateOperationsInput | $Enums.EventType
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  participations?: Prisma.EventParticipationUncheckedUpdateManyWithoutEventNestedInput
+  rosters?: Prisma.RosterUncheckedUpdateManyWithoutEventNestedInput
   allocationRuns?: Prisma.AllocationRunUncheckedUpdateManyWithoutEventNestedInput
 }
 
@@ -711,6 +846,7 @@ export type EventCreateManyGuildInput = {
   id?: string
   type: $Enums.EventType
   date: Date | string
+  finalRosterId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -723,6 +859,7 @@ export type EventUpdateWithoutGuildInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   participations?: Prisma.EventParticipationUpdateManyWithoutEventNestedInput
   rosters?: Prisma.RosterUpdateManyWithoutEventNestedInput
+  finalRoster?: Prisma.RosterUpdateOneWithoutFinalForEventNestedInput
   allocationRuns?: Prisma.AllocationRunUpdateManyWithoutEventNestedInput
 }
 
@@ -730,6 +867,7 @@ export type EventUncheckedUpdateWithoutGuildInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumEventTypeFieldUpdateOperationsInput | $Enums.EventType
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  finalRosterId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   participations?: Prisma.EventParticipationUncheckedUpdateManyWithoutEventNestedInput
@@ -741,6 +879,7 @@ export type EventUncheckedUpdateManyWithoutGuildInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumEventTypeFieldUpdateOperationsInput | $Enums.EventType
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  finalRosterId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -799,11 +938,13 @@ export type EventSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   guildId?: boolean
   type?: boolean
   date?: boolean
+  finalRosterId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   guild?: boolean | Prisma.GuildDefaultArgs<ExtArgs>
   participations?: boolean | Prisma.Event$participationsArgs<ExtArgs>
   rosters?: boolean | Prisma.Event$rostersArgs<ExtArgs>
+  finalRoster?: boolean | Prisma.Event$finalRosterArgs<ExtArgs>
   allocationRuns?: boolean | Prisma.Event$allocationRunsArgs<ExtArgs>
   _count?: boolean | Prisma.EventCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["event"]>
@@ -813,9 +954,11 @@ export type EventSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   guildId?: boolean
   type?: boolean
   date?: boolean
+  finalRosterId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   guild?: boolean | Prisma.GuildDefaultArgs<ExtArgs>
+  finalRoster?: boolean | Prisma.Event$finalRosterArgs<ExtArgs>
 }, ExtArgs["result"]["event"]>
 
 export type EventSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -823,9 +966,11 @@ export type EventSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   guildId?: boolean
   type?: boolean
   date?: boolean
+  finalRosterId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   guild?: boolean | Prisma.GuildDefaultArgs<ExtArgs>
+  finalRoster?: boolean | Prisma.Event$finalRosterArgs<ExtArgs>
 }, ExtArgs["result"]["event"]>
 
 export type EventSelectScalar = {
@@ -833,23 +978,27 @@ export type EventSelectScalar = {
   guildId?: boolean
   type?: boolean
   date?: boolean
+  finalRosterId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type EventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "guildId" | "type" | "date" | "createdAt" | "updatedAt", ExtArgs["result"]["event"]>
+export type EventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "guildId" | "type" | "date" | "finalRosterId" | "createdAt" | "updatedAt", ExtArgs["result"]["event"]>
 export type EventInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   guild?: boolean | Prisma.GuildDefaultArgs<ExtArgs>
   participations?: boolean | Prisma.Event$participationsArgs<ExtArgs>
   rosters?: boolean | Prisma.Event$rostersArgs<ExtArgs>
+  finalRoster?: boolean | Prisma.Event$finalRosterArgs<ExtArgs>
   allocationRuns?: boolean | Prisma.Event$allocationRunsArgs<ExtArgs>
   _count?: boolean | Prisma.EventCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type EventIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   guild?: boolean | Prisma.GuildDefaultArgs<ExtArgs>
+  finalRoster?: boolean | Prisma.Event$finalRosterArgs<ExtArgs>
 }
 export type EventIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   guild?: boolean | Prisma.GuildDefaultArgs<ExtArgs>
+  finalRoster?: boolean | Prisma.Event$finalRosterArgs<ExtArgs>
 }
 
 export type $EventPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -858,6 +1007,7 @@ export type $EventPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     guild: Prisma.$GuildPayload<ExtArgs>
     participations: Prisma.$EventParticipationPayload<ExtArgs>[]
     rosters: Prisma.$RosterPayload<ExtArgs>[]
+    finalRoster: Prisma.$RosterPayload<ExtArgs> | null
     allocationRuns: Prisma.$AllocationRunPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -865,6 +1015,7 @@ export type $EventPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     guildId: string
     type: $Enums.EventType
     date: Date
+    finalRosterId: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["event"]>
@@ -1264,6 +1415,7 @@ export interface Prisma__EventClient<T, Null = never, ExtArgs extends runtime.Ty
   guild<T extends Prisma.GuildDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.GuildDefaultArgs<ExtArgs>>): Prisma.Prisma__GuildClient<runtime.Types.Result.GetResult<Prisma.$GuildPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   participations<T extends Prisma.Event$participationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Event$participationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EventParticipationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   rosters<T extends Prisma.Event$rostersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Event$rostersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RosterPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  finalRoster<T extends Prisma.Event$finalRosterArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Event$finalRosterArgs<ExtArgs>>): Prisma.Prisma__RosterClient<runtime.Types.Result.GetResult<Prisma.$RosterPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   allocationRuns<T extends Prisma.Event$allocationRunsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Event$allocationRunsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AllocationRunPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1298,6 +1450,7 @@ export interface EventFieldRefs {
   readonly guildId: Prisma.FieldRef<"Event", 'String'>
   readonly type: Prisma.FieldRef<"Event", 'EventType'>
   readonly date: Prisma.FieldRef<"Event", 'DateTime'>
+  readonly finalRosterId: Prisma.FieldRef<"Event", 'String'>
   readonly createdAt: Prisma.FieldRef<"Event", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Event", 'DateTime'>
 }
@@ -1746,6 +1899,25 @@ export type Event$rostersArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   distinct?: Prisma.RosterScalarFieldEnum | Prisma.RosterScalarFieldEnum[]
+}
+
+/**
+ * Event.finalRoster
+ */
+export type Event$finalRosterArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Roster
+   */
+  select?: Prisma.RosterSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Roster
+   */
+  omit?: Prisma.RosterOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RosterInclude<ExtArgs> | null
+  where?: Prisma.RosterWhereInput
 }
 
 /**

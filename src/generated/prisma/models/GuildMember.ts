@@ -51,6 +51,17 @@ export type GuildMemberAvgAggregateOutputType = {
   patk: number | null
   matk: number | null
   hp: number | null
+  guildPercentile: number | null
+  tankScore: number | null
+  tankPercentile: number | null
+  dpsScore: number | null
+  dpsPercentile: number | null
+  pvpScore: number | null
+  pvpPercentile: number | null
+  guildRank: number | null
+  tankRank: number | null
+  dpsRank: number | null
+  pvpRank: number | null
 }
 
 export type GuildMemberSumAggregateOutputType = {
@@ -78,6 +89,17 @@ export type GuildMemberSumAggregateOutputType = {
   patk: number | null
   matk: number | null
   hp: number | null
+  guildPercentile: number | null
+  tankScore: number | null
+  tankPercentile: number | null
+  dpsScore: number | null
+  dpsPercentile: number | null
+  pvpScore: number | null
+  pvpPercentile: number | null
+  guildRank: number | null
+  tankRank: number | null
+  dpsRank: number | null
+  pvpRank: number | null
 }
 
 export type GuildMemberMinAggregateOutputType = {
@@ -116,6 +138,17 @@ export type GuildMemberMinAggregateOutputType = {
   patk: number | null
   matk: number | null
   hp: number | null
+  guildPercentile: number | null
+  tankScore: number | null
+  tankPercentile: number | null
+  dpsScore: number | null
+  dpsPercentile: number | null
+  pvpScore: number | null
+  pvpPercentile: number | null
+  guildRank: number | null
+  tankRank: number | null
+  dpsRank: number | null
+  pvpRank: number | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -156,6 +189,17 @@ export type GuildMemberMaxAggregateOutputType = {
   patk: number | null
   matk: number | null
   hp: number | null
+  guildPercentile: number | null
+  tankScore: number | null
+  tankPercentile: number | null
+  dpsScore: number | null
+  dpsPercentile: number | null
+  pvpScore: number | null
+  pvpPercentile: number | null
+  guildRank: number | null
+  tankRank: number | null
+  dpsRank: number | null
+  pvpRank: number | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -196,6 +240,17 @@ export type GuildMemberCountAggregateOutputType = {
   patk: number
   matk: number
   hp: number
+  guildPercentile: number
+  tankScore: number
+  tankPercentile: number
+  dpsScore: number
+  dpsPercentile: number
+  pvpScore: number
+  pvpPercentile: number
+  guildRank: number
+  tankRank: number
+  dpsRank: number
+  pvpRank: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -227,6 +282,17 @@ export type GuildMemberAvgAggregateInputType = {
   patk?: true
   matk?: true
   hp?: true
+  guildPercentile?: true
+  tankScore?: true
+  tankPercentile?: true
+  dpsScore?: true
+  dpsPercentile?: true
+  pvpScore?: true
+  pvpPercentile?: true
+  guildRank?: true
+  tankRank?: true
+  dpsRank?: true
+  pvpRank?: true
 }
 
 export type GuildMemberSumAggregateInputType = {
@@ -254,6 +320,17 @@ export type GuildMemberSumAggregateInputType = {
   patk?: true
   matk?: true
   hp?: true
+  guildPercentile?: true
+  tankScore?: true
+  tankPercentile?: true
+  dpsScore?: true
+  dpsPercentile?: true
+  pvpScore?: true
+  pvpPercentile?: true
+  guildRank?: true
+  tankRank?: true
+  dpsRank?: true
+  pvpRank?: true
 }
 
 export type GuildMemberMinAggregateInputType = {
@@ -292,6 +369,17 @@ export type GuildMemberMinAggregateInputType = {
   patk?: true
   matk?: true
   hp?: true
+  guildPercentile?: true
+  tankScore?: true
+  tankPercentile?: true
+  dpsScore?: true
+  dpsPercentile?: true
+  pvpScore?: true
+  pvpPercentile?: true
+  guildRank?: true
+  tankRank?: true
+  dpsRank?: true
+  pvpRank?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -332,6 +420,17 @@ export type GuildMemberMaxAggregateInputType = {
   patk?: true
   matk?: true
   hp?: true
+  guildPercentile?: true
+  tankScore?: true
+  tankPercentile?: true
+  dpsScore?: true
+  dpsPercentile?: true
+  pvpScore?: true
+  pvpPercentile?: true
+  guildRank?: true
+  tankRank?: true
+  dpsRank?: true
+  pvpRank?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -372,6 +471,17 @@ export type GuildMemberCountAggregateInputType = {
   patk?: true
   matk?: true
   hp?: true
+  guildPercentile?: true
+  tankScore?: true
+  tankPercentile?: true
+  dpsScore?: true
+  dpsPercentile?: true
+  pvpScore?: true
+  pvpPercentile?: true
+  guildRank?: true
+  tankRank?: true
+  dpsRank?: true
+  pvpRank?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -499,6 +609,17 @@ export type GuildMemberGroupByOutputType = {
   patk: number | null
   matk: number | null
   hp: number | null
+  guildPercentile: number | null
+  tankScore: number | null
+  tankPercentile: number | null
+  dpsScore: number | null
+  dpsPercentile: number | null
+  pvpScore: number | null
+  pvpPercentile: number | null
+  guildRank: number | null
+  tankRank: number | null
+  dpsRank: number | null
+  pvpRank: number | null
   createdAt: Date
   updatedAt: Date
   _count: GuildMemberCountAggregateOutputType | null
@@ -562,6 +683,17 @@ export type GuildMemberWhereInput = {
   patk?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
   matk?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
   hp?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  guildPercentile?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  tankScore?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  tankPercentile?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  dpsScore?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  dpsPercentile?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  pvpScore?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  pvpPercentile?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  guildRank?: Prisma.IntNullableFilter<"GuildMember"> | number | null
+  tankRank?: Prisma.IntNullableFilter<"GuildMember"> | number | null
+  dpsRank?: Prisma.IntNullableFilter<"GuildMember"> | number | null
+  pvpRank?: Prisma.IntNullableFilter<"GuildMember"> | number | null
   createdAt?: Prisma.DateTimeFilter<"GuildMember"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"GuildMember"> | Date | string
   guild?: Prisma.XOR<Prisma.GuildScalarRelationFilter, Prisma.GuildWhereInput>
@@ -611,6 +743,17 @@ export type GuildMemberOrderByWithRelationInput = {
   patk?: Prisma.SortOrderInput | Prisma.SortOrder
   matk?: Prisma.SortOrderInput | Prisma.SortOrder
   hp?: Prisma.SortOrderInput | Prisma.SortOrder
+  guildPercentile?: Prisma.SortOrderInput | Prisma.SortOrder
+  tankScore?: Prisma.SortOrderInput | Prisma.SortOrder
+  tankPercentile?: Prisma.SortOrderInput | Prisma.SortOrder
+  dpsScore?: Prisma.SortOrderInput | Prisma.SortOrder
+  dpsPercentile?: Prisma.SortOrderInput | Prisma.SortOrder
+  pvpScore?: Prisma.SortOrderInput | Prisma.SortOrder
+  pvpPercentile?: Prisma.SortOrderInput | Prisma.SortOrder
+  guildRank?: Prisma.SortOrderInput | Prisma.SortOrder
+  tankRank?: Prisma.SortOrderInput | Prisma.SortOrder
+  dpsRank?: Prisma.SortOrderInput | Prisma.SortOrder
+  pvpRank?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   guild?: Prisma.GuildOrderByWithRelationInput
@@ -664,6 +807,17 @@ export type GuildMemberWhereUniqueInput = Prisma.AtLeast<{
   patk?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
   matk?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
   hp?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  guildPercentile?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  tankScore?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  tankPercentile?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  dpsScore?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  dpsPercentile?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  pvpScore?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  pvpPercentile?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  guildRank?: Prisma.IntNullableFilter<"GuildMember"> | number | null
+  tankRank?: Prisma.IntNullableFilter<"GuildMember"> | number | null
+  dpsRank?: Prisma.IntNullableFilter<"GuildMember"> | number | null
+  pvpRank?: Prisma.IntNullableFilter<"GuildMember"> | number | null
   createdAt?: Prisma.DateTimeFilter<"GuildMember"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"GuildMember"> | Date | string
   guild?: Prisma.XOR<Prisma.GuildScalarRelationFilter, Prisma.GuildWhereInput>
@@ -713,6 +867,17 @@ export type GuildMemberOrderByWithAggregationInput = {
   patk?: Prisma.SortOrderInput | Prisma.SortOrder
   matk?: Prisma.SortOrderInput | Prisma.SortOrder
   hp?: Prisma.SortOrderInput | Prisma.SortOrder
+  guildPercentile?: Prisma.SortOrderInput | Prisma.SortOrder
+  tankScore?: Prisma.SortOrderInput | Prisma.SortOrder
+  tankPercentile?: Prisma.SortOrderInput | Prisma.SortOrder
+  dpsScore?: Prisma.SortOrderInput | Prisma.SortOrder
+  dpsPercentile?: Prisma.SortOrderInput | Prisma.SortOrder
+  pvpScore?: Prisma.SortOrderInput | Prisma.SortOrder
+  pvpPercentile?: Prisma.SortOrderInput | Prisma.SortOrder
+  guildRank?: Prisma.SortOrderInput | Prisma.SortOrder
+  tankRank?: Prisma.SortOrderInput | Prisma.SortOrder
+  dpsRank?: Prisma.SortOrderInput | Prisma.SortOrder
+  pvpRank?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.GuildMemberCountOrderByAggregateInput
@@ -761,6 +926,17 @@ export type GuildMemberScalarWhereWithAggregatesInput = {
   patk?: Prisma.FloatNullableWithAggregatesFilter<"GuildMember"> | number | null
   matk?: Prisma.FloatNullableWithAggregatesFilter<"GuildMember"> | number | null
   hp?: Prisma.FloatNullableWithAggregatesFilter<"GuildMember"> | number | null
+  guildPercentile?: Prisma.FloatNullableWithAggregatesFilter<"GuildMember"> | number | null
+  tankScore?: Prisma.FloatNullableWithAggregatesFilter<"GuildMember"> | number | null
+  tankPercentile?: Prisma.FloatNullableWithAggregatesFilter<"GuildMember"> | number | null
+  dpsScore?: Prisma.FloatNullableWithAggregatesFilter<"GuildMember"> | number | null
+  dpsPercentile?: Prisma.FloatNullableWithAggregatesFilter<"GuildMember"> | number | null
+  pvpScore?: Prisma.FloatNullableWithAggregatesFilter<"GuildMember"> | number | null
+  pvpPercentile?: Prisma.FloatNullableWithAggregatesFilter<"GuildMember"> | number | null
+  guildRank?: Prisma.IntNullableWithAggregatesFilter<"GuildMember"> | number | null
+  tankRank?: Prisma.IntNullableWithAggregatesFilter<"GuildMember"> | number | null
+  dpsRank?: Prisma.IntNullableWithAggregatesFilter<"GuildMember"> | number | null
+  pvpRank?: Prisma.IntNullableWithAggregatesFilter<"GuildMember"> | number | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"GuildMember"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"GuildMember"> | Date | string
 }
@@ -799,6 +975,17 @@ export type GuildMemberCreateInput = {
   patk?: number | null
   matk?: number | null
   hp?: number | null
+  guildPercentile?: number | null
+  tankScore?: number | null
+  tankPercentile?: number | null
+  dpsScore?: number | null
+  dpsPercentile?: number | null
+  pvpScore?: number | null
+  pvpPercentile?: number | null
+  guildRank?: number | null
+  tankRank?: number | null
+  dpsRank?: number | null
+  pvpRank?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   guild: Prisma.GuildCreateNestedOneWithoutMembersInput
@@ -848,6 +1035,17 @@ export type GuildMemberUncheckedCreateInput = {
   patk?: number | null
   matk?: number | null
   hp?: number | null
+  guildPercentile?: number | null
+  tankScore?: number | null
+  tankPercentile?: number | null
+  dpsScore?: number | null
+  dpsPercentile?: number | null
+  pvpScore?: number | null
+  pvpPercentile?: number | null
+  guildRank?: number | null
+  tankRank?: number | null
+  dpsRank?: number | null
+  pvpRank?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   reservations?: Prisma.ReservedAllocationUncheckedCreateNestedManyWithoutMemberInput
@@ -893,6 +1091,17 @@ export type GuildMemberUpdateInput = {
   patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tankRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  dpsRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pvpRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   guild?: Prisma.GuildUpdateOneRequiredWithoutMembersNestedInput
@@ -942,6 +1151,17 @@ export type GuildMemberUncheckedUpdateInput = {
   patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tankRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  dpsRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pvpRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reservations?: Prisma.ReservedAllocationUncheckedUpdateManyWithoutMemberNestedInput
@@ -989,6 +1209,17 @@ export type GuildMemberCreateManyInput = {
   patk?: number | null
   matk?: number | null
   hp?: number | null
+  guildPercentile?: number | null
+  tankScore?: number | null
+  tankPercentile?: number | null
+  dpsScore?: number | null
+  dpsPercentile?: number | null
+  pvpScore?: number | null
+  pvpPercentile?: number | null
+  guildRank?: number | null
+  tankRank?: number | null
+  dpsRank?: number | null
+  pvpRank?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1027,6 +1258,17 @@ export type GuildMemberUpdateManyMutationInput = {
   patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tankRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  dpsRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pvpRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1067,6 +1309,17 @@ export type GuildMemberUncheckedUpdateManyInput = {
   patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tankRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  dpsRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pvpRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1122,6 +1375,17 @@ export type GuildMemberCountOrderByAggregateInput = {
   patk?: Prisma.SortOrder
   matk?: Prisma.SortOrder
   hp?: Prisma.SortOrder
+  guildPercentile?: Prisma.SortOrder
+  tankScore?: Prisma.SortOrder
+  tankPercentile?: Prisma.SortOrder
+  dpsScore?: Prisma.SortOrder
+  dpsPercentile?: Prisma.SortOrder
+  pvpScore?: Prisma.SortOrder
+  pvpPercentile?: Prisma.SortOrder
+  guildRank?: Prisma.SortOrder
+  tankRank?: Prisma.SortOrder
+  dpsRank?: Prisma.SortOrder
+  pvpRank?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -1151,6 +1415,17 @@ export type GuildMemberAvgOrderByAggregateInput = {
   patk?: Prisma.SortOrder
   matk?: Prisma.SortOrder
   hp?: Prisma.SortOrder
+  guildPercentile?: Prisma.SortOrder
+  tankScore?: Prisma.SortOrder
+  tankPercentile?: Prisma.SortOrder
+  dpsScore?: Prisma.SortOrder
+  dpsPercentile?: Prisma.SortOrder
+  pvpScore?: Prisma.SortOrder
+  pvpPercentile?: Prisma.SortOrder
+  guildRank?: Prisma.SortOrder
+  tankRank?: Prisma.SortOrder
+  dpsRank?: Prisma.SortOrder
+  pvpRank?: Prisma.SortOrder
 }
 
 export type GuildMemberMaxOrderByAggregateInput = {
@@ -1189,6 +1464,17 @@ export type GuildMemberMaxOrderByAggregateInput = {
   patk?: Prisma.SortOrder
   matk?: Prisma.SortOrder
   hp?: Prisma.SortOrder
+  guildPercentile?: Prisma.SortOrder
+  tankScore?: Prisma.SortOrder
+  tankPercentile?: Prisma.SortOrder
+  dpsScore?: Prisma.SortOrder
+  dpsPercentile?: Prisma.SortOrder
+  pvpScore?: Prisma.SortOrder
+  pvpPercentile?: Prisma.SortOrder
+  guildRank?: Prisma.SortOrder
+  tankRank?: Prisma.SortOrder
+  dpsRank?: Prisma.SortOrder
+  pvpRank?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -1229,6 +1515,17 @@ export type GuildMemberMinOrderByAggregateInput = {
   patk?: Prisma.SortOrder
   matk?: Prisma.SortOrder
   hp?: Prisma.SortOrder
+  guildPercentile?: Prisma.SortOrder
+  tankScore?: Prisma.SortOrder
+  tankPercentile?: Prisma.SortOrder
+  dpsScore?: Prisma.SortOrder
+  dpsPercentile?: Prisma.SortOrder
+  pvpScore?: Prisma.SortOrder
+  pvpPercentile?: Prisma.SortOrder
+  guildRank?: Prisma.SortOrder
+  tankRank?: Prisma.SortOrder
+  dpsRank?: Prisma.SortOrder
+  pvpRank?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -1258,6 +1555,17 @@ export type GuildMemberSumOrderByAggregateInput = {
   patk?: Prisma.SortOrder
   matk?: Prisma.SortOrder
   hp?: Prisma.SortOrder
+  guildPercentile?: Prisma.SortOrder
+  tankScore?: Prisma.SortOrder
+  tankPercentile?: Prisma.SortOrder
+  dpsScore?: Prisma.SortOrder
+  dpsPercentile?: Prisma.SortOrder
+  pvpScore?: Prisma.SortOrder
+  pvpPercentile?: Prisma.SortOrder
+  guildRank?: Prisma.SortOrder
+  tankRank?: Prisma.SortOrder
+  dpsRank?: Prisma.SortOrder
+  pvpRank?: Prisma.SortOrder
 }
 
 export type GuildMemberScalarRelationFilter = {
@@ -1358,6 +1666,14 @@ export type EnumMemberPriorityFieldUpdateOperationsInput = {
 }
 
 export type NullableFloatFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
+export type NullableIntFieldUpdateOperationsInput = {
   set?: number | null
   increment?: number
   decrement?: number
@@ -1497,6 +1813,17 @@ export type GuildMemberCreateWithoutUserInput = {
   patk?: number | null
   matk?: number | null
   hp?: number | null
+  guildPercentile?: number | null
+  tankScore?: number | null
+  tankPercentile?: number | null
+  dpsScore?: number | null
+  dpsPercentile?: number | null
+  pvpScore?: number | null
+  pvpPercentile?: number | null
+  guildRank?: number | null
+  tankRank?: number | null
+  dpsRank?: number | null
+  pvpRank?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   guild: Prisma.GuildCreateNestedOneWithoutMembersInput
@@ -1544,6 +1871,17 @@ export type GuildMemberUncheckedCreateWithoutUserInput = {
   patk?: number | null
   matk?: number | null
   hp?: number | null
+  guildPercentile?: number | null
+  tankScore?: number | null
+  tankPercentile?: number | null
+  dpsScore?: number | null
+  dpsPercentile?: number | null
+  pvpScore?: number | null
+  pvpPercentile?: number | null
+  guildRank?: number | null
+  tankRank?: number | null
+  dpsRank?: number | null
+  pvpRank?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   reservations?: Prisma.ReservedAllocationUncheckedCreateNestedManyWithoutMemberInput
@@ -1620,6 +1958,17 @@ export type GuildMemberScalarWhereInput = {
   patk?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
   matk?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
   hp?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  guildPercentile?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  tankScore?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  tankPercentile?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  dpsScore?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  dpsPercentile?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  pvpScore?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  pvpPercentile?: Prisma.FloatNullableFilter<"GuildMember"> | number | null
+  guildRank?: Prisma.IntNullableFilter<"GuildMember"> | number | null
+  tankRank?: Prisma.IntNullableFilter<"GuildMember"> | number | null
+  dpsRank?: Prisma.IntNullableFilter<"GuildMember"> | number | null
+  pvpRank?: Prisma.IntNullableFilter<"GuildMember"> | number | null
   createdAt?: Prisma.DateTimeFilter<"GuildMember"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"GuildMember"> | Date | string
 }
@@ -1658,6 +2007,17 @@ export type GuildMemberCreateWithoutGuildInput = {
   patk?: number | null
   matk?: number | null
   hp?: number | null
+  guildPercentile?: number | null
+  tankScore?: number | null
+  tankPercentile?: number | null
+  dpsScore?: number | null
+  dpsPercentile?: number | null
+  pvpScore?: number | null
+  pvpPercentile?: number | null
+  guildRank?: number | null
+  tankRank?: number | null
+  dpsRank?: number | null
+  pvpRank?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user?: Prisma.UserCreateNestedOneWithoutGuildMembersInput
@@ -1705,6 +2065,17 @@ export type GuildMemberUncheckedCreateWithoutGuildInput = {
   patk?: number | null
   matk?: number | null
   hp?: number | null
+  guildPercentile?: number | null
+  tankScore?: number | null
+  tankPercentile?: number | null
+  dpsScore?: number | null
+  dpsPercentile?: number | null
+  pvpScore?: number | null
+  pvpPercentile?: number | null
+  guildRank?: number | null
+  tankRank?: number | null
+  dpsRank?: number | null
+  pvpRank?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   reservations?: Prisma.ReservedAllocationUncheckedCreateNestedManyWithoutMemberInput
@@ -1776,6 +2147,17 @@ export type GuildMemberCreateWithoutLeaveDatesInput = {
   patk?: number | null
   matk?: number | null
   hp?: number | null
+  guildPercentile?: number | null
+  tankScore?: number | null
+  tankPercentile?: number | null
+  dpsScore?: number | null
+  dpsPercentile?: number | null
+  pvpScore?: number | null
+  pvpPercentile?: number | null
+  guildRank?: number | null
+  tankRank?: number | null
+  dpsRank?: number | null
+  pvpRank?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   guild: Prisma.GuildCreateNestedOneWithoutMembersInput
@@ -1824,6 +2206,17 @@ export type GuildMemberUncheckedCreateWithoutLeaveDatesInput = {
   patk?: number | null
   matk?: number | null
   hp?: number | null
+  guildPercentile?: number | null
+  tankScore?: number | null
+  tankPercentile?: number | null
+  dpsScore?: number | null
+  dpsPercentile?: number | null
+  pvpScore?: number | null
+  pvpPercentile?: number | null
+  guildRank?: number | null
+  tankRank?: number | null
+  dpsRank?: number | null
+  pvpRank?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   reservations?: Prisma.ReservedAllocationUncheckedCreateNestedManyWithoutMemberInput
@@ -1884,6 +2277,17 @@ export type GuildMemberUpdateWithoutLeaveDatesInput = {
   patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tankRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  dpsRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pvpRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   guild?: Prisma.GuildUpdateOneRequiredWithoutMembersNestedInput
@@ -1932,6 +2336,17 @@ export type GuildMemberUncheckedUpdateWithoutLeaveDatesInput = {
   patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tankRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  dpsRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pvpRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reservations?: Prisma.ReservedAllocationUncheckedUpdateManyWithoutMemberNestedInput
@@ -1976,6 +2391,17 @@ export type GuildMemberCreateWithoutReservationsInput = {
   patk?: number | null
   matk?: number | null
   hp?: number | null
+  guildPercentile?: number | null
+  tankScore?: number | null
+  tankPercentile?: number | null
+  dpsScore?: number | null
+  dpsPercentile?: number | null
+  pvpScore?: number | null
+  pvpPercentile?: number | null
+  guildRank?: number | null
+  tankRank?: number | null
+  dpsRank?: number | null
+  pvpRank?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   guild: Prisma.GuildCreateNestedOneWithoutMembersInput
@@ -2024,6 +2450,17 @@ export type GuildMemberUncheckedCreateWithoutReservationsInput = {
   patk?: number | null
   matk?: number | null
   hp?: number | null
+  guildPercentile?: number | null
+  tankScore?: number | null
+  tankPercentile?: number | null
+  dpsScore?: number | null
+  dpsPercentile?: number | null
+  pvpScore?: number | null
+  pvpPercentile?: number | null
+  guildRank?: number | null
+  tankRank?: number | null
+  dpsRank?: number | null
+  pvpRank?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   allocationResults?: Prisma.AllocationResultUncheckedCreateNestedManyWithoutMemberInput
@@ -2084,6 +2521,17 @@ export type GuildMemberUpdateWithoutReservationsInput = {
   patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tankRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  dpsRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pvpRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   guild?: Prisma.GuildUpdateOneRequiredWithoutMembersNestedInput
@@ -2132,6 +2580,17 @@ export type GuildMemberUncheckedUpdateWithoutReservationsInput = {
   patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tankRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  dpsRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pvpRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   allocationResults?: Prisma.AllocationResultUncheckedUpdateManyWithoutMemberNestedInput
@@ -2176,6 +2635,17 @@ export type GuildMemberCreateWithoutAllocationResultsInput = {
   patk?: number | null
   matk?: number | null
   hp?: number | null
+  guildPercentile?: number | null
+  tankScore?: number | null
+  tankPercentile?: number | null
+  dpsScore?: number | null
+  dpsPercentile?: number | null
+  pvpScore?: number | null
+  pvpPercentile?: number | null
+  guildRank?: number | null
+  tankRank?: number | null
+  dpsRank?: number | null
+  pvpRank?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   guild: Prisma.GuildCreateNestedOneWithoutMembersInput
@@ -2224,6 +2694,17 @@ export type GuildMemberUncheckedCreateWithoutAllocationResultsInput = {
   patk?: number | null
   matk?: number | null
   hp?: number | null
+  guildPercentile?: number | null
+  tankScore?: number | null
+  tankPercentile?: number | null
+  dpsScore?: number | null
+  dpsPercentile?: number | null
+  pvpScore?: number | null
+  pvpPercentile?: number | null
+  guildRank?: number | null
+  tankRank?: number | null
+  dpsRank?: number | null
+  pvpRank?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   reservations?: Prisma.ReservedAllocationUncheckedCreateNestedManyWithoutMemberInput
@@ -2284,6 +2765,17 @@ export type GuildMemberUpdateWithoutAllocationResultsInput = {
   patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tankRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  dpsRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pvpRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   guild?: Prisma.GuildUpdateOneRequiredWithoutMembersNestedInput
@@ -2332,6 +2824,17 @@ export type GuildMemberUncheckedUpdateWithoutAllocationResultsInput = {
   patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tankRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  dpsRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pvpRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reservations?: Prisma.ReservedAllocationUncheckedUpdateManyWithoutMemberNestedInput
@@ -2376,6 +2879,17 @@ export type GuildMemberCreateWithoutBidSlotsInput = {
   patk?: number | null
   matk?: number | null
   hp?: number | null
+  guildPercentile?: number | null
+  tankScore?: number | null
+  tankPercentile?: number | null
+  dpsScore?: number | null
+  dpsPercentile?: number | null
+  pvpScore?: number | null
+  pvpPercentile?: number | null
+  guildRank?: number | null
+  tankRank?: number | null
+  dpsRank?: number | null
+  pvpRank?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   guild: Prisma.GuildCreateNestedOneWithoutMembersInput
@@ -2424,6 +2938,17 @@ export type GuildMemberUncheckedCreateWithoutBidSlotsInput = {
   patk?: number | null
   matk?: number | null
   hp?: number | null
+  guildPercentile?: number | null
+  tankScore?: number | null
+  tankPercentile?: number | null
+  dpsScore?: number | null
+  dpsPercentile?: number | null
+  pvpScore?: number | null
+  pvpPercentile?: number | null
+  guildRank?: number | null
+  tankRank?: number | null
+  dpsRank?: number | null
+  pvpRank?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   reservations?: Prisma.ReservedAllocationUncheckedCreateNestedManyWithoutMemberInput
@@ -2484,6 +3009,17 @@ export type GuildMemberUpdateWithoutBidSlotsInput = {
   patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tankRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  dpsRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pvpRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   guild?: Prisma.GuildUpdateOneRequiredWithoutMembersNestedInput
@@ -2532,6 +3068,17 @@ export type GuildMemberUncheckedUpdateWithoutBidSlotsInput = {
   patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tankRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  dpsRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pvpRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reservations?: Prisma.ReservedAllocationUncheckedUpdateManyWithoutMemberNestedInput
@@ -2576,6 +3123,17 @@ export type GuildMemberCreateWithoutParticipationsInput = {
   patk?: number | null
   matk?: number | null
   hp?: number | null
+  guildPercentile?: number | null
+  tankScore?: number | null
+  tankPercentile?: number | null
+  dpsScore?: number | null
+  dpsPercentile?: number | null
+  pvpScore?: number | null
+  pvpPercentile?: number | null
+  guildRank?: number | null
+  tankRank?: number | null
+  dpsRank?: number | null
+  pvpRank?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   guild: Prisma.GuildCreateNestedOneWithoutMembersInput
@@ -2624,6 +3182,17 @@ export type GuildMemberUncheckedCreateWithoutParticipationsInput = {
   patk?: number | null
   matk?: number | null
   hp?: number | null
+  guildPercentile?: number | null
+  tankScore?: number | null
+  tankPercentile?: number | null
+  dpsScore?: number | null
+  dpsPercentile?: number | null
+  pvpScore?: number | null
+  pvpPercentile?: number | null
+  guildRank?: number | null
+  tankRank?: number | null
+  dpsRank?: number | null
+  pvpRank?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   reservations?: Prisma.ReservedAllocationUncheckedCreateNestedManyWithoutMemberInput
@@ -2684,6 +3253,17 @@ export type GuildMemberUpdateWithoutParticipationsInput = {
   patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tankRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  dpsRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pvpRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   guild?: Prisma.GuildUpdateOneRequiredWithoutMembersNestedInput
@@ -2732,6 +3312,17 @@ export type GuildMemberUncheckedUpdateWithoutParticipationsInput = {
   patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tankRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  dpsRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pvpRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reservations?: Prisma.ReservedAllocationUncheckedUpdateManyWithoutMemberNestedInput
@@ -2776,6 +3367,17 @@ export type GuildMemberCreateWithoutRosterAssignmentsInput = {
   patk?: number | null
   matk?: number | null
   hp?: number | null
+  guildPercentile?: number | null
+  tankScore?: number | null
+  tankPercentile?: number | null
+  dpsScore?: number | null
+  dpsPercentile?: number | null
+  pvpScore?: number | null
+  pvpPercentile?: number | null
+  guildRank?: number | null
+  tankRank?: number | null
+  dpsRank?: number | null
+  pvpRank?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   guild: Prisma.GuildCreateNestedOneWithoutMembersInput
@@ -2824,6 +3426,17 @@ export type GuildMemberUncheckedCreateWithoutRosterAssignmentsInput = {
   patk?: number | null
   matk?: number | null
   hp?: number | null
+  guildPercentile?: number | null
+  tankScore?: number | null
+  tankPercentile?: number | null
+  dpsScore?: number | null
+  dpsPercentile?: number | null
+  pvpScore?: number | null
+  pvpPercentile?: number | null
+  guildRank?: number | null
+  tankRank?: number | null
+  dpsRank?: number | null
+  pvpRank?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   reservations?: Prisma.ReservedAllocationUncheckedCreateNestedManyWithoutMemberInput
@@ -2884,6 +3497,17 @@ export type GuildMemberUpdateWithoutRosterAssignmentsInput = {
   patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tankRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  dpsRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pvpRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   guild?: Prisma.GuildUpdateOneRequiredWithoutMembersNestedInput
@@ -2932,6 +3556,17 @@ export type GuildMemberUncheckedUpdateWithoutRosterAssignmentsInput = {
   patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tankRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  dpsRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pvpRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reservations?: Prisma.ReservedAllocationUncheckedUpdateManyWithoutMemberNestedInput
@@ -2976,6 +3611,17 @@ export type GuildMemberCreateWithoutPreferredRosterAssignmentsInput = {
   patk?: number | null
   matk?: number | null
   hp?: number | null
+  guildPercentile?: number | null
+  tankScore?: number | null
+  tankPercentile?: number | null
+  dpsScore?: number | null
+  dpsPercentile?: number | null
+  pvpScore?: number | null
+  pvpPercentile?: number | null
+  guildRank?: number | null
+  tankRank?: number | null
+  dpsRank?: number | null
+  pvpRank?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   guild: Prisma.GuildCreateNestedOneWithoutMembersInput
@@ -3024,6 +3670,17 @@ export type GuildMemberUncheckedCreateWithoutPreferredRosterAssignmentsInput = {
   patk?: number | null
   matk?: number | null
   hp?: number | null
+  guildPercentile?: number | null
+  tankScore?: number | null
+  tankPercentile?: number | null
+  dpsScore?: number | null
+  dpsPercentile?: number | null
+  pvpScore?: number | null
+  pvpPercentile?: number | null
+  guildRank?: number | null
+  tankRank?: number | null
+  dpsRank?: number | null
+  pvpRank?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   reservations?: Prisma.ReservedAllocationUncheckedCreateNestedManyWithoutMemberInput
@@ -3084,6 +3741,17 @@ export type GuildMemberUpdateWithoutPreferredRosterAssignmentsInput = {
   patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tankRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  dpsRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pvpRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   guild?: Prisma.GuildUpdateOneRequiredWithoutMembersNestedInput
@@ -3132,6 +3800,17 @@ export type GuildMemberUncheckedUpdateWithoutPreferredRosterAssignmentsInput = {
   patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tankRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  dpsRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pvpRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reservations?: Prisma.ReservedAllocationUncheckedUpdateManyWithoutMemberNestedInput
@@ -3177,6 +3856,17 @@ export type GuildMemberCreateManyUserInput = {
   patk?: number | null
   matk?: number | null
   hp?: number | null
+  guildPercentile?: number | null
+  tankScore?: number | null
+  tankPercentile?: number | null
+  dpsScore?: number | null
+  dpsPercentile?: number | null
+  pvpScore?: number | null
+  pvpPercentile?: number | null
+  guildRank?: number | null
+  tankRank?: number | null
+  dpsRank?: number | null
+  pvpRank?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -3215,6 +3905,17 @@ export type GuildMemberUpdateWithoutUserInput = {
   patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tankRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  dpsRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pvpRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   guild?: Prisma.GuildUpdateOneRequiredWithoutMembersNestedInput
@@ -3262,6 +3963,17 @@ export type GuildMemberUncheckedUpdateWithoutUserInput = {
   patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tankRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  dpsRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pvpRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reservations?: Prisma.ReservedAllocationUncheckedUpdateManyWithoutMemberNestedInput
@@ -3308,6 +4020,17 @@ export type GuildMemberUncheckedUpdateManyWithoutUserInput = {
   patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tankRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  dpsRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pvpRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -3347,6 +4070,17 @@ export type GuildMemberCreateManyGuildInput = {
   patk?: number | null
   matk?: number | null
   hp?: number | null
+  guildPercentile?: number | null
+  tankScore?: number | null
+  tankPercentile?: number | null
+  dpsScore?: number | null
+  dpsPercentile?: number | null
+  pvpScore?: number | null
+  pvpPercentile?: number | null
+  guildRank?: number | null
+  tankRank?: number | null
+  dpsRank?: number | null
+  pvpRank?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -3385,6 +4119,17 @@ export type GuildMemberUpdateWithoutGuildInput = {
   patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tankRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  dpsRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pvpRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneWithoutGuildMembersNestedInput
@@ -3432,6 +4177,17 @@ export type GuildMemberUncheckedUpdateWithoutGuildInput = {
   patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tankRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  dpsRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pvpRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reservations?: Prisma.ReservedAllocationUncheckedUpdateManyWithoutMemberNestedInput
@@ -3478,6 +4234,17 @@ export type GuildMemberUncheckedUpdateManyWithoutGuildInput = {
   patk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   matk?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  tankPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  dpsPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpScore?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  pvpPercentile?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guildRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tankRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  dpsRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pvpRank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -3603,6 +4370,17 @@ export type GuildMemberSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   patk?: boolean
   matk?: boolean
   hp?: boolean
+  guildPercentile?: boolean
+  tankScore?: boolean
+  tankPercentile?: boolean
+  dpsScore?: boolean
+  dpsPercentile?: boolean
+  pvpScore?: boolean
+  pvpPercentile?: boolean
+  guildRank?: boolean
+  tankRank?: boolean
+  dpsRank?: boolean
+  pvpRank?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   guild?: boolean | Prisma.GuildDefaultArgs<ExtArgs>
@@ -3653,6 +4431,17 @@ export type GuildMemberSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   patk?: boolean
   matk?: boolean
   hp?: boolean
+  guildPercentile?: boolean
+  tankScore?: boolean
+  tankPercentile?: boolean
+  dpsScore?: boolean
+  dpsPercentile?: boolean
+  pvpScore?: boolean
+  pvpPercentile?: boolean
+  guildRank?: boolean
+  tankRank?: boolean
+  dpsRank?: boolean
+  pvpRank?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   guild?: boolean | Prisma.GuildDefaultArgs<ExtArgs>
@@ -3695,6 +4484,17 @@ export type GuildMemberSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   patk?: boolean
   matk?: boolean
   hp?: boolean
+  guildPercentile?: boolean
+  tankScore?: boolean
+  tankPercentile?: boolean
+  dpsScore?: boolean
+  dpsPercentile?: boolean
+  pvpScore?: boolean
+  pvpPercentile?: boolean
+  guildRank?: boolean
+  tankRank?: boolean
+  dpsRank?: boolean
+  pvpRank?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   guild?: boolean | Prisma.GuildDefaultArgs<ExtArgs>
@@ -3737,11 +4537,22 @@ export type GuildMemberSelectScalar = {
   patk?: boolean
   matk?: boolean
   hp?: boolean
+  guildPercentile?: boolean
+  tankScore?: boolean
+  tankPercentile?: boolean
+  dpsScore?: boolean
+  dpsPercentile?: boolean
+  pvpScore?: boolean
+  pvpPercentile?: boolean
+  guildRank?: boolean
+  tankRank?: boolean
+  dpsRank?: boolean
+  pvpRank?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type GuildMemberOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "guildId" | "userId" | "discordUserId" | "discordUsername" | "characterName" | "job" | "active" | "eligible" | "priority" | "remarks" | "pdef" | "mdef" | "pvpDamageBonus" | "pvpDamageReduction" | "pdmgPercent" | "mdmgPercent" | "pdmgReductionPercent" | "mdmgReductionPercent" | "critRes" | "ignorePdef" | "ignoreMdef" | "damageVsMedium" | "damageReductionVsMedium" | "damageVsSmall" | "damageReductionVsSmall" | "damageVsDemiHuman" | "damageReductionVsDemiHuman" | "damageVsBrute" | "damageReductionVsBrute" | "equipmentPdefPercent" | "equipmentMdefPercent" | "patk" | "matk" | "hp" | "createdAt" | "updatedAt", ExtArgs["result"]["guildMember"]>
+export type GuildMemberOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "guildId" | "userId" | "discordUserId" | "discordUsername" | "characterName" | "job" | "active" | "eligible" | "priority" | "remarks" | "pdef" | "mdef" | "pvpDamageBonus" | "pvpDamageReduction" | "pdmgPercent" | "mdmgPercent" | "pdmgReductionPercent" | "mdmgReductionPercent" | "critRes" | "ignorePdef" | "ignoreMdef" | "damageVsMedium" | "damageReductionVsMedium" | "damageVsSmall" | "damageReductionVsSmall" | "damageVsDemiHuman" | "damageReductionVsDemiHuman" | "damageVsBrute" | "damageReductionVsBrute" | "equipmentPdefPercent" | "equipmentMdefPercent" | "patk" | "matk" | "hp" | "guildPercentile" | "tankScore" | "tankPercentile" | "dpsScore" | "dpsPercentile" | "pvpScore" | "pvpPercentile" | "guildRank" | "tankRank" | "dpsRank" | "pvpRank" | "createdAt" | "updatedAt", ExtArgs["result"]["guildMember"]>
 export type GuildMemberInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   guild?: boolean | Prisma.GuildDefaultArgs<ExtArgs>
   user?: boolean | Prisma.GuildMember$userArgs<ExtArgs>
@@ -3812,6 +4623,17 @@ export type $GuildMemberPayload<ExtArgs extends runtime.Types.Extensions.Interna
     patk: number | null
     matk: number | null
     hp: number | null
+    guildPercentile: number | null
+    tankScore: number | null
+    tankPercentile: number | null
+    dpsScore: number | null
+    dpsPercentile: number | null
+    pvpScore: number | null
+    pvpPercentile: number | null
+    guildRank: number | null
+    tankRank: number | null
+    dpsRank: number | null
+    pvpRank: number | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["guildMember"]>
@@ -4281,6 +5103,17 @@ export interface GuildMemberFieldRefs {
   readonly patk: Prisma.FieldRef<"GuildMember", 'Float'>
   readonly matk: Prisma.FieldRef<"GuildMember", 'Float'>
   readonly hp: Prisma.FieldRef<"GuildMember", 'Float'>
+  readonly guildPercentile: Prisma.FieldRef<"GuildMember", 'Float'>
+  readonly tankScore: Prisma.FieldRef<"GuildMember", 'Float'>
+  readonly tankPercentile: Prisma.FieldRef<"GuildMember", 'Float'>
+  readonly dpsScore: Prisma.FieldRef<"GuildMember", 'Float'>
+  readonly dpsPercentile: Prisma.FieldRef<"GuildMember", 'Float'>
+  readonly pvpScore: Prisma.FieldRef<"GuildMember", 'Float'>
+  readonly pvpPercentile: Prisma.FieldRef<"GuildMember", 'Float'>
+  readonly guildRank: Prisma.FieldRef<"GuildMember", 'Int'>
+  readonly tankRank: Prisma.FieldRef<"GuildMember", 'Int'>
+  readonly dpsRank: Prisma.FieldRef<"GuildMember", 'Int'>
+  readonly pvpRank: Prisma.FieldRef<"GuildMember", 'Int'>
   readonly createdAt: Prisma.FieldRef<"GuildMember", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"GuildMember", 'DateTime'>
 }
