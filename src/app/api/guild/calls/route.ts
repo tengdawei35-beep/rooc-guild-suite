@@ -25,8 +25,8 @@ export async function POST(request: Request) {
     if(!requirements.length)return NextResponse.json({error:"Add at least one required job or role."},{status:400});
     if(requirements.some((r:any)=>!String(r.requirement??"").trim()||!Number.isInteger(Number(r.quantity))||Number(r.quantity)<1||Number(r.quantity)>50))return NextResponse.json({error:"Each requirement must have a valid quantity."},{status:400});
     await ensureCallTables();
-    const webhookRows=await prisma.$queryRawUnsafe<Array<{callsWebhookUrl:string|null}>>(`SELECT "callsWebhookUrl" FROM "GuildNotificationConfig" WHERE "guildId"=$1 LIMIT 1`,auth.guild.id);
-    const webhookUrl=webhookRows[0]?.callsWebhookUrl??null;
+    const webhookRows=await prisma.$queryRawUnsafe<Array<{webhook_url:string|null}>>(`SELECT webhook_url FROM "guild_call_webhooks" WHERE guild_id=$1 LIMIT 1`,auth.guild.id);
+    const webhookUrl=webhookRows[0]?.webhook_url??null;
     const id=newId("call");
     await prisma.$executeRawUnsafe(`INSERT INTO "guild_calls" (id,guild_id,creator_user_id,title,description,start_at,discord_webhook_url) VALUES ($1,$2,$3,$4,$5,$6,$7)`,id,auth.guild.id,auth.user.id,title,description,startAt,webhookUrl);
     for(const requirement of requirements)await prisma.$executeRawUnsafe(`INSERT INTO "guild_call_requirements" (id,call_id,requirement,quantity) VALUES ($1,$2,$3,$4)`,newId("req"),id,String(requirement.requirement).trim(),Number(requirement.quantity));
