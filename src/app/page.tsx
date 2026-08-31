@@ -3,12 +3,14 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentAuth, hasPermission } from "@/lib/auth";
 import { hasGuildModule, RESOURCE_SUITE_MODULE } from "@/lib/auth/modules";
 import { getGuildSubscriptionEntitlement } from "@/lib/billing/entitlement-status";
+import { getPlatformAdmin } from "@/lib/platform-admin";
 
 const DISCORD_URL = "https://discord.gg/NrT2RKnh8M";
 
 export default async function Home() {
   const auth = await getCurrentAuth();
   if (!auth) return <PublicLanding />;
+  const isPlatformAdmin = Boolean(await getPlatformAdmin());
   const subscription = await getGuildSubscriptionEntitlement(auth.guild.id);
   const hasResourceSuite = await hasGuildModule(auth.guild.id, RESOURCE_SUITE_MODULE);
   const guild = await prisma.guild.findUnique({ where: { id: auth.guild.id }, include: { members: { where: { active: true }, orderBy: { updatedAt: "desc" }, take: 6 }, resources: { where: { active: true } }, reservedAllocations: true, allocationRuns: { orderBy: { createdAt: "desc" }, take: 5, include: { event: true, bidPages: true } }, events: { orderBy: { date: "desc" }, take: 5, include: { rosters: true } }, _count: { select: { members: { where: { active: true } } } } } });
@@ -34,6 +36,27 @@ export default async function Home() {
   const recentApplicantActivity = applicantActivity.sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 5);
   return <main className="min-h-screen bg-zinc-950 text-white"><div className="mx-auto max-w-7xl px-6 py-10">
     <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"><div><p className="mb-2 text-sm font-medium uppercase tracking-widest text-zinc-500">ROO Guild Suite</p><h1 className="text-4xl font-bold tracking-tight">Guild Dashboard</h1><p className="mt-2 text-zinc-400">Manage your guild, events, rosters, resources and allocations.</p></div><div className="flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2"><span className="max-w-40 truncate text-sm text-zinc-300">{auth.user.username}</span><form action="/api/auth/logout" method="POST"><button type="submit" className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-300 transition hover:border-zinc-500 hover:bg-zinc-800 hover:text-white">Log out</button></form></div></header>
+      {isPlatformAdmin && <section className="mb-6">
+    <Link
+      href="/admin"
+      className="group block rounded-2xl border border-zinc-700 bg-zinc-900 p-6 transition hover:border-zinc-500 hover:bg-zinc-800"
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-medium uppercase tracking-widest text-zinc-500">
+            Platform Administration
+          </p>
+          <h2 className="mt-1 text-xl font-semibold">Admin</h2>
+          <p className="mt-2 text-sm leading-6 text-zinc-400">
+            Platform-level tools for guild creators, affiliates, subscriptions and system administration.
+          </p>
+        </div>
+        <span className="text-zinc-500 transition group-hover:translate-x-1 group-hover:text-white">
+          →
+        </span>
+      </div>
+    </Link>
+  </section>}
     {!guild ? <section className="rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/50 p-10 text-center"><h2 className="text-xl font-semibold">No guild configured</h2><p className="mt-2 text-sm text-zinc-400">Your ROO Guild Suite database is connected, but no guild has been created yet.</p><Link href="/guild" className="mt-6 inline-flex rounded-lg bg-white px-5 py-3 font-medium text-black">Configure Guild</Link></section> : <>
       <section className="mb-6 rounded-2xl border border-zinc-800 bg-zinc-900 p-6"><p className="text-sm text-zinc-500">Guild</p><h2 className="mt-1 text-2xl font-semibold">{guild.name}</h2><p className="mt-1 text-sm text-zinc-500">Discord Guild ID: {guild.discordGuildId}</p></section>
       <section className="mb-6 rounded-2xl border border-zinc-700 bg-zinc-900 p-6"><div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-sm font-medium uppercase tracking-widest text-zinc-500">Your Character</p><h2 className="mt-1 text-xl font-semibold">{ownMember?.characterName ?? "Member profile"}</h2><p className="mt-1 text-sm text-zinc-400">Keep your ROO stats up to date by uploading your latest character screenshots.</p></div>{ownMember ? <div className="flex flex-wrap gap-2"><Link href={`/guild/members/ocr?memberId=${ownMember.id}`} className="inline-flex w-fit rounded-lg bg-white px-5 py-2.5 text-sm font-medium text-black transition hover:bg-zinc-200">Update stats via OCR →</Link><Link href="/guild/members/leave" className="inline-flex w-fit rounded-lg border border-zinc-700 px-5 py-2.5 text-sm font-medium text-white transition hover:border-zinc-500 hover:bg-zinc-800">Apply Leave</Link></div> : <Link href="/guild/members" className="inline-flex w-fit rounded-lg border border-zinc-700 px-5 py-2.5 text-sm font-medium text-white transition hover:border-zinc-500 hover:bg-zinc-800">View member profile</Link>}</div></section>
