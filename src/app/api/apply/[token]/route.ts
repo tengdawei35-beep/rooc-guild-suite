@@ -39,7 +39,6 @@ export async function POST(request: Request, context: { params: Promise<{ token:
   if (!job) return NextResponse.json({ error: "Job is required." }, { status: 400 });
 
   const applicantStats = Object.fromEntries(STAT_FIELDS.map((field) => [field, cleanNumber(body[field])])) as Record<(typeof STAT_FIELDS)[number], number>;
-
   const members = await prisma.guildMember.findMany({
     where: { guildId: invite.guildId, active: true },
     select: {
@@ -51,13 +50,10 @@ export async function POST(request: Request, context: { params: Promise<{ token:
       patk: true, matk: true, hp: true,
     },
   });
-
   const scored = scoreRooPlayers([...members, { ...applicantStats, job }]);
   const applicant = scored[scored.length - 1];
-  const existingApplicationId = typeof body.applicationId === "string" ? body.applicationId : null;
-  const existingApplication = existingApplicationId
-    ? await prisma.guildApplicant.findFirst({ where: { id: existingApplicationId, guildId: invite.guildId, discordUserId: user.discordId } })
-    : null;
+  const existing = await prisma.guildApplicant.findUnique({ where: { guildId_discordUserId: { guildId: invite.guildId, discordUserId: user.discordId } } });
+  if (existing?.status === "ACCEPTED") return NextResponse.json({ error: "Your application has already been accepted." }, { status: 409 });
 
   const payload = {
     inviteId: invite.id,
@@ -80,8 +76,8 @@ export async function POST(request: Request, context: { params: Promise<{ token:
     decidedByUserId: null,
   };
 
-  const saved = existingApplication
-    ? await prisma.guildApplicant.update({ where: { id: existingApplication.id }, data: payload })
+  const saved = existing
+    ? await prisma.guildApplicant.update({ where: { id: existing.id }, data: payload })
     : await prisma.guildApplicant.create({ data: { guildId: invite.guildId, ...payload } });
 
   return NextResponse.json({ application: saved });
