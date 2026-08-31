@@ -6,88 +6,14 @@ export type CallParticipantStatus = "ACTIVE" | "WAITLIST";
 const SUPPORT_JOBS = new Set(["High Priest", "Bard", "Gypsy", "Biochemist (Plant)", "Doram (Support)", "Lord Knight"]);
 export const GENERIC_ROLES = ["DPS"] as const;
 
-export function requirementMatchesJob(requirement: string, job: string | null | undefined) {
-  if (!job) return false;
-  if (requirement === "DPS") return !SUPPORT_JOBS.has(job);
-  return requirement === job;
-}
+export function requirementMatchesJob(requirement: string, job: string | null | undefined) { if (!job) return false; if (requirement === "DPS") return !SUPPORT_JOBS.has(job); return requirement === job; }
 
 export async function ensureCallTables() {
-  await prisma.$executeRawUnsafe(`
-    CREATE TABLE IF NOT EXISTS "guild_calls" (
-      "id" text PRIMARY KEY, "guild_id" text NOT NULL, "creator_user_id" text NOT NULL,
-      "title" text NOT NULL, "description" text, "start_at" timestamptz NOT NULL,
-      "status" text NOT NULL DEFAULT 'OPEN', "discord_webhook_url" text,
-      "announced_at" timestamptz, "reminder_sent_at" timestamptz,
-      "created_at" timestamptz NOT NULL DEFAULT now(), "updated_at" timestamptz NOT NULL DEFAULT now()
-    );
-    CREATE INDEX IF NOT EXISTS "guild_calls_guild_start_idx" ON "guild_calls" ("guild_id", "start_at");
-    CREATE TABLE IF NOT EXISTS "guild_call_requirements" (
-      "id" text PRIMARY KEY, "call_id" text NOT NULL, "requirement" text NOT NULL,
-      "quantity" integer NOT NULL, "created_at" timestamptz NOT NULL DEFAULT now()
-    );
-    CREATE INDEX IF NOT EXISTS "guild_call_requirements_call_idx" ON "guild_call_requirements" ("call_id");
-    CREATE TABLE IF NOT EXISTS "guild_call_participants" (
-      "id" text PRIMARY KEY, "call_id" text NOT NULL, "requirement_id" text NOT NULL,
-      "member_id" text NOT NULL, "status" text NOT NULL DEFAULT 'ACTIVE',
-      "signed_up_at" timestamptz NOT NULL DEFAULT now(), "updated_at" timestamptz NOT NULL DEFAULT now(),
-      UNIQUE ("call_id", "member_id")
-    );
-    CREATE INDEX IF NOT EXISTS "guild_call_participants_call_idx" ON "guild_call_participants" ("call_id");
-    CREATE TABLE IF NOT EXISTS "guild_call_webhooks" (
-      "guild_id" text PRIMARY KEY, "webhook_url" text NOT NULL, "updated_at" timestamptz NOT NULL DEFAULT now()
-    );
-  `);
+  await prisma.$executeRawUnsafe(`CREATE TABLE IF NOT EXISTS "guild_calls" ("id" text PRIMARY KEY,"guild_id" text NOT NULL,"creator_user_id" text NOT NULL,"title" text NOT NULL,"description" text,"start_at" timestamptz NOT NULL,"status" text NOT NULL DEFAULT 'OPEN',"discord_webhook_url" text,"announced_at" timestamptz,"reminder_sent_at" timestamptz,"created_at" timestamptz NOT NULL DEFAULT now(),"updated_at" timestamptz NOT NULL DEFAULT now()); CREATE INDEX IF NOT EXISTS "guild_calls_guild_start_idx" ON "guild_calls" ("guild_id","start_at"); CREATE TABLE IF NOT EXISTS "guild_call_requirements" ("id" text PRIMARY KEY,"call_id" text NOT NULL,"requirement" text NOT NULL,"quantity" integer NOT NULL,"created_at" timestamptz NOT NULL DEFAULT now()); CREATE INDEX IF NOT EXISTS "guild_call_requirements_call_idx" ON "guild_call_requirements" ("call_id"); CREATE TABLE IF NOT EXISTS "guild_call_participants" ("id" text PRIMARY KEY,"call_id" text NOT NULL,"requirement_id" text NOT NULL,"member_id" text NOT NULL,"status" text NOT NULL DEFAULT 'ACTIVE',"signed_up_at" timestamptz NOT NULL DEFAULT now(),"updated_at" timestamptz NOT NULL DEFAULT now(),UNIQUE ("call_id","member_id")); CREATE INDEX IF NOT EXISTS "guild_call_participants_call_idx" ON "guild_call_participants" ("call_id"); CREATE TABLE IF NOT EXISTS "guild_call_webhooks" ("guild_id" text PRIMARY KEY,"webhook_url" text NOT NULL,"updated_at" timestamptz NOT NULL DEFAULT now());`);
 }
-
 export function newId(prefix: string) { return `${prefix}_${crypto.randomUUID().replaceAll("-", "")}`; }
-
-export async function refreshCallStatus(callId: string) {
-  await ensureCallTables();
-  const rows = await prisma.$queryRawUnsafe<Array<{ required: bigint; active: bigint; status: string }>>(`
-    SELECT COALESCE((SELECT SUM(quantity) FROM "guild_call_requirements" WHERE call_id = $1),0) required,
-      COALESCE((SELECT COUNT(*) FROM "guild_call_participants" WHERE call_id = $1 AND status = 'ACTIVE'),0) active,
-      (SELECT status FROM "guild_calls" WHERE id = $1) status
-  `, callId);
-  const row = rows[0];
-  if (!row || ["CANCELLED", "COMPLETED"].includes(row.status)) return row?.status as CallStatus | undefined;
-  const next = Number(row.active) >= Number(row.required) ? "FILLED" : "OPEN";
-  if (next !== row.status) await prisma.$executeRawUnsafe(`UPDATE "guild_calls" SET status = $2, updated_at = now() WHERE id = $1`, callId, next);
-  return next as CallStatus;
-}
-
-async function sendWebhook(url: string, content: string) {
-  const response = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ content }), cache: "no-store" });
-  if (!response.ok) throw new Error(`Discord webhook returned ${response.status}`);
-}
-
-export async function announceFilledCall(callId: string) {
-  await ensureCallTables();
-  const rows = await prisma.$queryRawUnsafe<any[]>(`SELECT c.*, u.username AS creator_username FROM "guild_calls" c JOIN "User" u ON u.id = c.creator_user_id WHERE c.id = $1`, callId);
-  const call = rows[0];
-  if (!call?.discord_webhook_url || call.announced_at || call.status !== "FILLED") return;
-  const requirements = await prisma.$queryRawUnsafe<any[]>(`SELECT id, requirement, quantity FROM "guild_call_requirements" WHERE call_id = $1 ORDER BY created_at`, callId);
-  const participants = await prisma.$queryRawUnsafe<any[]>(`SELECT p.requirement_id, p.status, m.character_name, m.discord_username, m.discord_user_id FROM "guild_call_participants" p JOIN "GuildMember" m ON m.id = p.member_id WHERE p.call_id = $1 ORDER BY p.signed_up_at`, callId);
-  const lines = requirements.map((r) => {
-    const names = participants.filter((p) => p.requirement_id === r.id && p.status === "ACTIVE").map((p) => p.character_name || p.discord_username || "Member");
-    return `${r.requirement} × ${r.quantity}: ${names.join(", ") || "—"}`;
-  });
-  const when = new Date(call.start_at).toLocaleString("en-MY", { timeZone: "Asia/Kuala_Lumpur", dateStyle: "medium", timeStyle: "short" });
-  const link = `${process.env.NEXT_PUBLIC_APP_URL || ""}/guild/calls/${callId}`;
-  const content = `🎉 **CALL TO ARMS — PARTY READY**\n**${call.title}**\n${when}\nCreated by ${call.creator_username}\n\n${lines.join("\n")}\n\n👉 ${link}`;
-  await sendWebhook(call.discord_webhook_url, content);
-  await prisma.$executeRawUnsafe(`UPDATE "guild_calls" SET announced_at = now(), updated_at = now() WHERE id = $1`, callId);
-}
-
-export async function sendReminder(callId: string) {
-  await ensureCallTables();
-  const rows = await prisma.$queryRawUnsafe<any[]>(`SELECT c.*, u.username AS creator_username FROM "guild_calls" c JOIN "User" u ON u.id = c.creator_user_id WHERE c.id = $1`, callId);
-  const call = rows[0];
-  if (!call?.discord_webhook_url || call.reminder_sent_at || !["FILLED", "CONFIRMED"].includes(call.status)) return;
-  const participants = await prisma.$queryRawUnsafe<any[]>(`SELECT p.requirement_id, m.character_name, m.discord_username, m.discord_user_id, r.requirement FROM "guild_call_participants" p JOIN "GuildMember" m ON m.id = p.member_id JOIN "guild_call_requirements" r ON r.id = p.requirement_id WHERE p.call_id = $1 AND p.status = 'ACTIVE' ORDER BY p.signed_up_at`, callId);
-  const mentions = participants.map((p) => p.discord_user_id ? `<@${p.discord_user_id}>` : (p.character_name || p.discord_username || "Member")).join(" ");
-  const when = new Date(call.start_at).toLocaleString("en-MY", { timeZone: "Asia/Kuala_Lumpur", dateStyle: "medium", timeStyle: "short" });
-  const link = `${process.env.NEXT_PUBLIC_APP_URL || ""}/guild/calls/${callId}`;
-  await sendWebhook(call.discord_webhook_url, `⏰ **CALL TO ARMS — 30 MINUTES**\n**${call.title}**\nStarts: ${when}\n\n${mentions}\n\n👉 ${link}`);
-  await prisma.$executeRawUnsafe(`UPDATE "guild_calls" SET reminder_sent_at = now(), updated_at = now() WHERE id = $1`, callId);
-}
+export async function refreshCallStatus(callId: string) { await ensureCallTables(); const rows = await prisma.$queryRawUnsafe<Array<{ required: bigint; active: bigint; status: string }>>(`SELECT COALESCE((SELECT SUM(quantity) FROM "guild_call_requirements" WHERE call_id = $1),0) required,COALESCE((SELECT COUNT(*) FROM "guild_call_participants" WHERE call_id = $1 AND status = 'ACTIVE'),0) active,(SELECT status FROM "guild_calls" WHERE id = $1) status`, callId); const row = rows[0]; if (!row || ["CANCELLED","COMPLETED"].includes(row.status)) return row?.status as CallStatus | undefined; const next = Number(row.active) >= Number(row.required) ? "FILLED" : "OPEN"; if (next !== row.status) await prisma.$executeRawUnsafe(`UPDATE "guild_calls" SET status = $2, updated_at = now() WHERE id = $1`, callId, next); return next as CallStatus; }
+async function sendWebhook(url: string, content: string) { const response = await fetch(url,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({content}),cache:"no-store"}); if (!response.ok) throw new Error(`Discord webhook returned ${response.status}`); }
+function appUrl() { return process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : ""); }
+export async function announceFilledCall(callId: string) { await ensureCallTables(); const rows = await prisma.$queryRawUnsafe<any[]>(`SELECT c.*,u.username AS creator_username FROM "guild_calls" c JOIN "User" u ON u.id=c.creator_user_id WHERE c.id=$1`,callId); const call=rows[0]; if(!call?.discord_webhook_url||call.announced_at||call.status!=="FILLED")return; const requirements=await prisma.$queryRawUnsafe<any[]>(`SELECT id,requirement,quantity FROM "guild_call_requirements" WHERE call_id=$1 ORDER BY created_at`,callId); const participants=await prisma.$queryRawUnsafe<any[]>(`SELECT p.requirement_id,p.status,m.character_name,m.discord_username,m.discord_user_id FROM "guild_call_participants" p JOIN "GuildMember" m ON m.id=p.member_id WHERE p.call_id=$1 ORDER BY p.signed_up_at`,callId); const lines=requirements.map(r=>`${r.requirement} × ${r.quantity}: ${participants.filter(p=>p.requirement_id===r.id&&p.status==="ACTIVE").map(p=>p.character_name||p.discord_username||"Member").join(", ")||"—"}`); const when=new Date(call.start_at).toLocaleString("en-MY",{timeZone:"Asia/Kuala_Lumpur",dateStyle:"medium",timeStyle:"short"}); await sendWebhook(call.discord_webhook_url,`🎉 **CALL TO ARMS — PARTY READY**\n**${call.title}**\n${when}\nCreated by ${call.creator_username}\n\n${lines.join("\n")}\n\n👉 ${appUrl()}/guild/calls/${callId}`); await prisma.$executeRawUnsafe(`UPDATE "guild_calls" SET announced_at=now(),updated_at=now() WHERE id=$1`,callId); }
+export async function sendReminder(callId: string) { await ensureCallTables(); const rows=await prisma.$queryRawUnsafe<any[]>(`SELECT c.*,u.username AS creator_username FROM "guild_calls" c JOIN "User" u ON u.id=c.creator_user_id WHERE c.id=$1`,callId); const call=rows[0]; if(!call?.discord_webhook_url||call.reminder_sent_at||!["FILLED","CONFIRMED"].includes(call.status))return; const participants=await prisma.$queryRawUnsafe<any[]>(`SELECT p.requirement_id,m.character_name,m.discord_username,m.discord_user_id FROM "guild_call_participants" p JOIN "GuildMember" m ON m.id=p.member_id WHERE p.call_id=$1 AND p.status='ACTIVE' ORDER BY p.signed_up_at`,callId); const mentions=participants.map(p=>p.discord_user_id?`<@${p.discord_user_id}>`:(p.character_name||p.discord_username||"Member")).join(" "); const when=new Date(call.start_at).toLocaleString("en-MY",{timeZone:"Asia/Kuala_Lumpur",dateStyle:"medium",timeStyle:"short"}); await sendWebhook(call.discord_webhook_url,`⏰ **CALL TO ARMS — 30 MINUTES**\n**${call.title}**\nStarts: ${when}\n\n${mentions}\n\n👉 ${appUrl()}/guild/calls/${callId}`); await prisma.$executeRawUnsafe(`UPDATE "guild_calls" SET reminder_sent_at=now(),updated_at=now() WHERE id=$1`,callId); }
