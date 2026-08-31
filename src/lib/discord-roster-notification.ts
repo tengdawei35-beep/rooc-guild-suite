@@ -41,6 +41,7 @@ export async function notifyRosterPublished(input: {
 }) {
   try {
     const config = await getNotificationConfig(input.guildId);
+    // Published rosters use the dedicated roster webhook, never the Call To Arms webhook.
     const webhook = config?.rosterWebhookUrl;
     if (!webhook) return false;
 
@@ -89,11 +90,11 @@ export async function notifyRosterPublished(input: {
       embeds: [
         {
           title: `📋  ROSTER PUBLISHED  •  ${roster.name}`,
-          description: `The final roster for **${eventLabel}** has been published and is now visible to the guild.`,
+          description: `**${eventLabel}** final roster has been published and is now ready for the guild.`,
           color: 5793266,
           fields: [
             {
-              name: "📅  EVENT",
+              name: "📅  DATE & TIME",
               value: `${serverTime(event.date)}\nUTC+7 Server Time`,
               inline: true,
             },
@@ -104,8 +105,8 @@ export async function notifyRosterPublished(input: {
             },
             ...partyFields,
             {
-              name: "🔗  PUBLISHED ROSTER",
-              value: `[View Published Roster →](${url})`,
+              name: "🔗  ROSTER DETAILS",
+              value: `[Open Published Roster →](${url})`,
               inline: false,
             },
           ],
