@@ -1,14 +1,6 @@
-ALTER TABLE "GuildMember"
-ADD COLUMN "guildPercentile" DOUBLE PRECISION,
-ADD COLUMN "tankScore" DOUBLE PRECISION,
-ADD COLUMN "tankPercentile" DOUBLE PRECISION,
-ADD COLUMN "dpsScore" DOUBLE PRECISION,
-ADD COLUMN "dpsPercentile" DOUBLE PRECISION,
-ADD COLUMN "pvpScore" DOUBLE PRECISION,
-ADD COLUMN "pvpPercentile" DOUBLE PRECISION,
-ADD COLUMN "guildRank" INTEGER,
-ADD COLUMN "tankRank" INTEGER,
-ADD COLUMN "dpsRank" INTEGER,
-ADD COLUMN "pvpRank" INTEGER;
-
-CREATE INDEX "GuildMember_guildId_guildRank_idx" ON "GuildMember"("guildId", "guildRank");
+-- The live ranking columns were already introduced by
+-- 20260831130000_add_live_guild_rankings. Keep this follow-up migration
+-- limited to the index so production databases that already have the
+-- columns can recover safely.
+CREATE INDEX IF NOT EXISTS "GuildMember_guildId_guildRank_idx"
+  ON "GuildMember"("guildId", "guildRank");
