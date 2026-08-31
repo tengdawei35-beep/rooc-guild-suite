@@ -16,10 +16,10 @@ export async function GET(request: Request) {
         u.username AS "creatorUsername",
         COALESCE((SELECT SUM(quantity) FROM "guild_call_requirements" r WHERE r.call_id = c.id), 0) AS "requiredCount",
         COALESCE((SELECT COUNT(*) FROM "guild_call_participants" p WHERE p.call_id = c.id AND p.status = 'ACTIVE'), 0) AS "activeCount",
-        EXISTS(SELECT 1 FROM "guild_call_participants" p JOIN "GuildMember" m ON m.id = p.member_id WHERE p.call_id = c.id AND m.user_id = $2) AS "signedUp"
+        EXISTS(SELECT 1 FROM "guild_call_participants" p JOIN "GuildMember" m ON m.id = p.member_id WHERE p.call_id = c.id AND m."userId" = $2) AS "signedUp"
       FROM "guild_calls" c
       JOIN "User" u ON u.id = c.creator_user_id
-      WHERE c.guild_id = $1 ${mine ? "AND EXISTS(SELECT 1 FROM \"guild_call_participants\" p JOIN \"GuildMember\" m ON m.id = p.member_id WHERE p.call_id = c.id AND m.user_id = $2)" : ""}
+      WHERE c.guild_id = $1 ${mine ? "AND EXISTS(SELECT 1 FROM \"guild_call_participants\" p JOIN \"GuildMember\" m ON m.id = p.member_id WHERE p.call_id = c.id AND m.\"userId\" = $2)" : ""}
       ORDER BY c.start_at ASC
     `, auth.guild.id, auth.user.id);
     return NextResponse.json({ calls });
