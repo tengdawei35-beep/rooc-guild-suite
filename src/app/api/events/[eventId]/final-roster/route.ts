@@ -9,7 +9,7 @@ type RouteContext = {
 async function getEvent(eventId: string, guildId: string) {
   return prisma.event.findFirst({
     where: { id: eventId, guildId },
-    select: { id: true, guildId: true, finalRosterId: true },
+    select: { id: true, guildId: true },
   });
 }
 
