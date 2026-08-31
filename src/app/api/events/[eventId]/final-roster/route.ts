@@ -2,15 +2,48 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentAuth, hasPermission } from "@/lib/auth";
 
-type RouteContext = {
-  params: Promise<{ eventId: string }>;
-};
+type RouteContext = { params: Promise<{ eventId: string }> };
+
+function appUrl() {
+  return process.env.NEXT_PUBLIC_APP_URL ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` :
+      process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "");
+}
+
+function serverTime(value: Date) {
+  return value.toLocaleString("en-MY", {
+    timeZone: "Asia/Kuala_Lumpur",
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+}
 
 async function getEvent(eventId: string, guildId: string) {
   return prisma.event.findFirst({
     where: { id: eventId, guildId },
-    select: { id: true, guildId: true, title: true, startAt: true, guild: { select: { name: true, callsWebhookUrl: true } } },
+    select: {
+      id: true,
+      guildId: true,
+      type: true,
+      date: true,
+      finalRosterId: true,
+      guild: { select: { name: true } },
+    },
   });
+}
+
+async function getWebhookForGuild(guildId: string) {
+  const rows = await prisma.$queryRawUnsafe<Array<{ webhook_url: string | null }>>(
+    `SELECT webhook_url FROM "guild_call_webhooks" WHERE guild_id = $1 LIMIT 1`,
+    guildId,
+  );
+  return rows[0]?.webhook_url ?? null;
+}
+
+function eventLabel(type: string) {
+  if (type === "GUILD_LEAGUE") return "Guild League";
+  if (type === "EMPORIUM_OVERRUN") return "Emperium Overrun";
+  return type.replaceAll("_", " ");
 }
 
 export async function PUT(request: Request, context: RouteContext) {
@@ -33,39 +66,44 @@ export async function PUT(request: Request, context: RouteContext) {
     });
     if (!roster) return NextResponse.json({ error: "Roster not found for this event." }, { status: 404 });
 
-    const current = await prisma.event.findUnique({ where: { id: event.id }, select: { finalRosterId: true } });
+    const current = event.finalRosterId;
     await prisma.$executeRawUnsafe(
       'UPDATE "Event" SET "finalRosterId" = $1, "updatedAt" = NOW() WHERE "id" = $2 AND "guildId" = $3',
-      roster.id, event.id, auth.guild.id
+      roster.id, event.id, auth.guild.id,
     );
 
     // Publishing is the only roster action that sends a Discord notification.
     // Re-publishing the already-final roster is intentionally silent.
-    if (current?.finalRosterId !== roster.id && event.guild.callsWebhookUrl) {
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "";
-      const rosterUrl = `${baseUrl.replace(/\/$/, "")}/events/${event.id}?roster=${encodeURIComponent(roster.id)}`;
-      const start = event.startAt ? new Date(event.startAt) : null;
-      const dateText = start ? new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Bangkok", dateStyle: "medium" }).format(start) : "TBC";
-      const timeText = start ? new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Bangkok", timeStyle: "short", hour12: false }).format(start) : "TBC";
+    if (current !== roster.id) {
+      const webhook = await getWebhookForGuild(auth.guild.id);
+      if (webhook) {
+        const url = `${appUrl().replace(/\/$/, "")}/events/${encodeURIComponent(event.id)}?roster=${encodeURIComponent(roster.id)}`;
+        const typeText = eventLabel(event.type);
+        const when = serverTime(new Date(event.date));
 
-      const response = await fetch(event.guild.callsWebhookUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          embeds: [{
-            title: "📋 Roster Published",
-            description: `**${event.title}**\n**${roster.name}**`,
-            fields: [
-              { name: "📅 Date", value: dateText, inline: true },
-              { name: "🕐 Time", value: `${timeText} (Server Time · UTC+7)`, inline: true },
-            ],
-            url: rosterUrl,
-            footer: { text: `${event.guild.name} · ROOC Guild Suite` },
-            timestamp: new Date().toISOString(),
-          }],
-        }),
-      });
-      if (!response.ok) console.error("[ROSTER DISCORD WEBHOOK] failed", response.status, await response.text().catch(() => ""));
+        const response = await fetch(webhook, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            embeds: [{
+              title: `📋  ROSTER PUBLISHED  •  ${typeText}`,
+              description: `**${roster.name}** has been published as the final roster for this event.`,
+              color: 5793266,
+              fields: [
+                { name: "📅  DATE & TIME", value: `${when}\nUTC+7 Server Time`, inline: true },
+                { name: "📋  ROSTER", value: roster.name, inline: true },
+                { name: "🔗  ROSTER DETAILS", value: `[Open Published Roster →](${url})`, inline: false },
+              ],
+              footer: { text: `${event.guild.name} • ROOC Guild Suite` },
+              timestamp: new Date().toISOString(),
+              url,
+            }],
+            allowed_mentions: { parse: [] },
+          }),
+          cache: "no-store",
+        });
+        if (!response.ok) console.error("[ROSTER DISCORD WEBHOOK] failed", response.status, await response.text().catch(() => ""));
+      }
     }
 
     return NextResponse.json({ finalRosterId: roster.id });
@@ -87,7 +125,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
 
     await prisma.$executeRawUnsafe(
       'UPDATE "Event" SET "finalRosterId" = NULL, "updatedAt" = NOW() WHERE "id" = $1 AND "guildId" = $2',
-      event.id, auth.guild.id
+      event.id, auth.guild.id,
     );
     return NextResponse.json({ finalRosterId: null });
   } catch (error) {
