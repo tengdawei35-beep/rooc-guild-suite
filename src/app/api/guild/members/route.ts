@@ -150,6 +150,11 @@ export async function GET() {
       return NextResponse.json({ error: "You do not have permission to view members." }, { status: 403 });
     }
 
+    // Keep the Members page in sync with the live ranking values. A member's
+    // stat change can affect every eligible member's percentile/rank, so this
+    // must be refreshed at guild level rather than calculated per member.
+    await refreshGuildRankings(auth.guild.id);
+
     const members = await prisma.guildMember.findMany({
       where: { guildId: auth.guild.id },
       include: { leaveDates: { orderBy: { date: "asc" } } },
