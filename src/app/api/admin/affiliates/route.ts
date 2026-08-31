@@ -3,8 +3,7 @@ import { getPlatformAdmin } from "@/lib/platform-admin";
 import { prisma } from "@/lib/prisma";
 
 async function requireAdmin() {
-  const admin = await getPlatformAdmin();
-  return admin ? admin : null;
+  return (await getPlatformAdmin()) ? true : false;
 }
 
 export async function GET() {
@@ -15,13 +14,10 @@ export async function GET() {
     referralCount: bigint; commissionCount: bigint; commissionCents: bigint;
   }>>(`
     SELECT a."id", a."name", a."code", a."discountPercent", a."commissionPercent", a."active",
-      COUNT(DISTINCT r."id") AS "referralCount",
-      COUNT(DISTINCT c."id") AS "commissionCount",
-      COALESCE(SUM(c."amountCents"), 0) AS "commissionCents"
+      (SELECT COUNT(*) FROM "AffiliateReferral" r WHERE r."affiliateId" = a."id") AS "referralCount",
+      (SELECT COUNT(*) FROM "AffiliateCommission" c WHERE c."affiliateId" = a."id") AS "commissionCount",
+      COALESCE((SELECT SUM(c."amountCents") FROM "AffiliateCommission" c WHERE c."affiliateId" = a."id"), 0) AS "commissionCents"
     FROM "Affiliate" a
-    LEFT JOIN "AffiliateReferral" r ON r."affiliateId" = a."id"
-    LEFT JOIN "AffiliateCommission" c ON c."affiliateId" = a."id"
-    GROUP BY a."id"
     ORDER BY a."active" DESC, a."createdAt" DESC
   `);
 
@@ -53,6 +49,8 @@ export async function POST(request: Request) {
 
     if (action === "update") {
       if (!body.id) return NextResponse.json({ error: "ID_REQUIRED" }, { status: 400 });
+      const existing = await prisma.$queryRawUnsafe<Array<{ id: string }>>(`SELECT "id" FROM "Affiliate" WHERE "id" = $1 LIMIT 1`, body.id);
+      if (!existing[0]) return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
       await prisma.$executeRawUnsafe(`UPDATE "Affiliate" SET "name" = $1, "code" = $2, "discountPercent" = $3, "commissionPercent" = $4, "active" = $5, "updatedAt" = CURRENT_TIMESTAMP WHERE "id" = $6`, name, code, discountPercent, commissionPercent, body.active ?? true, body.id);
       return NextResponse.json({ ok: true });
     }
