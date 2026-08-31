@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { announceFilledCall, ensureCallTables, newId, refreshCallStatus, requirementMatchesJob } from "@/lib/call-to-arms";
 
 async function getCall(id: string, guildId: string) {
-  const rows = await prisma.$queryRawUnsafe<any[]>(`SELECT c.id, c.title, c.description, c.start_at AS "startAt", c.status, c.creator_user_id AS "creatorUserId", u.username AS "creatorUsername", COALESCE((SELECT SUM(quantity) FROM "guild_call_requirements" WHERE call_id = c.id),0) AS "requiredCount", COALESCE((SELECT COUNT(*) FROM "guild_call_participants" WHERE call_id = c.id AND status = 'ACTIVE'),0) AS "activeCount" FROM "guild_calls" c JOIN "User" u ON u.id = c.creator_user_id WHERE c.id = $1 AND c.guild_id = $2`, id, guildId);
+  const rows = await prisma.$queryRawUnsafe<any[]>(`SELECT c.id, c.title, c.description, c.start_at AS "startAt", c.status, c.creator_user_id AS "creatorUserId", u.username AS "creatorUsername", COALESCE((SELECT SUM(quantity)::integer FROM "guild_call_requirements" WHERE call_id = c.id),0)::integer AS "requiredCount", COALESCE((SELECT COUNT(*)::integer FROM "guild_call_participants" WHERE call_id = c.id AND status = 'ACTIVE'),0)::integer AS "activeCount" FROM "guild_calls" c JOIN "User" u ON u.id = c.creator_user_id WHERE c.id = $1 AND c.guild_id = $2`, id, guildId);
   return rows[0] ?? null;
 }
 
@@ -53,9 +53,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       const status = Number(activeCount[0]?.count ?? 0) < requirement.quantity ? "ACTIVE" : "WAITLIST";
       await prisma.$executeRawUnsafe(`INSERT INTO "guild_call_participants" (id, call_id, requirement_id, member_id, status) VALUES ($1,$2,$3,$4,$5)`, newId("participant"), id, requirementId, member.id, status);
       const next = await refreshCallStatus(id);
-      if (next === "FILLED") {
-        try { await announceFilledCall(id); } catch (error) { console.error("[CALL TO ARMS] announcement failed", error); }
-      }
+      if (next === "FILLED") { try { await announceFilledCall(id); } catch (error) { console.error("[CALL TO ARMS] announcement failed", error); } }
       return NextResponse.json({ status, notificationAttempted: next === "FILLED" });
     }
     if (action === "leave") {
