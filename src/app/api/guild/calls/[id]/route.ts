@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentAuth, hasPermission } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { JOBS } from "@/lib/constants/jobs";
 import { announceFilledCall, ensureCallTables, newId, refreshCallStatus, requirementMatchesJob } from "@/lib/call-to-arms";
 
