@@ -87,10 +87,10 @@ export default function RosterJobOverrides({
             : "Change job for this roster only"
         }
         style={{ colorScheme: "dark" }}
-        className={`min-w-0 max-w-full cursor-pointer appearance-auto rounded border bg-zinc-950 px-1 py-0.5 text-xs outline-none transition hover:border-zinc-600 focus:border-zinc-500 disabled:cursor-wait disabled:opacity-50 ${
+        className={`min-w-0 max-w-full cursor-pointer appearance-auto rounded border px-2 py-1 text-xs outline-none transition disabled:cursor-wait disabled:opacity-50 ${
           overrideJob
-            ? "border-zinc-700 text-zinc-300"
-            : "border-transparent text-zinc-600 hover:text-zinc-400"
+            ? "border-zinc-700 bg-zinc-900 text-zinc-300 hover:border-zinc-600 focus:border-zinc-500"
+            : "border-transparent bg-zinc-900 text-zinc-600 hover:border-zinc-700 hover:text-zinc-400 focus:border-zinc-600"
         }`}
       >
         <option value="">
