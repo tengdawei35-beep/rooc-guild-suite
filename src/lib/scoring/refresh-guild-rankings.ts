@@ -104,8 +104,6 @@ export async function refreshGuildRankings(guildId: string) {
   const dpsValues = dpsRanked.map((member) => member.dpsScore);
   const pvpValues = scored.map((member) => member.pvpScore);
 
-  // The scoring model exposes the same PVP-derived overall score used by the
-  // existing rankings page, so guild percentile/rank must be based on pvpScore.
   const rows = scored.map((member) => ({
     id: member.id,
     guildPercentile: percentile(member.pvpScore, pvpValues),
@@ -131,24 +129,39 @@ export async function refreshGuildRankings(guildId: string) {
   const dpsRank = new Map(dpsOrder.map((row, index) => [row.id, index + 1]));
   const pvpRank = new Map(pvpOrder.map((row, index) => [row.id, index + 1]));
 
+  // Ranking refreshes must not change GuildMember.updatedAt. That timestamp
+  // is used by the dashboard as the member-profile activity timestamp.
+  // Prisma update() would automatically touch updatedAt, making every live
+  // ranking refresh appear as "Member profile updated".
   await prisma.$transaction(
     rows.map((row) =>
-      prisma.guildMember.update({
-        where: { id: row.id },
-        data: {
-          guildPercentile: row.guildPercentile,
-          tankScore: row.tankScore,
-          tankPercentile: row.tankPercentile,
-          dpsScore: row.dpsScore,
-          dpsPercentile: row.dpsPercentile,
-          pvpScore: row.pvpScore,
-          pvpPercentile: row.pvpPercentile,
-          guildRank: guildRank.get(row.id) ?? null,
-          tankRank: tankRank.get(row.id) ?? null,
-          dpsRank: dpsRank.get(row.id) ?? null,
-          pvpRank: pvpRank.get(row.id) ?? null,
-        },
-      })
+      prisma.$executeRawUnsafe(
+        `UPDATE "GuildMember"
+         SET "guildPercentile" = $1,
+             "tankScore" = $2,
+             "tankPercentile" = $3,
+             "dpsScore" = $4,
+             "dpsPercentile" = $5,
+             "pvpScore" = $6,
+             "pvpPercentile" = $7,
+             "guildRank" = $8,
+             "tankRank" = $9,
+             "dpsRank" = $10,
+             "pvpRank" = $11
+         WHERE "id" = $12`,
+        row.guildPercentile,
+        row.tankScore,
+        row.tankPercentile,
+        row.dpsScore,
+        row.dpsPercentile,
+        row.pvpScore,
+        row.pvpPercentile,
+        guildRank.get(row.id) ?? null,
+        tankRank.get(row.id) ?? null,
+        dpsRank.get(row.id) ?? null,
+        pvpRank.get(row.id) ?? null,
+        row.id
+      )
     )
   );
 }
