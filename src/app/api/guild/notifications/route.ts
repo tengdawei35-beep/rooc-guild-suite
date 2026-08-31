@@ -4,12 +4,24 @@ import { getNotificationConfig, isDiscordWebhookUrl, saveNotificationConfig } fr
 
 type NotificationType = "roster" | "bid" | "stats" | "calls";
 
-export async function GET() {
+async function ensureCallWebhookTable() {
+  const { prisma } = await import("@/lib/prisma");
+  await prisma.$executeRawUnsafe(`CREATE TABLE IF NOT EXISTS "guild_call_webhooks" ("guild_id" text PRIMARY KEY,"webhook_url" text NOT NULL,"updated_at" timestamptz NOT NULL DEFAULT now())`);
+  return prisma;
+}
+
+async function getCallWebhook(guildId:string) {
+  const prisma=await ensureCallWebhookTable();
+  const rows=await prisma.$queryRawUnsafe<Array<{webhook_url:string}>>(`SELECT webhook_url FROM "guild_call_webhooks" WHERE guild_id=$1`,guildId);
+  return rows[0]?.webhook_url ?? null;
+}
+
+export async function GET(){
   const auth=await getCurrentAuth();
   if(!auth)return NextResponse.json({error:"Authentication required."},{status:401});
   if(!hasPermission(auth.role,"guild.manage"))return NextResponse.json({error:"You do not have permission to manage guild settings."},{status:403});
   const config=await getNotificationConfig(auth.guild.id);
-  return NextResponse.json({configured:{roster:!!config?.rosterWebhookUrl,bid:!!config?.bidWebhookUrl,stats:!!config?.statsWebhookUrl,calls:!!config?.callsWebhookUrl}});
+  return NextResponse.json({configured:{roster:!!config?.rosterWebhookUrl,bid:!!config?.bidWebhookUrl,stats:!!config?.statsWebhookUrl,calls:!!await getCallWebhook(auth.guild.id)}});
 }
 
 export async function PUT(request:Request){
@@ -18,17 +30,18 @@ export async function PUT(request:Request){
   if(!hasPermission(auth.role,"guild.manage"))return NextResponse.json({error:"You do not have permission to manage guild settings."},{status:403});
   try{
     const body=await request.json() as Record<string,unknown>;
-    const entries:[string,string|null|undefined,boolean][]=[
-      ["rosterWebhookUrl",typeof body.rosterWebhookUrl==="string"?body.rosterWebhookUrl:null,body.clearRoster===true],
-      ["bidWebhookUrl",typeof body.bidWebhookUrl==="string"?body.bidWebhookUrl:null,body.clearBid===true],
-      ["statsWebhookUrl",typeof body.statsWebhookUrl==="string"?body.statsWebhookUrl:null,body.clearStats===true],
-      ["callsWebhookUrl",typeof body.callsWebhookUrl==="string"?body.callsWebhookUrl:null,body.clearCalls===true],
-    ];
-    const values:Record<string,string|null|undefined>={};
-    for(const [key,value,clear] of entries){if(clear)values[key]=null;else if(value?.trim()){const normalized=value.trim();if(!isDiscordWebhookUrl(normalized))return NextResponse.json({error:`Invalid Discord webhook URL for ${key}.`},{status:400});values[key]=normalized;}}
-    await saveNotificationConfig(auth.guild.id,values as Parameters<typeof saveNotificationConfig>[1]);
+    const normalise=(value:unknown,key:string)=>{if(typeof value!=="string"||!value.trim())return null;const normalized=value.trim();if(!isDiscordWebhookUrl(normalized))throw new Error(`Invalid Discord webhook URL for ${key}.`);return normalized;};
+    const calls=normalise(body.callsWebhookUrl,"callsWebhookUrl");
+    const values:{rosterWebhookUrl?:string|null;bidWebhookUrl?:string|null;statsWebhookUrl?:string|null}={};
+    if(body.clearRoster===true)values.rosterWebhookUrl=null;else if(body.rosterWebhookUrl)values.rosterWebhookUrl=normalise(body.rosterWebhookUrl,"rosterWebhookUrl");
+    if(body.clearBid===true)values.bidWebhookUrl=null;else if(body.bidWebhookUrl)values.bidWebhookUrl=normalise(body.bidWebhookUrl,"bidWebhookUrl");
+    if(body.clearStats===true)values.statsWebhookUrl=null;else if(body.statsWebhookUrl)values.statsWebhookUrl=normalise(body.statsWebhookUrl,"statsWebhookUrl");
+    await saveNotificationConfig(auth.guild.id,values);
+    const prisma=await ensureCallWebhookTable();
+    if(body.clearCalls===true)await prisma.$executeRawUnsafe(`DELETE FROM "guild_call_webhooks" WHERE guild_id=$1`,auth.guild.id);
+    else if(calls)await prisma.$executeRawUnsafe(`INSERT INTO "guild_call_webhooks" (guild_id,webhook_url,updated_at) VALUES ($1,$2,now()) ON CONFLICT (guild_id) DO UPDATE SET webhook_url=EXCLUDED.webhook_url,updated_at=now()`,auth.guild.id,calls);
     return NextResponse.json({success:true});
-  }catch(error){console.error("[DISCORD] Failed to save notification settings:",error);return NextResponse.json({error:"Failed to save notification settings."},{status:500});}
+  }catch(error){console.error("[DISCORD] Failed to save notification settings:",error);return NextResponse.json({error:error instanceof Error?error.message:"Failed to save notification settings."},{status:500});}
 }
 
 export async function POST(request:Request){
@@ -39,7 +52,7 @@ export async function POST(request:Request){
   const type=body.type;
   if(!type)return NextResponse.json({error:"Notification type is required."},{status:400});
   const config=await getNotificationConfig(auth.guild.id);
-  const configured=type==="roster"?config?.rosterWebhookUrl:type==="bid"?config?.bidWebhookUrl:type==="stats"?config?.statsWebhookUrl:config?.callsWebhookUrl;
+  const configured=type==="roster"?config?.rosterWebhookUrl:type==="bid"?config?.bidWebhookUrl:type==="stats"?config?.statsWebhookUrl:await getCallWebhook(auth.guild.id);
   if(!configured)return NextResponse.json({error:"That notification channel is not configured."},{status:400});
   try{const response=await fetch(configured,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({content:`✅ HMDL ${type} notification test`,allowed_mentions:{parse:[]}})});if(!response.ok)throw new Error(`Discord returned ${response.status}`);return NextResponse.json({success:true});}catch(error){console.error("[DISCORD] Test notification failed:",error);return NextResponse.json({error:"Discord rejected the test notification."},{status:502});}
 }
