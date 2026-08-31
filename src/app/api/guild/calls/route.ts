@@ -14,8 +14,8 @@ export async function GET(request: Request) {
     const calls = await prisma.$queryRawUnsafe<any[]>(`
       SELECT c.id, c.title, c.description, c.start_at AS "startAt", c.status, c.creator_user_id AS "creatorUserId",
         u.username AS "creatorUsername",
-        COALESCE((SELECT SUM(quantity) FROM "guild_call_requirements" r WHERE r.call_id = c.id), 0) AS "requiredCount",
-        COALESCE((SELECT COUNT(*) FROM "guild_call_participants" p WHERE p.call_id = c.id AND p.status = 'ACTIVE'), 0) AS "activeCount",
+        COALESCE((SELECT SUM(quantity)::integer FROM "guild_call_requirements" r WHERE r.call_id = c.id), 0)::integer AS "requiredCount",
+        COALESCE((SELECT COUNT(*)::integer FROM "guild_call_participants" p WHERE p.call_id = c.id AND p.status = 'ACTIVE'), 0)::integer AS "activeCount",
         EXISTS(SELECT 1 FROM "guild_call_participants" p JOIN "GuildMember" m ON m.id = p.member_id WHERE p.call_id = c.id AND m."userId" = $2) AS "signedUp"
       FROM "guild_calls" c
       JOIN "User" u ON u.id = c.creator_user_id
