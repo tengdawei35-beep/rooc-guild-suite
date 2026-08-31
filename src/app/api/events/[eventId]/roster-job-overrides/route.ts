@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentAuth, hasPermission } from "@/lib/auth";
@@ -114,9 +115,10 @@ export async function PATCH(request: Request, context: RouteContext) {
     } else {
       await prisma.$executeRawUnsafe(
         `INSERT INTO "RosterJobOverride" ("id", "rosterMemberId", "job")
-         VALUES (gen_random_uuid()::text, $1, $2)
+         VALUES ($1, $2, $3)
          ON CONFLICT ("rosterMemberId")
          DO UPDATE SET "job" = EXCLUDED."job", "updatedAt" = CURRENT_TIMESTAMP`,
+        randomUUID(),
         body.assignmentId,
         rawJob
       );
