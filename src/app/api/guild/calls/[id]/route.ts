@@ -1,15 +1,10 @@
 import { NextResponse } from "next/server";
 import { getCurrentAuth, hasPermission } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { ensureCallTables, newId, refreshCallStatus, requirementMatchesJob } from "@/lib/call-to-arms";
+import { announceFilledCall, ensureCallTables, newId, refreshCallStatus, requirementMatchesJob } from "@/lib/call-to-arms";
 
 async function getCall(id: string, guildId: string) {
-  const rows = await prisma.$queryRawUnsafe<any[]>(`
-    SELECT c.id, c.title, c.description, c.start_at AS "startAt", c.status, c.creator_user_id AS "creatorUserId", u.username AS "creatorUsername",
-      COALESCE((SELECT SUM(quantity) FROM "guild_call_requirements" WHERE call_id = c.id),0) AS "requiredCount",
-      COALESCE((SELECT COUNT(*) FROM "guild_call_participants" WHERE call_id = c.id AND status = 'ACTIVE'),0) AS "activeCount"
-    FROM "guild_calls" c JOIN "User" u ON u.id = c.creator_user_id WHERE c.id = $1 AND c.guild_id = $2
-  `, id, guildId);
+  const rows = await prisma.$queryRawUnsafe<any[]>(`SELECT c.id, c.title, c.description, c.start_at AS "startAt", c.status, c.creator_user_id AS "creatorUserId", u.username AS "creatorUsername", COALESCE((SELECT SUM(quantity) FROM "guild_call_requirements" WHERE call_id = c.id),0) AS "requiredCount", COALESCE((SELECT COUNT(*) FROM "guild_call_participants" WHERE call_id = c.id AND status = 'ACTIVE'),0) AS "activeCount" FROM "guild_calls" c JOIN "User" u ON u.id = c.creator_user_id WHERE c.id = $1 AND c.guild_id = $2`, id, guildId);
   return rows[0] ?? null;
 }
 
@@ -22,14 +17,10 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
   const call = await getCall(id, auth.guild.id);
   if (!call) return NextResponse.json({ error: "Call not found." }, { status: 404 });
   const requirements = await prisma.$queryRawUnsafe<any[]>(`SELECT id, requirement, quantity FROM "guild_call_requirements" WHERE call_id = $1 ORDER BY created_at`, id);
-  const participants = await prisma.$queryRawUnsafe<any[]>(`
-    SELECT p.id, p.requirement_id AS "requirementId", p.status, p.signed_up_at AS "signedUpAt", p.member_id AS "memberId",
-      m.character_name AS "characterName", m.discord_username AS "discordUsername", m.discord_user_id AS "discordUserId", m.job
-    FROM "guild_call_participants" p JOIN "GuildMember" m ON m.id = p.member_id
-    WHERE p.call_id = $1 ORDER BY p.signed_up_at
-  `, id);
+  const participants = await prisma.$queryRawUnsafe<any[]>(`SELECT p.id, p.requirement_id AS "requirementId", p.status, p.signed_up_at AS "signedUpAt", p.member_id AS "memberId", m.character_name AS "characterName", m.discord_username AS "discordUsername", m.discord_user_id AS "discordUserId", m.job FROM "guild_call_participants" p JOIN "GuildMember" m ON m.id = p.member_id WHERE p.call_id = $1 ORDER BY p.signed_up_at`, id);
+  const currentMember = await prisma.guildMember.findFirst({ where: { guildId: auth.guild.id, userId: auth.user.id, active: true }, select: { id: true } });
   const webhook = await prisma.$queryRawUnsafe<Array<{ webhook_url: string }>>(`SELECT webhook_url FROM "guild_call_webhooks" WHERE guild_id = $1`, auth.guild.id);
-  return NextResponse.json({ call, requirements, participants, signedUp: participants.some((p) => p.memberId && p.memberId === (auth.user.id ? null : "")), webhookConfigured: Boolean(webhook[0]) });
+  return NextResponse.json({ call, requirements, participants, signedUp: participants.some((p) => p.memberId === currentMember?.id), webhookConfigured: Boolean(webhook[0]) });
 }
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -51,12 +42,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const reqRows = await prisma.$queryRawUnsafe<Array<{ id: string; requirement: string; quantity: number }>>(`SELECT id, requirement, quantity FROM "guild_call_requirements" WHERE id = $1 AND call_id = $2`, requirementId, id);
     const requirement = reqRows[0];
     if (!requirement || !requirementMatchesJob(requirement.requirement, member.job)) return NextResponse.json({ error: "Your current job does not qualify for that slot." }, { status: 400 });
-    const existing = await prisma.$queryRawUnsafe<any[]>(`SELECT id FROM "guild_call_participants" WHERE call_id = $1 AND member_id = $2`, id, member.id);
-    if (existing.length) return NextResponse.json({ error: "You are already signed up for this call." }, { status: 409 });
+    if ((await prisma.$queryRawUnsafe<any[]>(`SELECT id FROM "guild_call_participants" WHERE call_id = $1 AND member_id = $2`, id, member.id)).length) return NextResponse.json({ error: "You are already signed up for this call." }, { status: 409 });
     const activeCount = await prisma.$queryRawUnsafe<Array<{ count: bigint }>>(`SELECT COUNT(*) FROM "guild_call_participants" WHERE call_id = $1 AND requirement_id = $2 AND status = 'ACTIVE'`, id, requirementId);
     const status = Number(activeCount[0]?.count ?? 0) < requirement.quantity ? "ACTIVE" : "WAITLIST";
     await prisma.$executeRawUnsafe(`INSERT INTO "guild_call_participants" (id, call_id, requirement_id, member_id, status) VALUES ($1,$2,$3,$4,$5)`, newId("participant"), id, requirementId, member.id, status);
-    await refreshCallStatus(id);
+    const next = await refreshCallStatus(id);
+    if (next === "FILLED") {
+      try { await announceFilledCall(id); } catch (error) { console.error("[CALL TO ARMS] announcement failed", error); }
+    }
     return NextResponse.json({ status });
   }
 
@@ -81,6 +74,5 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     await prisma.$executeRawUnsafe(`UPDATE "guild_calls" SET status = $2, updated_at = now() WHERE id = $1`, id, status);
     return NextResponse.json({ ok: true, status });
   }
-
   return NextResponse.json({ error: "Unknown action." }, { status: 400 });
 }
