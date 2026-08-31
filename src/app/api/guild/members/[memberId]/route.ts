@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentAuth, hasPermission } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { calculateRawPdef } from "@/lib/scoring/roo-scoring";
+import { refreshGuildRankings } from "@/lib/scoring/refresh-guild-rankings";
 
 type RouteContext = { params: Promise<{ memberId: string }> };
 
@@ -41,6 +42,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       else return NextResponse.json({ error: `Invalid value for ${field}.` }, { status: 400 });
     }
     const updated = await prisma.guildMember.update({ where: { id: member.id }, data, select: { id: true, characterName: true, updatedAt: true } });
+    await refreshGuildRankings(auth.guild.id);
     return NextResponse.json({ success: true, member: updated });
   } catch (error) {
     console.error("[MEMBER PROFILE] Failed to update:", error);
@@ -58,9 +60,10 @@ export async function DELETE(_request: Request, context: RouteContext) {
     const member = await prisma.guildMember.findFirst({ where: { id: memberId, guildId: auth.guild.id }, select: { id: true, characterName: true } });
     if (!member) return NextResponse.json({ error: "Guild member not found." }, { status: 404 });
     await prisma.guildMember.delete({ where: { id: memberId } });
+    await refreshGuildRankings(auth.guild.id);
     return NextResponse.json({ success: true, id: memberId });
   } catch (error) {
-    console.error("[MEMBER PROFILE] Failed to delete member:", error);
+    console.error("[MEMBER PROFILE] Failed to delete:", error);
     return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to delete member." }, { status: 500 });
   }
 }
