@@ -1,0 +1,14 @@
+ALTER TABLE "GuildMember"
+ADD COLUMN "guildPercentile" DOUBLE PRECISION,
+ADD COLUMN "tankScore" DOUBLE PRECISION,
+ADD COLUMN "tankPercentile" DOUBLE PRECISION,
+ADD COLUMN "dpsScore" DOUBLE PRECISION,
+ADD COLUMN "dpsPercentile" DOUBLE PRECISION,
+ADD COLUMN "pvpScore" DOUBLE PRECISION,
+ADD COLUMN "pvpPercentile" DOUBLE PRECISION,
+ADD COLUMN "guildRank" INTEGER,
+ADD COLUMN "tankRank" INTEGER,
+ADD COLUMN "dpsRank" INTEGER,
+ADD COLUMN "pvpRank" INTEGER;
+
+CREATE INDEX "GuildMember_guildId_guildRank_idx" ON "GuildMember"("guildId", "guildRank");
