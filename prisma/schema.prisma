@@ -81,11 +81,9 @@ model User {
   discordId String  @unique
   username  String
   avatarUrl String?
-
   guildMemberships GuildMembership[]
   guildMembers GuildMember[]
   ownedGuilds Guild[] @relation("GuildOwner")
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -95,7 +93,6 @@ model Guild {
   discordGuildId String @unique
   name           String
   ownerUserId    String?
-
   memberships GuildMembership[]
   members GuildMember[]
   resources Resource[]
@@ -107,7 +104,6 @@ model Guild {
   owner User? @relation("GuildOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
   subscriptions GuildSubscription[]
   moduleEntitlements GuildModuleEntitlement[]
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@index([ownerUserId])
@@ -118,13 +114,10 @@ model GuildMembership {
   userId String
   guildId String
   role UserRole @default(MEMBER)
-
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   @@unique([userId, guildId])
   @@index([userId])
   @@index([guildId])
@@ -167,7 +160,6 @@ model GuildMember {
   patk Float?
   matk Float?
   hp Float?
-
   guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
   reservations ReservedAllocation[]
@@ -177,7 +169,6 @@ model GuildMember {
   participations EventParticipation[]
   rosterAssignments RosterMember[]
   preferredRosterAssignments PreferredRosterMember[]
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@unique([guildId, discordUserId])
@@ -421,11 +412,9 @@ model RaidParty {
   raidId String
   partyId String
   raid Raid @relation(fields: [raidId], references: [id], onDelete: Cascade)
-  party RosterParty @relation(fields: [partyId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   @@unique([raidId, partyId])
   @@index([raidId])
-  @@index([partyId])
 }
 
 model PreferredRoster {
@@ -460,12 +449,10 @@ model PreferredRosterMember {
   memberId String
   slotNumber Int
   preferredRosterParty PreferredRosterParty @relation(fields: [preferredRosterPartyId], references: [id], onDelete: Cascade)
-  member GuildMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   @@unique([preferredRosterPartyId, slotNumber])
   @@unique([preferredRosterPartyId, memberId])
   @@index([preferredRosterPartyId])
-  @@index([memberId])
 }
 
 model PlatformGuildCreator {
@@ -477,7 +464,6 @@ model PlatformGuildCreator {
   active Boolean @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  @@index([active])
 }
 
 model Plan {
@@ -595,6 +581,7 @@ model GuildApplicant {
   decidedByUserId String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@unique([guildId, discordUserId])
   @@index([guildId, status])
   @@index([guildId, discordUserId])
   @@index([inviteId])
