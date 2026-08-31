@@ -78,7 +78,7 @@ export default function RosterJobOverrides({
   return (
     <div className="flex min-w-0 items-center gap-1.5">
       <select
-        value={overrideJob ?? submittedJob ?? ""}
+        value={overrideJob ?? ""}
         disabled={saving}
         onChange={(event) => updateJob(event.target.value)}
         title={
@@ -86,21 +86,20 @@ export default function RosterJobOverrides({
             ? "Roster-specific job override"
             : "Change job for this roster only"
         }
-        className={`min-w-0 max-w-full cursor-pointer appearance-auto rounded border bg-transparent px-1 py-0.5 text-xs outline-none transition hover:border-zinc-600 focus:border-zinc-500 disabled:cursor-wait disabled:opacity-50 ${
+        style={{ colorScheme: "dark" }}
+        className={`min-w-0 max-w-full cursor-pointer appearance-auto rounded border bg-zinc-950 px-1 py-0.5 text-xs outline-none transition hover:border-zinc-600 focus:border-zinc-500 disabled:cursor-wait disabled:opacity-50 ${
           overrideJob
             ? "border-zinc-700 text-zinc-300"
             : "border-transparent text-zinc-600 hover:text-zinc-400"
         }`}
       >
-      <option value="">
-        {submittedJob
-          ? `${submittedJob} (default)`
-          : "Unknown Job"}
-      </option>
+        <option value="">
+          {submittedJob
+            ? `${submittedJob} (default)`
+            : "Unknown Job"}
+        </option>
 
-        {JOBS.filter(
-          (job) => job !== submittedJob
-        ).map((job) => (
+        {JOBS.map((job) => (
           <option key={job} value={job}>
             {job}
           </option>
