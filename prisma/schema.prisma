@@ -160,6 +160,17 @@ model GuildMember {
   patk Float?
   matk Float?
   hp Float?
+  guildPercentile Float?
+  tankScore Float?
+  tankPercentile Float?
+  dpsScore Float?
+  dpsPercentile Float?
+  pvpScore Float?
+  pvpPercentile Float?
+  guildRank Int?
+  tankRank Int?
+  dpsRank Int?
+  pvpRank Int?
   guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
   reservations ReservedAllocation[]
@@ -453,6 +464,7 @@ model PreferredRosterMember {
   preferredRosterParty PreferredRosterParty @relation(fields: [preferredRosterPartyId], references: [id], onDelete: Cascade)
   member GuildMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   @@unique([preferredRosterPartyId, slotNumber])
   @@unique([preferredRosterPartyId, memberId])
   @@index([preferredRosterPartyId])
