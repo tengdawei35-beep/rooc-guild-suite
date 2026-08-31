@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import EventClient from "./EventClient";
+import FinalRosterControls from "./FinalRosterControls";
 import RosterSaveNotificationBridge from "./RosterSaveNotificationBridge";
 
 import {
@@ -30,6 +31,9 @@ export default async function EventPage({
 
   return (
     <>
+      {canEditRosters && (
+        <FinalRosterControls eventId={eventId} />
+      )}
       <EventClient
         eventId={eventId}
         currentUserId={auth.user.id}
