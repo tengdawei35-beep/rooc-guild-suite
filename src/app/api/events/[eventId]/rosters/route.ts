@@ -159,6 +159,14 @@ export async function POST(
     const { eventId } =
       await context.params;
 
+    const body =
+      await _request.json().catch(() => ({}));
+
+    const mode =
+      body?.mode === "PREFERRED"
+        ? "PREFERRED"
+        : "AUTOMATIC";
+
     // ==========================================================
     // LOAD EVENT
     // ==========================================================
@@ -648,7 +656,7 @@ export async function POST(
     //
     // APPLY PREFERRED ROSTER
     // ==========================================================
-
+    if (mode === "PREFERRED"){
     for (
       const preferred of
         preferredParties
@@ -809,6 +817,7 @@ export async function POST(
           selected.id
         );
       }
+    }
     }
 
     // ==========================================================
@@ -1037,14 +1046,23 @@ export async function POST(
                 eventId:
                   event.id,
 
-                name: `${formatEventType(
-                  eventType
-                )} - ${formatDate(
-                  event.date
-                )}`,
+              name:
+                mode === "PREFERRED"
+                  ? `Preferred - ${formatEventType(
+                      eventType
+                    )} - ${formatDate(
+                      event.date
+                    )}`
+                  : `${formatEventType(
+                      eventType
+                    )} - ${formatDate(
+                      event.date
+                    )}`,
 
                 generationMode:
-                  "AUTOMATIC",
+                  mode === "PREFERRED"
+                    ? "PREFERRED"
+                    : "AUTOMATIC",
               },
             });
 

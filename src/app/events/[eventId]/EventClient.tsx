@@ -66,8 +66,9 @@ type RosterSummary = {
   id: string;
   name: string;
   generationMode:
-    | "MANUAL"
-    | "AUTOMATIC";
+  | "MANUAL"
+  | "AUTOMATIC"
+  | "PREFERRED";
   partyCount: number;
   memberCount: number;
   createdAt: string;
@@ -142,6 +143,7 @@ export default function EventClient({
 
   const [savingPreferred, setSavingPreferred] =
     useState(false);
+  const [loadingPreferred, setLoadingPreferred] = useState(false);
 
   const [preferredSaved, setPreferredSaved] =
     useState(false);
@@ -280,42 +282,93 @@ export default function EventClient({
   // GENERATE ROSTER
   // ==========================================================
 
-  async function generateRoster() {
-    setGeneratingRoster(true);
-    setError(null);
-    setPreferredSaved(false);
+async function generateRoster() {
+  setGeneratingRoster(true);
+  setError(null);
+  setPreferredSaved(false);
 
-    try {
-      const response = await fetch(
-        `/api/events/${eventId}/rosters`,
-        {
-          method: "POST",
-        }
-      );
-
-      const result =
-        await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          result.error ??
-            "Failed to generate roster."
-        );
+  try {
+    const response = await fetch(
+      `/api/events/${eventId}/rosters`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          mode: "AUTOMATIC",
+        }),
       }
+    );
 
-      setEditingRosterId(null);
+    const result =
+      await response.json();
 
-      await loadEvent();
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to generate roster."
+    if (!response.ok) {
+      throw new Error(
+        result.error ??
+          "Failed to generate roster."
       );
-    } finally {
-      setGeneratingRoster(false);
     }
+
+    setEditingRosterId(null);
+    await loadEvent();
+  } catch (err) {
+    setError(
+      err instanceof Error
+        ? err.message
+        : "Failed to generate roster."
+    );
+  } finally {
+    setGeneratingRoster(false);
   }
+}
+
+// ==========================================================
+// LOAD PREFERRED ROSTER
+// ==========================================================
+
+async function loadPreferredRoster() {
+  setLoadingPreferred(true);
+  setError(null);
+  setPreferredSaved(false);
+
+  try {
+    const response = await fetch(
+      `/api/events/${eventId}/rosters`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          mode: "PREFERRED",
+        }),
+      }
+    );
+
+    const result =
+      await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        result.error ??
+          "Failed to load preferred roster."
+      );
+    }
+
+    setEditingRosterId(null);
+    await loadEvent();
+  } catch (err) {
+    setError(
+      err instanceof Error
+        ? err.message
+        : "Failed to load preferred roster."
+    );
+  } finally {
+    setLoadingPreferred(false);
+  }
+}
 
   // ==========================================================
   // SAVE ROSTER AS PREFERRED
@@ -1297,15 +1350,12 @@ export default function EventClient({
               <div className="flex flex-wrap gap-3">
                 <button
                   type="button"
-                  onClick={
-                    saveRosterAsPreferred
-                  }
+                  onClick={saveRosterAsPreferred}
                   disabled={
                     savingPreferred ||
-                    data.rosters.length ===
-                      0
+                    data.rosters.length === 0
                   }
-                  className="rounded-lg border border-zinc-700 px-5 py-2.5 text-sm font-medium text-zinc-300 transition hover:border-zinc-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded-lg border border-zinc-700 bg-zinc-900 px-5 py-2.5 text-sm font-medium text-zinc-300 transition hover:border-zinc-500 hover:bg-zinc-800 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {savingPreferred
                     ? "Saving..."
@@ -1316,11 +1366,24 @@ export default function EventClient({
 
                 <button
                   type="button"
-                  onClick={
-                    generateRoster
-                  }
+                  onClick={loadPreferredRoster}
                   disabled={
+                    loadingPreferred ||
                     generatingRoster
+                  }
+                  className="rounded-lg border border-zinc-700 bg-zinc-900 px-5 py-2.5 text-sm font-medium text-zinc-300 transition hover:border-zinc-500 hover:bg-zinc-800 hover:text-white disabled:cursor-wait disabled:opacity-50"
+                >
+                  {loadingPreferred
+                    ? "Loading..."
+                    : "Load Preferred"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={generateRoster}
+                  disabled={
+                    generatingRoster ||
+                    loadingPreferred
                   }
                   className="rounded-lg bg-white px-5 py-2.5 text-sm font-medium text-black transition hover:bg-zinc-200 disabled:cursor-wait disabled:opacity-50"
                 >

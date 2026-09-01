@@ -50,6 +50,7 @@ enum Battlefield {
 enum RosterGenerationMode {
   MANUAL
   AUTOMATIC
+  PREFERRED
 }
 
 enum SaaSModule {

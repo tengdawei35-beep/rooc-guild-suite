@@ -72,7 +72,8 @@ export type Battlefield = (typeof Battlefield)[keyof typeof Battlefield]
 
 export const RosterGenerationMode = {
   MANUAL: 'MANUAL',
-  AUTOMATIC: 'AUTOMATIC'
+  AUTOMATIC: 'AUTOMATIC',
+  PREFERRED: 'PREFERRED'
 } as const
 
 export type RosterGenerationMode = (typeof RosterGenerationMode)[keyof typeof RosterGenerationMode]
