@@ -227,7 +227,12 @@ const MEMBER_DISPLAY_FIELDS = [
     key: "eligible",
     label: "Eligible",
     group: "Identity & Guild",
-  },\n  {\n    key: "updatedAt",\n    label: "Last Update",\n    group: "Identity & Guild",\n  },
+  },
+  {
+    key: "updatedAt",
+    label: "Last Update",
+    group: "Identity & Guild",
+  },
   {
     key: "hp",
     label: "HP",
@@ -2089,7 +2094,9 @@ export default function MembersClient({
                       Eligible{getSortIndicator("eligible")}
                     </button>
                   </th>
-                )}\n\n                {hasDisplayField("updatedAt") && (\n                  <th className="px-4 py-3 text-left font-medium text-zinc-400">\n                    <button\n                      type="button"\n                      onClick={() =>\n                        handleSort("updatedAt")\n                      }\n                      disabled={!canFilterMembers}\n                      className="text-inherit transition hover:text-white disabled:cursor-default"\n                    >\n                      Last Update{getSortIndicator("updatedAt")}\n                    </button>\n                  </th>\n                )}
+                )}
+
+                                {hasDisplayField("updatedAt") && (                  <th className="px-4 py-3 text-left font-medium text-zinc-400">                    <button                      type="button"                      onClick={() =>                        handleSort("updatedAt")                      }                      disabled={!canFilterMembers}                      className="text-inherit transition hover:text-white disabled:cursor-default"                    >                      Last Update{getSortIndicator("updatedAt")}                    </button>                  </th>                )}
 
                 {hasDisplayField("hp") && (
                   <th className="px-4 py-3 text-right font-medium text-zinc-400">
@@ -2543,7 +2550,7 @@ export default function MembersClient({
                               : "No"}
                           </span>
                         </td>
-                      )}\n\n                      {hasDisplayField("updatedAt") && (\n                        <td className="whitespace-nowrap px-4 py-3 text-zinc-400">\n                          {new Date(member.updatedAt).toLocaleString()}\n                        </td>\n                      )}
+                      )}                      {hasDisplayField("updatedAt") && (                        <td className="whitespace-nowrap px-4 py-3 text-zinc-400">                          {new Date(member.updatedAt).toLocaleString()}                        </td>                      )}
 
                       {hasDisplayField("hp") && (
                         <td className="px-4 py-3 text-right text-zinc-300">
