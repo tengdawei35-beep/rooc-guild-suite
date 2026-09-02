@@ -2,7 +2,6 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import MembersClient from "./MembersClient";
 import { requirePageAuth } from "@/lib/auth";
-import MemberLastUpdateColumn from "./MemberLastUpdateColumn";
 
 export default async function MembersPage() {
   const auth = await requirePageAuth();
@@ -60,52 +59,104 @@ export default async function MembersPage() {
 
   const members = guild.members.map((member) => ({
     id: member.id,
+
+    // Used by MembersClient to determine
+    // whether the authenticated MEMBER owns this profile.
     userId: member.userId,
+
+    // Discord identity is stored separately from the
+    // display name so authentication can match either
+    // the numeric Discord ID or username as appropriate.
     discordUserId: member.discordUserId,
     discordUsername: member.discordUsername,
+
     characterName: member.characterName,
     job: member.job,
+
     pdef: member.pdef,
     mdef: member.mdef,
-    pvpDamageBonus: member.pvpDamageBonus,
-    pvpDamageReduction: member.pvpDamageReduction,
-    pdmgPercent: member.pdmgPercent,
-    mdmgPercent: member.mdmgPercent,
-    pdmgReductionPercent: member.pdmgReductionPercent,
-    mdmgReductionPercent: member.mdmgReductionPercent,
-    critRes: member.critRes,
-    ignorePdef: member.ignorePdef,
-    ignoreMdef: member.ignoreMdef,
-    damageVsMedium: member.damageVsMedium,
-    damageReductionVsMedium: member.damageReductionVsMedium,
-    damageVsSmall: member.damageVsSmall,
-    damageReductionVsSmall: member.damageReductionVsSmall,
-    damageVsDemiHuman: member.damageVsDemiHuman,
-    damageReductionVsDemiHuman: member.damageReductionVsDemiHuman,
-    damageVsBrute: member.damageVsBrute,
-    damageReductionVsBrute: member.damageReductionVsBrute,
-    equipmentPdefPercent: member.equipmentPdefPercent,
-    equipmentMdefPercent: member.equipmentMdefPercent,
+
+    pvpDamageBonus:
+      member.pvpDamageBonus,
+
+    pvpDamageReduction:
+      member.pvpDamageReduction,
+
+    pdmgPercent:
+      member.pdmgPercent,
+
+    mdmgPercent:
+      member.mdmgPercent,
+
+    pdmgReductionPercent:
+      member.pdmgReductionPercent,
+
+    mdmgReductionPercent:
+      member.mdmgReductionPercent,
+
+    critRes:
+      member.critRes,
+
+    ignorePdef:
+      member.ignorePdef,
+
+    ignoreMdef:
+      member.ignoreMdef,
+
+    damageVsMedium:
+      member.damageVsMedium,
+
+    damageReductionVsMedium:
+      member.damageReductionVsMedium,
+
+    damageVsSmall:
+      member.damageVsSmall,
+
+    damageReductionVsSmall:
+      member.damageReductionVsSmall,
+
+    damageVsDemiHuman:
+      member.damageVsDemiHuman,
+
+    damageReductionVsDemiHuman:
+      member.damageReductionVsDemiHuman,
+
+    damageVsBrute:
+      member.damageVsBrute,
+
+    damageReductionVsBrute:
+      member.damageReductionVsBrute,
+
+    equipmentPdefPercent:
+      member.equipmentPdefPercent,
+
+    equipmentMdefPercent:
+      member.equipmentMdefPercent,
+
     patk: member.patk,
     matk: member.matk,
     hp: member.hp,
+
     active: member.active,
     eligible: member.eligible,
-    priority: member.priority,
-    remarks: member.remarks,
-    leaveDates: member.leaveDates.map((leave) => ({
-      id: leave.id,
-      date: leave.date.toISOString(),
-      reason: leave.reason,
-    })),
-  }));
 
-  const lastUpdates = Object.fromEntries(
-    guild.members.map((member) => [
-      member.id,
-      member.updatedAt.toISOString(),
-    ])
-  );
+    priority: member.priority,
+
+    remarks: member.remarks,
+
+    leaveDates:
+      member.leaveDates.map(
+        (leave) => ({
+          id: leave.id,
+
+          date:
+            leave.date.toISOString(),
+
+          reason:
+            leave.reason,
+        })
+      ),
+  }));
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
@@ -128,17 +179,15 @@ export default async function MembersPage() {
             </h1>
 
             <p className="mt-2 text-zinc-400">
-              Manage member profiles, jobs, combat statistics, eligibility and activity.
+              Manage member profiles, jobs,
+              combat statistics, eligibility
+              and activity.
             </p>
           </div>
         </header>
 
         <MembersClient
           initialMembers={members}
-        />
-
-        <MemberLastUpdateColumn
-          updates={lastUpdates}
         />
       </div>
     </main>
