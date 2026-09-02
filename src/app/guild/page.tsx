@@ -10,6 +10,7 @@ import {
 } from "@/lib/auth";
 
 import GuildForm from "./GuildForm";
+import OwnershipTransfer from "./OwnershipTransfer";
 
 export default async function GuildPage() {
   const auth = await requirePageAuth();
@@ -28,7 +29,15 @@ export default async function GuildPage() {
     );
   }
 
-  const guild = await prisma.guild.findUnique({ where: { id: auth.guild.id } });
+  const guild = await prisma.guild.findUnique({
+    where: { id: auth.guild.id },
+    include: {
+      memberships: {
+        include: { user: true },
+        orderBy: { user: { username: "asc" } },
+      },
+    },
+  });
 
   if (!guild) {
     return (
@@ -44,6 +53,13 @@ export default async function GuildPage() {
     );
   }
 
+  const ownershipUsers = guild.memberships.map((membership) => ({
+    id: membership.user.id,
+    username: membership.user.username,
+    discordId: membership.user.discordId,
+    role: membership.role,
+  }));
+
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
       <div className="mx-auto max-w-4xl px-6 py-10">
@@ -53,6 +69,12 @@ export default async function GuildPage() {
           <h1 className="text-3xl font-bold tracking-tight">Guild</h1>
           <p className="mt-2 text-zinc-400">Manage your guild configuration, members and access.</p>
         </header>
+
+        <OwnershipTransfer
+          currentOwnerUserId={guild.ownerUserId}
+          currentUserId={auth.user.id}
+          users={ownershipUsers}
+        />
 
         <section className="mb-6">
           <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-zinc-500">Guild Management</h2>
