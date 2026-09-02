@@ -101,10 +101,12 @@ type Member = {
   eligible: boolean;
 
   priority:
-    | "LEADER"
+    | "ADMIN"
+    | "MANAGER"
     | "OFFICER"
-    | "COUNCIL"
-    | "MEMBER";
+    | "MEMBER"
+    | "LEADER"
+    | "COUNCIL";
 
   remarks: string | null;
 
@@ -126,10 +128,12 @@ type MemberForm = {
   eligible: boolean;
 
   priority:
-    | "LEADER"
+    | "ADMIN"
+    | "MANAGER"
     | "OFFICER"
-    | "COUNCIL"
-    | "MEMBER";
+    | "MEMBER"
+    | "LEADER"
+    | "COUNCIL";
 
   remarks: string;
 
@@ -446,17 +450,25 @@ function formatPriority(
   priority: Member["priority"]
 ) {
   switch (priority) {
-    case "LEADER":
-      return "Leader";
+    case "ADMIN":
+      return "Admin";
+
+    case "MANAGER":
+      return "Manager";
 
     case "OFFICER":
       return "Officer";
 
-    case "COUNCIL":
-      return "Council";
-
     case "MEMBER":
       return "Member";
+
+    // Legacy member priorities remain supported because existing
+    // database records may still contain these values.
+    case "LEADER":
+      return "Leader";
+
+    case "COUNCIL":
+      return "Council";
 
     default:
       return priority;
@@ -528,6 +540,16 @@ export default function MembersClient({
     statusFilter,
     setStatusFilter,
   ] = useState("ALL");
+
+  const [
+    sortField,
+    setSortField,
+  ] = useState<MemberDisplayField>("characterName");
+
+  const [
+    sortDirection,
+    setSortDirection,
+  ] = useState<"asc" | "desc">("asc");
 
   const [
     displayFields,
@@ -602,6 +624,135 @@ export default function MembersClient({
       userRole,
       "profile.editOwn"
     );
+
+  // Only ADMIN, MANAGER and OFFICER may filter or sort the member list.
+  // MEMBER users can still view the full list and choose display columns.
+  const canFilterMembers =
+    userRole === "ADMIN" ||
+    userRole === "MANAGER" ||
+    userRole === "OFFICER";
+
+  function getSortValue(
+    member: Member,
+    field: MemberDisplayField
+  ): string | number | null {
+    switch (field) {
+      case "characterName":
+        return member.characterName;
+      case "discordUsername":
+        return member.discordUsername;
+      case "job":
+        return member.job;
+      case "priority":
+        return {
+          ADMIN: 6,
+          MANAGER: 5,
+          LEADER: 4,
+          COUNCIL: 3,
+          OFFICER: 2,
+          MEMBER: 1,
+        }[member.priority];
+      case "status":
+        return member.active ? 1 : 0;
+      case "eligible":
+        return member.eligible ? 1 : 0;
+      case "hp":
+        return member.hp;
+      case "patk":
+        return member.patk;
+      case "matk":
+        return member.matk;
+      case "rawPdef":
+        return Math.round(
+          calculateRawPdef(
+            member.pdef,
+            member.equipmentPdefPercent
+          )
+        );
+      case "rawMdef":
+        return Math.round(
+          calculateRawMdef(
+            member.mdef,
+            member.equipmentMdefPercent
+          )
+        );
+      case "pvpDamageBonus":
+        return member.pvpDamageBonus;
+      case "pvpDamageReduction":
+        return member.pvpDamageReduction;
+      case "pdmgPercent":
+        return member.pdmgPercent;
+      case "mdmgPercent":
+        return member.mdmgPercent;
+      case "pdmgReductionPercent":
+        return member.pdmgReductionPercent;
+      case "mdmgReductionPercent":
+        return member.mdmgReductionPercent;
+      case "critRes":
+        return member.critRes;
+      case "ignorePdef":
+        return member.ignorePdef;
+      case "ignoreMdef":
+        return member.ignoreMdef;
+      case "damageVsSmall":
+        return member.damageVsSmall;
+      case "damageReductionVsSmall":
+        return member.damageReductionVsSmall;
+      case "damageVsMedium":
+        return member.damageVsMedium;
+      case "damageReductionVsMedium":
+        return member.damageReductionVsMedium;
+      case "damageVsDemiHuman":
+        return member.damageVsDemiHuman;
+      case "damageReductionVsDemiHuman":
+        return member.damageReductionVsDemiHuman;
+      case "damageVsBrute":
+        return member.damageVsBrute;
+      case "damageReductionVsBrute":
+        return member.damageReductionVsBrute;
+      case "equipmentPdefPercent":
+        return member.equipmentPdefPercent;
+      case "equipmentMdefPercent":
+        return member.equipmentMdefPercent;
+      default:
+        return null;
+    }
+  }
+
+  function handleSort(
+    field: MemberDisplayField
+  ) {
+    if (!canFilterMembers) {
+      return;
+    }
+
+    if (sortField === field) {
+      setSortDirection((current) =>
+        current === "asc"
+          ? "desc"
+          : "asc"
+      );
+      return;
+    }
+
+    setSortField(field);
+    setSortDirection("asc");
+  }
+
+  function getSortIndicator(
+    field: MemberDisplayField
+  ) {
+    if (
+      !canFilterMembers ||
+      sortField !== field
+    ) {
+      return "";
+    }
+
+    return sortDirection === "asc"
+      ? " ↑"
+      : " ↓";
+  }
 
   function isOwnMember(
     member: Member
@@ -1516,59 +1667,126 @@ export default function MembersClient({
           .trim()
           .toLowerCase();
 
-      return members.filter(
-        (member) => {
-          const matchesSearch =
-            !query ||
-            [
-              member.characterName,
-              member.characterName,
-              member.job,
-              member.priority,
-            ]
-              .filter(
-                (
-                  value
-                ): value is string =>
-                  Boolean(value)
-              )
-              .some(
-                (value) =>
-                  value
-                    .toLowerCase()
-                    .includes(
-                      query
-                    )
-              );
+      const filtered =
+        members.filter(
+          (member) => {
+            if (!canFilterMembers) {
+              return true;
+            }
 
-          const matchesJob =
-            jobFilter ===
-              "ALL" ||
-            member.job ===
-              jobFilter;
+            const matchesSearch =
+              !query ||
+              [
+                member.characterName,
+                member.discordUsername,
+                member.job,
+                member.priority,
+              ]
+                .filter(
+                  (
+                    value
+                  ): value is string =>
+                    Boolean(value)
+                )
+                .some(
+                  (value) =>
+                    value
+                      .toLowerCase()
+                      .includes(query)
+                );
 
-          const matchesStatus =
-            statusFilter ===
-              "ALL" ||
-            (statusFilter ===
-              "ACTIVE" &&
-              member.active) ||
-            (statusFilter ===
-              "INACTIVE" &&
-              !member.active);
+            const matchesJob =
+              jobFilter === "ALL" ||
+              member.job === jobFilter;
 
-          return (
-            matchesSearch &&
-            matchesJob &&
-            matchesStatus
-          );
-        }
-      );
+            const matchesStatus =
+              statusFilter === "ALL" ||
+              (statusFilter === "ACTIVE" &&
+                member.active) ||
+              (statusFilter === "INACTIVE" &&
+                !member.active);
+
+            return (
+              matchesSearch &&
+              matchesJob &&
+              matchesStatus
+            );
+          }
+        );
+
+      if (!canFilterMembers) {
+        return filtered;
+      }
+
+      return filtered
+        .map((member, index) => ({
+          member,
+          index,
+          value: getSortValue(
+            member,
+            sortField
+          ),
+        }))
+        .sort((a, b) => {
+          const aValue = a.value;
+          const bValue = b.value;
+
+          if (
+            aValue === null ||
+            aValue === undefined
+          ) {
+            return bValue === null ||
+              bValue === undefined
+              ? a.index - b.index
+              : 1;
+          }
+
+          if (
+            bValue === null ||
+            bValue === undefined
+          ) {
+            return -1;
+          }
+
+          let comparison: number;
+
+          if (
+            typeof aValue === "number" &&
+            typeof bValue === "number"
+          ) {
+            comparison =
+              aValue - bValue;
+          } else {
+            comparison =
+              String(aValue)
+                .toLowerCase()
+                .localeCompare(
+                  String(bValue).toLowerCase(),
+                  undefined,
+                  {
+                    numeric: true,
+                    sensitivity: "base",
+                  }
+                );
+          }
+
+          if (comparison === 0) {
+            return a.index - b.index;
+          }
+
+          return sortDirection === "asc"
+            ? comparison
+            : -comparison;
+        })
+        .map(({ member }) => member);
     }, [
       members,
       search,
       jobFilter,
       statusFilter,
+      canFilterMembers,
+      sortField,
+      sortDirection,
     ]);
 
   return (
@@ -1621,64 +1839,70 @@ export default function MembersClient({
           </div>
         )}
 
-        <div className="mb-6 grid gap-3 md:grid-cols-[1fr_180px_180px]">
-          <input
-            type="text"
-            value={search}
-            onChange={(event) =>
-              setSearch(
-                event.target.value
-              )
-            }
-            placeholder="Search members..."
-            className="rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-zinc-600"
-          />
+        {canFilterMembers ? (
+          <div className="mb-6 grid gap-3 md:grid-cols-[1fr_180px_180px]">
+            <input
+              type="text"
+              value={search}
+              onChange={(event) =>
+                setSearch(
+                  event.target.value
+                )
+              }
+              placeholder="Search members..."
+              className="rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-zinc-600"
+            />
 
-          <select
-            value={jobFilter}
-            onChange={(event) =>
-              setJobFilter(
-                event.target.value
-              )
-            }
-            className="rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-zinc-100 outline-none"
-          >
-            <option value="ALL">
-              All Jobs
-            </option>
-
-            {jobs.map((job) => (
-              <option
-                key={job}
-                value={job}
-              >
-                {job}
+            <select
+              value={jobFilter}
+              onChange={(event) =>
+                setJobFilter(
+                  event.target.value
+                )
+              }
+              className="rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-zinc-100 outline-none"
+            >
+              <option value="ALL">
+                All Jobs
               </option>
-            ))}
-          </select>
 
-          <select
-            value={statusFilter}
-            onChange={(event) =>
-              setStatusFilter(
-                event.target.value
-              )
-            }
-            className="rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-zinc-100 outline-none"
-          >
-            <option value="ALL">
-              All Status
-            </option>
+              {jobs.map((job) => (
+                <option
+                  key={job}
+                  value={job}
+                >
+                  {job}
+                </option>
+              ))}
+            </select>
 
-            <option value="ACTIVE">
-              Active
-            </option>
+            <select
+              value={statusFilter}
+              onChange={(event) =>
+                setStatusFilter(
+                  event.target.value
+                )
+              }
+              className="rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-zinc-100 outline-none"
+            >
+              <option value="ALL">
+                All Status
+              </option>
 
-            <option value="INACTIVE">
-              Inactive
-            </option>
-          </select>
-        </div>
+              <option value="ACTIVE">
+                Active
+              </option>
+
+              <option value="INACTIVE">
+                Inactive
+              </option>
+            </select>
+          </div>
+        ) : (
+          <div className="mb-6 rounded-lg border border-zinc-800 bg-zinc-900/60 px-4 py-3 text-xs text-zinc-500">
+            Member filtering and sorting are available to Admin, Manager and Officer roles.
+          </div>
+        )}
 
         <div className="relative mb-6 flex justify-end">
           <button
@@ -1775,181 +1999,451 @@ export default function MembersClient({
               <tr>
                 {hasDisplayField("characterName") && (
                   <th className="px-4 py-3 text-left font-medium text-zinc-400">
-                    Character
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSort("characterName")
+                      }
+                      disabled={!canFilterMembers}
+                      className="text-inherit transition hover:text-white disabled:cursor-default"
+                    >
+                      Character{getSortIndicator("characterName")}
+                    </button>
                   </th>
                 )}
 
                 {hasDisplayField("discordUsername") && (
                   <th className="px-4 py-3 text-left font-medium text-zinc-400">
-                    Discord
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSort("discordUsername")
+                      }
+                      disabled={!canFilterMembers}
+                      className="text-inherit transition hover:text-white disabled:cursor-default"
+                    >
+                      Discord{getSortIndicator("discordUsername")}
+                    </button>
                   </th>
                 )}
 
                 {hasDisplayField("job") && (
                   <th className="px-4 py-3 text-left font-medium text-zinc-400">
-                    Job
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSort("job")
+                      }
+                      disabled={!canFilterMembers}
+                      className="text-inherit transition hover:text-white disabled:cursor-default"
+                    >
+                      Job{getSortIndicator("job")}
+                    </button>
                   </th>
                 )}
 
                 {hasDisplayField("priority") && (
                   <th className="px-4 py-3 text-left font-medium text-zinc-400">
-                    Priority
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSort("priority")
+                      }
+                      disabled={!canFilterMembers}
+                      className="text-inherit transition hover:text-white disabled:cursor-default"
+                    >
+                      Priority{getSortIndicator("priority")}
+                    </button>
                   </th>
                 )}
 
                 {hasDisplayField("status") && (
                   <th className="px-4 py-3 text-left font-medium text-zinc-400">
-                    Status
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSort("status")
+                      }
+                      disabled={!canFilterMembers}
+                      className="text-inherit transition hover:text-white disabled:cursor-default"
+                    >
+                      Status{getSortIndicator("status")}
+                    </button>
                   </th>
                 )}
 
                 {hasDisplayField("eligible") && (
                   <th className="px-4 py-3 text-left font-medium text-zinc-400">
-                    Eligible
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSort("eligible")
+                      }
+                      disabled={!canFilterMembers}
+                      className="text-inherit transition hover:text-white disabled:cursor-default"
+                    >
+                      Eligible{getSortIndicator("eligible")}
+                    </button>
                   </th>
                 )}
 
                 {hasDisplayField("hp") && (
                   <th className="px-4 py-3 text-right font-medium text-zinc-400">
-                    HP
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSort("hp")
+                      }
+                      disabled={!canFilterMembers}
+                      className="text-inherit transition hover:text-white disabled:cursor-default"
+                    >
+                      HP{getSortIndicator("hp")}
+                    </button>
                   </th>
                 )}
 
                 {hasDisplayField("patk") && (
                   <th className="px-4 py-3 text-right font-medium text-zinc-400">
-                    PATK
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSort("patk")
+                      }
+                      disabled={!canFilterMembers}
+                      className="text-inherit transition hover:text-white disabled:cursor-default"
+                    >
+                      PATK{getSortIndicator("patk")}
+                    </button>
                   </th>
                 )}
 
                 {hasDisplayField("matk") && (
                   <th className="px-4 py-3 text-right font-medium text-zinc-400">
-                    MATK
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSort("matk")
+                      }
+                      disabled={!canFilterMembers}
+                      className="text-inherit transition hover:text-white disabled:cursor-default"
+                    >
+                      MATK{getSortIndicator("matk")}
+                    </button>
                   </th>
                 )}
 
                 {hasDisplayField("rawPdef") && (
                   <th className="px-4 py-3 text-right font-medium text-zinc-400">
-                    Raw PDEF
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSort("rawPdef")
+                      }
+                      disabled={!canFilterMembers}
+                      className="text-inherit transition hover:text-white disabled:cursor-default"
+                    >
+                      Raw PDEF{getSortIndicator("rawPdef")}
+                    </button>
                   </th>
                 )}
 
                 {hasDisplayField("rawMdef") && (
                   <th className="px-4 py-3 text-right font-medium text-zinc-400">
-                    Raw MDEF
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSort("rawMdef")
+                      }
+                      disabled={!canFilterMembers}
+                      className="text-inherit transition hover:text-white disabled:cursor-default"
+                    >
+                      Raw MDEF{getSortIndicator("rawMdef")}
+                    </button>
                   </th>
                 )}
 
                 {hasDisplayField("pvpDamageBonus") && (
                   <th className="px-4 py-3 text-right font-medium text-zinc-400">
-                    PvP DMG Bonus
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSort("pvpDamageBonus")
+                      }
+                      disabled={!canFilterMembers}
+                      className="text-inherit transition hover:text-white disabled:cursor-default"
+                    >
+                      PvP DMG Bonus{getSortIndicator("pvpDamageBonus")}
+                    </button>
                   </th>
                 )}
 
                 {hasDisplayField("pvpDamageReduction") && (
                   <th className="px-4 py-3 text-right font-medium text-zinc-400">
-                    PvP DMG Reduction
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSort("pvpDamageReduction")
+                      }
+                      disabled={!canFilterMembers}
+                      className="text-inherit transition hover:text-white disabled:cursor-default"
+                    >
+                      PvP DMG Reduction{getSortIndicator("pvpDamageReduction")}
+                    </button>
                   </th>
                 )}
 
                 {hasDisplayField("pdmgPercent") && (
                   <th className="px-4 py-3 text-right font-medium text-zinc-400">
-                    P DMG %
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSort("pdmgPercent")
+                      }
+                      disabled={!canFilterMembers}
+                      className="text-inherit transition hover:text-white disabled:cursor-default"
+                    >
+                      P DMG %{getSortIndicator("pdmgPercent")}
+                    </button>
                   </th>
                 )}
 
                 {hasDisplayField("mdmgPercent") && (
                   <th className="px-4 py-3 text-right font-medium text-zinc-400">
-                    M DMG %
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSort("mdmgPercent")
+                      }
+                      disabled={!canFilterMembers}
+                      className="text-inherit transition hover:text-white disabled:cursor-default"
+                    >
+                      M DMG %{getSortIndicator("mdmgPercent")}
+                    </button>
                   </th>
                 )}
 
                 {hasDisplayField("pdmgReductionPercent") && (
                   <th className="px-4 py-3 text-right font-medium text-zinc-400">
-                    P DMG Reduction %
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSort("pdmgReductionPercent")
+                      }
+                      disabled={!canFilterMembers}
+                      className="text-inherit transition hover:text-white disabled:cursor-default"
+                    >
+                      P DMG Reduction %{getSortIndicator("pdmgReductionPercent")}
+                    </button>
                   </th>
                 )}
 
                 {hasDisplayField("mdmgReductionPercent") && (
                   <th className="px-4 py-3 text-right font-medium text-zinc-400">
-                    M DMG Reduction %
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSort("mdmgReductionPercent")
+                      }
+                      disabled={!canFilterMembers}
+                      className="text-inherit transition hover:text-white disabled:cursor-default"
+                    >
+                      M DMG Reduction %{getSortIndicator("mdmgReductionPercent")}
+                    </button>
                   </th>
                 )}
 
                 {hasDisplayField("critRes") && (
                   <th className="px-4 py-3 text-right font-medium text-zinc-400">
-                    Crit Res
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSort("critRes")
+                      }
+                      disabled={!canFilterMembers}
+                      className="text-inherit transition hover:text-white disabled:cursor-default"
+                    >
+                      Crit Res{getSortIndicator("critRes")}
+                    </button>
                   </th>
                 )}
 
                 {hasDisplayField("ignorePdef") && (
                   <th className="px-4 py-3 text-right font-medium text-zinc-400">
-                    Ignore PDEF
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSort("ignorePdef")
+                      }
+                      disabled={!canFilterMembers}
+                      className="text-inherit transition hover:text-white disabled:cursor-default"
+                    >
+                      Ignore PDEF{getSortIndicator("ignorePdef")}
+                    </button>
                   </th>
                 )}
 
                 {hasDisplayField("ignoreMdef") && (
                   <th className="px-4 py-3 text-right font-medium text-zinc-400">
-                    Ignore MDEF
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSort("ignoreMdef")
+                      }
+                      disabled={!canFilterMembers}
+                      className="text-inherit transition hover:text-white disabled:cursor-default"
+                    >
+                      Ignore MDEF{getSortIndicator("ignoreMdef")}
+                    </button>
                   </th>
                 )}
 
                 {hasDisplayField("damageVsSmall") && (
                   <th className="px-4 py-3 text-right font-medium text-zinc-400">
-                    DMG vs Small
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSort("damageVsSmall")
+                      }
+                      disabled={!canFilterMembers}
+                      className="text-inherit transition hover:text-white disabled:cursor-default"
+                    >
+                      DMG vs Small{getSortIndicator("damageVsSmall")}
+                    </button>
                   </th>
                 )}
 
                 {hasDisplayField("damageReductionVsSmall") && (
                   <th className="px-4 py-3 text-right font-medium text-zinc-400">
-                    Reduction vs Small
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSort("damageReductionVsSmall")
+                      }
+                      disabled={!canFilterMembers}
+                      className="text-inherit transition hover:text-white disabled:cursor-default"
+                    >
+                      Reduction vs Small{getSortIndicator("damageReductionVsSmall")}
+                    </button>
                   </th>
                 )}
 
                 {hasDisplayField("damageVsMedium") && (
                   <th className="px-4 py-3 text-right font-medium text-zinc-400">
-                    DMG vs Medium
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSort("damageVsMedium")
+                      }
+                      disabled={!canFilterMembers}
+                      className="text-inherit transition hover:text-white disabled:cursor-default"
+                    >
+                      DMG vs Medium{getSortIndicator("damageVsMedium")}
+                    </button>
                   </th>
                 )}
 
                 {hasDisplayField("damageReductionVsMedium") && (
                   <th className="px-4 py-3 text-right font-medium text-zinc-400">
-                    Reduction vs Medium
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSort("damageReductionVsMedium")
+                      }
+                      disabled={!canFilterMembers}
+                      className="text-inherit transition hover:text-white disabled:cursor-default"
+                    >
+                      Reduction vs Medium{getSortIndicator("damageReductionVsMedium")}
+                    </button>
                   </th>
                 )}
 
                 {hasDisplayField("damageVsDemiHuman") && (
                   <th className="px-4 py-3 text-right font-medium text-zinc-400">
-                    DMG vs Demi-Human
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSort("damageVsDemiHuman")
+                      }
+                      disabled={!canFilterMembers}
+                      className="text-inherit transition hover:text-white disabled:cursor-default"
+                    >
+                      DMG vs Demi-Human{getSortIndicator("damageVsDemiHuman")}
+                    </button>
                   </th>
                 )}
 
                 {hasDisplayField("damageReductionVsDemiHuman") && (
                   <th className="px-4 py-3 text-right font-medium text-zinc-400">
-                    Reduction vs Demi-Human
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSort("damageReductionVsDemiHuman")
+                      }
+                      disabled={!canFilterMembers}
+                      className="text-inherit transition hover:text-white disabled:cursor-default"
+                    >
+                      Reduction vs Demi-Human{getSortIndicator("damageReductionVsDemiHuman")}
+                    </button>
                   </th>
                 )}
 
                 {hasDisplayField("damageVsBrute") && (
                   <th className="px-4 py-3 text-right font-medium text-zinc-400">
-                    DMG vs Brute
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSort("damageVsBrute")
+                      }
+                      disabled={!canFilterMembers}
+                      className="text-inherit transition hover:text-white disabled:cursor-default"
+                    >
+                      DMG vs Brute{getSortIndicator("damageVsBrute")}
+                    </button>
                   </th>
                 )}
 
                 {hasDisplayField("damageReductionVsBrute") && (
                   <th className="px-4 py-3 text-right font-medium text-zinc-400">
-                    Reduction vs Brute
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSort("damageReductionVsBrute")
+                      }
+                      disabled={!canFilterMembers}
+                      className="text-inherit transition hover:text-white disabled:cursor-default"
+                    >
+                      Reduction vs Brute{getSortIndicator("damageReductionVsBrute")}
+                    </button>
                   </th>
                 )}
 
                 {hasDisplayField("equipmentPdefPercent") && (
                   <th className="px-4 py-3 text-right font-medium text-zinc-400">
-                    Equipment PDEF %
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSort("equipmentPdefPercent")
+                      }
+                      disabled={!canFilterMembers}
+                      className="text-inherit transition hover:text-white disabled:cursor-default"
+                    >
+                      Equipment PDEF %{getSortIndicator("equipmentPdefPercent")}
+                    </button>
                   </th>
                 )}
 
                 {hasDisplayField("equipmentMdefPercent") && (
                   <th className="px-4 py-3 text-right font-medium text-zinc-400">
-                    Equipment MDEF %
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSort("equipmentMdefPercent")
+                      }
+                      disabled={!canFilterMembers}
+                      className="text-inherit transition hover:text-white disabled:cursor-default"
+                    >
+                      Equipment MDEF %{getSortIndicator("equipmentMdefPercent")}
+                    </button>
                   </th>
                 )}
 
@@ -2414,12 +2908,20 @@ export default function MembersClient({
                                 Officer
                               </option>
 
+                              <option value="MANAGER">
+                                Manager
+                              </option>
+
+                              <option value="ADMIN">
+                                Admin
+                              </option>
+
                               <option value="COUNCIL">
-                                Council
+                                Council (legacy)
                               </option>
 
                               <option value="LEADER">
-                                Leader
+                                Leader (legacy)
                               </option>
                             </select>
                           </div>
