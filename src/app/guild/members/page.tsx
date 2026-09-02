@@ -59,6 +59,7 @@ export default async function MembersPage() {
 
   const members = guild.members.map((member) => ({
     id: member.id,
+    updatedAt: member.updatedAt.toISOString(),
 
     // Used by MembersClient to determine
     // whether the authenticated MEMBER owns this profile.
