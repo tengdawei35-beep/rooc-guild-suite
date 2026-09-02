@@ -24,3 +24,34 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Keep dashboard activity columns visually consistent with the unboxed activity list. */
+.grid.gap-4.lg\:grid-cols-4 > .overflow-hidden.rounded-2xl.border,
+.grid.gap-4.lg\:grid-cols-3 > .overflow-hidden.rounded-2xl.border {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.grid.gap-4.lg\:grid-cols-4 > .overflow-hidden.rounded-2xl.border > div:first-child,
+.grid.gap-4.lg\:grid-cols-3 > .overflow-hidden.rounded-2xl.border > div:first-child {
+  padding: 0 0 0.75rem;
+}
+
+.grid.gap-4.lg\:grid-cols-4 > .overflow-hidden.rounded-2xl.border > .divide-y > a,
+.grid.gap-4.lg\:grid-cols-3 > .overflow-hidden.rounded-2xl.border > .divide-y > a {
+  padding-left: 0;
+  padding-right: 0;
+  transition: background-color 150ms ease;
+}
+
+.grid.gap-4.lg\:grid-cols-4 > .overflow-hidden.rounded-2xl.border > .divide-y > a:hover,
+.grid.gap-4.lg\:grid-cols-3 > .overflow-hidden.rounded-2xl.border > .divide-y > a:hover {
+  background: rgb(24 24 27 / 0.4);
+}
+
+.grid.gap-4.lg\:grid-cols-4 > .overflow-hidden.rounded-2xl.border > div:last-child:not(.divide-y),
+.grid.gap-4.lg\:grid-cols-3 > .overflow-hidden.rounded-2xl.border > div:last-child:not(.divide-y) {
+  padding-left: 0;
+  padding-right: 0;
+}
