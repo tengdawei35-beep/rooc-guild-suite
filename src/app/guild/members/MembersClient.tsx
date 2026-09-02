@@ -14,6 +14,11 @@ import {
   hasPermission,
 } from "@/lib/permissions";
 
+import {
+  calculateRawPdef,
+  calculateRawMdef,
+} from "@/lib/scoring/roo-scoring";
+
 import type {
   UserRole,
 } from "@/lib/permissions";
@@ -187,6 +192,174 @@ const AVAILABLE_JOBS = [
   "Doram (Support)",
 ] as const;
 
+const MEMBER_DISPLAY_FIELDS = [
+  {
+    key: "characterName",
+    label: "Character",
+    group: "Identity & Guild",
+  },
+  {
+    key: "discordUsername",
+    label: "Discord",
+    group: "Identity & Guild",
+  },
+  {
+    key: "job",
+    label: "Job",
+    group: "Identity & Guild",
+  },
+  {
+    key: "priority",
+    label: "Priority",
+    group: "Identity & Guild",
+  },
+  {
+    key: "status",
+    label: "Status",
+    group: "Identity & Guild",
+  },
+  {
+    key: "eligible",
+    label: "Eligible",
+    group: "Identity & Guild",
+  },
+  {
+    key: "hp",
+    label: "HP",
+    group: "Combat",
+  },
+  {
+    key: "patk",
+    label: "PATK",
+    group: "Combat",
+  },
+  {
+    key: "matk",
+    label: "MATK",
+    group: "Combat",
+  },
+  {
+    key: "rawPdef",
+    label: "Raw PDEF",
+    group: "Combat",
+  },
+  {
+    key: "rawMdef",
+    label: "Raw MDEF",
+    group: "Combat",
+  },
+  {
+    key: "pvpDamageBonus",
+    label: "PvP DMG Bonus",
+    group: "Combat",
+  },
+  {
+    key: "pvpDamageReduction",
+    label: "PvP DMG Reduction",
+    group: "Combat",
+  },
+  {
+    key: "pdmgPercent",
+    label: "P DMG %",
+    group: "Combat",
+  },
+  {
+    key: "mdmgPercent",
+    label: "M DMG %",
+    group: "Combat",
+  },
+  {
+    key: "pdmgReductionPercent",
+    label: "P DMG Reduction %",
+    group: "Combat",
+  },
+  {
+    key: "mdmgReductionPercent",
+    label: "M DMG Reduction %",
+    group: "Combat",
+  },
+  {
+    key: "critRes",
+    label: "Crit Resistance",
+    group: "Combat",
+  },
+  {
+    key: "ignorePdef",
+    label: "Ignore PDEF",
+    group: "Combat",
+  },
+  {
+    key: "ignoreMdef",
+    label: "Ignore MDEF",
+    group: "Combat",
+  },
+  {
+    key: "damageVsSmall",
+    label: "Damage vs Small",
+    group: "Target / Equipment",
+  },
+  {
+    key: "damageReductionVsSmall",
+    label: "Reduction vs Small",
+    group: "Target / Equipment",
+  },
+  {
+    key: "damageVsMedium",
+    label: "Damage vs Medium",
+    group: "Target / Equipment",
+  },
+  {
+    key: "damageReductionVsMedium",
+    label: "Reduction vs Medium",
+    group: "Target / Equipment",
+  },
+  {
+    key: "damageVsDemiHuman",
+    label: "Damage vs Demi-Human",
+    group: "Target / Equipment",
+  },
+  {
+    key: "damageReductionVsDemiHuman",
+    label: "Reduction vs Demi-Human",
+    group: "Target / Equipment",
+  },
+  {
+    key: "damageVsBrute",
+    label: "Damage vs Brute",
+    group: "Target / Equipment",
+  },
+  {
+    key: "damageReductionVsBrute",
+    label: "Reduction vs Brute",
+    group: "Target / Equipment",
+  },
+  {
+    key: "equipmentPdefPercent",
+    label: "Equipment PDEF %",
+    group: "Target / Equipment",
+  },
+  {
+    key: "equipmentMdefPercent",
+    label: "Equipment MDEF %",
+    group: "Target / Equipment",
+  },
+] as const;
+
+type MemberDisplayField =
+  (typeof MEMBER_DISPLAY_FIELDS)[number]["key"];
+
+const DEFAULT_MEMBER_DISPLAY_FIELDS: MemberDisplayField[] = [
+  "characterName",
+  "discordUsername",
+  "job",
+  "priority",
+  "status",
+  "eligible",
+];
+
+const MEMBER_DISPLAY_FIELDS_STORAGE_KEY =
+  "rooc.guild.members.displayFields";
+
 const EMPTY_FORM: MemberForm = {
   discordUserId: "",
   discordUsername: "",
@@ -355,6 +528,18 @@ export default function MembersClient({
     statusFilter,
     setStatusFilter,
   ] = useState("ALL");
+
+  const [
+    displayFields,
+    setDisplayFields,
+  ] = useState<MemberDisplayField[]>(
+    DEFAULT_MEMBER_DISPLAY_FIELDS
+  );
+
+  const [
+    showFieldPicker,
+    setShowFieldPicker,
+  ] = useState(false);
 
   const [
     showImport,
@@ -536,6 +721,86 @@ export default function MembersClient({
 
     initialize();
   }, []);
+
+  useEffect(() => {
+    if (!currentUserId) {
+      return;
+    }
+
+    try {
+      const stored =
+        window.localStorage.getItem(
+          `${MEMBER_DISPLAY_FIELDS_STORAGE_KEY}:${currentUserId}`
+        );
+
+      if (!stored) {
+        return;
+      }
+
+      const parsed: unknown =
+        JSON.parse(stored);
+
+      if (!Array.isArray(parsed)) {
+        return;
+      }
+
+      const validFields =
+        parsed.filter(
+          (field): field is MemberDisplayField =>
+            typeof field === "string" &&
+            MEMBER_DISPLAY_FIELDS.some(
+              (definition) =>
+                definition.key === field
+            )
+        );
+
+      setDisplayFields(validFields);
+    } catch {
+      // Keep the defaults if saved preferences are unavailable or invalid.
+    }
+  }, [currentUserId]);
+
+  useEffect(() => {
+    if (!currentUserId) {
+      return;
+    }
+
+    try {
+      window.localStorage.setItem(
+        `${MEMBER_DISPLAY_FIELDS_STORAGE_KEY}:${currentUserId}`,
+        JSON.stringify(displayFields)
+      );
+    } catch {
+      // Display preferences are optional; ignore storage failures.
+    }
+  }, [currentUserId, displayFields]);
+
+  function hasDisplayField(
+    field: MemberDisplayField
+  ) {
+    return displayFields.includes(field);
+  }
+
+  function toggleDisplayField(
+    field: MemberDisplayField
+  ) {
+    setDisplayFields((current) =>
+      current.includes(field)
+        ? current.filter(
+            (value) => value !== field
+          )
+        : [
+            ...current,
+            field,
+          ]
+    );
+  }
+
+  function resetDisplayFields() {
+    setDisplayFields([
+      ...DEFAULT_MEMBER_DISPLAY_FIELDS,
+    ]);
+  }
 
   function openNewMember() {
     if (!canManageMembers) {
@@ -1415,33 +1680,278 @@ export default function MembersClient({
           </select>
         </div>
 
+        <div className="relative mb-6 flex justify-end">
+          <button
+            type="button"
+            onClick={() =>
+              setShowFieldPicker(
+                (current) => !current
+              )
+            }
+            aria-expanded={
+              showFieldPicker
+            }
+            className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-300 transition hover:border-zinc-500 hover:bg-zinc-800 hover:text-white"
+          >
+            Choose Fields
+            <span className="ml-2 text-xs text-zinc-500">
+              {displayFields.length}
+            </span>
+          </button>
+
+          {showFieldPicker && (
+            <div className="absolute right-0 top-full z-30 mt-2 w-[min(92vw,420px)] rounded-xl border border-zinc-700 bg-zinc-900 p-4 shadow-2xl">
+              <div className="mb-3 flex items-center justify-between">
+                <div>
+                  <h2 className="text-sm font-semibold text-zinc-200">
+                    Display Fields
+                  </h2>
+                  <p className="mt-1 text-xs text-zinc-500">
+                    Choose which member information appears in the table.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={resetDisplayFields}
+                  className="text-xs text-zinc-500 transition hover:text-zinc-200"
+                >
+                  Reset
+                </button>
+              </div>
+
+              <div className="max-h-[60vh] space-y-4 overflow-y-auto pr-1">
+                {[
+                  "Identity & Guild",
+                  "Combat",
+                  "Target / Equipment",
+                ].map((group) => (
+                  <div key={group}>
+                    <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                      {group}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      {MEMBER_DISPLAY_FIELDS
+                        .filter(
+                          (field) =>
+                            field.group === group
+                        )
+                        .map((field) => (
+                          <label
+                            key={field.key}
+                            className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-sm text-zinc-300 transition hover:bg-zinc-800"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={hasDisplayField(
+                                field.key
+                              )}
+                              onChange={() =>
+                                toggleDisplayField(
+                                  field.key
+                                )
+                              }
+                              className="h-4 w-4 rounded border-zinc-600 bg-zinc-950"
+                            />
+                            {field.label}
+                          </label>
+                        ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-4 border-t border-zinc-800 pt-3 text-xs text-zinc-600">
+                Your selection is saved on this device.
+              </div>
+            </div>
+          )}
+        </div>
+
         <div className="overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-900">
           <table className="w-full min-w-[900px] text-sm">
             <thead className="border-b border-zinc-800 bg-zinc-900">
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-zinc-400">
-                  Character
-                </th>
+                {hasDisplayField("characterName") && (
+                  <th className="px-4 py-3 text-left font-medium text-zinc-400">
+                    Character
+                  </th>
+                )}
 
-                <th className="px-4 py-3 text-left font-medium text-zinc-400">
-                  Discord
-                </th>
+                {hasDisplayField("discordUsername") && (
+                  <th className="px-4 py-3 text-left font-medium text-zinc-400">
+                    Discord
+                  </th>
+                )}
 
-                <th className="px-4 py-3 text-left font-medium text-zinc-400">
-                  Job
-                </th>
+                {hasDisplayField("job") && (
+                  <th className="px-4 py-3 text-left font-medium text-zinc-400">
+                    Job
+                  </th>
+                )}
 
-                <th className="px-4 py-3 text-left font-medium text-zinc-400">
-                  Priority
-                </th>
+                {hasDisplayField("priority") && (
+                  <th className="px-4 py-3 text-left font-medium text-zinc-400">
+                    Priority
+                  </th>
+                )}
 
-                <th className="px-4 py-3 text-left font-medium text-zinc-400">
-                  Status
-                </th>
+                {hasDisplayField("status") && (
+                  <th className="px-4 py-3 text-left font-medium text-zinc-400">
+                    Status
+                  </th>
+                )}
 
-                <th className="px-4 py-3 text-left font-medium text-zinc-400">
-                  Eligible
-                </th>
+                {hasDisplayField("eligible") && (
+                  <th className="px-4 py-3 text-left font-medium text-zinc-400">
+                    Eligible
+                  </th>
+                )}
+
+                {hasDisplayField("hp") && (
+                  <th className="px-4 py-3 text-right font-medium text-zinc-400">
+                    HP
+                  </th>
+                )}
+
+                {hasDisplayField("patk") && (
+                  <th className="px-4 py-3 text-right font-medium text-zinc-400">
+                    PATK
+                  </th>
+                )}
+
+                {hasDisplayField("matk") && (
+                  <th className="px-4 py-3 text-right font-medium text-zinc-400">
+                    MATK
+                  </th>
+                )}
+
+                {hasDisplayField("rawPdef") && (
+                  <th className="px-4 py-3 text-right font-medium text-zinc-400">
+                    Raw PDEF
+                  </th>
+                )}
+
+                {hasDisplayField("rawMdef") && (
+                  <th className="px-4 py-3 text-right font-medium text-zinc-400">
+                    Raw MDEF
+                  </th>
+                )}
+
+                {hasDisplayField("pvpDamageBonus") && (
+                  <th className="px-4 py-3 text-right font-medium text-zinc-400">
+                    PvP DMG Bonus
+                  </th>
+                )}
+
+                {hasDisplayField("pvpDamageReduction") && (
+                  <th className="px-4 py-3 text-right font-medium text-zinc-400">
+                    PvP DMG Reduction
+                  </th>
+                )}
+
+                {hasDisplayField("pdmgPercent") && (
+                  <th className="px-4 py-3 text-right font-medium text-zinc-400">
+                    P DMG %
+                  </th>
+                )}
+
+                {hasDisplayField("mdmgPercent") && (
+                  <th className="px-4 py-3 text-right font-medium text-zinc-400">
+                    M DMG %
+                  </th>
+                )}
+
+                {hasDisplayField("pdmgReductionPercent") && (
+                  <th className="px-4 py-3 text-right font-medium text-zinc-400">
+                    P DMG Reduction %
+                  </th>
+                )}
+
+                {hasDisplayField("mdmgReductionPercent") && (
+                  <th className="px-4 py-3 text-right font-medium text-zinc-400">
+                    M DMG Reduction %
+                  </th>
+                )}
+
+                {hasDisplayField("critRes") && (
+                  <th className="px-4 py-3 text-right font-medium text-zinc-400">
+                    Crit Res
+                  </th>
+                )}
+
+                {hasDisplayField("ignorePdef") && (
+                  <th className="px-4 py-3 text-right font-medium text-zinc-400">
+                    Ignore PDEF
+                  </th>
+                )}
+
+                {hasDisplayField("ignoreMdef") && (
+                  <th className="px-4 py-3 text-right font-medium text-zinc-400">
+                    Ignore MDEF
+                  </th>
+                )}
+
+                {hasDisplayField("damageVsSmall") && (
+                  <th className="px-4 py-3 text-right font-medium text-zinc-400">
+                    DMG vs Small
+                  </th>
+                )}
+
+                {hasDisplayField("damageReductionVsSmall") && (
+                  <th className="px-4 py-3 text-right font-medium text-zinc-400">
+                    Reduction vs Small
+                  </th>
+                )}
+
+                {hasDisplayField("damageVsMedium") && (
+                  <th className="px-4 py-3 text-right font-medium text-zinc-400">
+                    DMG vs Medium
+                  </th>
+                )}
+
+                {hasDisplayField("damageReductionVsMedium") && (
+                  <th className="px-4 py-3 text-right font-medium text-zinc-400">
+                    Reduction vs Medium
+                  </th>
+                )}
+
+                {hasDisplayField("damageVsDemiHuman") && (
+                  <th className="px-4 py-3 text-right font-medium text-zinc-400">
+                    DMG vs Demi-Human
+                  </th>
+                )}
+
+                {hasDisplayField("damageReductionVsDemiHuman") && (
+                  <th className="px-4 py-3 text-right font-medium text-zinc-400">
+                    Reduction vs Demi-Human
+                  </th>
+                )}
+
+                {hasDisplayField("damageVsBrute") && (
+                  <th className="px-4 py-3 text-right font-medium text-zinc-400">
+                    DMG vs Brute
+                  </th>
+                )}
+
+                {hasDisplayField("damageReductionVsBrute") && (
+                  <th className="px-4 py-3 text-right font-medium text-zinc-400">
+                    Reduction vs Brute
+                  </th>
+                )}
+
+                {hasDisplayField("equipmentPdefPercent") && (
+                  <th className="px-4 py-3 text-right font-medium text-zinc-400">
+                    Equipment PDEF %
+                  </th>
+                )}
+
+                {hasDisplayField("equipmentMdefPercent") && (
+                  <th className="px-4 py-3 text-right font-medium text-zinc-400">
+                    Equipment MDEF %
+                  </th>
+                )}
 
                 <th className="px-4 py-3 text-right font-medium text-zinc-400">
                   Actions
@@ -1453,7 +1963,7 @@ export default function MembersClient({
               {loading ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={displayFields.length + 1}
                     className="px-4 py-10 text-center text-sm text-zinc-500"
                   >
                     Loading members...
@@ -1463,7 +1973,7 @@ export default function MembersClient({
                 0 ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={displayFields.length + 1}
                     className="px-4 py-10 text-center text-sm text-zinc-500"
                   >
                     No members found.
@@ -1476,68 +1986,227 @@ export default function MembersClient({
                       key={member.id}
                       className="border-b border-zinc-800 last:border-0 transition hover:bg-zinc-800/50"
                     >
-                      <td className="px-4 py-3">
-                        <Link
-                          href={`/guild/members/${member.id}`}
-                          className="font-medium text-zinc-100 hover:text-white hover:underline"
-                        >
-                          {member.characterName}
-                        </Link>
-                      </td>
+                      {hasDisplayField("characterName") && (
+                        <td className="px-4 py-3">
+                          <Link
+                            href={`/guild/members/${member.id}`}
+                            className="font-medium text-zinc-100 hover:text-white hover:underline"
+                          >
+                            {member.characterName}
+                          </Link>
+                        </td>
+                      )}
 
-                      <td className="px-4 py-3 text-zinc-400">
-                        {member.discordUsername}
-                      </td>
+                      {hasDisplayField("discordUsername") && (
+                        <td className="px-4 py-3 text-zinc-400">
+                          {member.discordUsername ?? "—"}
+                        </td>
+                      )}
 
-                      <td className="px-4 py-3 text-zinc-300">
-                        {member.job ??
-                          "—"}
-                      </td>
+                      {hasDisplayField("job") && (
+                        <td className="px-4 py-3 text-zinc-300">
+                          {member.job ?? "—"}
+                        </td>
+                      )}
 
-                      <td className="px-4 py-3 text-zinc-300">
-                        {formatPriority(
-                          member.priority
-                        )}
-                      </td>
+                      {hasDisplayField("priority") && (
+                        <td className="px-4 py-3 text-zinc-300">
+                          {formatPriority(member.priority)}
+                        </td>
+                      )}
 
-                      <td className="px-4 py-3">
-                        <span
-                          className={`rounded-full px-2 py-1 text-xs font-medium ${
-                            member.active
-                              ? "bg-emerald-950 text-emerald-300"
-                              : "bg-zinc-800 text-zinc-400"
-                          }`}
-                        >
-                          {member.active
-                            ? "Active"
-                            : "Inactive"}
-                        </span>
-                      </td>
+                      {hasDisplayField("status") && (
+                        <td className="px-4 py-3">
+                          <span
+                            className={`rounded-full px-2 py-1 text-xs font-medium ${
+                              member.active
+                                ? "bg-emerald-950 text-emerald-300"
+                                : "bg-zinc-800 text-zinc-400"
+                            }`}
+                          >
+                            {member.active
+                              ? "Active"
+                              : "Inactive"}
+                          </span>
+                        </td>
+                      )}
 
-                      <td className="px-4 py-3">
-                        <span
-                          className={`rounded-full px-2 py-1 text-xs font-medium ${
-                            member.eligible
-                              ? "bg-blue-950 text-blue-300"
-                              : "bg-zinc-800 text-zinc-400"
-                          }`}
-                        >
-                          {member.eligible
-                            ? "Yes"
-                            : "No"}
-                        </span>
-                      </td>
+                      {hasDisplayField("eligible") && (
+                        <td className="px-4 py-3">
+                          <span
+                            className={`rounded-full px-2 py-1 text-xs font-medium ${
+                              member.eligible
+                                ? "bg-blue-950 text-blue-300"
+                                : "bg-zinc-800 text-zinc-400"
+                            }`}
+                          >
+                            {member.eligible
+                              ? "Yes"
+                              : "No"}
+                          </span>
+                        </td>
+                      )}
+
+                      {hasDisplayField("hp") && (
+                        <td className="px-4 py-3 text-right text-zinc-300">
+                          {member.hp ?? "—"}
+                        </td>
+                      )}
+
+                      {hasDisplayField("patk") && (
+                        <td className="px-4 py-3 text-right text-zinc-300">
+                          {member.patk ?? "—"}
+                        </td>
+                      )}
+
+                      {hasDisplayField("matk") && (
+                        <td className="px-4 py-3 text-right text-zinc-300">
+                          {member.matk ?? "—"}
+                        </td>
+                      )}
+
+                      {hasDisplayField("rawPdef") && (
+                        <td className="px-4 py-3 text-right text-zinc-300">
+                          {Math.round(
+                            calculateRawPdef(
+                              member.pdef,
+                              member.equipmentPdefPercent
+                            )
+                          )}
+                        </td>
+                      )}
+
+                      {hasDisplayField("rawMdef") && (
+                        <td className="px-4 py-3 text-right text-zinc-300">
+                          {Math.round(
+                            calculateRawMdef(
+                              member.mdef,
+                              member.equipmentMdefPercent
+                            )
+                          )}
+                        </td>
+                      )}
+
+                      {hasDisplayField("pvpDamageBonus") && (
+                        <td className="px-4 py-3 text-right text-zinc-300">
+                          {member.pvpDamageBonus ?? "—"}
+                        </td>
+                      )}
+
+                      {hasDisplayField("pvpDamageReduction") && (
+                        <td className="px-4 py-3 text-right text-zinc-300">
+                          {member.pvpDamageReduction ?? "—"}
+                        </td>
+                      )}
+
+                      {hasDisplayField("pdmgPercent") && (
+                        <td className="px-4 py-3 text-right text-zinc-300">
+                          {member.pdmgPercent ?? "—"}
+                        </td>
+                      )}
+
+                      {hasDisplayField("mdmgPercent") && (
+                        <td className="px-4 py-3 text-right text-zinc-300">
+                          {member.mdmgPercent ?? "—"}
+                        </td>
+                      )}
+
+                      {hasDisplayField("pdmgReductionPercent") && (
+                        <td className="px-4 py-3 text-right text-zinc-300">
+                          {member.pdmgReductionPercent ?? "—"}
+                        </td>
+                      )}
+
+                      {hasDisplayField("mdmgReductionPercent") && (
+                        <td className="px-4 py-3 text-right text-zinc-300">
+                          {member.mdmgReductionPercent ?? "—"}
+                        </td>
+                      )}
+
+                      {hasDisplayField("critRes") && (
+                        <td className="px-4 py-3 text-right text-zinc-300">
+                          {member.critRes ?? "—"}
+                        </td>
+                      )}
+
+                      {hasDisplayField("ignorePdef") && (
+                        <td className="px-4 py-3 text-right text-zinc-300">
+                          {member.ignorePdef ?? "—"}
+                        </td>
+                      )}
+
+                      {hasDisplayField("ignoreMdef") && (
+                        <td className="px-4 py-3 text-right text-zinc-300">
+                          {member.ignoreMdef ?? "—"}
+                        </td>
+                      )}
+
+                      {hasDisplayField("damageVsSmall") && (
+                        <td className="px-4 py-3 text-right text-zinc-300">
+                          {member.damageVsSmall ?? "—"}
+                        </td>
+                      )}
+
+                      {hasDisplayField("damageReductionVsSmall") && (
+                        <td className="px-4 py-3 text-right text-zinc-300">
+                          {member.damageReductionVsSmall ?? "—"}
+                        </td>
+                      )}
+
+                      {hasDisplayField("damageVsMedium") && (
+                        <td className="px-4 py-3 text-right text-zinc-300">
+                          {member.damageVsMedium ?? "—"}
+                        </td>
+                      )}
+
+                      {hasDisplayField("damageReductionVsMedium") && (
+                        <td className="px-4 py-3 text-right text-zinc-300">
+                          {member.damageReductionVsMedium ?? "—"}
+                        </td>
+                      )}
+
+                      {hasDisplayField("damageVsDemiHuman") && (
+                        <td className="px-4 py-3 text-right text-zinc-300">
+                          {member.damageVsDemiHuman ?? "—"}
+                        </td>
+                      )}
+
+                      {hasDisplayField("damageReductionVsDemiHuman") && (
+                        <td className="px-4 py-3 text-right text-zinc-300">
+                          {member.damageReductionVsDemiHuman ?? "—"}
+                        </td>
+                      )}
+
+                      {hasDisplayField("damageVsBrute") && (
+                        <td className="px-4 py-3 text-right text-zinc-300">
+                          {member.damageVsBrute ?? "—"}
+                        </td>
+                      )}
+
+                      {hasDisplayField("damageReductionVsBrute") && (
+                        <td className="px-4 py-3 text-right text-zinc-300">
+                          {member.damageReductionVsBrute ?? "—"}
+                        </td>
+                      )}
+
+                      {hasDisplayField("equipmentPdefPercent") && (
+                        <td className="px-4 py-3 text-right text-zinc-300">
+                          {member.equipmentPdefPercent ?? "—"}
+                        </td>
+                      )}
+
+                      {hasDisplayField("equipmentMdefPercent") && (
+                        <td className="px-4 py-3 text-right text-zinc-300">
+                          {member.equipmentMdefPercent ?? "—"}
+                        </td>
+                      )}
 
                       <td className="px-4 py-3 text-right">
-                        {canEditMember(
-                          member
-                        ) ? (
+                        {canEditMember(member) ? (
                           <button
                             type="button"
                             onClick={() =>
-                              openMember(
-                                member
-                              )
+                              openMember(member)
                             }
                             className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-300 transition hover:border-zinc-500 hover:bg-zinc-800 hover:text-white"
                           >
