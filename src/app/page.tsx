@@ -37,11 +37,6 @@ export default async function Home() {
     return latestRoster ? { date: latestRoster, title: "Roster generated", detail: `${formatEventType(event.type)} · ${formatEventDate(event.date)}`, href: `/events/${event.id}` } : null;
   }).filter((item): item is { date: Date; title: string; detail: string; href: string } => item !== null);
 
-  const biddingActivity = (guild?.allocationRuns ?? []).map((run) => {
-    if (run.bidPages.length === 0) return null;
-    return { date: run.createdAt, title: "Bidding generated", detail: `${formatEventType(run.event.type)} · ${formatEventDate(run.event.date)} · ${run.bidPages.length} page${run.bidPages.length === 1 ? "" : "s"}`, href: `/allocation/${run.id}/bids` };
-  }).filter((item): item is { date: Date; title: string; detail: string; href: string } => item !== null);
-
   const eventActivityMap = new Map<string, { date: Date; title: string; detail: string; href: string }>();
   for (const item of rosterActivity) {
     const event = (guild?.events ?? []).find((candidate) => `/events/${candidate.id}` === item.href);
@@ -49,13 +44,14 @@ export default async function Home() {
     eventActivityMap.set(event.id, { date: item.date, title: "Roster generated", detail: item.detail, href: item.href });
   }
   for (const run of guild?.allocationRuns ?? []) {
-    if (run.bidPages.length === 0) continue;
-    const existing = eventActivityMap.get(run.eventId);
+    if (run.bidPages.length === 0 || !run.event) continue;
+    const eventId = run.event.id;
+    const existing = eventActivityMap.get(eventId);
     const bidItem = { date: run.createdAt, title: "Bidding generated", detail: `${formatEventType(run.event.type)} · ${formatEventDate(run.event.date)} · ${run.bidPages.length} page${run.bidPages.length === 1 ? "" : "s"}`, href: `/allocation/${run.id}/bids` };
     if (existing) {
-      eventActivityMap.set(run.eventId, { date: existing.date >= bidItem.date ? existing.date : bidItem.date, title: "Event updated", detail: `${formatEventType(run.event.type)} · ${formatEventDate(run.event.date)} · Roster + Bidding`, href: bidItem.href });
+      eventActivityMap.set(eventId, { date: existing.date >= bidItem.date ? existing.date : bidItem.date, title: "Event updated", detail: `${formatEventType(run.event.type)} · ${formatEventDate(run.event.date)} · Roster + Bidding`, href: bidItem.href });
     } else {
-      eventActivityMap.set(run.eventId, bidItem);
+      eventActivityMap.set(eventId, bidItem);
     }
   }
   const recentRosterActivity = Array.from(eventActivityMap.values()).sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 5);
