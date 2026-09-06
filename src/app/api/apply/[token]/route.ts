@@ -53,7 +53,6 @@ export async function POST(request: Request, context: { params: Promise<{ token:
   const scored = scoreRooPlayers([...members, { ...applicantStats, job }]);
   const applicant = scored[scored.length - 1];
   const existing = await prisma.guildApplicant.findUnique({ where: { guildId_discordUserId: { guildId: invite.guildId, discordUserId: user.discordId } } });
-  if (existing?.status === "ACCEPTED") return NextResponse.json({ error: "Your application has already been accepted." }, { status: 409 });
 
   const payload = {
     inviteId: invite.id,
