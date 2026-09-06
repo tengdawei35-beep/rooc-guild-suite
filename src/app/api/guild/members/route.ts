@@ -150,9 +150,6 @@ export async function GET() {
       return NextResponse.json({ error: "You do not have permission to view members." }, { status: 403 });
     }
 
-    // Keep the Members page in sync with the live ranking values. A member's
-    // stat change can affect every eligible member's percentile/rank, so this
-    // must be refreshed at guild level rather than calculated per member.
     await refreshGuildRankings(auth.guild.id);
 
     const members = await prisma.guildMember.findMany({
@@ -161,7 +158,45 @@ export async function GET() {
       orderBy: { characterName: "asc" },
     });
 
-    return NextResponse.json({ members });
+    const canViewOtherStats = auth.role !== "MEMBER";
+    const safeMembers = members.map((member) => {
+      const canViewCharacterStats =
+        canViewOtherStats ||
+        member.userId === auth.user.id ||
+        member.discordUserId === auth.user.discordId;
+
+      if (canViewCharacterStats) return member;
+
+      return {
+        ...member,
+        pdef: null,
+        mdef: null,
+        pvpDamageBonus: null,
+        pvpDamageReduction: null,
+        pdmgPercent: null,
+        mdmgPercent: null,
+        pdmgReductionPercent: null,
+        mdmgReductionPercent: null,
+        critRes: null,
+        ignorePdef: null,
+        ignoreMdef: null,
+        damageVsMedium: null,
+        damageReductionVsMedium: null,
+        damageVsSmall: null,
+        damageReductionVsSmall: null,
+        damageVsDemiHuman: null,
+        damageReductionVsDemiHuman: null,
+        damageVsBrute: null,
+        damageReductionVsBrute: null,
+        equipmentPdefPercent: null,
+        equipmentMdefPercent: null,
+        patk: null,
+        matk: null,
+        hp: null,
+      };
+    });
+
+    return NextResponse.json({ members: safeMembers });
   } catch (error) {
     console.error("[MEMBERS] Failed to fetch members:", error);
     return NextResponse.json({ error: "Failed to fetch members." }, { status: 500 });
