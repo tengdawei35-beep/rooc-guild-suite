@@ -19,10 +19,18 @@ export default async function ApplicantApplyPage({ params }: { params: Promise<{
     return <main className="min-h-screen bg-zinc-950 p-6 text-white"><div className="mx-auto max-w-xl py-16"><div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-8 text-center"><p className="text-sm font-medium uppercase tracking-widest text-zinc-500">ROO Guild Suite</p><h1 className="mt-3 text-3xl font-bold">Apply to {guild?.name ?? "this guild"}</h1><p className="mt-3 text-zinc-400">You must sign in with Discord before submitting a guild application.</p><a href={loginHref} className="mt-7 inline-flex rounded-lg bg-white px-5 py-3 font-medium text-black">Continue with Discord</a></div></div></main>;
   }
 
+  const existingMember = await prisma.guildMember.findFirst({ where: { guildId: invite.guildId, discordUserId: user.discordId }, select: { id: true } });
   const existing = await prisma.guildApplicant.findFirst({
     where: { guildId: invite.guildId, discordUserId: user.discordId },
     orderBy: { updatedAt: "desc" },
   });
+
+  // An ACCEPTED application only remains locked while the applicant is an
+  // active guild member. Former members may use the same application link
+  // to submit a fresh application.
+  const displayStatus = existing?.status === "ACCEPTED" && !existingMember
+    ? "DENIED" as const
+    : existing?.status;
 
   return <ApplicantApplyClient
     token={token}
@@ -33,7 +41,7 @@ export default async function ApplicantApplyPage({ params }: { params: Promise<{
       id: existing.id,
       characterName: existing.characterName,
       job: existing.job,
-      status: existing.status,
+      status: displayStatus,
       pdef: existing.pdef,
       mdef: existing.mdef,
       pvpDamageBonus: existing.pvpDamageBonus,
