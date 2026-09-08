@@ -19,6 +19,10 @@ type AuditResource = {
   latestRun: { id: string; createdAt: string; eventDate: string | null; rotationIndexBefore: number | null; rotationIndexAfter: number | null } | null;
 };
 
+// a1d1220 is the commit that completed the rotation-pool fix. Runs before
+// that commit are the historical runs that this audit is intended to inspect.
+const OLD_IMPLEMENTATION_CUTOFF = new Date("2026-09-08T14:18:07.000Z");
+
 function asIndexMap(value: unknown): IndexMap {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
   const result: IndexMap = {};
@@ -45,7 +49,7 @@ export async function GET() {
         members: { where: { active: true, eligible: true }, orderBy: { characterName: "asc" }, select: { id: true, characterName: true } },
         resources: { where: { active: true }, orderBy: { name: "asc" }, include: { rotationStates: true } },
         allocationRuns: {
-          where: { status: "COMPLETED" },
+          where: { status: "COMPLETED", createdAt: { lt: OLD_IMPLEMENTATION_CUTOFF } },
           orderBy: { createdAt: "asc" },
           include: { event: { select: { date: true } }, allocationResults: { select: { memberId: true, resourceId: true, reservedQuantity: true, assignedQuantity: true } } },
         },
@@ -82,9 +86,6 @@ export async function GET() {
           rotationIndexAfter: typeof oldAfter === "number" ? oldAfter : null,
         };
 
-        // The old implementation removed every reserved member from the
-        // rotation pool. Reservation results let us reconstruct that pool for
-        // each historical run without changing any database state.
         const reservedMemberIds = new Set(run.allocationResults.filter((result) => result.reservedQuantity > 0).map((result) => result.memberId));
         const oldPool = fullPool.filter((member) => !reservedMemberIds.has(member.id));
         if (!oldPool.length || typeof oldBefore !== "number") continue;
@@ -92,32 +93,25 @@ export async function GET() {
         const normalizedOldBefore = ((oldBefore % oldPool.length) + oldPool.length) % oldPool.length;
         const oldRotated = rotate(oldPool, normalizedOldBefore);
         const normalSelectedIds = results.filter((result) => result.reservedQuantity === 0 && result.assignedQuantity > 0).map((result) => result.memberId);
+        if (!normalSelectedIds.length) continue;
 
-        if (normalSelectedIds.length > 0) {
-          const firstSelectedId = normalSelectedIds[0];
-          const firstFullPosition = fullPool.findIndex((member) => member.id === firstSelectedId);
-          if (firstFullPosition >= 0) {
-            // Map the old cursor's starting member into the complete pool and
-            // walk until the first selected member, recording reserved turns
-            // that the old implementation skipped.
-            const oldStartMember = oldRotated[0];
-            const fullStartPosition = fullPool.findIndex((member) => member.id === oldStartMember.id);
-            if (fullStartPosition >= 0) {
-              const fullRotated = rotate(fullPool, fullStartPosition);
-              for (const member of fullRotated) {
-                if (member.id === firstSelectedId) break;
-                if (reservedMemberIds.has(member.id)) skippedMembers.push({ memberId: member.id, memberName: member.characterName, runId: run.id, eventDate: run.event?.date.toISOString() ?? null });
-              }
-            }
+        const firstSelectedId = normalSelectedIds[0];
+        const oldStartMember = oldRotated[0];
+        const fullStartPosition = fullPool.findIndex((member) => member.id === oldStartMember.id);
+        if (fullStartPosition >= 0) {
+          const fullRotated = rotate(fullPool, fullStartPosition);
+          for (const member of fullRotated) {
+            if (member.id === firstSelectedId) break;
+            if (reservedMemberIds.has(member.id)) skippedMembers.push({ memberId: member.id, memberName: member.characterName, runId: run.id, eventDate: run.event?.date.toISOString() ?? null });
           }
+        }
 
-          const lastSelectedId = normalSelectedIds[normalSelectedIds.length - 1];
-          const lastPositionInOldPool = oldRotated.findIndex((member) => member.id === lastSelectedId);
-          if (lastPositionInOldPool >= 0) {
-            const nextOldMember = oldRotated[(lastPositionInOldPool + 1) % oldRotated.length];
-            const nextFullPosition = fullPool.findIndex((member) => member.id === nextOldMember.id);
-            if (nextFullPosition >= 0) reconstructedIndex = nextFullPosition;
-          }
+        const lastSelectedId = normalSelectedIds[normalSelectedIds.length - 1];
+        const lastPositionInOldPool = oldRotated.findIndex((member) => member.id === lastSelectedId);
+        if (lastPositionInOldPool >= 0) {
+          const nextOldMember = oldRotated[(lastPositionInOldPool + 1) % oldRotated.length];
+          const nextFullPosition = fullPool.findIndex((member) => member.id === nextOldMember.id);
+          if (nextFullPosition >= 0) reconstructedIndex = nextFullPosition;
         }
       }
 
@@ -140,6 +134,7 @@ export async function GET() {
     return NextResponse.json({
       guild: { id: guild.id, name: guild.name },
       generatedAt: new Date().toISOString(),
+      auditCutoff: OLD_IMPLEMENTATION_CUTOFF.toISOString(),
       eligibleMemberCount: fullPool.length,
       eligibleMembers: fullPool.map((member) => ({ id: member.id, characterName: member.characterName })),
       resources: audit,
