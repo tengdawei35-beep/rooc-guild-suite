@@ -26,7 +26,9 @@ const OLD_IMPLEMENTATION_CUTOFF = new Date("2026-09-08T14:18:07.000Z");
 function asIndexMap(value: unknown): IndexMap {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
   const result: IndexMap = {};
-  for (const [key, raw] of Object.entries(value)) if (typeof raw === "number" && Number.isInteger(raw)) result[key] = raw;
+  for (const [key, raw] of Object.entries(value)) {
+    if (typeof raw === "number" && Number.isInteger(raw)) result[key] = raw;
+  }
   return result;
 }
 
@@ -46,17 +48,29 @@ export async function GET() {
     const guild = await prisma.guild.findUnique({
       where: { id: auth.guild.id },
       include: {
-        members: { where: { active: true, eligible: true }, orderBy: { characterName: "asc" }, select: { id: true, characterName: true } },
+        members: {
+          where: { active: true, eligible: true },
+          orderBy: { characterName: "asc" },
+          select: { id: true, characterName: true },
+        },
         resources: { where: { active: true }, orderBy: { name: "asc" }, include: { rotationStates: true } },
         allocationRuns: {
           where: { status: "COMPLETED", createdAt: { lt: OLD_IMPLEMENTATION_CUTOFF } },
           orderBy: { createdAt: "asc" },
-          include: { event: { select: { date: true } }, allocationResults: { select: { memberId: true, resourceId: true, reservedQuantity: true, assignedQuantity: true } } },
+          include: {
+            event: { select: { date: true } },
+            allocationResults: {
+              select: { memberId: true, resourceId: true, reservedQuantity: true, assignedQuantity: true },
+            },
+          },
         },
       },
     });
     if (!guild) return NextResponse.json({ error: "Guild not found." }, { status: 404 });
 
+    // Historical runs stored rotation indexes against the legacy pool, which
+    // excluded reserved members. The current member list is used as the
+    // reconstruction pool; the audit intentionally remains read-only.
     const fullPool = guild.members;
     const audit: AuditResource[] = [];
 
@@ -86,32 +100,57 @@ export async function GET() {
           rotationIndexAfter: typeof oldAfter === "number" ? oldAfter : null,
         };
 
-        const reservedMemberIds = new Set(run.allocationResults.filter((result) => result.reservedQuantity > 0).map((result) => result.memberId));
+        if (!fullPool.length || typeof oldBefore !== "number") continue;
+
+        // Reserved status must be determined for this resource only. A member
+        // reserved for another resource was still part of this resource's
+        // legacy rotation pool.
+        const reservedMemberIds = new Set(
+          results.filter((result) => result.reservedQuantity > 0).map((result) => result.memberId),
+        );
         const oldPool = fullPool.filter((member) => !reservedMemberIds.has(member.id));
-        if (!oldPool.length || typeof oldBefore !== "number") continue;
+        if (!oldPool.length) continue;
 
         const normalizedOldBefore = ((oldBefore % oldPool.length) + oldPool.length) % oldPool.length;
         const oldRotated = rotate(oldPool, normalizedOldBefore);
-        const normalSelectedIds = results.filter((result) => result.reservedQuantity === 0 && result.assignedQuantity > 0).map((result) => result.memberId);
-        if (!normalSelectedIds.length) continue;
+        const normalSelectedIds = new Set(
+          results.filter((result) => result.reservedQuantity === 0 && result.assignedQuantity > 0).map((result) => result.memberId),
+        );
+        if (!normalSelectedIds.size) continue;
 
-        const firstSelectedId = normalSelectedIds[0];
-        const oldStartMember = oldRotated[0];
-        const fullStartPosition = fullPool.findIndex((member) => member.id === oldStartMember.id);
-        if (fullStartPosition >= 0) {
-          const fullRotated = rotate(fullPool, fullStartPosition);
-          for (const member of fullRotated) {
-            if (member.id === firstSelectedId) break;
-            if (reservedMemberIds.has(member.id)) skippedMembers.push({ memberId: member.id, memberName: member.characterName, runId: run.id, eventDate: run.event?.date.toISOString() ?? null });
+        // AllocationResult rows do not encode selection order. Reconstruct it
+        // from the legacy rotated pool so the last selected member is exact.
+        const selectedPositions = oldRotated
+          .map((member, position) => (normalSelectedIds.has(member.id) ? position : -1))
+          .filter((position) => position >= 0);
+        if (!selectedPositions.length) continue;
+
+        const firstSelectedPosition = selectedPositions[0];
+        const lastSelectedPosition = selectedPositions[selectedPositions.length - 1];
+
+        // Every reserved member encountered before a normal selection was a
+        // skipped turn under the legacy implementation. This includes reserved
+        // members between normal selections, not just those before the first.
+        for (let position = 0; position <= lastSelectedPosition; position++) {
+          const member = oldRotated[position];
+          if (reservedMemberIds.has(member.id)) {
+            skippedMembers.push({
+              memberId: member.id,
+              memberName: member.characterName,
+              runId: run.id,
+              eventDate: run.event?.date.toISOString() ?? null,
+            });
           }
         }
 
-        const lastSelectedId = normalSelectedIds[normalSelectedIds.length - 1];
-        const lastPositionInOldPool = oldRotated.findIndex((member) => member.id === lastSelectedId);
-        if (lastPositionInOldPool >= 0) {
-          const nextOldMember = oldRotated[(lastPositionInOldPool + 1) % oldRotated.length];
-          const nextFullPosition = fullPool.findIndex((member) => member.id === nextOldMember.id);
-          if (nextFullPosition >= 0) reconstructedIndex = nextFullPosition;
+        const lastSelectedMember = oldRotated[lastSelectedPosition];
+        const lastSelectedFullPosition = fullPool.findIndex((member) => member.id === lastSelectedMember.id);
+        if (lastSelectedFullPosition >= 0) {
+          // The fixed implementation rotates across the complete eligible pool.
+          // Therefore the next turn is the immediate next member in the full
+          // pool, including a reserved member if one was skipped by the legacy
+          // implementation.
+          reconstructedIndex = (lastSelectedFullPosition + 1) % fullPool.length;
         }
       }
 
