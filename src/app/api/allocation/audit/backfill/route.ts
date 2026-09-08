@@ -86,9 +86,6 @@ export async function POST(request: Request) {
       }
     }
 
-    // Existing historical backfill rows are also candidates for recovery seeding.
-    // This is intentionally independent of the preview plans above because those plans
-    // are skipped when a backfill run already exists.
     const existingBackfills = await prisma.allocationRun.findMany({
       where: { guildId: guild.id, status: "COMPLETED", errorMessage: BACKFILL_MARKER },
       select: { id: true, eventId: true, allocationResults: { select: { memberId: true, resourceId: true, assignedQuantity: true } } },
@@ -117,13 +114,13 @@ export async function POST(request: Request) {
             AND rr."memberId" = ar."memberId"
             AND rr."resourceId" = ar."resourceId"
         )
-    `])[0]?.count ?? 0);
+    `))[0]?.count ?? 0);
 
     const existingRecoveryRecords = Number((await prisma.$queryRaw<{ count: bigint }[]>`
       SELECT COUNT(*)::bigint AS count
       FROM "RotationRecovery"
       WHERE "guildId" = ${guild.id}
-    `])[0]?.count ?? 0);
+    `))[0]?.count ?? 0;
 
     if (!apply) return NextResponse.json({ preview: true, plans, recoveryRecordsToCreate, existingBackfillAllocations, existingRecoveryRecords, totalAllocations: plans.reduce((sum, p) => sum + p.members.length, 0) });
 
@@ -158,12 +155,12 @@ export async function POST(request: Request) {
           if (!sourceResult) continue;
           for (const member of plan.members) {
             await tx.allocationResult.create({ data: { allocationRunId: backfill.id, memberId: member.id, resourceId: plan.resourceId, reservedQuantity: 0, assignedQuantity: plan.quantity } });
-            await tx.$executeRaw`
+            const inserted = await tx.$executeRaw`
               INSERT INTO "RotationRecovery" ("id", "guildId", "memberId", "resourceId", "sourceRunId", "quantity")
               VALUES (${crypto.randomUUID()}, ${guild.id}, ${member.id}, ${plan.resourceId}, ${sourceRunId}, ${plan.quantity})
               ON CONFLICT ("sourceRunId", "memberId", "resourceId") DO NOTHING
             `;
-            recoveryRecordsCreated += 1;
+            recoveryRecordsCreated += Number(inserted);
             allocationCount += 1;
           }
           await tx.resourceResult.create({ data: { allocationRunId: backfill.id, resourceId: plan.resourceId, total: sourceResult.total, reserved: 0, allocated: plan.quantity * plan.members.length, overflow: 0 } });
