@@ -22,9 +22,7 @@ type AuditResource = {
 function asIndexMap(value: unknown): IndexMap {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
   const result: IndexMap = {};
-  for (const [key, raw] of Object.entries(value)) {
-    if (typeof raw === "number" && Number.isInteger(raw)) result[key] = raw;
-  }
+  for (const [key, raw] of Object.entries(value)) if (typeof raw === "number" && Number.isInteger(raw)) result[key] = raw;
   return result;
 }
 
@@ -55,7 +53,6 @@ export async function GET() {
     });
     if (!guild) return NextResponse.json({ error: "Guild not found." }, { status: 404 });
 
-    const membersById = new Map(guild.members.map((member) => [member.id, member]));
     const fullPool = guild.members;
     const audit: AuditResource[] = [];
 
@@ -70,9 +67,9 @@ export async function GET() {
 
       for (const run of guild.allocationRuns) {
         const results = run.allocationResults.filter((result) => result.resourceId === resource.id);
-        const normalSelectedIds = results.filter((result) => result.reservedQuantity === 0 && result.assignedQuantity > 0).map((result) => result.memberId);
         if (!results.length) continue;
         runsAudited += 1;
+
         const beforeMap = asIndexMap(run.rotationIndexBefore);
         const afterMap = asIndexMap(run.rotationIndexAfter);
         const oldBefore = beforeMap[resource.id];
@@ -85,35 +82,41 @@ export async function GET() {
           rotationIndexAfter: typeof oldAfter === "number" ? oldAfter : null,
         };
 
-        // Reconstruct the old implementation's pool. It removed every member
-        // who had a reserved allocation in the run, globally across resources.
+        // The old implementation removed every reserved member from the
+        // rotation pool. Reservation results let us reconstruct that pool for
+        // each historical run without changing any database state.
         const reservedMemberIds = new Set(run.allocationResults.filter((result) => result.reservedQuantity > 0).map((result) => result.memberId));
         const oldPool = fullPool.filter((member) => !reservedMemberIds.has(member.id));
         if (!oldPool.length || typeof oldBefore !== "number") continue;
 
         const normalizedOldBefore = ((oldBefore % oldPool.length) + oldPool.length) % oldPool.length;
         const oldRotated = rotate(oldPool, normalizedOldBefore);
-        const selectedSet = new Set(normalSelectedIds);
-
-        // The persisted normal results tell us which turns actually received
-        // normal allocation. Members that were in the full pool but absent from
-        // the old pool are the historical skipped turns.
-        for (const member of rotate(fullPool, currentIndex)) {
-          if (selectedSet.has(member.id)) break;
-          if (reservedMemberIds.has(member.id)) skippedMembers.push({ memberId: member.id, memberName: member.characterName, runId: run.id, eventDate: run.event?.date.toISOString() ?? null });
-        }
+        const normalSelectedIds = results.filter((result) => result.reservedQuantity === 0 && result.assignedQuantity > 0).map((result) => result.memberId);
 
         if (normalSelectedIds.length > 0) {
+          const firstSelectedId = normalSelectedIds[0];
+          const firstFullPosition = fullPool.findIndex((member) => member.id === firstSelectedId);
+          if (firstFullPosition >= 0) {
+            // Map the old cursor's starting member into the complete pool and
+            // walk until the first selected member, recording reserved turns
+            // that the old implementation skipped.
+            const oldStartMember = oldRotated[0];
+            const fullStartPosition = fullPool.findIndex((member) => member.id === oldStartMember.id);
+            if (fullStartPosition >= 0) {
+              const fullRotated = rotate(fullPool, fullStartPosition);
+              for (const member of fullRotated) {
+                if (member.id === firstSelectedId) break;
+                if (reservedMemberIds.has(member.id)) skippedMembers.push({ memberId: member.id, memberName: member.characterName, runId: run.id, eventDate: run.event?.date.toISOString() ?? null });
+              }
+            }
+          }
+
           const lastSelectedId = normalSelectedIds[normalSelectedIds.length - 1];
           const lastPositionInOldPool = oldRotated.findIndex((member) => member.id === lastSelectedId);
           if (lastPositionInOldPool >= 0) {
             const nextOldMember = oldRotated[(lastPositionInOldPool + 1) % oldRotated.length];
             const nextFullPosition = fullPool.findIndex((member) => member.id === nextOldMember.id);
-            if (nextFullPosition >= 0) {
-              // The corrected cursor should advance through the complete pool,
-              // including members the old implementation skipped.
-              reconstructedIndex = (nextFullPosition + 1) % Math.max(fullPool.length, 1);
-            }
+            if (nextFullPosition >= 0) reconstructedIndex = nextFullPosition;
           }
         }
       }
