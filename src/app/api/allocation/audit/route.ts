@@ -118,21 +118,26 @@ export async function GET() {
         );
         if (!normalSelectedIds.size) continue;
 
-        // AllocationResult rows do not encode selection order. Reconstruct it
-        // from the legacy rotated pool so the last selected member is exact.
-        const selectedPositions = oldRotated
-          .map((member, position) => (normalSelectedIds.has(member.id) ? position : -1))
-          .filter((position) => position >= 0);
-        if (!selectedPositions.length) continue;
+        // AllocationResult rows do not encode selection order. The legacy
+        // rotated pool gives us the exact order in which normal turns occurred.
+        let lastSelectedId: string | null = null;
+        for (const member of oldRotated) {
+          if (normalSelectedIds.has(member.id)) lastSelectedId = member.id;
+        }
+        if (!lastSelectedId) continue;
 
-        const firstSelectedPosition = selectedPositions[0];
-        const lastSelectedPosition = selectedPositions[selectedPositions.length - 1];
+        const oldStartMember = oldRotated[0];
+        const fullStartPosition = fullPool.findIndex((member) => member.id === oldStartMember.id);
+        if (fullStartPosition < 0) continue;
+        const fullRotated = rotate(fullPool, fullStartPosition);
+        const lastSelectedFullPosition = fullRotated.findIndex((member) => member.id === lastSelectedId);
+        if (lastSelectedFullPosition < 0) continue;
 
         // Every reserved member encountered before a normal selection was a
         // skipped turn under the legacy implementation. This includes reserved
         // members between normal selections, not just those before the first.
-        for (let position = 0; position <= lastSelectedPosition; position++) {
-          const member = oldRotated[position];
+        for (let position = 0; position <= lastSelectedFullPosition; position++) {
+          const member = fullRotated[position];
           if (reservedMemberIds.has(member.id)) {
             skippedMembers.push({
               memberId: member.id,
@@ -143,15 +148,10 @@ export async function GET() {
           }
         }
 
-        const lastSelectedMember = oldRotated[lastSelectedPosition];
-        const lastSelectedFullPosition = fullPool.findIndex((member) => member.id === lastSelectedMember.id);
-        if (lastSelectedFullPosition >= 0) {
-          // The fixed implementation rotates across the complete eligible pool.
-          // Therefore the next turn is the immediate next member in the full
-          // pool, including a reserved member if one was skipped by the legacy
-          // implementation.
-          reconstructedIndex = (lastSelectedFullPosition + 1) % fullPool.length;
-        }
+        // The fixed implementation rotates across the complete eligible pool.
+        // Therefore the next turn is the immediate next member in the full
+        // pool, including a reserved member if that member was skipped before.
+        reconstructedIndex = (fullPool.findIndex((member) => member.id === lastSelectedId) + 1) % fullPool.length;
       }
 
       const reconstructedNext = reconstructedIndex !== null && fullPool.length ? fullPool[reconstructedIndex] : null;
