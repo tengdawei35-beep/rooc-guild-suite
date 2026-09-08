@@ -32,7 +32,6 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "tailwindcss": "^4",
-    "tsx": "^4.20.3",
-    "typescript": "^5"
+    "tsx": "^4.20.3"
   }
 }
