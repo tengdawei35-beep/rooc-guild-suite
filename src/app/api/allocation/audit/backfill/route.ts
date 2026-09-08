@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@/generated/prisma";
 import { prisma } from "@/lib/prisma";
 import { getCurrentAuth } from "@/lib/auth";
 import { hasPermission } from "@/lib/permissions";
@@ -54,7 +55,7 @@ export async function POST(request: Request) {
 
     for (const run of guild.allocationRuns) {
       if (!run.event) continue;
-      const existingBackfill = await prisma.allocationRun.findFirst({ where: { guildId: guild.id, eventId: run.event.id, status: "COMPLETED", rotationIndexBefore: { equals: null }, errorMessage: BACKFILL_MARKER }, select: { id: true } });
+      const existingBackfill = await prisma.allocationRun.findFirst({ where: { guildId: guild.id, eventId: run.event.id, status: "COMPLETED", errorMessage: BACKFILL_MARKER }, select: { id: true } });
       if (existingBackfill) continue;
 
       for (const resource of guild.resources) {
@@ -91,13 +92,13 @@ export async function POST(request: Request) {
     for (const sourceRunId of [...new Set(plans.map((p) => p.sourceRunId))]) {
       const sourcePlans = plans.filter((p) => p.sourceRunId === sourceRunId);
       const eventId = sourcePlans[0].eventId;
-      const existing = await prisma.allocationRun.findFirst({ where: { guildId: guild.id, eventId, status: "COMPLETED", rotationIndexBefore: { equals: null }, errorMessage: BACKFILL_MARKER }, select: { id: true } });
+      const existing = await prisma.allocationRun.findFirst({ where: { guildId: guild.id, eventId, status: "COMPLETED", errorMessage: BACKFILL_MARKER }, select: { id: true } });
       if (existing) continue;
       await prisma.$transaction(async (tx) => {
-        const backfill = await tx.allocationRun.create({ data: { guildId: guild.id, eventId, status: "COMPLETED", errorMessage: BACKFILL_MARKER, completedAt: new Date() } });
+        const backfill = await tx.allocationRun.create({ data: { guildId: guild.id, eventId, status: "COMPLETED", rotationIndexBefore: Prisma.JsonNull, rotationIndexAfter: Prisma.JsonNull, errorMessage: BACKFILL_MARKER, completedAt: new Date() } });
         let allocationCount = 0;
         for (const plan of sourcePlans) {
-          const sourceResult = (await tx.resourceResult.findUnique({ where: { allocationRunId_resourceId: { allocationRunId: sourceRunId, resourceId: plan.resourceId } } }));
+          const sourceResult = await tx.resourceResult.findUnique({ where: { allocationRunId_resourceId: { allocationRunId: sourceRunId, resourceId: plan.resourceId } } });
           if (!sourceResult) continue;
           for (const member of plan.members) {
             await tx.allocationResult.create({ data: { allocationRunId: backfill.id, memberId: member.id, resourceId: plan.resourceId, reservedQuantity: 0, assignedQuantity: plan.quantity } });
