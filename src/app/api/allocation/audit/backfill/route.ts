@@ -86,26 +86,50 @@ export async function POST(request: Request) {
       }
     }
 
+    // Existing historical backfill rows are also candidates for recovery seeding.
+    // This is intentionally independent of the preview plans above because those plans
+    // are skipped when a backfill run already exists.
+    const existingBackfills = await prisma.allocationRun.findMany({
+      where: { guildId: guild.id, status: "COMPLETED", errorMessage: BACKFILL_MARKER },
+      select: { id: true, eventId: true, allocationResults: { select: { memberId: true, resourceId: true, assignedQuantity: true } } },
+    });
+
+    let existingBackfillAllocations = 0;
+    for (const backfill of existingBackfills) existingBackfillAllocations += backfill.allocationResults.filter((r) => r.assignedQuantity > 0).length;
+
     const recoveryRecordsToCreate = Number((await prisma.$queryRaw<{ count: bigint }[]>`
       SELECT COUNT(*)::bigint AS count
       FROM "AllocationResult" ar
       JOIN "AllocationRun" br ON br."id" = ar."allocationRunId"
-      JOIN "AllocationRun" sr ON sr."eventId" = br."eventId" AND sr."guildId" = br."guildId" AND sr."id" <> br."id"
-        AND sr."status" = 'COMPLETED' AND sr."createdAt" < ${OLD_IMPLEMENTATION_CUTOFF}
-      WHERE br."guildId" = ${guild.id} AND br."status" = 'COMPLETED' AND br."errorMessage" = ${BACKFILL_MARKER}
+      JOIN "AllocationRun" sr ON sr."eventId" = br."eventId"
+        AND sr."guildId" = br."guildId"
+        AND sr."id" <> br."id"
+        AND sr."status" = 'COMPLETED'
+        AND sr."createdAt" < ${OLD_IMPLEMENTATION_CUTOFF}
+        AND (sr."errorMessage" IS NULL OR sr."errorMessage" <> ${BACKFILL_MARKER})
+      WHERE br."guildId" = ${guild.id}
+        AND br."status" = 'COMPLETED'
+        AND br."errorMessage" = ${BACKFILL_MARKER}
         AND ar."assignedQuantity" > 0
         AND NOT EXISTS (
           SELECT 1 FROM "RotationRecovery" rr
-          WHERE rr."sourceRunId" = sr."id" AND rr."memberId" = ar."memberId" AND rr."resourceId" = ar."resourceId"
+          WHERE rr."sourceRunId" = sr."id"
+            AND rr."memberId" = ar."memberId"
+            AND rr."resourceId" = ar."resourceId"
         )
     `])[0]?.count ?? 0);
 
-    if (!apply) return NextResponse.json({ preview: true, plans, recoveryRecordsToCreate, totalAllocations: plans.reduce((sum, p) => sum + p.members.length, 0) });
+    const existingRecoveryRecords = Number((await prisma.$queryRaw<{ count: bigint }[]>`
+      SELECT COUNT(*)::bigint AS count
+      FROM "RotationRecovery"
+      WHERE "guildId" = ${guild.id}
+    `])[0]?.count ?? 0);
+
+    if (!apply) return NextResponse.json({ preview: true, plans, recoveryRecordsToCreate, existingBackfillAllocations, existingRecoveryRecords, totalAllocations: plans.reduce((sum, p) => sum + p.members.length, 0) });
 
     const createdRuns: { sourceRunId: string; backfillRunId: string; allocations: number }[] = [];
     let recoveryRecordsCreated = 0;
 
-    const existingBackfills = await prisma.allocationRun.findMany({ where: { guildId: guild.id, status: "COMPLETED", errorMessage: BACKFILL_MARKER }, select: { id: true, eventId: true, allocationResults: { select: { memberId: true, resourceId: true, assignedQuantity: true } } } });
     for (const backfill of existingBackfills) {
       if (!backfill.eventId) continue;
       const source = guild.allocationRuns.find((run) => run.event?.id === backfill.eventId && run.id !== backfill.id);
