@@ -51,6 +51,8 @@ export async function POST(request: Request) {
 
       const rotationBefore: Record<string, number> = {};
       const rotationAfter: Record<string, number> = {};
+      // Rotation state is indexed against the complete active + eligible member list,
+      // including members who also have reserved-pool assignments.
       const eligibleIds = preview.eligibleMembers.map((m) => m.id);
 
       for (const resource of guild.resources) {
@@ -61,11 +63,22 @@ export async function POST(request: Request) {
         const resourceResult = preview.resources.find((r) => r.resourceId === resource.id);
         const selectedIds = new Set(resourceResult?.selectedMembers.map((m) => m.id) ?? []);
         let nextIndex = currentIndex;
-        if (count > 0) {
+
+        if (count > 0 && selectedIds.size > 0) {
+          // Advance from the last selected member in the current rotated order.
+          // Reserved members are part of this order, so their turns count toward
+          // completing the rotation even when their reserved allocation is additive.
           const rotated = [...eligibleIds.slice(currentIndex), ...eligibleIds.slice(0, currentIndex)];
-          const nextMember = rotated.find((id) => !selectedIds.has(id));
-          if (nextMember) nextIndex = eligibleIds.indexOf(nextMember);
+          let lastSelectedPosition = -1;
+          for (let position = 0; position < rotated.length; position++) {
+            if (selectedIds.has(rotated[position])) lastSelectedPosition = position;
+          }
+          if (lastSelectedPosition >= 0) {
+            const nextPosition = (lastSelectedPosition + 1) % rotated.length;
+            nextIndex = eligibleIds.indexOf(rotated[nextPosition]);
+          }
         }
+
         rotationAfter[resource.id] = nextIndex;
       }
 
@@ -84,7 +97,7 @@ export async function POST(request: Request) {
         for (let pageNumber = 1; pageNumber <= pageCount; pageNumber++) {
           const pageSlots = slots.slice((pageNumber - 1) * SLOTS_PER_PAGE, pageNumber * SLOTS_PER_PAGE);
           const bidPage = await tx.bidPage.create({ data: { allocationRunId: run.id, type, pageNumber } });
-          for (let index = 0; index < pageSlots.length; index++) await tx.bidSlot.create({ data: { bidPageId: bidPage.id, slotNumber: index + 1, resourceId: pageSlots[index].resourceId, memberId: pageSlots[index].memberId } });
+          for (let index = 0; index < pageSlots.length; index++) await tx.bidSlot.create({ data: { bidPageId: bidPage.id, slotNumber: index + 1, resourceId: pageSlots[index].resourceId, memberId: pageSlots[index].memberId });
         }
       }
 
