@@ -6,6 +6,19 @@ import { hasGuildModule, RESOURCE_SUITE_MODULE } from "@/lib/auth/modules";
 
 type IndexMap = Record<string, number>;
 
+type HistoricalRun = {
+  runId: string;
+  createdAt: string;
+  eventDate: string | null;
+  legacyIndexBefore: number | null;
+  legacyIndexAfter: number | null;
+  legacyStartMember: string | null;
+  normalSelectedMembers: string[];
+  skippedMembers: string[];
+  correctedNextIndex: number | null;
+  correctedNextMember: string | null;
+};
+
 type AuditResource = {
   resourceId: string;
   resourceName: string;
@@ -16,6 +29,7 @@ type AuditResource = {
   indexMismatch: boolean;
   runsAudited: number;
   skippedMembers: { memberId: string; memberName: string | null; runId: string; eventDate: string | null }[];
+  historicalRuns: HistoricalRun[];
   latestRun: { id: string; createdAt: string; eventDate: string | null; rotationIndexBefore: number | null; rotationIndexAfter: number | null } | null;
 };
 
@@ -36,6 +50,10 @@ function rotate<T>(items: T[], index: number) {
   if (!items.length) return [];
   const normalized = ((index % items.length) + items.length) % items.length;
   return [...items.slice(normalized), ...items.slice(0, normalized)];
+}
+
+function normalizeIndex(index: number, count: number) {
+  return count ? ((index % count) + count) % count : 0;
 }
 
 export async function GET() {
@@ -77,11 +95,12 @@ export async function GET() {
     for (const resource of guild.resources) {
       const state = resource.rotationStates.find((item) => item.guildId === guild.id);
       const currentRaw = state?.rotationIndex ?? 0;
-      const currentIndex = fullPool.length ? ((currentRaw % fullPool.length) + fullPool.length) % fullPool.length : 0;
+      const currentIndex = normalizeIndex(currentRaw, fullPool.length);
       let reconstructedIndex: number | null = null;
       let lastRun: AuditResource["latestRun"] = null;
       let runsAudited = 0;
       const skippedMembers: AuditResource["skippedMembers"] = [];
+      const historicalRuns: HistoricalRun[] = [];
 
       for (const run of guild.allocationRuns) {
         const results = run.allocationResults.filter((result) => result.resourceId === resource.id);
@@ -90,55 +109,83 @@ export async function GET() {
 
         const beforeMap = asIndexMap(run.rotationIndexBefore);
         const afterMap = asIndexMap(run.rotationIndexAfter);
-        const oldBefore = beforeMap[resource.id];
-        const oldAfter = afterMap[resource.id];
+        const legacyIndexBefore = beforeMap[resource.id];
+        const legacyIndexAfter = afterMap[resource.id];
         lastRun = {
           id: run.id,
           createdAt: run.createdAt.toISOString(),
           eventDate: run.event?.date.toISOString() ?? null,
-          rotationIndexBefore: typeof oldBefore === "number" ? oldBefore : null,
-          rotationIndexAfter: typeof oldAfter === "number" ? oldAfter : null,
+          rotationIndexBefore: typeof legacyIndexBefore === "number" ? legacyIndexBefore : null,
+          rotationIndexAfter: typeof legacyIndexAfter === "number" ? legacyIndexAfter : null,
         };
 
-        if (!fullPool.length || typeof oldBefore !== "number") continue;
+        if (!fullPool.length || typeof legacyIndexBefore !== "number") {
+          historicalRuns.push({
+            runId: run.id,
+            createdAt: run.createdAt.toISOString(),
+            eventDate: run.event?.date.toISOString() ?? null,
+            legacyIndexBefore: typeof legacyIndexBefore === "number" ? legacyIndexBefore : null,
+            legacyIndexAfter: typeof legacyIndexAfter === "number" ? legacyIndexAfter : null,
+            legacyStartMember: null,
+            normalSelectedMembers: [],
+            skippedMembers: [],
+            correctedNextIndex: null,
+            correctedNextMember: null,
+          });
+          continue;
+        }
 
-        // Reserved status must be determined for this resource only. A member
-        // reserved for another resource was still part of this resource's
-        // legacy rotation pool.
+        // Reserved status is resource-specific. A member reserved for another
+        // resource remained in this resource's legacy rotation pool.
         const reservedMemberIds = new Set(
           results.filter((result) => result.reservedQuantity > 0).map((result) => result.memberId),
         );
         const oldPool = fullPool.filter((member) => !reservedMemberIds.has(member.id));
-        if (!oldPool.length) continue;
-
-        const normalizedOldBefore = ((oldBefore % oldPool.length) + oldPool.length) % oldPool.length;
-        const oldRotated = rotate(oldPool, normalizedOldBefore);
         const normalSelectedIds = new Set(
           results.filter((result) => result.reservedQuantity === 0 && result.assignedQuantity > 0).map((result) => result.memberId),
         );
-        if (!normalSelectedIds.size) continue;
+        const oldBefore = normalizeIndex(legacyIndexBefore, oldPool.length);
+        const oldRotated = rotate(oldPool, oldBefore);
+        const legacyStartMember = oldRotated[0]?.characterName ?? null;
+        const normalSelectedMembers = oldRotated.filter((member) => normalSelectedIds.has(member.id)).map((member) => member.characterName ?? "Unnamed member");
 
-        // AllocationResult rows do not encode selection order. The legacy
-        // rotated pool gives us the exact order in which normal turns occurred.
+        if (!oldPool.length || !normalSelectedIds.size) {
+          historicalRuns.push({
+            runId: run.id,
+            createdAt: run.createdAt.toISOString(),
+            eventDate: run.event?.date.toISOString() ?? null,
+            legacyIndexBefore,
+            legacyIndexAfter: typeof legacyIndexAfter === "number" ? legacyIndexAfter : null,
+            legacyStartMember,
+            normalSelectedMembers,
+            skippedMembers: [],
+            correctedNextIndex: null,
+            correctedNextMember: null,
+          });
+          continue;
+        }
+
+        // The old implementation selected normal members from oldRotated.
+        // Find the last selected normal member in that exact legacy order.
         let lastSelectedId: string | null = null;
         for (const member of oldRotated) {
           if (normalSelectedIds.has(member.id)) lastSelectedId = member.id;
         }
         if (!lastSelectedId) continue;
 
-        const oldStartMember = oldRotated[0];
-        const fullStartPosition = fullPool.findIndex((member) => member.id === oldStartMember.id);
-        if (fullStartPosition < 0) continue;
-        const fullRotated = rotate(fullPool, fullStartPosition);
+        // Start the corrected full-pool sequence at the same member where the
+        // legacy sequence started. This preserves the historical starting point
+        // while reinserting reserved members that the old implementation skipped.
+        const fullStartPosition = fullPool.findIndex((member) => member.id === oldRotated[0]?.id);
+        const fullRotated = fullStartPosition >= 0 ? rotate(fullPool, fullStartPosition) : [];
         const lastSelectedFullPosition = fullRotated.findIndex((member) => member.id === lastSelectedId);
         if (lastSelectedFullPosition < 0) continue;
 
-        // Every reserved member encountered before a normal selection was a
-        // skipped turn under the legacy implementation. This includes reserved
-        // members between normal selections, not just those before the first.
+        const runSkipped: string[] = [];
         for (let position = 0; position <= lastSelectedFullPosition; position++) {
           const member = fullRotated[position];
           if (reservedMemberIds.has(member.id)) {
+            runSkipped.push(member.characterName ?? "Unnamed member");
             skippedMembers.push({
               memberId: member.id,
               memberName: member.characterName,
@@ -148,10 +195,21 @@ export async function GET() {
           }
         }
 
-        // The fixed implementation rotates across the complete eligible pool.
-        // Therefore the next turn is the immediate next member in the full
-        // pool, including a reserved member if that member was skipped before.
-        reconstructedIndex = (fullPool.findIndex((member) => member.id === lastSelectedId) + 1) % fullPool.length;
+        const lastSelectedFullPoolIndex = fullPool.findIndex((member) => member.id === lastSelectedId);
+        const correctedNextIndex = (lastSelectedFullPoolIndex + 1) % fullPool.length;
+        reconstructedIndex = correctedNextIndex;
+        historicalRuns.push({
+          runId: run.id,
+          createdAt: run.createdAt.toISOString(),
+          eventDate: run.event?.date.toISOString() ?? null,
+          legacyIndexBefore,
+          legacyIndexAfter: typeof legacyIndexAfter === "number" ? legacyIndexAfter : null,
+          legacyStartMember,
+          normalSelectedMembers,
+          skippedMembers: runSkipped,
+          correctedNextIndex,
+          correctedNextMember: fullPool[correctedNextIndex]?.characterName ?? null,
+        });
       }
 
       const reconstructedNext = reconstructedIndex !== null && fullPool.length ? fullPool[reconstructedIndex] : null;
@@ -166,6 +224,7 @@ export async function GET() {
         indexMismatch: reconstructedIndex !== null && currentIndex !== reconstructedIndex,
         runsAudited,
         skippedMembers,
+        historicalRuns,
         latestRun: lastRun,
       });
     }
