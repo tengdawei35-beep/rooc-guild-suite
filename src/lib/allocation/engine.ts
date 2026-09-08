@@ -36,8 +36,6 @@ export async function buildAllocation(input: AllocationInput): Promise<Allocatio
 
   // Reserved members remain in the rotation pool. Reservations are an additive
   // allocation layer and no longer remove a member from their normal rotation turn.
-  const reservedMemberIds = new Set<string>();
-  for (const resource of guild.resources) for (const reservation of resource.reservations) reservedMemberIds.add(reservation.memberId);
   const rotationMembers = guild.members;
   const requestedCount = Math.min(input.nonReservedMemberCount, rotationMembers.length);
   const resources: AllocationResourceResult[] = [];
