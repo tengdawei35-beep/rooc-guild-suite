@@ -7,7 +7,7 @@ CREATE TABLE "RotationRecovery" (
     "quantity" INTEGER NOT NULL,
     "consumedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "RotationRecovery_pkey" PRIMARY KEY ("id")
 );
