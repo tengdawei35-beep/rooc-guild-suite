@@ -31,8 +31,6 @@ export async function POST(request: Request) {
     if (body.overrides !== undefined) preview = applyAllocationOverrides(preview, body.overrides);
     if (preview.guildId !== auth.guild.id || preview.guildId !== event.guildId) return NextResponse.json({ error: "Allocation does not belong to the configured guild." }, { status: 403 });
 
-    const eventDateStart = new Date(event.date);
-    const eventDateEnd = new Date(eventDateStart.getTime() + 24 * 60 * 60 * 1000);
     const bidSlotsByType: Record<"FEATHER" | "CARD", BidSlotData[]> = { FEATHER: [], CARD: [] };
     for (const resource of preview.resources) for (const assignment of resource.assignments) {
       const quantity = assignment.reservedQuantity + assignment.assignedQuantity;
@@ -51,8 +49,6 @@ export async function POST(request: Request) {
 
       const rotationBefore: Record<string, number> = {};
       const rotationAfter: Record<string, number> = {};
-      // Rotation state is indexed against the complete active + eligible member list,
-      // including members who also have reserved-pool assignments.
       const eligibleIds = preview.eligibleMembers.map((m) => m.id);
 
       for (const resource of guild.resources) {
@@ -65,20 +61,14 @@ export async function POST(request: Request) {
         let nextIndex = currentIndex;
 
         if (count > 0 && selectedIds.size > 0) {
-          // Advance from the last selected member in the current rotated order.
-          // Reserved members are part of this order, so their turns count toward
-          // completing the rotation even when their reserved allocation is additive.
           const rotated = [...eligibleIds.slice(currentIndex), ...eligibleIds.slice(0, currentIndex)];
           let lastSelectedPosition = -1;
-          for (let position = 0; position < rotated.length; position++) {
-            if (selectedIds.has(rotated[position])) lastSelectedPosition = position;
-          }
+          for (let position = 0; position < rotated.length; position++) if (selectedIds.has(rotated[position])) lastSelectedPosition = position;
           if (lastSelectedPosition >= 0) {
             const nextPosition = (lastSelectedPosition + 1) % rotated.length;
             nextIndex = eligibleIds.indexOf(rotated[nextPosition]);
           }
         }
-
         rotationAfter[resource.id] = nextIndex;
       }
 
@@ -89,6 +79,33 @@ export async function POST(request: Request) {
       for (const resource of preview.resources) for (const assignment of resource.assignments) {
         if (assignment.reservedQuantity === 0 && assignment.assignedQuantity === 0) continue;
         await tx.allocationResult.create({ data: { allocationRunId: run.id, memberId: assignment.memberId, resourceId: assignment.resourceId, reservedQuantity: assignment.reservedQuantity, assignedQuantity: assignment.assignedQuantity } });
+
+        if (assignment.recoveryQuantity > 0) {
+          let remainingRecovery = assignment.recoveryQuantity;
+          const recoveries = await tx.$queryRaw<{ id: string; quantity: number }[]>`
+            SELECT "id", "quantity"
+            FROM "RotationRecovery"
+            WHERE "guildId" = ${auth.guild.id}
+              AND "memberId" = ${assignment.memberId}
+              AND "resourceId" = ${assignment.resourceId}
+              AND "consumedAt" IS NULL
+              AND "quantity" > 0
+            ORDER BY "createdAt" ASC, "id" ASC
+            FOR UPDATE
+          `;
+          for (const recovery of recoveries) {
+            if (remainingRecovery <= 0) break;
+            const consume = Math.min(recovery.quantity, remainingRecovery);
+            const left = recovery.quantity - consume;
+            await tx.$executeRaw`
+              UPDATE "RotationRecovery"
+              SET "quantity" = ${left}, "consumedAt" = CASE WHEN ${left} = 0 THEN CURRENT_TIMESTAMP ELSE NULL END
+              WHERE "id" = ${recovery.id}
+            `;
+            remainingRecovery -= consume;
+          }
+          if (remainingRecovery > 0) throw new Error(`Unable to consume the full recovery entitlement for ${assignment.memberName ?? "a member"} on ${assignment.resourceName}.`);
+        }
       }
 
       for (const type of ["FEATHER", "CARD"] as const) {
@@ -97,9 +114,7 @@ export async function POST(request: Request) {
         for (let pageNumber = 1; pageNumber <= pageCount; pageNumber++) {
           const pageSlots = slots.slice((pageNumber - 1) * SLOTS_PER_PAGE, pageNumber * SLOTS_PER_PAGE);
           const bidPage = await tx.bidPage.create({ data: { allocationRunId: run.id, type, pageNumber } });
-          for (let index = 0; index < pageSlots.length; index++) {
-            await tx.bidSlot.create({ data: { bidPageId: bidPage.id, slotNumber: index + 1, resourceId: pageSlots[index].resourceId, memberId: pageSlots[index].memberId } });
-          }
+          for (let index = 0; index < pageSlots.length; index++) await tx.bidSlot.create({ data: { bidPageId: bidPage.id, slotNumber: index + 1, resourceId: pageSlots[index].resourceId, memberId: pageSlots[index].memberId } });
         }
       }
 
@@ -115,14 +130,7 @@ export async function POST(request: Request) {
     if (result.conflict) return NextResponse.json({ error: "An allocation has already been run for this event.", allocationRun: { id: result.runId, status: result.status, eventId: event.id } }, { status: 409 });
     await notifyBidComplete({ guildId: auth.guild.id, allocationRunId: result.allocationRun.id });
 
-    return NextResponse.json({
-      success: true,
-      allocationRun: { id: result.allocationRun.id, status: result.allocationRun.status, createdAt: result.allocationRun.createdAt, completedAt: result.allocationRun.completedAt, eventId: event.id },
-      event: { id: event.id, type: event.type, date: event.date },
-      rotation: { before: result.rotationBefore, after: result.rotationAfter },
-      bidPages: { feathers: Math.ceil(bidSlotsByType.FEATHER.length / SLOTS_PER_PAGE), cards: Math.ceil(bidSlotsByType.CARD.length / SLOTS_PER_PAGE), totalSlots: bidSlotsByType.FEATHER.length + bidSlotsByType.CARD.length },
-      preview,
-    });
+    return NextResponse.json({ success: true, allocationRun: { id: result.allocationRun.id, status: result.allocationRun.status, createdAt: result.allocationRun.createdAt, completedAt: result.allocationRun.completedAt, eventId: event.id }, event: { id: event.id, type: event.type, date: event.date }, rotation: { before: result.rotationBefore, after: result.rotationAfter }, bidPages: { feathers: Math.ceil(bidSlotsByType.FEATHER.length / SLOTS_PER_PAGE), cards: Math.ceil(bidSlotsByType.CARD.length / SLOTS_PER_PAGE), totalSlots: bidSlotsByType.FEATHER.length + bidSlotsByType.CARD.length }, preview });
   } catch (error) {
     console.error("[ALLOCATION] Failed to run allocation:", error);
     return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to run allocation." }, { status: 500 });
