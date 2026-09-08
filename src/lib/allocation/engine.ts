@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 
 export type AllocationInput = { guildId: string; nonReservedMemberCount: number; eventDate: Date };
-export type AllocationAssignment = { memberId: string; memberName: string | null; resourceId: string; resourceName: string; reservedQuantity: number; assignedQuantity: number };
+export type AllocationAssignment = { memberId: string; memberName: string | null; resourceId: string; resourceName: string; reservedQuantity: number; assignedQuantity: number; recoveryQuantity: number };
 export type AllocationResourceResult = {
   resourceId: string; resourceName: string; type: "FEATHER" | "CARD";
   total: number; reserved: number; allocated: number; overflow: number;
@@ -54,7 +54,7 @@ export async function buildAllocation(input: AllocationInput): Promise<Allocatio
   for (const resource of guild.resources) {
     const rotationIndex = resource.rotationStates[0]?.rotationIndex ?? 0;
     const selectedMembers = getRotatedMembers(rotationMembers, rotationIndex).slice(0, requestedCount);
-    const reservationAssignments = resource.reservations.filter((r) => r.member.active && r.member.eligible).map((r) => ({ memberId: r.memberId, memberName: r.member.characterName, resourceId: resource.id, resourceName: resource.name, reservedQuantity: Math.min(r.quantity, resource.hardCap), assignedQuantity: 0 }));
+    const reservationAssignments = resource.reservations.filter((r) => r.member.active && r.member.eligible).map((r) => ({ memberId: r.memberId, memberName: r.member.characterName, resourceId: resource.id, resourceName: resource.name, reservedQuantity: Math.min(r.quantity, resource.hardCap), assignedQuantity: 0, recoveryQuantity: 0 }));
     const reservationByMember = new Map(reservationAssignments.map((a) => [a.memberId, a]));
     const reserved = reservationAssignments.reduce((sum, a) => sum + a.reservedQuantity, 0);
     let remaining = Math.max(resource.total - reserved, 0);
@@ -85,7 +85,7 @@ export async function buildAllocation(input: AllocationInput): Promise<Allocatio
         const hardCapRemaining = Math.max(resource.hardCap - (reservation?.reservedQuantity ?? 0) - recovery, 0);
         const amount = Math.min(normalAmount, hardCapRemaining, remaining);
         if (amount <= 0) continue;
-        normalAssignments.push({ memberId: member.id, memberName: member.characterName, resourceId: resource.id, resourceName: resource.name, reservedQuantity: 0, assignedQuantity: amount });
+        normalAssignments.push({ memberId: member.id, memberName: member.characterName, resourceId: resource.id, resourceName: resource.name, reservedQuantity: 0, assignedQuantity: amount, recoveryQuantity: 0 });
         remaining -= amount;
       }
     }
@@ -95,7 +95,7 @@ export async function buildAllocation(input: AllocationInput): Promise<Allocatio
       const member = rotationMembers.find((m) => m.id === memberId);
       if (!member || recovery <= 0) continue;
       const normal = normalAssignments.find((a) => a.memberId === memberId);
-      recoveryAssignments.push({ memberId, memberName: member.characterName, resourceId: resource.id, resourceName: resource.name, reservedQuantity: 0, assignedQuantity: recovery + (normal?.assignedQuantity ?? 0) });
+      recoveryAssignments.push({ memberId, memberName: member.characterName, resourceId: resource.id, resourceName: resource.name, reservedQuantity: 0, assignedQuantity: recovery + (normal?.assignedQuantity ?? 0), recoveryQuantity: recovery });
     }
     const recoveryMemberIds = new Set(recoveryAssignments.map((a) => a.memberId));
     const combinedNormal = normalAssignments.filter((a) => !recoveryMemberIds.has(a.memberId));
@@ -110,13 +110,7 @@ export async function buildAllocation(input: AllocationInput): Promise<Allocatio
   return { guildId: guild.id, guildName: guild.name, nonReservedMemberCount: requestedCount, eligibleMembers: rotationMembers.map((m) => ({ id: m.id, characterName: m.characterName })), resources };
 }
 
-export async function applyAllocationOverrides(preview: AllocationPreviewResult, overrides: AllocationOverride[]): Promise<AllocationPreviewResult> {
-  const pendingRecoveries = await getPendingRecoveries(preview.guildId);
-  const recoveryByResourceMember = new Map<string, number>();
-  for (const recovery of pendingRecoveries) {
-    const key = `${recovery.resourceId}:${recovery.memberId}`;
-    recoveryByResourceMember.set(key, (recoveryByResourceMember.get(key) ?? 0) + recovery.quantity);
-  }
+export function applyAllocationOverrides(preview: AllocationPreviewResult, overrides: AllocationOverride[]): AllocationPreviewResult {
   const overrideMap = new Map(overrides.map((o) => [o.resourceId, o]));
   const resources = preview.resources.map((resource) => {
     const override = overrideMap.get(resource.resourceId);
@@ -124,6 +118,7 @@ export async function applyAllocationOverrides(preview: AllocationPreviewResult,
     const seen = new Set<string>();
     const normalAssignments: AllocationAssignment[] = [];
     const reservationByMember = new Map(resource.assignments.filter((a) => a.reservedQuantity > 0).map((a) => [a.memberId, a]));
+    const recoveryByMember = new Map(resource.assignments.filter((a) => a.recoveryQuantity > 0).map((a) => [a.memberId, a.recoveryQuantity]));
     for (const item of override.assignments) {
       if (!Number.isInteger(item.assignedQuantity) || item.assignedQuantity < 0) throw new Error(`Invalid allocation amount for ${item.memberId}.`);
       if (item.assignedQuantity === 0) continue;
@@ -131,13 +126,13 @@ export async function applyAllocationOverrides(preview: AllocationPreviewResult,
       seen.add(item.memberId);
       const member = preview.eligibleMembers.find((m) => m.id === item.memberId);
       if (!member) throw new Error(`Member is not eligible for ${resource.resourceName}.`);
-      const recoveryRequired = recoveryByResourceMember.get(`${resource.resourceId}:${item.memberId}`) ?? 0;
+      const recoveryRequired = recoveryByMember.get(item.memberId) ?? 0;
       if (item.assignedQuantity < recoveryRequired) throw new Error(`${member.characterName ?? "Member"} must receive at least ${recoveryRequired} recovery units for ${resource.resourceName}.`);
       const normalPortion = item.assignedQuantity - recoveryRequired;
       if (normalPortion > resource.perPlayerLimit) throw new Error(`${member.characterName ?? "Member"} exceeds the per-player limit for ${resource.resourceName}.`);
       const reservedQuantity = reservationByMember.get(item.memberId)?.reservedQuantity ?? 0;
       if (item.assignedQuantity + reservedQuantity > resource.hardCap) throw new Error(`${member.characterName ?? "Member"} exceeds the hard cap for ${resource.resourceName}.`);
-      normalAssignments.push({ memberId: item.memberId, memberName: member.characterName, resourceId: resource.resourceId, resourceName: resource.resourceName, reservedQuantity: 0, assignedQuantity: item.assignedQuantity });
+      normalAssignments.push({ memberId: item.memberId, memberName: member.characterName, resourceId: resource.resourceId, resourceName: resource.resourceName, reservedQuantity: 0, assignedQuantity: item.assignedQuantity, recoveryQuantity: recoveryRequired });
     }
     const reservations = resource.assignments.filter((a) => a.reservedQuantity > 0).map((a) => ({ ...a, assignedQuantity: 0 }));
     const reserved = reservations.reduce((sum, a) => sum + a.reservedQuantity, 0);
