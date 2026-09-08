@@ -89,6 +89,27 @@ export async function POST(request: Request) {
     if (!apply) return NextResponse.json({ preview: true, plans, totalAllocations: plans.reduce((sum, p) => sum + p.members.length, 0) });
 
     const createdRuns: { sourceRunId: string; backfillRunId: string; allocations: number }[] = [];
+    let recoveryRecordsCreated = 0;
+
+    // The historical backfill was already applied before recovery storage existed.
+    // Seed recovery entitlements from those existing backfill records so the next
+    // normal bidding cycle still pays every missed turn.
+    const existingBackfills = await prisma.allocationRun.findMany({ where: { guildId: guild.id, status: "COMPLETED", errorMessage: BACKFILL_MARKER }, select: { id: true, eventId: true, allocationResults: { select: { memberId: true, resourceId: true, assignedQuantity: true } } } });
+    for (const backfill of existingBackfills) {
+      if (!backfill.eventId) continue;
+      const source = guild.allocationRuns.find((run) => run.event?.id === backfill.eventId && run.id !== backfill.id);
+      if (!source) continue;
+      for (const result of backfill.allocationResults) {
+        if (result.assignedQuantity <= 0) continue;
+        const inserted = await prisma.$executeRaw`
+          INSERT INTO "RotationRecovery" ("id", "guildId", "memberId", "resourceId", "sourceRunId", "quantity")
+          VALUES (${crypto.randomUUID()}, ${guild.id}, ${result.memberId}, ${result.resourceId}, ${source.id}, ${result.assignedQuantity})
+          ON CONFLICT ("sourceRunId", "memberId", "resourceId") DO NOTHING
+        `;
+        recoveryRecordsCreated += Number(inserted);
+      }
+    }
+
     for (const sourceRunId of [...new Set(plans.map((p) => p.sourceRunId))]) {
       const sourcePlans = plans.filter((p) => p.sourceRunId === sourceRunId);
       const eventId = sourcePlans[0].eventId;
@@ -102,6 +123,12 @@ export async function POST(request: Request) {
           if (!sourceResult) continue;
           for (const member of plan.members) {
             await tx.allocationResult.create({ data: { allocationRunId: backfill.id, memberId: member.id, resourceId: plan.resourceId, reservedQuantity: 0, assignedQuantity: plan.quantity } });
+            await tx.$executeRaw`
+              INSERT INTO "RotationRecovery" ("id", "guildId", "memberId", "resourceId", "sourceRunId", "quantity")
+              VALUES (${crypto.randomUUID()}, ${guild.id}, ${member.id}, ${plan.resourceId}, ${sourceRunId}, ${plan.quantity})
+              ON CONFLICT ("sourceRunId", "memberId", "resourceId") DO NOTHING
+            `;
+            recoveryRecordsCreated += 1;
             allocationCount += 1;
           }
           await tx.resourceResult.create({ data: { allocationRunId: backfill.id, resourceId: plan.resourceId, total: sourceResult.total, reserved: 0, allocated: plan.quantity * plan.members.length, overflow: 0 } });
@@ -110,7 +137,7 @@ export async function POST(request: Request) {
       });
     }
 
-    return NextResponse.json({ success: true, createdRuns, totalAllocations: createdRuns.reduce((sum, r) => sum + r.allocations, 0) });
+    return NextResponse.json({ success: true, createdRuns, recoveryRecordsCreated, totalAllocations: createdRuns.reduce((sum, r) => sum + r.allocations, 0) });
   } catch (error) {
     console.error("[ALLOCATION BACKFILL] Failed:", error);
     return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to apply allocation backfill." }, { status: 500 });
