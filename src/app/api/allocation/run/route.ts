@@ -97,7 +97,9 @@ export async function POST(request: Request) {
         for (let pageNumber = 1; pageNumber <= pageCount; pageNumber++) {
           const pageSlots = slots.slice((pageNumber - 1) * SLOTS_PER_PAGE, pageNumber * SLOTS_PER_PAGE);
           const bidPage = await tx.bidPage.create({ data: { allocationRunId: run.id, type, pageNumber } });
-          for (let index = 0; index < pageSlots.length; index++) await tx.bidSlot.create({ data: { bidPageId: bidPage.id, slotNumber: index + 1, resourceId: pageSlots[index].resourceId, memberId: pageSlots[index].memberId });
+          for (let index = 0; index < pageSlots.length; index++) {
+            await tx.bidSlot.create({ data: { bidPageId: bidPage.id, slotNumber: index + 1, resourceId: pageSlots[index].resourceId, memberId: pageSlots[index].memberId } });
+          }
         }
       }
 
