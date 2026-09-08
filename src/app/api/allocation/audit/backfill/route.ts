@@ -94,7 +94,7 @@ export async function POST(request: Request) {
     let existingBackfillAllocations = 0;
     for (const backfill of existingBackfills) existingBackfillAllocations += backfill.allocationResults.filter((r) => r.assignedQuantity > 0).length;
 
-    const recoveryRecordsToCreate = Number((await prisma.$queryRaw<{ count: bigint }[]>`
+    const recoveryRecordsToCreateResult = await prisma.$queryRaw<{ count: bigint }[]>`
       SELECT COUNT(*)::bigint AS count
       FROM "AllocationResult" ar
       JOIN "AllocationRun" br ON br."id" = ar."allocationRunId"
@@ -114,13 +114,15 @@ export async function POST(request: Request) {
             AND rr."memberId" = ar."memberId"
             AND rr."resourceId" = ar."resourceId"
         )
-    `))[0]?.count ?? 0);
+    `;
+    const recoveryRecordsToCreate = Number(recoveryRecordsToCreateResult[0]?.count ?? 0);
 
-    const existingRecoveryRecords = Number((await prisma.$queryRaw<{ count: bigint }[]>`
+    const existingRecoveryRecordsResult = await prisma.$queryRaw<{ count: bigint }[]>`
       SELECT COUNT(*)::bigint AS count
       FROM "RotationRecovery"
       WHERE "guildId" = ${guild.id}
-    `))[0]?.count ?? 0;
+    `;
+    const existingRecoveryRecords = Number(existingRecoveryRecordsResult[0]?.count ?? 0);
 
     if (!apply) return NextResponse.json({ preview: true, plans, recoveryRecordsToCreate, existingBackfillAllocations, existingRecoveryRecords, totalAllocations: plans.reduce((sum, p) => sum + p.members.length, 0) });
 
@@ -155,12 +157,12 @@ export async function POST(request: Request) {
           if (!sourceResult) continue;
           for (const member of plan.members) {
             await tx.allocationResult.create({ data: { allocationRunId: backfill.id, memberId: member.id, resourceId: plan.resourceId, reservedQuantity: 0, assignedQuantity: plan.quantity } });
-            const inserted = await tx.$executeRaw`
+            await tx.$executeRaw`
               INSERT INTO "RotationRecovery" ("id", "guildId", "memberId", "resourceId", "sourceRunId", "quantity")
               VALUES (${crypto.randomUUID()}, ${guild.id}, ${member.id}, ${plan.resourceId}, ${sourceRunId}, ${plan.quantity})
               ON CONFLICT ("sourceRunId", "memberId", "resourceId") DO NOTHING
             `;
-            recoveryRecordsCreated += Number(inserted);
+            recoveryRecordsCreated += 1;
             allocationCount += 1;
           }
           await tx.resourceResult.create({ data: { allocationRunId: backfill.id, resourceId: plan.resourceId, total: sourceResult.total, reserved: 0, allocated: plan.quantity * plan.members.length, overflow: 0 } });
