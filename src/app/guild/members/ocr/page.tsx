@@ -56,7 +56,7 @@ export default function MemberOcrPage() {
       const payload: Record<string, unknown> = {};
       for (const [field] of FIELDS) {
         if (field === "characterName" || field === "job") continue;
-        const value = values[field]?.trim();
+        const value = values[field]?.trim() ?? "";
         payload[field] = value === "" ? null : Number(value.replace(/,/g, ""));
       }
       const response = await fetch(`/api/guild/members/${memberId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
