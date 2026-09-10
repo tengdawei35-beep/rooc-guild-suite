@@ -90,21 +90,32 @@ export async function buildAllocation(input: AllocationInput): Promise<Allocatio
       }
     }
 
-    const recoveryAssignments: AllocationAssignment[] = [];
-    for (const [memberId, recovery] of recoveryByMember) {
-      const member = rotationMembers.find((m) => m.id === memberId);
-      if (!member || recovery <= 0) continue;
-      const normal = normalAssignments.find((a) => a.memberId === memberId);
-      recoveryAssignments.push({ memberId, memberName: member.characterName, resourceId: resource.id, resourceName: resource.name, reservedQuantity: 0, assignedQuantity: recovery + (normal?.assignedQuantity ?? 0), recoveryQuantity: recovery });
+    // AllocationResult has a unique (run, member, resource) key. A member may
+    // legitimately be both reserved and receive normal/recovery resources, so
+    // combine those entitlements into one assignment rather than emitting two
+    // rows for the same member/resource pair.
+    const assignmentByMember = new Map<string, AllocationAssignment>();
+    for (const reservation of reservationAssignments) assignmentByMember.set(reservation.memberId, { ...reservation });
+    for (const member of rotationMembers) {
+      const recovery = recoveryByMember.get(member.id) ?? 0;
+      const normal = normalAssignments.find((a) => a.memberId === member.id)?.assignedQuantity ?? 0;
+      if (recovery <= 0 && normal <= 0) continue;
+      const existing = assignmentByMember.get(member.id);
+      assignmentByMember.set(member.id, {
+        memberId: member.id,
+        memberName: member.characterName,
+        resourceId: resource.id,
+        resourceName: resource.name,
+        reservedQuantity: existing?.reservedQuantity ?? 0,
+        assignedQuantity: (existing?.assignedQuantity ?? 0) + recovery + normal,
+        recoveryQuantity: recovery,
+      });
     }
-    const recoveryMemberIds = new Set(recoveryAssignments.map((a) => a.memberId));
-    const combinedNormal = normalAssignments.filter((a) => !recoveryMemberIds.has(a.memberId));
-    const assignments = [...reservationAssignments, ...recoveryAssignments, ...combinedNormal];
+    const assignments = [...assignmentByMember.values()];
 
     if (remaining > 0 && reservationAssignments.length > 0) distributeOverflowToReservations({ assignments: reservationAssignments, resourceHardCap: resource.hardCap, remainingRef: { value: remaining } });
-    const normalAllocated = recoveryAssignments.reduce((sum, a) => sum + a.assignedQuantity, 0) + combinedNormal.reduce((sum, a) => sum + a.assignedQuantity, 0);
-    const reservationOverflowAllocated = reservationAssignments.reduce((sum, a) => sum + a.assignedQuantity, 0);
-    const allocated = reserved + normalAllocated + reservationOverflowAllocated;
+    const normalAllocated = assignments.reduce((sum, a) => sum + a.assignedQuantity, 0);
+    const allocated = reserved + normalAllocated;
     resources.push({ resourceId: resource.id, resourceName: resource.name, type: resource.type, total: resource.total, reserved, allocated, overflow: Math.max(resource.total - allocated, 0), perPlayerLimit: resource.perPlayerLimit, hardCap: resource.hardCap, selectedMembers: selectedMembers.map((m) => ({ id: m.id, characterName: m.characterName })), assignments });
   }
   return { guildId: guild.id, guildName: guild.name, nonReservedMemberCount: requestedCount, eligibleMembers: rotationMembers.map((m) => ({ id: m.id, characterName: m.characterName })), resources };
@@ -143,7 +154,17 @@ export function applyAllocationOverrides(preview: AllocationPreviewResult, overr
     if (remainingRef.value > 0 && reservations.length > 0) distributeOverflowToReservations({ assignments: reservations, resourceHardCap: resource.hardCap, remainingRef });
     const reservationOverflow = reservations.reduce((sum, a) => sum + a.assignedQuantity, 0);
     const allocated = reserved + normalTotal + reservationOverflow;
-    return { ...resource, reserved, allocated, overflow: Math.max(resource.total - allocated, 0), selectedMembers: normalAssignments.map((a) => ({ id: a.memberId, characterName: a.memberName })), assignments: [...reservations, ...normalAssignments] };
+    const assignmentByMember = new Map<string, AllocationAssignment>();
+    for (const reservation of reservations) assignmentByMember.set(reservation.memberId, reservation);
+    for (const assignment of normalAssignments) {
+      const existing = assignmentByMember.get(assignment.memberId);
+      assignmentByMember.set(assignment.memberId, {
+        ...assignment,
+        reservedQuantity: existing?.reservedQuantity ?? 0,
+        assignedQuantity: assignment.assignedQuantity,
+      });
+    }
+    return { ...resource, reserved, allocated, overflow: Math.max(resource.total - allocated, 0), selectedMembers: normalAssignments.map((a) => ({ id: a.memberId, characterName: a.memberName })), assignments: [...assignmentByMember.values()] };
   });
   return { ...preview, resources };
 }
