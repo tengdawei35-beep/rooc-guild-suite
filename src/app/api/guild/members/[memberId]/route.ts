@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentAuth, hasPermission } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { JOBS } from "@/lib/constants/jobs";
 import { calculateRawPdef } from "@/lib/scoring/roo-scoring";
 import { refreshGuildRankings } from "@/lib/scoring/refresh-guild-rankings";
 
@@ -28,7 +29,7 @@ export async function GET(_request: Request, context: RouteContext) {
       current = liveMember ? { guildPercentile: liveMember.guildPercentile ?? 0, tankScore: liveMember.tankScore ?? 0, dpsScore: liveMember.dpsScore ?? 0, pvpScore: liveMember.pvpScore ?? 0, event: latestAssignment ? { id: latestAssignment.party.roster.event.id, type: latestAssignment.party.roster.event.type, date: latestAssignment.party.roster.event.date, battlefield: latestAssignment.party.battlefield, partyNumber: latestAssignment.party.partyNumber, slotNumber: latestAssignment.slotNumber } : null } : null;
     }
 
-    const stats = canViewCharacterStats ? { pdef: member.pdef, mdef: member.mdef, rawPdef: calculateRawPdef(member.pdef, member.equipmentPdefPercent), patk: member.patk, matk: member.matk, hp: member.hp, critRes: member.critRes, ignorePdef: member.ignorePdef, ignoreMdef: member.ignoreMdef, pvpDamageBonus: member.pvpDamageBonus, pvpDamageReduction: member.pvpDamageReduction, pdmgPercent: member.pdmgPercent, mdmgPercent: member.mdmgPercent, pdmgReductionPercent: member.pdmgReductionPercent, mdmgReductionPercent: member.mdmgReductionPercent, damageVsSmall: member.damageVsSmall, damageReductionVsSmall: member.damageReductionVsSmall, damageVsMedium: member.damageVsMedium, damageReductionVsMedium: member.damageReductionVsMedium, damageVsDemiHuman: member.damageVsDemiHuman, damageReductionVsDemiHuman: member.damageReductionVsDemiHuman, damageVsBrute: member.damageVsBrute, damageReductionVsBrute: member.damageReductionVsBrute, equipmentPdefPercent: member.equipmentPdefPercent, equipmentMdefPercent: member.equipmentMdefPercent } : {};
+    const stats = canViewCharacterStats ? { pdef: member.pdef, mdef: member.mdef, rawPdef: calculateRawPdef(member.pdef, member.equipmentPdefPercent), patk: member.patk, matk: member.matk, hp: member.hp, critRes: member.critRes, ignorePdef: member.ignorePdef, ignoreMdef: member.ignoreMdef, pvpDamageBonus: member.pvpDamageBonus, pvpDamageReduction: member.pvpDamageReduction, pdmgPercent: member.pdmgPercent, mdmgPercent: member.mdmgPercent, pdmgReductionPercent: member.pdmgReductionPercent, damageVsSmall: member.damageVsSmall, damageReductionVsSmall: member.damageReductionVsSmall, damageVsMedium: member.damageVsMedium, damageReductionVsMedium: member.damageReductionVsMedium, damageVsDemiHuman: member.damageVsDemiHuman, damageReductionVsDemiHuman: member.damageReductionVsDemiHuman, damageVsBrute: member.damageVsBrute, damageReductionVsBrute: member.damageReductionVsBrute, equipmentPdefPercent: member.equipmentPdefPercent, equipmentMdefPercent: member.equipmentMdefPercent } : {};
 
     return NextResponse.json({ member: { id: member.id, userId: member.userId, discordUserId: member.discordUserId, discordUsername: member.discordUsername, characterName: member.characterName, job: member.job, active: member.active, eligible: member.eligible, priority: member.priority, remarks: member.remarks, leaveDates: member.leaveDates, ...stats }, current, history, canViewCharacterStats });
   } catch (error) {
@@ -47,9 +48,16 @@ export async function PATCH(request: Request, context: RouteContext) {
     if (!member) return NextResponse.json({ error: "You can only update your own guild member profile." }, { status: 403 });
     const body = await request.json();
     const numericFields = ["pdef", "mdef", "patk", "matk", "hp", "pvpDamageBonus", "pvpDamageReduction", "pdmgPercent", "mdmgPercent", "pdmgReductionPercent", "mdmgReductionPercent", "critRes", "ignorePdef", "ignoreMdef", "damageVsMedium", "damageReductionVsMedium", "damageVsSmall", "damageReductionVsSmall", "damageVsDemiHuman", "damageReductionVsDemiHuman", "damageVsBrute", "damageReductionVsBrute", "equipmentPdefPercent", "equipmentMdefPercent"] as const;
-    const data: Record<string, number | null> = {};
+    const data: Record<string, number | string | null> = {};
+
+    if ("job" in body) {
+      if (body.job === null || body.job === "") data.job = null;
+      else if (typeof body.job === "string" && (JOBS as readonly string[]).includes(body.job)) data.job = body.job;
+      else return NextResponse.json({ error: "Invalid job." }, { status: 400 });
+    }
+
     for (const field of numericFields) { if (!(field in body)) continue; if (body[field] === null || body[field] === "") data[field] = null; else if (typeof body[field] === "number" && Number.isFinite(body[field])) data[field] = body[field]; else return NextResponse.json({ error: `Invalid value for ${field}.` }, { status: 400 }); }
-    const updated = await prisma.guildMember.update({ where: { id: member.id }, data, select: { id: true, characterName: true, updatedAt: true } });
+    const updated = await prisma.guildMember.update({ where: { id: member.id }, data, select: { id: true, characterName: true, job: true, updatedAt: true } });
     await refreshGuildRankings(auth.guild.id);
     return NextResponse.json({ success: true, member: updated });
   } catch (error) { console.error("[MEMBER PROFILE] Failed to update:", error); return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to update member profile." }, { status: 500 }); }
