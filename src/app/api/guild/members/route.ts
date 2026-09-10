@@ -71,6 +71,42 @@ function validateMember(body: MemberRequest) {
     return { error: "Invalid member priority." };
   }
 
+  const requiredNumericFields: Array<[keyof MemberRequest, string]> = [
+    ["pdef", "PDEF"],
+    ["mdef", "MDEF"],
+    ["patk", "PATK"],
+    ["matk", "MATK"],
+    ["hp", "HP"],
+    ["pvpDamageBonus", "PvP Damage Bonus"],
+    ["pvpDamageReduction", "PvP Damage Reduction"],
+    ["pdmgPercent", "Physical Damage %"],
+    ["mdmgPercent", "Magic Damage %"],
+    ["pdmgReductionPercent", "Physical Damage Reduction %"],
+    ["mdmgReductionPercent", "Magic Damage Reduction %"],
+    ["critRes", "Crit Resistance"],
+    ["ignorePdef", "Ignore PDEF"],
+    ["ignoreMdef", "Ignore MDEF"],
+    ["damageVsMedium", "Damage vs Medium"],
+    ["damageReductionVsMedium", "Damage Reduction vs Medium"],
+    ["damageVsSmall", "Damage vs Small"],
+    ["damageReductionVsSmall", "Damage Reduction vs Small"],
+    ["damageVsDemiHuman", "Damage vs Demi-Human"],
+    ["damageReductionVsDemiHuman", "Damage Reduction vs Demi-Human"],
+    ["damageVsBrute", "Damage vs Brute"],
+    ["damageReductionVsBrute", "Damage Reduction vs Brute"],
+    ["equipmentPdefPercent", "Equipment PDEF %"],
+    ["equipmentMdefPercent", "Equipment MDEF %"],
+  ];
+
+  for (const [field, label] of requiredNumericFields) {
+    if (body[field] === null || body[field] === undefined || body[field] === "") {
+      return { error: `${label} is required.` };
+    }
+    if (numberOrNull(body[field]) === null) {
+      return { error: `${label} must be a valid number.` };
+    }
+  }
+
   return {
     discordUserId,
     discordUsername,
