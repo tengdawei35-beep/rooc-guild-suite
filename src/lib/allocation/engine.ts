@@ -132,8 +132,6 @@ export async function buildAllocation(input: AllocationInput): Promise<Allocatio
     }
     let remaining = resource.total - reserved;
 
-    // Recovery is additive to the normal rotation turn, but it is still paid
-    // from the finite resource stock. It can never create additional stock.
     const recoveryEntitlementByMember = new Map<string, number>();
     for (const recovery of pendingRecoveries) {
       if (recovery.resourceId !== resource.id || !eligibleIds.has(recovery.memberId)) continue;
@@ -144,8 +142,6 @@ export async function buildAllocation(input: AllocationInput): Promise<Allocatio
       if (recoveryEntitlement > 0) recoveryEntitlementByMember.set(recovery.memberId, currentEntitlement + recoveryEntitlement);
     }
 
-    // Calculate the normal turn only from stock left after reservations.
-    // Recovery does not reduce the normal entitlement calculation.
     const normalAmount = selectedMembers.length > 0
       ? Math.min(resource.perPlayerLimit, Math.floor(remaining / selectedMembers.length))
       : 0;
@@ -171,8 +167,6 @@ export async function buildAllocation(input: AllocationInput): Promise<Allocatio
       }
     }
 
-    // Pay recovery only from the stock still remaining after the normal turn.
-    // Any unpaid amount remains queued in RotationRecovery.
     for (const recovery of pendingRecoveries) {
       if (recovery.resourceId !== resource.id || !eligibleIds.has(recovery.memberId)) continue;
       const entitlement = recoveryEntitlementByMember.get(recovery.memberId) ?? 0;
@@ -196,18 +190,21 @@ export async function buildAllocation(input: AllocationInput): Promise<Allocatio
       remaining -= amount;
     }
 
-    // Any genuinely unused stock is overflow. Only reserved-pool members may
-    // receive it, and only up to their individual hard caps.
-    const reservedAssignments = reservationParts.map((assignment) => ({ ...assignment }));
-    if (remaining > 0 && reservedAssignments.length > 0) {
+    // Overflow must operate on the same live ledger used by normal/recovery.
+    // The previous implementation copied the reservation rows at their original
+    // assignedQuantity=0, distributed the remaining stock into those copies,
+    // then added that amount on top of normal allocations already in the ledger.
+    // That double-counted reserved members' normal turns and could exceed total.
+    if (remaining > 0 && reservationParts.length > 0) {
+      const liveReservedAssignments = reservationParts
+        .map((reservation) => partsByMember.get(reservation.memberId))
+        .filter((assignment): assignment is AssignmentParts => Boolean(assignment));
       const remainingRef = { value: remaining };
-      distributeOverflowToReservations({ assignments: reservedAssignments, resourceHardCap: resource.hardCap, remainingRef });
-      for (const overflowAssignment of reservedAssignments) {
-        const existing = partsByMember.get(overflowAssignment.memberId);
-        if (!existing) continue;
-        existing.assignedQuantity += overflowAssignment.assignedQuantity;
-        partsByMember.set(overflowAssignment.memberId, existing);
-      }
+      distributeOverflowToReservations({
+        assignments: liveReservedAssignments,
+        resourceHardCap: resource.hardCap,
+        remainingRef,
+      });
       remaining = remainingRef.value;
     }
 
@@ -215,11 +212,12 @@ export async function buildAllocation(input: AllocationInput): Promise<Allocatio
       .filter((assignment) => assignment.reservedQuantity > 0 || assignment.assignedQuantity > 0)
       .map((assignment) => ({ ...assignment, resourceId: resource.id, resourceName: resource.name }));
 
-    const allocated = assignments.reduce(
-      (sum, assignment) => sum + assignment.reservedQuantity + assignment.assignedQuantity,
-      0,
-    );
-    assertStockInvariant(resource.name, resource.total, reserved, assignments.reduce((sum, assignment) => sum + assignment.assignedQuantity, 0));
+    const assigned = assignments.reduce((sum, assignment) => sum + assignment.assignedQuantity, 0);
+    assertStockInvariant(resource.name, resource.total, reserved, assigned);
+    const allocated = reserved + assigned;
+    if (allocated + remaining !== resource.total) {
+      throw new Error(`${resource.name} allocation ledger is inconsistent (${allocated} allocated + ${remaining} remaining != ${resource.total} total).`);
+    }
 
     resources.push({
       resourceId: resource.id,
@@ -228,7 +226,7 @@ export async function buildAllocation(input: AllocationInput): Promise<Allocatio
       total: resource.total,
       reserved,
       allocated,
-      overflow: resource.total - allocated,
+      overflow: remaining,
       perPlayerLimit: resource.perPlayerLimit,
       hardCap: resource.hardCap,
       selectedMembers: selectedMembers.map((member) => ({ id: member.id, characterName: member.characterName })),
