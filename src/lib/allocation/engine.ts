@@ -56,6 +56,13 @@ async function getPendingRecoveries(guildId: string): Promise<PendingRecovery[]>
   `;
 }
 
+function assertStockInvariant(resourceName: string, total: number, reserved: number, assigned: number) {
+  if (reserved < 0 || assigned < 0) throw new Error(`${resourceName} produced an invalid negative allocation amount.`);
+  if (reserved + assigned > total) {
+    throw new Error(`${resourceName} allocation exceeds available stock (${reserved + assigned}/${total}).`);
+  }
+}
+
 export async function buildAllocation(input: AllocationInput): Promise<AllocationPreviewResult> {
   if (!input.guildId) throw new Error("Guild ID is required.");
   if (!Number.isInteger(input.nonReservedMemberCount) || input.nonReservedMemberCount < 0) {
@@ -120,11 +127,13 @@ export async function buildAllocation(input: AllocationInput): Promise<Allocatio
     for (const reservation of reservationParts) partsByMember.set(reservation.memberId, reservation);
 
     const reserved = reservationParts.reduce((sum, assignment) => sum + assignment.reservedQuantity, 0);
-    let remaining = Math.max(resource.total - reserved, 0);
+    if (reserved > resource.total) {
+      throw new Error(`${resource.name} reservations require ${reserved}, but only ${resource.total} exist.`);
+    }
+    let remaining = resource.total - reserved;
 
-    // Recovery is an additional entitlement. It never replaces a member's
-    // normal rotation turn and therefore does not reduce the normal pool.
-    // The hard cap still applies to the combined reserved + normal + recovery.
+    // Recovery is additive to the normal rotation turn, but it is still paid
+    // from the finite resource stock. It can never create additional stock.
     const recoveryEntitlementByMember = new Map<string, number>();
     for (const recovery of pendingRecoveries) {
       if (recovery.resourceId !== resource.id || !eligibleIds.has(recovery.memberId)) continue;
@@ -135,8 +144,8 @@ export async function buildAllocation(input: AllocationInput): Promise<Allocatio
       if (recoveryEntitlement > 0) recoveryEntitlementByMember.set(recovery.memberId, currentEntitlement + recoveryEntitlement);
     }
 
-    // Normal rotation is always calculated from the normal pool. Recovery is
-    // additive, so recovery cannot make the normal allocation disappear.
+    // Calculate the normal turn only from stock left after reservations.
+    // Recovery does not reduce the normal entitlement calculation.
     const normalAmount = selectedMembers.length > 0
       ? Math.min(resource.perPlayerLimit, Math.floor(remaining / selectedMembers.length))
       : 0;
@@ -162,9 +171,8 @@ export async function buildAllocation(input: AllocationInput): Promise<Allocatio
       }
     }
 
-    // Pay outstanding recovery after establishing the normal turn. Recovery
-    // remains additive; if stock or the hard cap prevents the full amount,
-    // the unpaid remainder stays in RotationRecovery for a later cycle.
+    // Pay recovery only from the stock still remaining after the normal turn.
+    // Any unpaid amount remains queued in RotationRecovery.
     for (const recovery of pendingRecoveries) {
       if (recovery.resourceId !== resource.id || !eligibleIds.has(recovery.memberId)) continue;
       const entitlement = recoveryEntitlementByMember.get(recovery.memberId) ?? 0;
@@ -188,16 +196,12 @@ export async function buildAllocation(input: AllocationInput): Promise<Allocatio
       remaining -= amount;
     }
 
-    // Any stock left after normal and recovery entitlements is overflow. It is
-    // divided fairly among reserved-pool members, up to the hard cap.
+    // Any genuinely unused stock is overflow. Only reserved-pool members may
+    // receive it, and only up to their individual hard caps.
     const reservedAssignments = reservationParts.map((assignment) => ({ ...assignment }));
     if (remaining > 0 && reservedAssignments.length > 0) {
       const remainingRef = { value: remaining };
-      distributeOverflowToReservations({
-        assignments: reservedAssignments,
-        resourceHardCap: resource.hardCap,
-        remainingRef,
-      });
+      distributeOverflowToReservations({ assignments: reservedAssignments, resourceHardCap: resource.hardCap, remainingRef });
       for (const overflowAssignment of reservedAssignments) {
         const existing = partsByMember.get(overflowAssignment.memberId);
         if (!existing) continue;
@@ -209,16 +213,13 @@ export async function buildAllocation(input: AllocationInput): Promise<Allocatio
 
     const assignments: AllocationAssignment[] = [...partsByMember.values()]
       .filter((assignment) => assignment.reservedQuantity > 0 || assignment.assignedQuantity > 0)
-      .map((assignment) => ({
-        ...assignment,
-        resourceId: resource.id,
-        resourceName: resource.name,
-      }));
+      .map((assignment) => ({ ...assignment, resourceId: resource.id, resourceName: resource.name }));
 
     const allocated = assignments.reduce(
       (sum, assignment) => sum + assignment.reservedQuantity + assignment.assignedQuantity,
       0,
     );
+    assertStockInvariant(resource.name, resource.total, reserved, assignments.reduce((sum, assignment) => sum + assignment.assignedQuantity, 0));
 
     resources.push({
       resourceId: resource.id,
@@ -227,7 +228,7 @@ export async function buildAllocation(input: AllocationInput): Promise<Allocatio
       total: resource.total,
       reserved,
       allocated,
-      overflow: Math.max(resource.total - allocated, 0),
+      overflow: resource.total - allocated,
       perPlayerLimit: resource.perPlayerLimit,
       hardCap: resource.hardCap,
       selectedMembers: selectedMembers.map((member) => ({ id: member.id, characterName: member.characterName })),
@@ -244,10 +245,7 @@ export async function buildAllocation(input: AllocationInput): Promise<Allocatio
   };
 }
 
-export function applyAllocationOverrides(
-  preview: AllocationPreviewResult,
-  overrides: AllocationOverride[],
-): AllocationPreviewResult {
+export function applyAllocationOverrides(preview: AllocationPreviewResult, overrides: AllocationOverride[]): AllocationPreviewResult {
   const overrideMap = new Map(overrides.map((override) => [override.resourceId, override]));
   const resources = preview.resources.map((resource) => {
     const override = overrideMap.get(resource.resourceId);
@@ -256,37 +254,25 @@ export function applyAllocationOverrides(
     const assignmentByMember = new Map<string, AllocationAssignment>();
     for (const assignment of resource.assignments) assignmentByMember.set(assignment.memberId, { ...assignment });
 
-    const recoveryByMember = new Map(
-      resource.assignments.map((assignment) => [assignment.memberId, assignment.recoveryQuantity]),
-    );
+    const recoveryByMember = new Map(resource.assignments.map((assignment) => [assignment.memberId, assignment.recoveryQuantity]));
     const overriddenMembers = new Set<string>();
 
     for (const item of override.assignments) {
-      if (!Number.isInteger(item.assignedQuantity) || item.assignedQuantity < 0) {
-        throw new Error(`Invalid allocation amount for ${item.memberId}.`);
-      }
-      if (overriddenMembers.has(item.memberId)) {
-        throw new Error(`A member cannot be assigned more than once to ${resource.resourceName}.`);
-      }
+      if (!Number.isInteger(item.assignedQuantity) || item.assignedQuantity < 0) throw new Error(`Invalid allocation amount for ${item.memberId}.`);
+      if (overriddenMembers.has(item.memberId)) throw new Error(`A member cannot be assigned more than once to ${resource.resourceName}.`);
       overriddenMembers.add(item.memberId);
 
       const member = preview.eligibleMembers.find((candidate) => candidate.id === item.memberId);
       if (!member) throw new Error(`Member is not eligible for ${resource.resourceName}.`);
 
       const recoveryRequired = recoveryByMember.get(item.memberId) ?? 0;
-      if (item.assignedQuantity < recoveryRequired) {
-        throw new Error(`${member.characterName ?? "Member"} must receive at least ${recoveryRequired} recovery units for ${resource.resourceName}.`);
-      }
+      if (item.assignedQuantity < recoveryRequired) throw new Error(`${member.characterName ?? "Member"} must receive at least ${recoveryRequired} recovery units for ${resource.resourceName}.`);
 
       const normalPortion = item.assignedQuantity - recoveryRequired;
-      if (normalPortion > resource.perPlayerLimit) {
-        throw new Error(`${member.characterName ?? "Member"} exceeds the per-player limit for ${resource.resourceName}.`);
-      }
+      if (normalPortion > resource.perPlayerLimit) throw new Error(`${member.characterName ?? "Member"} exceeds the per-player limit for ${resource.resourceName}.`);
 
       const reservedQuantity = assignmentByMember.get(item.memberId)?.reservedQuantity ?? 0;
-      if (reservedQuantity + item.assignedQuantity > resource.hardCap) {
-        throw new Error(`${member.characterName ?? "Member"} exceeds the hard cap for ${resource.resourceName}.`);
-      }
+      if (reservedQuantity + item.assignedQuantity > resource.hardCap) throw new Error(`${member.characterName ?? "Member"} exceeds the hard cap for ${resource.resourceName}.`);
 
       assignmentByMember.set(item.memberId, {
         memberId: item.memberId,
@@ -301,41 +287,25 @@ export function applyAllocationOverrides(
     }
 
     const reserved = resource.assignments.reduce((sum, assignment) => sum + assignment.reservedQuantity, 0);
-    const allocated = [...assignmentByMember.values()].reduce(
-      (sum, assignment) => sum + assignment.reservedQuantity + assignment.assignedQuantity,
-      0,
-    );
-    if (allocated > resource.total) {
-      throw new Error(`${resource.resourceName} does not have enough stock for the edited allocation.`);
-    }
+    const assigned = [...assignmentByMember.values()].reduce((sum, assignment) => sum + assignment.assignedQuantity, 0);
+    assertStockInvariant(resource.resourceName, resource.total, reserved, assigned);
+    const allocated = reserved + assigned;
 
     return {
       ...resource,
       reserved,
       allocated,
-      overflow: Math.max(resource.total - allocated, 0),
-      assignments: [...assignmentByMember.values()].filter(
-        (assignment) => assignment.reservedQuantity > 0 || assignment.assignedQuantity > 0,
-      ),
+      overflow: resource.total - allocated,
+      assignments: [...assignmentByMember.values()].filter((assignment) => assignment.reservedQuantity > 0 || assignment.assignedQuantity > 0),
     };
   });
 
   return { ...preview, resources };
 }
 
-function distributeOverflowToReservations({
-  assignments,
-  resourceHardCap,
-  remainingRef,
-}: {
-  assignments: AssignmentParts[];
-  resourceHardCap: number;
-  remainingRef: { value: number };
-}) {
+function distributeOverflowToReservations({ assignments, resourceHardCap, remainingRef }: { assignments: AssignmentParts[]; resourceHardCap: number; remainingRef: { value: number } }) {
   while (remainingRef.value > 0) {
-    const eligible = assignments.filter(
-      (assignment) => assignment.reservedQuantity + assignment.assignedQuantity < resourceHardCap,
-    );
+    const eligible = assignments.filter((assignment) => assignment.reservedQuantity + assignment.assignedQuantity < resourceHardCap);
     if (eligible.length === 0) break;
 
     const fairShare = Math.floor(remainingRef.value / eligible.length);
