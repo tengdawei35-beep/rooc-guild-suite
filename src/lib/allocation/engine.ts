@@ -136,8 +136,7 @@ export async function buildAllocation(input: AllocationInput): Promise<Allocatio
     }
 
     // Normal rotation is always calculated from the normal pool. Recovery is
-    // additive, so a few recovery records cannot make the normal allocation
-    // disappear for everyone else.
+    // additive, so recovery cannot make the normal allocation disappear.
     const normalAmount = selectedMembers.length > 0
       ? Math.min(resource.perPlayerLimit, Math.floor(remaining / selectedMembers.length))
       : 0;
@@ -329,7 +328,7 @@ function distributeOverflowToReservations({
   resourceHardCap,
   remainingRef,
 }: {
-  assignments: AllocationAssignment[];
+  assignments: AssignmentParts[];
   resourceHardCap: number;
   remainingRef: { value: number };
 }) {
