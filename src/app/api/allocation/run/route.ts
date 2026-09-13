@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     const eventId = body.eventId;
     const nonReservedMemberCount = body.nonReservedMemberCount;
     if (typeof eventId !== "string" || !eventId.trim()) return NextResponse.json({ error: "An event must be selected before running an allocation." }, { status: 400 });
-    if (typeof nonReservedMemberCount !== "number" || !Number.isInteger(nonReservedMemberCount) || nonReservedMemberCount < 0) return NextResponse.json({ error: "Number of non-reserved members must be a non-negative integer." }, { status: 400 });
+    if (typeof nonReservedMemberCount !== "number" || !Number.isInteger(nonReservedMemberCount) || nonReservedMemberCount < 0) return NextResponse.json({ error: "Number of members per allocation must be a non-negative integer." }, { status: 400 });
     if (body.overrides !== undefined && !Array.isArray(body.overrides)) return NextResponse.json({ error: "Invalid allocation edits." }, { status: 400 });
 
     const event = await prisma.event.findFirst({ where: { id: eventId, guildId: auth.guild.id }, select: { id: true, guildId: true, type: true, date: true } });
@@ -49,23 +49,31 @@ export async function POST(request: Request) {
 
       const rotationBefore: Record<string, number> = {};
       const rotationAfter: Record<string, number> = {};
-      const eligibleIds = preview.eligibleMembers.map((m) => m.id);
+      const eligibleIds = preview.eligibleMembers.map((member) => member.id);
 
       for (const resource of guild.resources) {
         const currentIndexRaw = resource.rotationStates[0]?.rotationIndex ?? 0;
         const count = eligibleIds.length;
         const currentIndex = count > 0 ? ((currentIndexRaw % count) + count) % count : 0;
-        rotationBefore[resource.id] = currentIndexRaw;
-        const resourceResult = preview.resources.find((r) => r.resourceId === resource.id);
-        const selectedIds = new Set(resourceResult?.selectedMembers.map((m) => m.id) ?? []);
-        let nextIndex = currentIndex;
+        rotationBefore[resource.id] = currentIndex;
 
-        if (count > 0 && selectedIds.size > 0) {
+        const resourceResult = preview.resources.find((result) => result.resourceId === resource.id);
+        const selectedIds = new Set(resourceResult?.selectedMembers.map((member) => member.id) ?? []);
+        const normalEligibleIds = new Set(
+          resourceResult?.assignments
+            .filter((assignment) => assignment.normalQuantity > 0 && selectedIds.has(assignment.memberId))
+            .map((assignment) => assignment.memberId) ?? [],
+        );
+
+        let nextIndex = currentIndex;
+        if (count > 0 && normalEligibleIds.size > 0) {
           const rotated = [...eligibleIds.slice(currentIndex), ...eligibleIds.slice(0, currentIndex)];
-          let lastSelectedPosition = -1;
-          for (let position = 0; position < rotated.length; position++) if (selectedIds.has(rotated[position])) lastSelectedPosition = position;
-          if (lastSelectedPosition >= 0) {
-            const nextPosition = (lastSelectedPosition + 1) % rotated.length;
+          let lastSuccessfulPosition = -1;
+          for (let position = 0; position < rotated.length; position++) {
+            if (normalEligibleIds.has(rotated[position])) lastSuccessfulPosition = position;
+          }
+          if (lastSuccessfulPosition >= 0) {
+            const nextPosition = (lastSuccessfulPosition + 1) % rotated.length;
             nextIndex = eligibleIds.indexOf(rotated[nextPosition]);
           }
         }
