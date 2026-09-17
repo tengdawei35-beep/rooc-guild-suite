@@ -113,7 +113,11 @@ export default function ReservationsClient({ initialMembers, initialResources, i
   }
 
   return <>
-    <div className="mb-6 grid gap-4 sm:grid-cols-3"><SummaryCard label="Reservations" value={reservations.length} /><SummaryCard label="Reserved Quantity" value={reservations.reduce((sum, item) => sum + item.quantity, 0)} /><SummaryCard label="Members With Reservations" value={new Set(reservations.map((item) => item.memberId)).size} /></div>
+    <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <SummaryCard label="Reservations" value={reservations.length} />
+      <SummaryCard label="Members With Reservations" value={new Set(reservations.map((item) => item.memberId)).size} />
+      {initialResources.map((resource) => <SummaryCard key={resource.id} label={`Reserved — ${resource.name}`} value={reservations.filter((item) => item.resourceId === resource.id).reduce((sum, item) => sum + item.quantity, 0)} />)}
+    </div>
 
     <div className="mb-6 flex flex-wrap items-center justify-between gap-3"><p className="text-sm text-zinc-500">Reservations are removed from the available allocation pool.</p><div className="flex gap-2"><button type="button" onClick={openBulk} disabled={!initialMembers.length || !initialResources.length} className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-medium hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-40">Bulk Add / Edit</button><button type="button" onClick={openCreate} disabled={!initialMembers.length || !initialResources.length} className="rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-black hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-40">+ Add Reservation</button></div></div>
 
