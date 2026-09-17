@@ -571,6 +571,32 @@ export default async function AllocationHistoryPage() {
               );
             })}
           </div>
+
+          <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+            <h2 className="text-lg font-semibold">Cumulative Member Totals</h2>
+            <p className="mt-1 text-sm text-zinc-500">Total resources each member has received across all allocation runs.</p>
+            {(() => {
+              const totals = new Map<string, { name: string; resources: Map<string, number>; total: number }>();
+              for (const run of runs) for (const allocation of run.allocationResults) {
+                const quantity = allocation.reservedQuantity + allocation.assignedQuantity;
+                if (quantity === 0) continue;
+                const existing = totals.get(allocation.memberId) ?? { name: allocation.member.characterName ?? "Unknown", resources: new Map<string, number>(), total: 0 };
+                existing.resources.set(allocation.resource.name, (existing.resources.get(allocation.resource.name) ?? 0) + quantity);
+                existing.total += quantity;
+                totals.set(allocation.memberId, existing);
+              }
+              const rows = Array.from(totals.values()).sort((a, b) => a.name.localeCompare(b.name));
+              const resourceNames = Array.from(new Set(runs.flatMap((run) => run.resourceResults.map((result) => result.resource.name)))).sort((a, b) => a.localeCompare(b));
+              return rows.length === 0 ? <p className="mt-4 text-sm text-zinc-600">No member allocations were recorded.</p> : (
+                <div className="mt-4 overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead><tr className="border-b border-zinc-800 text-zinc-500"><th className="px-3 py-3 font-medium">Member</th>{resourceNames.map((name) => <th key={name} className="px-3 py-3 font-medium">{name}</th>)}<th className="px-3 py-3 font-medium">Total</th></tr></thead>
+                    <tbody>{rows.map((row) => <tr key={row.name} className="border-b border-zinc-900 last:border-0"><td className="px-3 py-3 font-medium text-white">{row.name}</td>{resourceNames.map((name) => <td key={name} className="px-3 py-3 text-zinc-400">{row.resources.get(name) ?? 0}</td>)}<td className="px-3 py-3 font-semibold">{row.total}</td></tr>)}</tbody>
+                  </table>
+                </div>
+              );
+            })()}
+          </section>
         )}
       </div>
     </main>
