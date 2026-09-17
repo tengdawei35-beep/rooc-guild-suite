@@ -184,7 +184,8 @@ export default async function AllocationHistoryPage() {
             </Link>
           </section>
         ) : (
-          <div className="space-y-4">
+          <>
+            <div className="space-y-4">
             {runs.map((run) => {
               const totalAllocated =
                 run.resourceResults.reduce(
@@ -597,6 +598,7 @@ export default async function AllocationHistoryPage() {
               );
             })()}
           </section>
+          </>
         )}
       </div>
     </main>
