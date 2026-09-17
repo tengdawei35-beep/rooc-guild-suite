@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { JOBS } from "@/lib/constants/jobs";
 
 const FIELDS = [
   ["pdef", "PDEF"], ["mdef", "MDEF"], ["patk", "PATK"], ["matk", "MATK"], ["hp", "HP"],
@@ -19,7 +20,6 @@ type Stats = Record<Field, string>;
 type Existing = { id: string; characterName: string; job: string | null; status?: "PENDING" | "ACCEPTED" | "DENIED" } & Partial<Record<Field, number | string | null>>;
 
 function emptyStats(existing?: Existing | null): Stats { return Object.fromEntries(FIELDS.map(([key]) => [key, existing?.[key] == null ? "" : String(existing[key])])) as Stats; }
-const JOBS = ["High Wizard", "Professor", "High Priest", "Priest", "Lord Knight", "Paladin", "Sniper", "Assassin Cross", "Whitesmith", "Biochemist", "Bard", "Gypsy", "Doram (Magic)", "Doram (Support)", "Biochemist (Plant)", "Other"];
 
 export default function ApplicantApplyClient({ token, guildId, discordUserId, discordUsername, existingApplication }: { token: string; guildId: string; discordUserId: string; discordUsername: string; existingApplication: Existing | null }) {
   const [characterName, setCharacterName] = useState(existingApplication?.characterName ?? "");
