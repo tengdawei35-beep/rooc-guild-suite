@@ -55,9 +55,12 @@ function validateMember(body: MemberRequest) {
   const discordUserId = body.discordUserId?.trim() || null;
   const discordUsername = body.discordUsername?.trim() || null;
 
-  if (discordUserId && !/^\d{17,20}$/.test(discordUserId)) {
+  if (!discordUserId) return { error: "Discord User ID is required." };
+  if (!/^\d{17,20}$/.test(discordUserId)) {
     return { error: "Discord User ID must be a valid numeric Discord ID." };
   }
+
+  if (!discordUsername) return { error: "Discord Username is required." };
 
   const characterName = body.characterName?.trim();
   if (!characterName) return { error: "Character name is required." };
@@ -71,7 +74,7 @@ function validateMember(body: MemberRequest) {
     return { error: "Invalid member priority." };
   }
 
-  const requiredNumericFields: Array<[keyof MemberRequest, string]> = [
+  const numericFields: Array<[keyof MemberRequest, string]> = [
     ["pdef", "PDEF"],
     ["mdef", "MDEF"],
     ["patk", "PATK"],
@@ -98,11 +101,8 @@ function validateMember(body: MemberRequest) {
     ["equipmentMdefPercent", "Equipment MDEF %"],
   ];
 
-  for (const [field, label] of requiredNumericFields) {
-    if (body[field] === null || body[field] === undefined || body[field] === "") {
-      return { error: `${label} is required.` };
-    }
-    if (numberOrNull(body[field]) === null) {
+  for (const [field, label] of numericFields) {
+    if (body[field] !== null && body[field] !== undefined && body[field] !== "" && numberOrNull(body[field]) === null) {
       return { error: `${label} must be a valid number.` };
     }
   }
@@ -145,14 +145,10 @@ function validateMember(body: MemberRequest) {
 
 async function resolveDiscordIdentity(
   guildId: string,
-  discordUserId: string | null,
-  discordUsername: string | null,
+  discordUserId: string,
+  discordUsername: string,
   existingMemberId?: string
 ) {
-  if (!discordUserId) {
-    return { discordUserId: null, discordUsername, userId: null };
-  }
-
   const user = await prisma.user.findUnique({
     where: { discordId: discordUserId },
     select: { id: true, discordId: true, username: true },
