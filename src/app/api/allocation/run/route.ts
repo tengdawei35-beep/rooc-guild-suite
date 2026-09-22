@@ -41,7 +41,14 @@ export async function POST(request: Request) {
       const allocationLockKey = `${auth.guild.id}:${event.id}`;
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${allocationLockKey}, 0))`;
 
-      const existingRun = await tx.allocationRun.findFirst({ where: { guildId: auth.guild.id, eventId: event.id }, select: { id: true, status: true } });
+      const existingRun = await tx.allocationRun.findFirst({
+        where: {
+          guildId: auth.guild.id,
+          eventId: event.id,
+          NOT: { errorMessage: "ROTATION_BACKFILL" },
+        },
+        select: { id: true, status: true, errorMessage: true },
+      });
       if (existingRun) return { conflict: true as const, runId: existingRun.id, status: existingRun.status };
 
       const guild = await tx.guild.findUnique({ where: { id: auth.guild.id }, include: { resources: { where: { active: true }, include: { rotationStates: true } } } });
