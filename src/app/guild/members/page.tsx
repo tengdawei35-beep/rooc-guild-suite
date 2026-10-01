@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import MembersClient from "./MembersClient";
-import { requirePageAuth } from "@/lib/auth";
+import { requirePageAuth, hasPermission } from "@/lib/auth";
 
 export default async function MembersPage() {
   const auth = await requirePageAuth();
@@ -97,10 +97,17 @@ export default async function MembersPage() {
       <div className="mx-auto max-w-7xl px-6 py-10">
         <header className="mb-8">
           <Link href="/" className="text-sm text-zinc-500 hover:text-white">← Dashboard</Link>
-          <div className="mt-4">
-            <p className="text-sm font-medium uppercase tracking-widest text-zinc-500">{guild.name}</p>
-            <h1 className="mt-1 text-3xl font-bold tracking-tight">Guild Members</h1>
-            <p className="mt-2 text-zinc-400">Manage member profiles, jobs, combat statistics, eligibility and activity.</p>
+          <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-sm font-medium uppercase tracking-widest text-zinc-500">{guild.name}</p>
+              <h1 className="mt-1 text-3xl font-bold tracking-tight">Guild Members</h1>
+              <p className="mt-2 text-zinc-400">Manage member profiles, jobs, combat statistics, eligibility and activity.</p>
+            </div>
+            {hasPermission(auth.role, "leave.manageAny") && (
+              <Link href="/guild/members/leave/history" className="inline-flex shrink-0 items-center justify-center rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-200 hover:border-zinc-500 hover:bg-zinc-800">
+                Leave History →
+              </Link>
+            )}
           </div>
         </header>
         <MembersClient initialMembers={members} />
