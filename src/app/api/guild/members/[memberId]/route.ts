@@ -70,11 +70,27 @@ export async function DELETE(_request: Request, context: RouteContext) {
     if (!hasPermission(auth.role, "members.delete")) return NextResponse.json({ error: "You do not have permission to delete members." }, { status: 403 });
     const { memberId } = await context.params;
     if (!memberId) return NextResponse.json({ error: "Member ID is required." }, { status: 400 });
-    const member = await prisma.guildMember.findFirst({ where: { id: memberId, guildId: auth.guild.id }, select: { id: true, characterName: true } });
-    if (!member) return NextResponse.json({ error: "Guild member not found." }, { status: 404 });
-    await prisma.guildMember.delete({ where: { id: memberId } });
+
+    const result = await prisma.$transaction(async (tx) => {
+      const member = await tx.guildMember.findFirst({
+        where: { id: memberId, guildId: auth.guild.id },
+        include: { leaveDates: true },
+      });
+      if (!member) throw new Error("Guild member not found.");
+
+      for (const leave of member.leaveDates) {
+        await tx.$executeRaw`
+          INSERT INTO "LeaveHistory" ("id", "guildId", "originalMemberId", "discordUserId", "discordUsername", "characterName", "job", "date", "reason")
+          VALUES (${crypto.randomUUID()}, ${auth.guild.id}, ${member.id}, ${member.discordUserId}, ${member.discordUsername}, ${member.characterName}, ${member.job}, ${leave.date}, ${leave.reason})
+        `;
+      }
+
+      await tx.guildMember.delete({ where: { id: memberId } });
+      return { id: memberId };
+    });
+
     await refreshGuildRankings(auth.guild.id);
-    return NextResponse.json({ success: true, id: memberId });
+    return NextResponse.json({ success: true, id: result.id });
   } catch (error) {
     console.error("[MEMBER PROFILE] Failed to delete:", error);
     return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to delete member." }, { status: 500 });
