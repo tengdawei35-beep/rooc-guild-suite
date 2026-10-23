@@ -29,8 +29,28 @@ export async function GET() {
   const auth = await getCurrentAuth();
   if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   if (!hasPermission(auth.role, "applicants.view")) return forbidden();
-  const applicants = await prisma.guildApplicant.findMany({ where: { guildId: auth.guild.id }, orderBy: { createdAt: "desc" } });
-  return NextResponse.json({ applicants: await Promise.all(applicants.map(async (applicant) => ({ ...applicant, comparison: await buildComparison(auth.guild.id, applicant) }))) });
+  const applicants = await prisma.guildApplicant.findMany({ where: { guildId: auth.guild.id } });
+  const rankedApplicants = await Promise.all(applicants.map(async (applicant) => ({
+    ...applicant,
+    comparison: await buildComparison(auth.guild.id, applicant),
+  })));
+
+  const statusOrder = { PENDING: 0, ACCEPTED: 1, DENIED: 2 } as const;
+  rankedApplicants.sort((a, b) => {
+    // Higher projected PvP percentile is the best available overall guild-standing metric.
+    const standingDifference =
+      (b.comparison?.scores.pvpPercentile ?? -1) -
+      (a.comparison?.scores.pvpPercentile ?? -1);
+    if (standingDifference !== 0) return standingDifference;
+
+    // Keep the existing newest-first application-date convention for ties.
+    const dateDifference = b.createdAt.getTime() - a.createdAt.getTime();
+    if (dateDifference !== 0) return dateDifference;
+
+    return statusOrder[a.status] - statusOrder[b.status];
+  });
+
+  return NextResponse.json({ applicants: rankedApplicants });
 }
 
 export async function POST(request: Request) {
