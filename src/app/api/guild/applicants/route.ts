@@ -37,17 +37,21 @@ export async function GET() {
 
   const statusOrder = { PENDING: 0, ACCEPTED: 1, DENIED: 2 } as const;
   rankedApplicants.sort((a, b) => {
-    // Higher projected PvP percentile is the best available overall guild-standing metric.
+    // Pending applicants always appear before applications that have been decided.
+    const statusDifference = statusOrder[a.status] - statusOrder[b.status];
+    if (statusDifference !== 0) return statusDifference;
+
+    // Within each status group, rank by projected PvP percentile, highest first.
     const standingDifference =
       (b.comparison?.scores.pvpPercentile ?? -1) -
       (a.comparison?.scores.pvpPercentile ?? -1);
     if (standingDifference !== 0) return standingDifference;
 
-    // Keep the existing newest-first application-date convention for ties.
+    // Then show the newest application first.
     const dateDifference = b.createdAt.getTime() - a.createdAt.getTime();
     if (dateDifference !== 0) return dateDifference;
 
-    return statusOrder[a.status] - statusOrder[b.status];
+    return statusDifference;
   });
 
   return NextResponse.json({ applicants: rankedApplicants });
