@@ -878,9 +878,17 @@ export default function ImportMembersModal({
         data.success ===
         false
       ) {
+        const details = Array.isArray(data.errors)
+          ? data.errors.map((entry: { row?: number; discordUsername?: string; errors?: string[] }) => {
+              const rowLabel = entry.row ? `Row ${entry.row}` : "Row";
+              const memberLabel = entry.discordUsername ? ` (${entry.discordUsername})` : "";
+              const messages = Array.isArray(entry.errors) ? entry.errors.join("; ") : "Unknown validation error";
+              return `${rowLabel}${memberLabel}: ${messages}`;
+            }).join("\\n")
+          : "";
+
         throw new Error(
-          data.message ??
-            "Import validation failed."
+          [data.message ?? "Import validation failed.", details].filter(Boolean).join("\\n")
         );
       }
 
@@ -1177,7 +1185,7 @@ export default function ImportMembersModal({
           {/* ERROR */}
 
           {fileError && (
-            <div className="rounded-lg border border-red-900/60 bg-red-950/40 p-4 text-sm text-red-300">
+            <div className="whitespace-pre-line rounded-lg border border-red-900/60 bg-red-950/40 p-4 text-sm text-red-300">
               {fileError}
             </div>
           )}
