@@ -68,17 +68,6 @@ export async function ensureGuildMembershipsForDiscordUser({
       const candidate =
         usernameCandidates[0];
 
-      await prisma.guildMember.update({
-        where: {
-          id: candidate.id,
-        },
-        data: {
-          userId,
-          discordUserId: discordId,
-          discordUsername: username,
-        },
-      });
-
       linkedMembers.push({
         ...candidate,
         userId,
@@ -94,22 +83,18 @@ export async function ensureGuildMembershipsForDiscordUser({
     return [];
   }
 
-  // Keep the stored Discord username current without using it as the
-  // authoritative identity key.
-  await prisma.guildMember.updateMany({
-    where: {
-      id: {
-        in: Array.from(
-          linkedMemberIds
-        ),
-      },
-    },
-    data: {
-      discordUserId: discordId,
-      discordUsername: username,
-      userId,
-    },
-  });
+  // Keep the stored Discord identity current without touching updatedAt.
+  // updatedAt drives the dashboard's "Member profile updated" activity, and
+  // routine authentication must not appear as a profile edit.
+  for (const memberId of linkedMemberIds) {
+    await prisma.$executeRaw`
+      UPDATE "GuildMember"
+      SET "discordUserId" = ${discordId},
+          "discordUsername" = ${username},
+          "userId" = ${userId}
+      WHERE "id" = ${memberId}
+    `;
+  }
 
   const guildIds = Array.from(
     new Set(
