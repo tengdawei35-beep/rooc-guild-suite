@@ -19,6 +19,7 @@ const nextConfig: NextConfig = {
   // worker/core support files. Explicitly include the complete package trees
   // and their runtime dependencies in Vercel's serverless function trace.
   outputFileTracingIncludes: {
+    "/**/*": ["./assets/fonts/**/*"],
     "/api/**/*": [
       "./node_modules/tesseract.js/**/*",
       "./node_modules/tesseract.js-core/**/*",
