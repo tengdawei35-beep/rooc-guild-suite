@@ -42,7 +42,7 @@ function buildRosterSvg(input: {
   parties: RosterImageParty[];
 }) {
   const width = 1400;
-  const height = 940;
+  const height = 1040;
   const margin = 36;
   const gap = 24;
   const cardWidth = (width - margin * 2 - gap) / 2;
@@ -77,7 +77,7 @@ function buildRosterSvg(input: {
     <text x="40" y="116" fill="#ffffff" font-size="42" font-weight="800">${escapeXml(input.title)}</text>
     <text x="40" y="153" fill="#a8b5c9" font-size="22">${escapeXml(input.subtitle)}</text>
     ${cards}
-    <text x="40" y="910" fill="#687b98" font-size="16" letter-spacing="2">OFFICIAL EVENT ROSTER</text>
+    <text x="40" y="1010" fill="#687b98" font-size="16" letter-spacing="2">OFFICIAL EVENT ROSTER</text>
   </svg>`;
 }
 
