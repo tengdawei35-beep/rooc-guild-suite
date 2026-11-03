@@ -1,4 +1,5 @@
-import sharp from "sharp";
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
 import { prisma } from "@/lib/prisma";
 import { getNotificationConfig } from "@/lib/discord-notifications";
 
@@ -81,11 +82,42 @@ function buildRosterSvg(input: {
   </svg>`;
 }
 
+let sharpWithBundledFonts: Promise<typeof import("sharp").default> | undefined;
+
+async function getSharpWithBundledFonts() {
+  if (!sharpWithBundledFonts) {
+    sharpWithBundledFonts = (async () => {
+      // librsvg (used by sharp to rasterize SVG) relies on Fontconfig and
+      // does not reliably load fonts merely because an SVG names a font family.
+      // Register the repository-bundled fonts before sharp initializes.
+      const fontDir = path.join(process.cwd(), "assets", "fonts");
+      const cacheDir = path.join("/tmp", "rooc-guild-suite-fontconfig-cache");
+      const configPath = path.join("/tmp", "rooc-guild-suite-fontconfig.xml");
+      await mkdir(cacheDir, { recursive: true });
+      await writeFile(
+        configPath,
+        `<?xml version="1.0"?>
+<!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+<fontconfig>
+  <dir>${fontDir}</dir>
+  <cachedir>${cacheDir}</cachedir>
+</fontconfig>`,
+        "utf8",
+      );
+      process.env.FONTCONFIG_FILE = configPath;
+      const sharpModule = await import("sharp");
+      return sharpModule.default;
+    })();
+  }
+  return sharpWithBundledFonts;
+}
+
 async function renderRosterImage(input: {
   title: string;
   subtitle: string;
   parties: RosterImageParty[];
 }) {
+  const sharp = await getSharpWithBundledFonts();
   return sharp(Buffer.from(buildRosterSvg(input)))
     .png()
     .toBuffer();
