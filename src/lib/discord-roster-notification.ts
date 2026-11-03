@@ -59,25 +59,25 @@ function buildRosterSvg(input: {
       const job = member?.job || "";
       return `
         <line x1="${x + 24}" y1="${rowY - 25}" x2="${x + cardWidth - 24}" y2="${rowY - 25}" stroke="#303b51" stroke-width="1"/>
-        <text x="${x + 28}" y="${rowY + 2}" fill="${member ? "#f4f7fb" : "#7e8ba1"}" font-size="24" font-weight="${member ? "600" : "400"}">${escapeXml(name.slice(0, 32))}</text>
-        <text x="${x + cardWidth - 28}" y="${rowY + 2}" text-anchor="end" fill="#a9b9d1" font-size="19">${escapeXml(job.slice(0, 24))}</text>`;
+        <text font-family="DejaVu Sans, Arial, sans-serif" x="${x + 28}" y="${rowY + 2}" fill="${member ? "#f4f7fb" : "#7e8ba1"}" font-size="24" font-weight="${member ? "600" : "400"}">${escapeXml(name.slice(0, 32))}</text>
+        <text font-family="DejaVu Sans, Arial, sans-serif" x="${x + cardWidth - 28}" y="${rowY + 2}" text-anchor="end" fill="#a9b9d1" font-size="19">${escapeXml(job.slice(0, 24))}</text>`;
     }).join("");
     return `
       <rect x="${x}" y="${y}" width="${cardWidth}" height="${cardHeight}" rx="18" fill="#111b2d" stroke="#35435b" stroke-width="2"/>
       <path d="M ${x + 18} ${y} H ${x + cardWidth - 18} Q ${x + cardWidth} ${y} ${x + cardWidth} ${y + 18} V ${y + 88} H ${x} V ${y + 18} Q ${x} ${y} ${x + 18} ${y}" fill="#1b2b45"/>
-      <text x="${x + 26}" y="${y + 39}" fill="#ffffff" font-size="27" font-weight="700">${escapeXml(label)} · Party ${party.partyNumber}</text>
-      <text x="${x + 26}" y="${y + 68}" fill="#9fb6d6" font-size="16" letter-spacing="2">PARTY ROSTER</text>
+      <text font-family="DejaVu Sans, Arial, sans-serif" x="${x + 26}" y="${y + 39}" fill="#ffffff" font-size="27" font-weight="700">${escapeXml(label)} · Party ${party.partyNumber}</text>
+      <text font-family="DejaVu Sans, Arial, sans-serif" x="${x + 26}" y="${y + 68}" fill="#9fb6d6" font-size="16" letter-spacing="2">PARTY ROSTER</text>
       ${rows}`;
   }).join("");
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" style="font-family: Arial, Helvetica, sans-serif;">
     <rect width="100%" height="100%" fill="#080e19"/>
     <circle cx="1270" cy="60" r="170" fill="#183052" opacity=".28"/>
-    <text x="40" y="62" fill="#8da9d0" font-size="18" font-weight="700" letter-spacing="5">ROOC GUILD SUITE</text>
-    <text x="40" y="116" fill="#ffffff" font-size="42" font-weight="800">${escapeXml(input.title)}</text>
-    <text x="40" y="153" fill="#a8b5c9" font-size="22">${escapeXml(input.subtitle)}</text>
+    <text font-family="DejaVu Sans, Arial, sans-serif" x="40" y="62" fill="#8da9d0" font-size="18" font-weight="700" letter-spacing="5">ROOC GUILD SUITE</text>
+    <text font-family="DejaVu Sans, Arial, sans-serif" x="40" y="116" fill="#ffffff" font-size="42" font-weight="800">${escapeXml(input.title)}</text>
+    <text font-family="DejaVu Sans, Arial, sans-serif" x="40" y="153" fill="#a8b5c9" font-size="22">${escapeXml(input.subtitle)}</text>
     ${cards}
-    <text x="40" y="1010" fill="#687b98" font-size="16" letter-spacing="2">OFFICIAL EVENT ROSTER</text>
+    <text font-family="DejaVu Sans, Arial, sans-serif" x="40" y="1010" fill="#687b98" font-size="16" letter-spacing="2">OFFICIAL EVENT ROSTER</text>
   </svg>`;
 }
 
@@ -209,7 +209,7 @@ export async function notifyRosterPublished(input: {
         filename: `roster-${index + 1}.png`,
         buffer: await renderRosterImage({
           title: roster.name,
-          subtitle: `${eventLabel} · ${serverTime(event.date)} · UTC+7`,
+          subtitle: `${eventLabel} · ${serverTime(event.date)} · MYT (UTC+8)`,
           parties: group,
         }),
       }))
