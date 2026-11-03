@@ -34,8 +34,12 @@ function escapeXml(value: string) {
 type RosterImageParty = {
   battlefield: string;
   partyNumber: number;
+  raidName?: string | null;
+  raidColor?: string | null;
   members: Array<{ name: string; job: string | null }>;
 };
+
+const RAID_ACCENTS = ["#facc15", "#ef4444", "#38bdf8", "#4ade80", "#c084fc", "#fb923c"];
 
 function buildRosterSvg(input: {
   title: string;
@@ -53,6 +57,12 @@ function buildRosterSvg(input: {
     const x = margin + (index % 2) * (cardWidth + gap);
     const y = startY + Math.floor(index / 2) * (cardHeight + gap);
     const label = party.battlefield.replace(/^BATTLEFIELD_/, "Battlefield ");
+    const raidColor = party.raidColor ?? null;
+    const cardStroke = raidColor ?? "#35435b";
+    const cardFill = raidColor ? `${raidColor}0D` : "#111b2d";
+    const raidBadge = party.raidName && raidColor
+      ? `<rect x="${x + cardWidth - 210}" y="${y + 20}" width="180" height="34" rx="8" fill="${raidColor}" fill-opacity="0.16" stroke="${raidColor}" stroke-opacity="0.85"/><text font-family="DejaVu Sans, Arial, sans-serif" x="${x + cardWidth - 120}" y="${y + 43}" text-anchor="middle" fill="${raidColor}" font-size="17" font-weight="700">${escapeXml(party.raidName.slice(0, 18))}</text>`
+      : "";
     const rows = Array.from({ length: 5 }, (_, slotIndex) => {
       const member = party.members[slotIndex];
       const rowY = y + 128 + slotIndex * 48;
@@ -64,10 +74,11 @@ function buildRosterSvg(input: {
         <text font-family="DejaVu Sans, Arial, sans-serif" x="${x + cardWidth - 28}" y="${rowY + 2}" text-anchor="end" fill="#a9b9d1" font-size="19">${escapeXml(job.slice(0, 24))}</text>`;
     }).join("");
     return `
-      <rect x="${x}" y="${y}" width="${cardWidth}" height="${cardHeight}" rx="18" fill="#111b2d" stroke="#35435b" stroke-width="2"/>
+      <rect x="${x}" y="${y}" width="${cardWidth}" height="${cardHeight}" rx="18" fill="${cardFill}" stroke="${cardStroke}" stroke-width="${raidColor ? 4 : 2}"/>
       <path d="M ${x + 18} ${y} H ${x + cardWidth - 18} Q ${x + cardWidth} ${y} ${x + cardWidth} ${y + 18} V ${y + 88} H ${x} V ${y + 18} Q ${x} ${y} ${x + 18} ${y}" fill="#1b2b45"/>
       <text font-family="DejaVu Sans, Arial, sans-serif" x="${x + 26}" y="${y + 39}" fill="#ffffff" font-size="27" font-weight="700">${escapeXml(label)} · Party ${party.partyNumber}</text>
       <text font-family="DejaVu Sans, Arial, sans-serif" x="${x + 26}" y="${y + 68}" fill="#9fb6d6" font-size="16" letter-spacing="2">PARTY ROSTER</text>
+      ${raidBadge}
       ${rows}`;
   }).join("");
 
@@ -205,6 +216,17 @@ export async function notifyRosterPublished(input: {
     });
     if (!roster) return false;
 
+    const raids = await prisma.raid.findMany({
+      where: { parties: { some: { party: { rosterId: roster.id } } } },
+      orderBy: { createdAt: "asc" },
+      include: { parties: { select: { partyId: true } } },
+    });
+    const raidByPartyId = new Map<string, { name: string; color: string }>();
+    raids.forEach((raid, index) => {
+      const color = RAID_ACCENTS[index % RAID_ACCENTS.length];
+      raid.parties.forEach((entry) => raidByPartyId.set(entry.partyId, { name: raid.name, color }));
+    });
+
     const overrideRows = await prisma.$queryRawUnsafe<Array<{ rosterMemberId: string; job: string }>>(
       `SELECT "rosterMemberId", job
        FROM "RosterJobOverride"
@@ -225,6 +247,8 @@ export async function notifyRosterPublished(input: {
     const parties: RosterImageParty[] = roster.parties.map((party) => ({
       battlefield: party.battlefield,
       partyNumber: party.partyNumber,
+      raidName: raidByPartyId.get(party.id)?.name ?? null,
+      raidColor: raidByPartyId.get(party.id)?.color ?? null,
       members: party.members.map((entry) => ({
         name: entry.member.characterName || entry.member.discordUsername || "Member",
         job: overrideMap.get(entry.id) ?? entry.member.job,
