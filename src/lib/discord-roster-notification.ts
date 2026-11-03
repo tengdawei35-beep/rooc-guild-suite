@@ -70,7 +70,7 @@ function buildRosterSvg(input: {
       ${rows}`;
   }).join("");
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" style="font-family: Arial, Helvetica, sans-serif;">
     <rect width="100%" height="100%" fill="#080e19"/>
     <circle cx="1270" cy="60" r="170" fill="#183052" opacity=".28"/>
     <text x="40" y="62" fill="#8da9d0" font-size="18" font-weight="700" letter-spacing="5">ROOC GUILD SUITE</text>
