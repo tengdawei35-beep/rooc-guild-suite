@@ -7,6 +7,11 @@ datasource db {
   provider = "postgresql"
 }
 
+enum GameType {
+  ROOC
+  RO3
+}
+
 enum MemberPriority {
   LEADER
   OFFICER
@@ -93,6 +98,7 @@ model Guild {
   id String @id @default(cuid())
   discordGuildId String @unique
   name String
+  gameType GameType @default(ROOC)
   ownerUserId String?
   memberships GuildMembership[]
   members GuildMember[]

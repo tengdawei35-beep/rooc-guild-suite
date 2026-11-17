@@ -26,7 +26,16 @@ export async function GET(request: Request) {
     const applicantReturn = cookieStore.get(OAUTH_RETURN_COOKIE)?.value;
 
     if (!code || !state || !expectedState || state.length !== expectedState.length || state !== expectedState) {
-      return NextResponse.redirect(new URL("/login?error=invalid_oauth_state", appUrl ?? url.origin));
+      console.warn("[DISCORD AUTH] OAuth state validation failed", {
+        host: url.host,
+        hasCode: Boolean(code),
+        hasState: Boolean(state),
+        hasStateCookie: Boolean(expectedState),
+        stateMatches: Boolean(state && expectedState && state === expectedState),
+      });
+      // Keep the user on the same deployment that initiated OAuth.
+      // APP_URL may point to Production while this request is served by Preview.
+      return NextResponse.redirect(new URL("/login?error=invalid_oauth_state", url.origin));
     }
 
     cookieStore.set(OAUTH_STATE_COOKIE, "", { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 0 });
@@ -142,7 +151,7 @@ export async function GET(request: Request) {
     return NextResponse.redirect(new URL("/guild/select", appBaseUrl));
   } catch (error) {
     console.error("[DISCORD AUTH]", error);
-    const fallbackUrl = appUrl ? new URL(appUrl) : new URL(request.url);
-    return NextResponse.redirect(new URL("/login?error=authentication_failed", fallbackUrl));
+    const fallbackUrl = new URL(request.url);
+    return NextResponse.redirect(new URL("/login?error=authentication_failed", fallbackUrl.origin));
   }
 }

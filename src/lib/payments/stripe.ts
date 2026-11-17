@@ -30,7 +30,7 @@ export class StripePaymentProvider implements PaymentProvider {
     const stripe = getStripe();
     const metadata: Record<string, string> = { planId: request.planId, discordUserId: request.customer.discordUserId, billingTerm: request.billingTerm ?? "monthly" };
     if (request.guildId) metadata.guildId = request.guildId;
-    if (request.onboarding) { metadata.guildName = request.onboarding.guildName; metadata.discordGuildId = request.onboarding.discordGuildId; }
+    if (request.onboarding) { metadata.guildName = request.onboarding.guildName; metadata.discordGuildId = request.onboarding.discordGuildId; metadata.gameType = request.onboarding.gameType; }
     if (request.affiliate) { metadata.affiliateId = request.affiliate.id; metadata.affiliateCode = request.affiliate.code; metadata.affiliateDiscountPercent = String(request.affiliate.discountPercent); }
 
     const affiliateDiscount = getAffiliateDiscount(request);

@@ -10,6 +10,7 @@ export type CheckoutRequest = {
   onboarding?: {
     guildName: string;
     discordGuildId: string;
+    gameType: "ROOC" | "RO3";
   };
   affiliate?: {
     id: string;

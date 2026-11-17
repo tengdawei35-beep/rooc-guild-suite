@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentPlatformUser } from "@/lib/auth/platform";
 import { prisma } from "@/lib/prisma";
 import { stripePaymentProvider } from "@/lib/payments/stripe";
+import { isGameType } from "@/lib/games";
 
 const BILLING_TERMS = { monthly: { env: "MONTHLY", months: 1 }, quarterly: { env: "3_MONTH", months: 3 }, semiannual: { env: "6_MONTH", months: 6 }, annual: { env: "YEARLY", months: 12 } } as const;
 type BillingTerm = keyof typeof BILLING_TERMS;
@@ -13,7 +14,7 @@ function getStripePriceId(planName: string, billingTerm: BillingTerm) {
 export async function POST(request: Request) {
   try {
     const user = await getCurrentPlatformUser(); if (!user) return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
-    const body = await request.json() as { planId?: string; guildId?: string; guildName?: string; discordGuildId?: string; billingTerm?: BillingTerm; referralCode?: string; validateReferralCode?: string };
+    const body = await request.json() as { planId?: string; guildId?: string; guildName?: string; discordGuildId?: string; gameType?: unknown; billingTerm?: BillingTerm; referralCode?: string; validateReferralCode?: string };
 
     if (body.validateReferralCode !== undefined) {
       const code = body.validateReferralCode.trim().toUpperCase();
@@ -35,18 +36,18 @@ export async function POST(request: Request) {
     const plan = await prisma.plan.findFirst({ where: { id: planId, active: true }, include: { modules: true } });
     if (!plan) return NextResponse.json({ error: "INVALID_PLAN" }, { status: 400 });
 
-    let onboarding: { guildName: string; discordGuildId: string } | undefined;
+    let onboarding: { guildName: string; discordGuildId: string; gameType: "ROOC" | "RO3" } | undefined;
     if (guildId) {
       const guild = await prisma.guild.findUnique({ where: { id: guildId }, include: { subscriptions: { where: { status: { in: ["ACTIVE", "TRIALING"] }, OR: [{ currentPeriodEnd: null }, { currentPeriodEnd: { gt: new Date() } }] }, select: { id: true } } } });
       if (!guild || guild.ownerUserId !== user.id) return NextResponse.json({ error: "GUILD_NOT_OWNED" }, { status: 403 });
       if (guild.subscriptions.length > 0) return NextResponse.json({ error: "GUILD_ALREADY_SUBSCRIBED" }, { status: 409 });
-      onboarding = { guildName: guild.name, discordGuildId: guild.discordGuildId };
+      onboarding = { guildName: guild.name, discordGuildId: guild.discordGuildId, gameType: guild.gameType };
     } else {
-      if (!guildName || !discordGuildId) return NextResponse.json({ error: "PLAN_AND_GUILD_DETAILS_REQUIRED" }, { status: 400 });
+      if (!guildName || !discordGuildId || !isGameType(body.gameType)) return NextResponse.json({ error: "PLAN_GUILD_DETAILS_AND_GAME_REQUIRED" }, { status: 400 });
       if (guildName.length < 2 || guildName.length > 100) return NextResponse.json({ error: "INVALID_GUILD_NAME" }, { status: 400 });
       if (!/^\d{17,20}$/.test(discordGuildId)) return NextResponse.json({ error: "INVALID_DISCORD_GUILD_ID" }, { status: 400 });
       if (await prisma.guild.findUnique({ where: { discordGuildId } })) return NextResponse.json({ error: "DISCORD_GUILD_ALREADY_REGISTERED" }, { status: 409 });
-      onboarding = { guildName, discordGuildId };
+      onboarding = { guildName, discordGuildId, gameType: body.gameType };
     }
 
     let affiliate: { id: string; code: string; discountPercent: number } | undefined;
