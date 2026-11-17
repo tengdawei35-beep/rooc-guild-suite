@@ -69,9 +69,11 @@ export default async function NewGuildBillingPage() {
   });
 
   const complimentaryAvailable = creator?.active === true && ownedGuilds.length < creator.maxGuilds;
+  const previewTesters = (process.env.PREVIEW_GUILD_TESTER_DISCORD_IDS ?? "").split(",").map((id) => id.trim()).filter(Boolean);
+  const previewTestAccess = process.env.VERCEL_ENV === "preview" && previewTesters.includes(user.discordId);
   return <main className="min-h-screen bg-zinc-950 px-4 py-12 text-white"><div className="mx-auto max-w-5xl">
     <Link href="/" className="text-sm text-zinc-500 hover:text-white">← Dashboard</Link>
-    <div className="mt-6"><BillingPlansClient plans={displayPlans} ownedGuildCount={ownedGuilds.length} guilds={guilds} complimentary={complimentaryAvailable ? { freeMonths: creator.freeMonths, remainingGuilds: creator.maxGuilds - ownedGuilds.length } : null} /></div>
+    <div className="mt-6"><BillingPlansClient plans={displayPlans} ownedGuildCount={ownedGuilds.length} guilds={guilds} complimentary={complimentaryAvailable ? { freeMonths: creator.freeMonths, remainingGuilds: creator.maxGuilds - ownedGuilds.length } : null} previewTestAccess={previewTestAccess} /></div>
   </div></main>;
 }
 
