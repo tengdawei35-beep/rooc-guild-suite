@@ -41,7 +41,7 @@ export async function POST(request: Request) {
       const guild = await prisma.guild.findUnique({ where: { id: guildId }, include: { subscriptions: { where: { status: { in: ["ACTIVE", "TRIALING"] }, OR: [{ currentPeriodEnd: null }, { currentPeriodEnd: { gt: new Date() } }] }, select: { id: true } } } });
       if (!guild || guild.ownerUserId !== user.id) return NextResponse.json({ error: "GUILD_NOT_OWNED" }, { status: 403 });
       if (guild.subscriptions.length > 0) return NextResponse.json({ error: "GUILD_ALREADY_SUBSCRIBED" }, { status: 409 });
-      onboarding = { guildName: guild.name, discordGuildId: guild.discordGuildId };
+      onboarding = { guildName: guild.name, discordGuildId: guild.discordGuildId, gameType: guild.gameType };
     } else {
       if (!guildName || !discordGuildId || !isGameType(body.gameType)) return NextResponse.json({ error: "PLAN_GUILD_DETAILS_AND_GAME_REQUIRED" }, { status: 400 });
       if (guildName.length < 2 || guildName.length > 100) return NextResponse.json({ error: "INVALID_GUILD_NAME" }, { status: 400 });
