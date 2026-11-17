@@ -65,7 +65,7 @@ export default async function GuildPage() {
       <div className="mx-auto max-w-4xl px-6 py-10">
         <header className="mb-8">
           <Link href="/" className="mb-6 inline-block text-sm text-zinc-500 transition hover:text-white">← Dashboard</Link>
-          <p className="mb-2 text-sm font-medium uppercase tracking-widest text-zinc-500">ROO Guild Suite</p>
+          <p className="mb-2 text-sm font-medium uppercase tracking-widest text-zinc-500">HMDL — Heimdall</p>
           <h1 className="text-3xl font-bold tracking-tight">Guild</h1>
           <p className="mt-2 text-zinc-400">Manage your guild configuration, members and access.</p>
         </header>
@@ -116,7 +116,7 @@ export default async function GuildPage() {
             <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">Guild Setup</h2>
           </div>
           <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
-            <GuildForm guild={{ id: guild.id, name: guild.name, discordGuildId: guild.discordGuildId }} />
+            <GuildForm guild={{ id: guild.id, name: guild.name, discordGuildId: guild.discordGuildId, gameType: guild.gameType }} />
           </div>
         </section>
       </div>
