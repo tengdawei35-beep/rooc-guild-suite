@@ -23,7 +23,7 @@ async function getActiveGuildMembers(guildId: string) {
   });
 }
 
-async function buildComparison(
+function buildComparison(
   applicant: Awaited<ReturnType<typeof prisma.guildApplicant.findFirst>>,
   members: Awaited<ReturnType<typeof getActiveGuildMembers>>,
 ) {
