@@ -13,14 +13,15 @@ export async function POST(request: Request) {
     const planId = body.planId?.trim();
     const guildName = body.guildName?.trim();
     const discordGuildId = body.discordGuildId?.trim();
+    const gameType = body.gameType;
 
-    if (!planId || !guildName || !discordGuildId || !isGameType(body.gameType)) {
+    if (!planId || !guildName || !discordGuildId || !isGameType(gameType)) {
       return NextResponse.json({ error: "PLAN_AND_GUILD_DETAILS_REQUIRED" }, { status: 400 });
     }
     if (guildName.length < 2 || guildName.length > 100) {
       return NextResponse.json({ error: "INVALID_GUILD_NAME" }, { status: 400 });
     }
-    if (!/^\d{17,20}$/.test(discordGuildId)) {
+    if (!/^\\d{17,20}$/.test(discordGuildId)) {
       return NextResponse.json({ error: "INVALID_DISCORD_GUILD_ID" }, { status: 400 });
     }
 
@@ -48,7 +49,7 @@ export async function POST(request: Request) {
 
     const guild = await prisma.$transaction(async (tx) => {
       const createdGuild = await tx.guild.create({
-        data: { name: guildName, discordGuildId, ownerUserId: user.id, gameType: body.gameType },
+        data: { name: guildName, discordGuildId, ownerUserId: user.id, gameType },
       });
 
       await tx.guildMembership.create({
