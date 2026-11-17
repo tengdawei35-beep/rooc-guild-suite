@@ -2,18 +2,19 @@ import { NextResponse } from "next/server";
 
 import { getCurrentPlatformUser } from "@/lib/auth/platform";
 import { prisma } from "@/lib/prisma";
+import { isGameType } from "@/lib/games";
 
 export async function POST(request: Request) {
   try {
     const user = await getCurrentPlatformUser();
     if (!user) return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
 
-    const body = await request.json() as { planId?: string; guildName?: string; discordGuildId?: string };
+    const body = await request.json() as { planId?: string; guildName?: string; discordGuildId?: string; gameType?: unknown };
     const planId = body.planId?.trim();
     const guildName = body.guildName?.trim();
     const discordGuildId = body.discordGuildId?.trim();
 
-    if (!planId || !guildName || !discordGuildId) {
+    if (!planId || !guildName || !discordGuildId || !isGameType(body.gameType)) {
       return NextResponse.json({ error: "PLAN_AND_GUILD_DETAILS_REQUIRED" }, { status: 400 });
     }
     if (guildName.length < 2 || guildName.length > 100) {
@@ -47,7 +48,7 @@ export async function POST(request: Request) {
 
     const guild = await prisma.$transaction(async (tx) => {
       const createdGuild = await tx.guild.create({
-        data: { name: guildName, discordGuildId, ownerUserId: user.id },
+        data: { name: guildName, discordGuildId, ownerUserId: user.id, gameType: body.gameType },
       });
 
       await tx.guildMembership.create({
