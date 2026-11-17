@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     if (guildName.length < 2 || guildName.length > 100) {
       return NextResponse.json({ error: "INVALID_GUILD_NAME" }, { status: 400 });
     }
-    if (!/^\\d{17,20}$/.test(discordGuildId)) {
+    if (!/^\d{17,20}$/.test(discordGuildId)) {
       return NextResponse.json({ error: "INVALID_DISCORD_GUILD_ID" }, { status: 400 });
     }
 
