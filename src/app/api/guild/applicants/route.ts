@@ -16,9 +16,18 @@ function forbidden() {
   return NextResponse.json({ error: "You do not have permission to manage guild applicants." }, { status: 403 });
 }
 
-async function buildComparison(guildId: string, applicant: Awaited<ReturnType<typeof prisma.guildApplicant.findFirst>>) {
+async function getActiveGuildMembers(guildId: string) {
+  return prisma.guildMember.findMany({
+    where: { guildId, active: true },
+    select: { id: true, characterName: true, ...MEMBER_STATS_SELECT },
+  });
+}
+
+async function buildComparison(
+  applicant: Awaited<ReturnType<typeof prisma.guildApplicant.findFirst>>,
+  members: Awaited<ReturnType<typeof getActiveGuildMembers>>,
+) {
   if (!applicant) return null;
-  const members = await prisma.guildMember.findMany({ where: { guildId, active: true }, select: { id: true, characterName: true, ...MEMBER_STATS_SELECT } });
   const scored = scoreRooPlayers([...members, { characterName: applicant.characterName, job: applicant.job, pdef: applicant.pdef, mdef: applicant.mdef, pvpDamageBonus: applicant.pvpDamageBonus, pvpDamageReduction: applicant.pvpDamageReduction, pdmgPercent: applicant.pdmgPercent, mdmgPercent: applicant.mdmgPercent, pdmgReductionPercent: applicant.pdmgReductionPercent, mdmgReductionPercent: applicant.mdmgReductionPercent, critRes: applicant.critRes, ignorePdef: applicant.ignorePdef, ignoreMdef: applicant.ignoreMdef, damageVsMedium: applicant.damageVsMedium, damageReductionVsMedium: applicant.damageReductionVsMedium, damageVsSmall: applicant.damageVsSmall, damageReductionVsSmall: applicant.damageReductionVsSmall, damageVsDemiHuman: applicant.damageVsDemiHuman, damageReductionVsDemiHuman: applicant.damageReductionVsDemiHuman, damageVsBrute: applicant.damageVsBrute, damageReductionVsBrute: applicant.damageReductionVsBrute, equipmentPdefPercent: applicant.equipmentPdefPercent, equipmentMdefPercent: applicant.equipmentMdefPercent, patk: applicant.patk, matk: applicant.matk, hp: applicant.hp }]);
   const applicantScore = scored[scored.length - 1];
   const closest = findClosestRooMember(applicantScore, scored.slice(0, -1));
@@ -29,11 +38,16 @@ export async function GET() {
   const auth = await getCurrentAuth();
   if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   if (!hasPermission(auth.role, "applicants.view")) return forbidden();
-  const applicants = await prisma.guildApplicant.findMany({ where: { guildId: auth.guild.id } });
-  const rankedApplicants = await Promise.all(applicants.map(async (applicant) => ({
+  // Load the guild roster once. Previously this query ran once per applicant,
+  // multiplying database work and delaying the entire response.
+  const [applicants, members] = await Promise.all([
+    prisma.guildApplicant.findMany({ where: { guildId: auth.guild.id } }),
+    getActiveGuildMembers(auth.guild.id),
+  ]);
+  const rankedApplicants = applicants.map((applicant) => ({
     ...applicant,
-    comparison: await buildComparison(auth.guild.id, applicant),
-  })));
+    comparison: buildComparison(applicant, members),
+  }));
 
   const statusOrder = { PENDING: 0, ACCEPTED: 1, DENIED: 2 } as const;
   rankedApplicants.sort((a, b) => {
