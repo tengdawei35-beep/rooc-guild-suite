@@ -614,4 +614,17 @@ model GuildApplicant {
   @@index([guildId, status])
   @@index([guildId, discordUserId])
   @@index([inviteId])
+  gameData GuildApplicantGameData?
+}
+
+model GuildApplicantGameData {
+  id String @id @default(cuid())
+  applicantId String @unique
+  gameType GameType
+  payload Json
+  schemaVersion Int @default(1)
+  applicant GuildApplicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([gameType])
 }
