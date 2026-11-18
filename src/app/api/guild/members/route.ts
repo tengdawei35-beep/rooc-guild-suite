@@ -411,11 +411,19 @@ export async function PUT(request: Request) {
       updateData.remarks = data.remarks;
     }
 
-    const member = await prisma.guildMember.update({
-      where: { id: body.id },
-      data: updateData,
-      include: { leaveDates: true },
-    });
+    let member;
+    try {
+      member = await prisma.guildMember.update({
+        where: { id: body.id },
+        data: updateData,
+        include: { leaveDates: true },
+      });
+    } catch (error) {
+      if (error && typeof error === "object" && "code" in error && error.code === "P2002") {
+        return NextResponse.json({ error: "That Discord account or character is already registered in this guild." }, { status: 409 });
+      }
+      throw error;
+    }
 
     await refreshGuildRankings(auth.guild.id);
     return NextResponse.json({ member });
