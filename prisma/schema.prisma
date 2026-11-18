@@ -617,6 +617,18 @@ model GuildApplicant {
   gameData GuildApplicantGameData?
 }
 
+model GuildMemberGameData {
+  id String @id @default(cuid())
+  memberId String @unique
+  gameType GameType
+  payload Json
+  schemaVersion Int @default(1)
+  member GuildMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([gameType])
+}
+
 model GuildApplicantGameData {
   id String @id @default(cuid())
   applicantId String @unique
