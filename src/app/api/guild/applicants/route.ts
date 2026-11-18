@@ -86,6 +86,26 @@ export async function POST(request: Request) {
   }
   const existingMember = await prisma.guildMember.findFirst({ where: { guildId: auth.guild.id, discordUserId: applicant.discordUserId } });
   if (existingMember) return NextResponse.json({ error: "This Discord account is already a guild member." }, { status: 409 });
+  const guildGame = await prisma.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true } });
+  if (!guildGame) return NextResponse.json({ error: "Guild not found." }, { status: 404 });
+  if (guildGame.gameType === "RO3") {
+    const gameData = await prisma.guildApplicantGameData.findUnique({ where: { applicantId: applicant.id } });
+    if (!gameData || gameData.gameType !== "RO3") return NextResponse.json({ error: "RO3 application data is missing." }, { status: 409 });
+    const userId = applicant.userId;
+    const characterName = applicant.characterName?.trim();
+    const job = applicant.job?.trim();
+    const discordUsername = applicant.discordUsername?.trim();
+    if (!userId || !characterName || !job) return NextResponse.json({ error: "Applicant identity or character data is incomplete." }, { status: 409 });
+    const createdRO3 = await prisma.$transaction(async (tx) => {
+      const member = await tx.guildMember.create({ data: { guildId: auth.guild.id, userId, discordUserId: applicant.discordUserId, discordUsername: discordUsername || null, characterName, job, active: true, eligible: true } });
+      await tx.guildMemberGameData.create({ data: { memberId: member.id, gameType: "RO3", payload: gameData.payload, schemaVersion: gameData.schemaVersion } });
+      await tx.guildMembership.upsert({ where: { userId_guildId: { userId, guildId: auth.guild.id } }, update: { role: "MEMBER" }, create: { userId, guildId: auth.guild.id, role: "MEMBER" } });
+      await tx.guildApplicant.update({ where: { id: applicant.id }, data: { status: "ACCEPTED", remarks: body.remarks?.trim() || null, decidedAt: new Date(), decidedByUserId: auth.user.id } });
+      return member;
+    });
+    return NextResponse.json({ success: true, member: createdRO3 });
+  }
+
   const userId = applicant.userId;
   const characterName = applicant.characterName?.trim();
   const job = applicant.job?.trim();
