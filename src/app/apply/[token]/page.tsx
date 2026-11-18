@@ -1,6 +1,7 @@
 import { getApplicantSession } from "@/lib/auth/applicant";
 import { prisma } from "@/lib/prisma";
 import ApplicantApplyClient from "./ApplicantApplyClient";
+import RO3ApplicantApplyClient from "./RO3ApplicantApplyClient";
 
 export default async function ApplicantApplyPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
@@ -10,7 +11,7 @@ export default async function ApplicantApplyPage({ params }: { params: Promise<{
     return <main className="min-h-screen bg-zinc-950 p-6 text-white"><div className="mx-auto max-w-xl rounded-2xl border border-zinc-800 bg-zinc-900 p-8"><h1 className="text-2xl font-bold">Application link unavailable</h1><p className="mt-3 text-zinc-400">This guild application link is invalid or has been revoked.</p></div></main>;
   }
 
-  const guild = await prisma.guild.findUnique({ where: { id: invite.guildId }, select: { name: true } });
+  const guild = await prisma.guild.findUnique({ where: { id: invite.guildId }, select: { name: true, gameType: true } });
   const session = await getApplicantSession();
   const user = session ? await prisma.user.findUnique({ where: { id: session.userId } }) : null;
 
@@ -31,6 +32,16 @@ export default async function ApplicantApplyPage({ params }: { params: Promise<{
   const displayStatus = existing?.status === "ACCEPTED" && !existingMember
     ? "DENIED" as const
     : existing?.status;
+
+  if (guild?.gameType === "RO3") {
+    const gameData = existing ? await prisma.guildApplicantGameData.findUnique({ where: { applicantId: existing.id } }) : null;
+    return <RO3ApplicantApplyClient token={token} discordUserId={user.discordId} discordUsername={user.username} existingApplication={existing ? {
+      characterName: existing.characterName,
+      job: existing.job,
+      status: displayStatus,
+      payload: gameData?.payload as Record<string, unknown> | null,
+    } : null} />;
+  }
 
   return <ApplicantApplyClient
     token={token}
