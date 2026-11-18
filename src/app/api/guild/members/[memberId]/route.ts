@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getCurrentAuth, hasPermission } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { JOBS } from "@/lib/constants/jobs";
+import { jobsForGame } from "@/lib/constants/jobs";
+import { RO3_STAT_KEYS } from "@/lib/ocr/ro3-stats";
 import { calculateRawPdef } from "@/lib/scoring/roo-scoring";
 import { refreshGuildRankings } from "@/lib/scoring/refresh-guild-rankings";
 
@@ -49,14 +50,30 @@ export async function PATCH(request: Request, context: RouteContext) {
     const guild = await prisma.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true } });
     const body = await request.json();
     const numericFields = ["pdef", "mdef", "patk", "matk", "hp", "pvpDamageBonus", "pvpDamageReduction", "pdmgPercent", "mdmgPercent", "pdmgReductionPercent", "mdmgReductionPercent", "critRes", "ignorePdef", "ignoreMdef", "damageVsMedium", "damageReductionVsMedium", "damageVsSmall", "damageReductionVsSmall", "damageVsDemiHuman", "damageReductionVsDemiHuman", "damageVsBrute", "damageReductionVsBrute", "equipmentPdefPercent", "equipmentMdefPercent"] as const;
-    const data: Record<string, number | string | null> = {};
+    const data: Record<string, unknown> = {};
 
     if ("job" in body) {
       if (body.job === null || body.job === "") data.job = null;
-      else if (typeof body.job === "string" && (JOBS as readonly string[]).includes(body.job)) data.job = body.job;
+      else if (typeof body.job === "string" && (jobsForGame(guild?.gameType === "RO3" ? "RO3" : "ROOC") as readonly string[]).includes(body.job)) data.job = body.job;
       else return NextResponse.json({ error: "Invalid job." }, { status: 400 });
     }
 
+    if ("ro3Stats" in body) {
+      if (guild?.gameType !== "RO3") return NextResponse.json({ error: "RO3 stats cannot be saved for a ROOC guild." }, { status: 400 });
+      const stats = body.ro3Stats;
+      if (!stats || typeof stats !== "object" || Array.isArray(stats)) return NextResponse.json({ error: "RO3 stats must be an object." }, { status: 400 });
+      const clean: Record<string, number | null> = {};
+      for (const [key, value] of Object.entries(stats as Record<string, unknown>)) {
+        if (!(RO3_STAT_KEYS as readonly string[]).includes(key)) return NextResponse.json({ error: `Unknown RO3 stat: ${key}.` }, { status: 400 });
+        if (value === null || value === "") { clean[key] = null; continue; }
+        const number = typeof value === "number" ? value : Number(value);
+        if (!Number.isFinite(number) || number < 0) return NextResponse.json({ error: `Invalid value for RO3 stat ${key}.` }, { status: 400 });
+        if (["bladeCrystal", "shieldCrystal", "manaCrystal", "magicDefCrystal"].includes(key) && number > 50) return NextResponse.json({ error: `${key} must be between 0 and 50.` }, { status: 400 });
+        clean[key] = number;
+      }
+      data.ro3Stats = clean;
+    }
+    if (guild?.gameType === "RO3" && numericFields.some((field) => field in body)) return NextResponse.json({ error: "Use the RO3 stats object for RO3 character statistics." }, { status: 400 });
     for (const field of numericFields) { if (!(field in body)) continue; if (body[field] === null || body[field] === "") data[field] = null; else if (typeof body[field] === "number" && Number.isFinite(body[field])) data[field] = body[field]; else return NextResponse.json({ error: `Invalid value for ${field}.` }, { status: 400 }); }
     const updated = await prisma.guildMember.update({ where: { id: member.id }, data, select: { id: true, characterName: true, job: true, updatedAt: true } });
     await refreshGuildRankings(auth.guild.id);
