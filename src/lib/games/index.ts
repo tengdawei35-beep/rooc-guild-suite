@@ -35,3 +35,6 @@ export function isGameType(value: unknown): value is GameType {
 export function getGameModule(gameType: GameType) {
   return GAME_MODULES[gameType];
 }
+
+export { getGameRuntime, GAME_RUNTIME_MODULES } from "./runtime-registry";
+export type { GameApplicationPayload, GameApplicationValidationResult, GameApplicationAdapter, GameRuntimeModule } from "./types";
