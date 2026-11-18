@@ -46,6 +46,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     const { memberId } = await context.params;
     const member = await prisma.guildMember.findFirst({ where: { id: memberId, guildId: auth.guild.id, OR: [{ userId: auth.user.id }, { discordUserId: auth.user.discordId }] }, select: { id: true } });
     if (!member) return NextResponse.json({ error: "You can only update your own guild member profile." }, { status: 403 });
+    const guild = await prisma.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true } });
     const body = await request.json();
     const numericFields = ["pdef", "mdef", "patk", "matk", "hp", "pvpDamageBonus", "pvpDamageReduction", "pdmgPercent", "mdmgPercent", "pdmgReductionPercent", "mdmgReductionPercent", "critRes", "ignorePdef", "ignoreMdef", "damageVsMedium", "damageReductionVsMedium", "damageVsSmall", "damageReductionVsSmall", "damageVsDemiHuman", "damageReductionVsDemiHuman", "damageVsBrute", "damageReductionVsBrute", "equipmentPdefPercent", "equipmentMdefPercent"] as const;
     const data: Record<string, number | string | null> = {};
