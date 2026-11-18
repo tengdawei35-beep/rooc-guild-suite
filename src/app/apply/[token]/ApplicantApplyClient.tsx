@@ -15,13 +15,16 @@ const ROOC_FIELDS = [
   ["equipmentPdefPercent", "Equipment PDEF %"], ["equipmentMdefPercent", "Equipment MDEF %"],
 ] as const;
 
-const RO3_FIELDS = [["hp","HP"],["patk","PATK"],["matk","MATK"],["pdef","PDEF"],["mdef","MDEF"],["healingDonePercent","Healing Done %"],["critDamagePercent","Crit Damage %"],["critDamageReductionPercent","Crit Damage Reduction %"],["physicalDamageBonusPercent","Physical Damage Bonus %"],["physicalDamageReductionPercent","Physical Damage Reduction %"],["magicDamageBonusPercent","Magic Damage Bonus %"],["magicDamageReductionPercent","Magic Damage Reduction %"],["damageIncreasePercent","Damage Increase %"],["damageReductionPercent","Damage Reduction %"],["physicalPenetrationPercent","Physical Penetration %"],["magicPenetrationPercent","Magic Penetration %"],["damageVsAllJob","Damage vs All Job"],["damageReductionVsAllJob","Reduction vs All Job"],["damageVsMedium","Damage vs Medium"],["damageReductionVsMedium","Reduction vs Medium"],["bladeCrystal","Blade Crystal"],["shieldCrystal","Shield Crystal"],["manaCrystal","Mana Crystal"],["magicDefCrystal","Magic DEF Crystal"]] as const;\n\ntype Field = string;
+const RO3_FIELDS = [["hp","HP"],["patk","PATK"],["matk","MATK"],["pdef","PDEF"],["mdef","MDEF"],["healingDonePercent","Healing Done %"],["critDamagePercent","Crit Damage %"],["critDamageReductionPercent","Crit Damage Reduction %"],["physicalDamageBonusPercent","Physical Damage Bonus %"],["physicalDamageReductionPercent","Physical Damage Reduction %"],["magicDamageBonusPercent","Magic Damage Bonus %"],["magicDamageReductionPercent","Magic Damage Reduction %"],["damageIncreasePercent","Damage Increase %"],["damageReductionPercent","Damage Reduction %"],["physicalPenetrationPercent","Physical Penetration %"],["magicPenetrationPercent","Magic Penetration %"],["damageVsAllJob","Damage vs All Job"],["damageReductionVsAllJob","Reduction vs All Job"],["damageVsMedium","Damage vs Medium"],["damageReductionVsMedium","Reduction vs Medium"],["bladeCrystal","Blade Crystal"],["shieldCrystal","Shield Crystal"],["manaCrystal","Mana Crystal"],["magicDefCrystal","Magic DEF Crystal"]] as const;
+
+type Field = string;
 type Stats = Record<Field, string>;
 type Existing = { id: string; characterName: string; job: string | null; status?: "PENDING" | "ACCEPTED" | "DENIED"; ro3Stats?: Record<string, number|string|null> } & Partial<Record<Field, number | string | null>>;
 
 function emptyStats(existing?: Existing | null): Stats { return Object.fromEntries(ROOC_FIELDS.map(([key]) => [key, existing?.[key] == null ? "" : String(existing[key])])) as Stats; }
 
-export default function ApplicantApplyClient({ token, guildId, gameType, discordUserId, discordUsername, existingApplication }: { token: string; guildId: string; gameType: "ROOC" | "RO3"; discordUserId: string; discordUsername: string; existingApplication: Existing | null }) {\n  const FIELDS = gameType === "RO3" ? RO3_FIELDS : ROOC_FIELDS;
+export default function ApplicantApplyClient({ token, guildId, gameType, discordUserId, discordUsername, existingApplication }: { token: string; guildId: string; gameType: "ROOC" | "RO3"; discordUserId: string; discordUsername: string; existingApplication: Existing | null }) {
+  const FIELDS = gameType === "RO3" ? RO3_FIELDS : ROOC_FIELDS;
   const [characterName, setCharacterName] = useState(existingApplication?.characterName ?? "");
   const [job, setJob] = useState(existingApplication?.job ?? "");
   const [stats, setStats] = useState<Record<string,string>>(() => gameType === "RO3" ? Object.fromEntries(RO3_FIELDS.map(([key]) => [key, String(existingApplication?.ro3Stats?.[key] ?? "")])) : emptyStats(existingApplication));

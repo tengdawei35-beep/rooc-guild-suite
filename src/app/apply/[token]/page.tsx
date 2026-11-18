@@ -35,9 +35,11 @@ export default async function ApplicantApplyPage({ params }: { params: Promise<{
   return <ApplicantApplyClient
     token={token}
     guildId={invite.guildId}
+    gameType={guild?.gameType === "RO3" ? "RO3" : "ROOC"}
     discordUserId={user.discordId}
     discordUsername={user.username}
-    existingApplication={existing ? {\n      ro3Stats: existing.ro3Stats as Record<string, number|string|null> | undefined,
+    existingApplication={existing ? {
+      ro3Stats: existing.ro3Stats as Record<string, number|string|null> | undefined,
       id: existing.id,
       characterName: existing.characterName,
       job: existing.job,
