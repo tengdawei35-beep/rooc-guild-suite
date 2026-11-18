@@ -225,6 +225,7 @@ export async function GET() {
         patk: null,
         matk: null,
         hp: null,
+        gameData: null,
       };
     });
 
