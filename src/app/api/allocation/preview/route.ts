@@ -9,6 +9,7 @@ export async function POST(request: Request) {
   try {
     const auth = await getCurrentAuth();
     if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+    if (auth.guild.gameType === "RO3") return NextResponse.json({error:"This ROOC module is not available for RO3 guilds."},{status:409});
     if (!(await hasGuildModule(auth.guild.id, RESOURCE_SUITE_MODULE))) return NextResponse.json({ error: "The Resource Suite is not subscribed for this guild." }, { status: 403 });
     if (!hasPermission(auth.role, "allocation.view")) return NextResponse.json({ error: "You do not have permission to view allocation information." }, { status: 403 });
 
