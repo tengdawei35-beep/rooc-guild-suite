@@ -12,6 +12,7 @@ type RouteContext = {
 export async function PATCH(request: Request, context: RouteContext) {
   try {
     const auth = await getCurrentAuth();
+    if (auth.guild.gameType === "RO3") return NextResponse.json({error:"This ROOC module is not available for RO3 guilds."},{status:409});
     if (!auth) {
       return NextResponse.json({ error: "Authentication required." }, { status: 401 });
     }
