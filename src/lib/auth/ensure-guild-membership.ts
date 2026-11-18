@@ -93,13 +93,13 @@ export async function ensureGuildMembershipsForDiscordUser({
     if (!member) continue;
 
     try {
-      await prisma.$executeRaw\`
+      await prisma.$executeRaw`
         UPDATE "GuildMember"
         SET "discordUserId" = ${discordId},
             "discordUsername" = ${username},
             "userId" = ${userId}
         WHERE "id" = ${memberId}
-      \`;
+      `;
       successfullyLinkedGuildIds.add(member.guildId);
     } catch (error) {
       // PostgreSQL unique violations surfaced through Prisma raw SQL commonly
