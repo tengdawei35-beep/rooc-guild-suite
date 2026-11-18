@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 
 import { getCurrentAuth } from "@/lib/auth";
-import { readRooStats } from "@/lib/ocr/roo-stats";\nimport { readRO3Stats } from "@/lib/ocr/ro3-stats";\nimport { prisma } from "@/lib/prisma";
+import { readRooStats } from "@/lib/ocr/roo-stats";
+import { readRO3Stats } from "@/lib/ocr/ro3-stats";
+import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 
@@ -15,12 +17,11 @@ export async function POST(request: Request) {
   try {
     const formData = await request.formData();
     const entries = formData.getAll("images");
-
     const files = entries.filter((entry): entry is File => entry instanceof File);
+
     if (!files.length) {
       return NextResponse.json({ error: "At least one screenshot is required." }, { status: 400 });
     }
-
     if (files.length > 12) {
       return NextResponse.json({ error: "A maximum of 12 screenshots can be read at once." }, { status: 400 });
     }
@@ -35,8 +36,8 @@ export async function POST(request: Request) {
     }
 
     const buffers = await Promise.all(files.map(async (file) => Buffer.from(await file.arrayBuffer())));
-    const guild = await prisma.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true } });\n    const result = guild?.gameType === "RO3" ? await readRO3Stats(buffers) : await readRooStats(buffers);
-
+    const guild = await prisma.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true } });
+    const result = guild?.gameType === "RO3" ? await readRO3Stats(buffers) : await readRooStats(buffers);
     return NextResponse.json(result);
   } catch (error) {
     console.error("[MEMBER OCR] Failed to read screenshots:", error);
