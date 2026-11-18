@@ -100,6 +100,8 @@ export async function POST(request: Request) {
     const job = applicant.job?.trim();
     const discordUsername = applicant.discordUsername?.trim();
     if (!userId || !characterName || !job) return NextResponse.json({ error: "Applicant identity or character data is incomplete." }, { status: 409 });
+    const duplicateCharacter = await prisma.guildMember.findFirst({where:{guildId:auth.guild.id,characterName},select:{id:true}});
+    if (duplicateCharacter) return NextResponse.json({error:"That character name is already registered in this guild."},{status:409});
     const createdRO3 = await prisma.$transaction(async (tx) => {
       const member = await tx.guildMember.create({ data: { guildId: auth.guild.id, userId, discordUserId: applicant.discordUserId, discordUsername: discordUsername || null, characterName, job, active: true, eligible: true } });
       await tx.guildMemberGameData.create({ data: { memberId: member.id, gameType: "RO3", payload: gameData.payload, schemaVersion: gameData.schemaVersion } });
