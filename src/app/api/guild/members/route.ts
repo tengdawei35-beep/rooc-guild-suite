@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { getCurrentAuth, hasPermission } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { JOBS } from "@/lib/constants/jobs";
-import { refreshGuildRankings } from "@/lib/scoring/refresh-guild-rankings";
+import { refreshGuildRankings } from "@/lib/scoring/refresh-guild-rankings";\nimport { isRO3Job } from "@/lib/games/ro3/jobs";\nimport { ro3ApplicationAdapter } from "@/lib/games/ro3/application";
 
 type MemberRequest = {
   id?: string;
