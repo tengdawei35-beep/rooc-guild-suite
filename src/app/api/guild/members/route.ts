@@ -3,7 +3,8 @@ import { NextResponse } from "next/server";
 import { getCurrentAuth, hasPermission } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { JOBS } from "@/lib/constants/jobs";
-import { refreshGuildRankings } from "@/lib/scoring/refresh-guild-rankings";\nimport { isRO3Job } from "@/lib/games/ro3/jobs";\nimport { ro3ApplicationAdapter } from "@/lib/games/ro3/application";
+import { refreshGuildRankings } from "@/lib/scoring/refresh-guild-rankings";
+import { ro3ApplicationAdapter } from "@/lib/games/ro3/application";
 
 type MemberRequest = {
   id?: string;
@@ -182,7 +183,7 @@ export async function GET() {
       return NextResponse.json({ error: "You do not have permission to view members." }, { status: 403 });
     }
 
-    await refreshGuildRankings(auth.guild.id);
+    if (auth.guild.gameType === "ROOC") await refreshGuildRankings(auth.guild.id);
 
     const members = await prisma.guildMember.findMany({
       where: { guildId: auth.guild.id },
@@ -244,6 +245,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "You do not have permission to add members." }, { status: 403 });
     }
 
+    const guildGame = await prisma.guild.findUnique({where:{id:auth.guild.id},select:{gameType:true}});
+    if (guildGame?.gameType === "RO3") {
+      const body = await request.json();
+      const validation = ro3ApplicationAdapter.validateApplication(body);
+      if (!validation.valid) return NextResponse.json({error:"Invalid RO3 member data.",details:validation.errors},{status:400});
+      const discordUserId = typeof body.discordUserId === "string" ? body.discordUserId.trim() : "";
+      const discordUsername = typeof body.discordUsername === "string" ? body.discordUsername.trim() : "";
+      if (!/^\d{17,20}$/.test(discordUserId) || !discordUsername) return NextResponse.json({error:"Valid Discord ID and username are required."},{status:400});
+      const user = await prisma.user.findUnique({where:{discordId:discordUserId},select:{id:true,username:true}});
+      if (user && user.username !== discordUsername) return NextResponse.json({error:"Discord ID and username do not match."},{status:409});
+      const linked = await prisma.guildMember.findFirst({where:{guildId:auth.guild.id,discordUserId}});
+      if (linked) return NextResponse.json({error:"That Discord account is already linked to another guild member."},{status:409});
+      const duplicate = await prisma.guildMember.findFirst({where:{guildId:auth.guild.id,characterName:validation.normalized.characterName}});
+      if (duplicate) return NextResponse.json({error:"A member with this character name already exists."},{status:409});
+      const priority = body.priority ?? "MEMBER";
+      if (!["LEADER","OFFICER","COUNCIL","MEMBER"].includes(priority)) return NextResponse.json({error:"Invalid member priority."},{status:400});
+      const member = await prisma.guildMember.create({data:{guildId:auth.guild.id,discordUserId,discordUsername,userId:user?.id??null,characterName:validation.normalized.characterName,job:validation.normalized.job,active:body.active!==false,eligible:body.eligible!==false,priority,remarks:validation.normalized.remarks,gameData:{create:{gameType:"RO3",payload:validation.normalized,schemaVersion:1}}},include:{gameData:true,leaveDates:true}});
+      return NextResponse.json({member});
+    }
     const body = (await request.json()) as MemberRequest;
     const data = validateMember(body);
     if ("error" in data) return NextResponse.json(data, { status: 400 });
@@ -302,7 +322,7 @@ export async function POST(request: Request) {
       include: { leaveDates: true },
     });
 
-    await refreshGuildRankings(auth.guild.id);
+    if (auth.guild.gameType === "ROOC") await refreshGuildRankings(auth.guild.id);
     return NextResponse.json({ member });
   } catch (error) {
     console.error("[MEMBERS] Failed to create member:", error);
@@ -410,7 +430,7 @@ export async function PUT(request: Request) {
       include: { leaveDates: true },
     });
 
-    await refreshGuildRankings(auth.guild.id);
+    if (auth.guild.gameType === "ROOC") await refreshGuildRankings(auth.guild.id);
     return NextResponse.json({ member });
   } catch (error) {
     console.error("[MEMBERS] Failed to update member:", error);
@@ -434,7 +454,7 @@ export async function DELETE(request: Request) {
     if (!existing) return NextResponse.json({ error: "Member not found." }, { status: 404 });
 
     await prisma.guildMember.delete({ where: { id } });
-    await refreshGuildRankings(auth.guild.id);
+    if (auth.guild.gameType === "ROOC") await refreshGuildRankings(auth.guild.id);
 
     return NextResponse.json({ success: true });
   } catch (error) {
