@@ -93,6 +93,7 @@ export async function POST(request: Request) {
   if (!userId) return NextResponse.json({ error: "Applicant Discord account is not linked to a user record." }, { status: 409 });
   if (!characterName) return NextResponse.json({ error: "Applicant character name is required before acceptance." }, { status: 409 });
   if (!job) return NextResponse.json({ error: "Applicant job is required before acceptance." }, { status: 409 });
+  try {
   const created = await prisma.$transaction(async (tx) => {
     const member = await tx.guildMember.create({ data: { guildId: auth.guild.id, userId, discordUserId: applicant.discordUserId, discordUsername: discordUsername || null, characterName, job, active: true, eligible: true, pdef: applicant.pdef, mdef: applicant.mdef, pvpDamageBonus: applicant.pvpDamageBonus, pvpDamageReduction: applicant.pvpDamageReduction, pdmgPercent: applicant.pdmgPercent, mdmgPercent: applicant.mdmgPercent, pdmgReductionPercent: applicant.pdmgReductionPercent, mdmgReductionPercent: applicant.mdmgReductionPercent, critRes: applicant.critRes, ignorePdef: applicant.ignorePdef, ignoreMdef: applicant.ignoreMdef, damageVsMedium: applicant.damageVsMedium, damageReductionVsMedium: applicant.damageReductionVsMedium, damageVsSmall: applicant.damageVsSmall, damageReductionVsSmall: applicant.damageReductionVsSmall, damageVsDemiHuman: applicant.damageVsDemiHuman, damageReductionVsDemiHuman: applicant.damageReductionVsDemiHuman, damageVsBrute: applicant.damageVsBrute, damageReductionVsBrute: applicant.damageReductionVsBrute, equipmentPdefPercent: applicant.equipmentPdefPercent, equipmentMdefPercent: applicant.equipmentMdefPercent, patk: applicant.patk, matk: applicant.matk, hp: applicant.hp } });
     await tx.guildMembership.upsert({ where: { userId_guildId: { userId, guildId: auth.guild.id } }, update: { role: "MEMBER" }, create: { userId, guildId: auth.guild.id, role: "MEMBER" } });
@@ -100,4 +101,11 @@ export async function POST(request: Request) {
     return member;
   });
   return NextResponse.json({ success: true, member: created });
+  } catch (error) {
+    if (error && typeof error === "object" && "code" in error && error.code === "P2002") {
+      return NextResponse.json({ error: "That Discord account or character is already registered in this guild." }, { status: 409 });
+    }
+    console.error("[APPLICANTS] Failed to accept applicant:", error);
+    return NextResponse.json({ error: "Failed to accept applicant." }, { status: 500 });
+  }
 }
