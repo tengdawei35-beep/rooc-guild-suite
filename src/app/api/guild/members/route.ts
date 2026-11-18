@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 
 import { getCurrentAuth, hasPermission } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { JOBS } from "@/lib/constants/jobs";
+import { jobsForGame } from "@/lib/constants/jobs";
+import { RO3_STAT_KEYS } from "@/lib/ocr/ro3-stats";
 import { refreshGuildRankings } from "@/lib/scoring/refresh-guild-rankings";
 
 type MemberRequest = {
@@ -11,6 +12,7 @@ type MemberRequest = {
   discordUsername?: string | null;
   characterName?: string;
   job?: string;
+  ro3Stats?: Record<string, unknown>;
   pdef?: number | null;
   mdef?: number | null;
   pvpDamageBonus?: number | null;
@@ -51,7 +53,7 @@ function numberOrNull(value: unknown) {
   return Number.isFinite(number) ? number : null;
 }
 
-function validateMember(body: MemberRequest) {
+function validateMember(body: MemberRequest, gameType: "ROOC" | "RO3") {
   const discordUserId = body.discordUserId?.trim() || null;
   const discordUsername = body.discordUsername?.trim() || null;
 
@@ -65,7 +67,7 @@ function validateMember(body: MemberRequest) {
   const characterName = body.characterName?.trim();
   if (!characterName) return { error: "Character name is required." };
 
-  if (!body.job || !JOBS.includes(body.job as (typeof JOBS)[number])) {
+  if (!body.job || !(jobsForGame(gameType) as readonly string[]).includes(body.job)) {
     return { error: "A valid job is required." };
   }
 
@@ -107,7 +109,22 @@ function validateMember(body: MemberRequest) {
     }
   }
 
+  let ro3Stats: Record<string, number | null> | null = null;
+  if (gameType === "RO3") {
+    if (!body.ro3Stats || typeof body.ro3Stats !== "object" || Array.isArray(body.ro3Stats)) return { error: "RO3 stats are required." };
+    ro3Stats = {};
+    for (const [key, value] of Object.entries(body.ro3Stats)) {
+      if (!(RO3_STAT_KEYS as readonly string[]).includes(key)) return { error: `Unknown RO3 stat: ${key}.` };
+      if (value === null || value === "") { ro3Stats[key] = null; continue; }
+      const number = Number(value);
+      if (!Number.isFinite(number) || number < 0) return { error: `Invalid value for RO3 stat ${key}.` };
+      if (["bladeCrystal", "shieldCrystal", "manaCrystal", "magicDefCrystal"].includes(key) && number > 50) return { error: `${key} must be between 0 and 50.` };
+      ro3Stats[key] = number;
+    }
+  } else if (body.ro3Stats !== undefined) return { error: "RO3 stats cannot be saved for a ROOC guild." };
+
   return {
+    ro3Stats,
     discordUserId,
     discordUsername,
     characterName,
@@ -201,6 +218,7 @@ export async function GET() {
 
       return {
         ...member,
+        ro3Stats: null,
         pdef: null,
         mdef: null,
         pvpDamageBonus: null,
@@ -243,8 +261,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "You do not have permission to add members." }, { status: 403 });
     }
 
+    const guild = await prisma.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true } });
+    const gameType = guild?.gameType === "RO3" ? "RO3" : "ROOC";
     const body = (await request.json()) as MemberRequest;
-    const data = validateMember(body);
+    const data = validateMember(body, gameType);
     if ("error" in data) return NextResponse.json(data, { status: 400 });
 
     let discordIdentity;
@@ -269,6 +289,7 @@ export async function POST(request: Request) {
         userId: discordIdentity.userId,
         characterName: data.characterName,
         job: data.job,
+        ro3Stats: data.ro3Stats,
         pdef: data.pdef,
         mdef: data.mdef,
         pvpDamageBonus: data.pvpDamageBonus,
@@ -330,7 +351,9 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "You do not have permission to edit this member." }, { status: 403 });
     }
 
-    const data = validateMember(body);
+    const guild = await prisma.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true } });
+    const gameType = guild?.gameType === "RO3" ? "RO3" : "ROOC";
+    const data = validateMember(body, gameType);
     if ("error" in data) return NextResponse.json(data, { status: 400 });
 
     let discordIdentity = {
@@ -367,6 +390,7 @@ export async function PUT(request: Request) {
     const updateData: Record<string, unknown> = {
       characterName: data.characterName,
       job: data.job,
+      ro3Stats: data.ro3Stats,
       pdef: data.pdef,
       mdef: data.mdef,
       pvpDamageBonus: data.pvpDamageBonus,
