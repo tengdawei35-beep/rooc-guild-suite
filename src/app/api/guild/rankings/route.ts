@@ -68,6 +68,7 @@ export async function GET() {
       );
     }
 
+    if (auth.guild.gameType === "RO3") return NextResponse.json({error:"ROOC rankings are unavailable for RO3 guilds."},{status:409});
     const guildId = auth.guild.id;
 
     const missingLiveRankings = await prisma.guildMember.count({
