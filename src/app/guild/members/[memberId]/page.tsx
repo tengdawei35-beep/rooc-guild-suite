@@ -79,6 +79,10 @@ export default async function MemberProfilePage({ params }: PageProps) {
     );
   }
 
+  if (guildGame?.gameType === "RO3") {
+    return <RO3MemberStatsClient memberId={memberId} name={member.characterName ?? "Character"} job={member.job} />;
+  }
+
   const rawPdef = calculateRawPdef(member.pdef, member.equipmentPdefPercent);
   const rawMdef = calculateRawMdef(member.mdef, member.equipmentMdefPercent);
 
