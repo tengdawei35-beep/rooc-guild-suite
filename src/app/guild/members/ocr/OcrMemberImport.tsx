@@ -4,7 +4,7 @@ import { useState } from "react";
 
 type Extracted = Record<string, string>;
 
-export default function OcrMemberImport({ onApply }: { onApply: (values: Extracted) => void }) {
+export default function OcrMemberImport({ onApply, gameType }: { onApply: (values: Extracted) => void; gameType: "ROOC" | "RO3" }) {
   const [files, setFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +47,7 @@ export default function OcrMemberImport({ onApply }: { onApply: (values: Extract
       <div>
         <h3 className="font-semibold text-white">Import stats from screenshots</h3>
         <p className="mt-1 text-sm text-zinc-400">
-          Upload the General Stats, Quasi-Stats, and Equipment/Notice screenshots. The ROO-specific OCR parser runs on the server and combines the results before filling the editable review form.
+          Upload the relevant ${gameType} character-stat screenshots. The server selects the matching OCR parser and combines detected values for review.
         </p>
       </div>
 
@@ -72,7 +72,7 @@ export default function OcrMemberImport({ onApply }: { onApply: (values: Extract
         disabled={busy || !files.length}
         className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black disabled:cursor-not-allowed disabled:opacity-40"
       >
-        {busy ? "Reading ROO screenshots…" : "Read screenshots"}
+        {busy ? `Reading ${gameType} screenshots…` : "Read screenshots"}
       </button>
 
       {error && <p className="text-sm text-red-400">{error}</p>}
