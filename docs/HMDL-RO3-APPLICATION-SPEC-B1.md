@@ -63,3 +63,11 @@ The adapter normalizes a payload with schemaVersion 1, characterName, job, stats
 - No ROOC scoring, OCR or stat logic is used for RO3.
 - Additive migration only; preserve existing ROOC applicant data and history.
 - The existing migration for GuildApplicantGameData is not applied as part of this work.
+
+## 7. Member character-data API and profile (scaffold)
+- Dedicated endpoint: `/api/guild/members/[memberId]/game-data`.
+- GET reads game-specific member payload after guild-scoping and member/staff access checks.
+- PUT validates the RO3 stat payload and Special Dish range and saves through GuildMemberGameData.
+- RO3 member profile route now dispatches to a game-specific editor.
+- Staff with member edit permission and the member themselves with own-profile permission can update; all requests remain guild-scoped.
+- This UI/API scaffold has not been build- or integration-tested. Schema migrations remain unapplied.
