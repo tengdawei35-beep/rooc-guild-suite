@@ -19,6 +19,7 @@ export async function POST(
 ) {
   try {
     const auth = await getCurrentAuth();
+    if (auth.guild.gameType === "RO3") return NextResponse.json({error:"This ROOC module is not available for RO3 guilds."},{status:409});
 
     if (!auth) {
       return NextResponse.json(
