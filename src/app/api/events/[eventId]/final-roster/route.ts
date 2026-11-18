@@ -9,6 +9,7 @@ export async function PUT(request: Request, context: RouteContext) {
   try {
     const auth = await getCurrentAuth();
     if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+    if (auth.guild.gameType === "RO3") return NextResponse.json({error:"This ROOC module is not available for RO3 guilds."},{status:409});
     if (!hasPermission(auth.role, "rosters.edit")) {
       return NextResponse.json({ error: "You do not have permission to finalize rosters." }, { status: 403 });
     }
@@ -66,6 +67,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
   try {
     const auth = await getCurrentAuth();
     if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+    if (auth.guild.gameType === "RO3") return NextResponse.json({error:"This ROOC module is not available for RO3 guilds."},{status:409});
     if (!hasPermission(auth.role, "rosters.edit")) {
       return NextResponse.json({ error: "You do not have permission to manage the final roster." }, { status: 403 });
     }
