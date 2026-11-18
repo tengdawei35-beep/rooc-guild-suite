@@ -186,7 +186,7 @@ export async function GET() {
 
     const members = await prisma.guildMember.findMany({
       where: { guildId: auth.guild.id },
-      include: { leaveDates: { orderBy: { date: "asc" } } },
+      include: { leaveDates: { orderBy: { date: "asc" } }, gameData: true },
       orderBy: { characterName: "asc" },
     });
 
