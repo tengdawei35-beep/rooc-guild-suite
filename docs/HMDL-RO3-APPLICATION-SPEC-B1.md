@@ -1,82 +1,65 @@
 # HMDL RO3 Recruitment Application Specification (B1)
 
-Status: Design specification; no database migration or runtime implementation.
+Status: RO3 V1 jobs and stat fields defined; runtime adapter scaffold implemented on feature branch. Application UI and persistence integration remain pending.
 
-## 1. Form composition
-
-The recruitment form is selected from the guild GameType resolved by the invite token on the server. Client-supplied GameType is not trusted.
-
-### Shared application fields
-- Discord identity (linked identity)
+## 1. Shared fields
+- Discord identity resolved through the shared application flow
 - Character name (required)
-- Class/job (required; RO3-owned list)
-- Character level (required; RO3 validation)
-- Main role/preferred position (RO3-owned role list; required only once roles are defined)
+- Job (required; RO3 job catalogue)
+- Character stats (required)
 - Remarks (optional)
 
-### RO3-owned fields
-The RO3 adapter owns all additional character attributes, combat statistics, gear/equipment, progression requirements, validation, and future attachments. Exact stat names, level ranges, class lists, role taxonomy and equipment structure remain to be verified against the target RO3 version and user-approved requirements; do not infer them from ROOC.
+## 2. RO3 jobs (V1)
+- Mechanic
+- Royal Guard
+- Rune Knight
+- Warlock
+- Ranger
+- Archbishop
+- Guillotine Cross
 
-## 2. Payload format
+The catalogue is module-owned and extendable.
 
-Payloads are structured JSON, validated and normalized by the adapter. Proposed envelope:
+## 3. RO3 character stats
+Numeric stats: HP, PATK, MATK, PDEF, MDEF.
 
-```json
-{
-  "schemaVersion": 1,
-  "character": {
-    "name": "string",
-    "class": "string",
-    "level": "number"
-  },
-  "role": "string or null",
-  "attributes": {},
-  "equipment": {},
-  "remarks": "string or null"
-}
-```
+Percentage stats:
+- Healing Done
+- Crit Damage
+- Crit Damage Reduction
+- Physical Damage Bonus
+- Physical Damage Reduction
+- Magic Damage Bonus
+- Magic Damage Reduction
+- Damage Increase
+- Damage Reduction
+- Physical Penetration
+- Magic Penetration
+- DMG vs All Job
+- DMG Reduction vs All Job
+- DMG vs Medium Enemy
+- DMG Reduction vs Medium Enemy
 
-The envelope is illustrative. Final typed validation will be enforced in the RO3 adapter; unknown fields should be rejected or handled deliberately rather than silently accepted.
+Special Dish slots (integer range 0–50):
+- Slot 1, initial label: Blade Crystal
+- Slot 2, initial label: Shield Crystal
+- Slot 3, initial label: Mana Crystal
+- Slot 4, initial label: Magic DEF Crystal
 
-## 3. Proposed persistence model
+Special dish names are season-adjustable labels. Stable slot identifiers are used for data storage.
 
-Add a `GuildApplicantGameData` model (one record per applicant):
-- `id`: String primary key
-- `applicantId`: String, unique, FK to GuildApplicant
-- `gameType`: GameType
-- `payload`: Json
-- `schemaVersion`: Int
-- `createdAt`, `updatedAt`
+## 4. Payload shape
+The adapter normalizes a payload with schemaVersion 1, characterName, job, stats (20 standard stats and 4 dish slots), and remarks.
 
-Relationship should cascade when the parent application is deleted, consistent with applicant data lifecycle. Preserve the existing applicant record and all ROOC stat columns. No backfill or reinterpretation of existing records is proposed.
+## 5. Persistence and lifecycle
+- Shared applicant lifecycle remains on GuildApplicant.
+- Game-specific data is stored in GuildApplicantGameData JSON payload.
+- The same stat definition is intended to serve applicant snapshots and member character-stat records.
+- Acceptance must not copy RO3 payload into ROOC stat columns or invoke ROOC scoring.
+- Member persistence integration is not yet implemented.
 
-## 4. Submission pipeline
-1. Resolve invite token, applicant invite and guild on server.
-2. Read GameType from the guild.
-3. Select game adapter from runtime registry.
-4. Validate and normalize the payload server-side.
-5. Create shared applicant record and game payload in one transaction.
-6. ROOC continues its existing scoring/evaluation path during transition.
-7. RO3 application never invokes ROOC scoring or writes ROOC stat/score fields.
-8. Review and decision workflow stays shared.
-9. Acceptance invokes game-specific acceptance integration; RO3 must not copy ROOC stat columns into GuildMember.
-
-## 5. Review experience
-Shared applicant list displays identity, character name, game-specific class/level and status. Application detail uses the game adapter to render game-specific payload fields. Initially RO3 review is manual; no score, percentile, DPS/tank/PvP assessment or ROOC comparisons are calculated for RO3.
-
-## 6. Migration and rollout safeguards
-- Additive migration only.
-- No destructive edits to existing GuildApplicant fields.
-- No changes to existing ROOC application submission, OCR, evaluation or acceptance without regression coverage.
-- Token resolves game type server-side.
-- Enforce guild scoping at all endpoints.
-- Apply migration only after backup verification and Preview validation.
-- Rollback plan must account for new payload rows; do not drop or modify existing applicant data.
-
-## 7. Decisions requiring user/game-specific confirmation before field implementation
-- RO3 version/server and class/job list
-- Character level and any secondary level fields/ranges
-- Main role/position choices
-- Exact attributes/combat stat fields and units
-- Equipment/gear schema and whether links/screenshots are supported
-- Whether application field values are required, optional or conditionally required
+## 6. Guardrails
+- GameType is resolved from the invite's guild server-side, never trusted from client payload.
+- No ROOC scoring, OCR or stat logic is used for RO3.
+- Additive migration only; preserve existing ROOC applicant data and history.
+- The existing migration for GuildApplicantGameData is not applied as part of this work.
