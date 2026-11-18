@@ -176,6 +176,7 @@ export async function GET() {
       );
     }
 
+    if (auth.guild.gameType === "RO3") return NextResponse.json({error:"ROOC event management is not yet available for RO3 guilds."},{status:409});
     const canViewEvents =
       hasPermission(
         auth.role,
