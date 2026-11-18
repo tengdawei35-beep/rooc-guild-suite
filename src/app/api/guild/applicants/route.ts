@@ -38,16 +38,16 @@ export async function GET() {
   const auth = await getCurrentAuth();
   if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   if (!hasPermission(auth.role, "applicants.view")) return forbidden();
-  // Load the guild roster once. Previously this query ran once per applicant,
-  // multiplying database work and delaying the entire response.
-  const [applicants, members] = await Promise.all([
-    prisma.guildApplicant.findMany({ where: { guildId: auth.guild.id } }),
-    getActiveGuildMembers(auth.guild.id),
-  ]);
-  const rankedApplicants = applicants.map((applicant) => ({
-    ...applicant,
-    comparison: buildComparison(applicant, members),
-  }));
+  const guildGame = await prisma.guild.findUnique({where:{id:auth.guild.id},select:{gameType:true}});
+  // Game-specific applicant data is fetched separately; RO3 never invokes ROOC scoring.
+  const applicants = await prisma.guildApplicant.findMany({where:{guildId:auth.guild.id}});
+  const rankedApplicants = guildGame?.gameType === "RO3"
+    ? await Promise.all(applicants.map(async applicant=>({...applicant,comparison:null,gameData:(await prisma.guildApplicantGameData.findUnique({where:{applicantId:applicant.id}}))?.payload??null})))
+    : (await getActiveGuildMembers(auth.guild.id)).map? applicants.map(applicant=>({...applicant,comparison:null})) : applicants.map(applicant=>({...applicant,comparison:null}));
+  if (guildGame?.gameType !== "RO3") {
+    const members = await getActiveGuildMembers(auth.guild.id);
+    for (let i=0;i<rankedApplicants.length;i++) rankedApplicants[i]={...rankedApplicants[i],comparison:buildComparison(applicants[i],members)};
+  }
 
   const statusOrder = { PENDING: 0, ACCEPTED: 1, DENIED: 2 } as const;
   rankedApplicants.sort((a, b) => {
