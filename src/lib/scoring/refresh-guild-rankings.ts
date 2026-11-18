@@ -83,7 +83,7 @@ export async function refreshGuildRankings(guildId: string) {
 
   const scored = scoreRooPlayers(members);
   const tankValues = scored.map((member) => member.tankScore);
-  const dpsRanked = scored.filter((member) => DPS_JOBS.has(member.job ?? ""));
+  const dpsRanked = scored.filter((member) => ROOC_DPS_JOBS.has(member.job ?? ""));
   const dpsValues = dpsRanked.map((member) => member.dpsScore);
   const pvpValues = scored.map((member) => member.pvpScore);
 
