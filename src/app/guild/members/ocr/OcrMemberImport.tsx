@@ -47,7 +47,7 @@ export default function OcrMemberImport({ onApply, gameType }: { onApply: (value
       <div>
         <h3 className="font-semibold text-white">Import stats from screenshots</h3>
         <p className="mt-1 text-sm text-zinc-400">
-          Upload the relevant ${gameType} character-stat screenshots. The server selects the matching OCR parser and combines detected values for review.
+          Upload the relevant {gameType} character-stat screenshots. The server selects the matching OCR parser and combines detected values for review.
         </p>
       </div>
 
