@@ -14,7 +14,7 @@ export default function RO3ApplicantApplyClient({token,discordUserId,discordUser
  const [remarks,setRemarks]=useState(String(payload.remarks??""));
  const [busy,setBusy]=useState(false),[error,setError]=useState(""),[message,setMessage]=useState("");
  const locked=existingApplication?.status==="ACCEPTED";
- async function submit(){setError("");setMessage("");if(!name.trim()||!job)return setError("Character name and job are required.");setBusy(true);
+ async function submit(){setError("");setMessage("");if(!name.trim()||!job)return setError("Character name and job are required.");if(statsKeys.some(k=>stats[k]===undefined||stats[k].trim()===""))return setError("Please complete all character stats and Special Dish values.");setBusy(true);
  try{const response=await fetch("/api/apply/"+token,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({characterName:name,job,stats:Object.fromEntries(Object.entries(stats).map(([k,v])=>[k,Number(v)])),remarks})});const data=await response.json();if(!response.ok)throw new Error(data.error??"Application submission failed.");setMessage("Application submitted successfully.");}
  catch(e){setError(e instanceof Error?e.message:"Submission failed.");}finally{setBusy(false);}}
  return <main className="min-h-screen bg-zinc-950 p-6 text-white"><div className="mx-auto max-w-5xl py-8"><header className="mb-8"><p className="text-sm uppercase tracking-widest text-zinc-500">RO3 Guild Application</p><h1 className="mt-2 text-3xl font-bold">Apply to the guild</h1><p className="mt-2 text-zinc-400">Discord identity verified. Submit your RO3 character information.</p></header>
