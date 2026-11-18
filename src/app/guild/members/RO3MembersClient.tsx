@@ -6,7 +6,8 @@ const allStats=[...RO3_NUMERIC_STATS,...RO3_SPECIAL_DISH_SLOTS.map(x=>({key:x.ke
 const emptyStats=()=>Object.fromEntries(allStats.map(s=>[s.key,""]));
 export default function RO3MembersClient({initial}:{initial:M[]}) {
  const [members,setMembers]=useState(initial),[search,setSearch]=useState(""),[show,setShow]=useState(false),[saving,setSaving]=useState(false),[error,setError]=useState("");
- const [editing,setEditing]=useState<M|null>(null);const [editForm,setEditForm]=useState({characterName:"",discordUserId:"",discordUsername:"",active:true,eligible:true,priority:"MEMBER",remarks:""});\n const [form,setForm]=useState({characterName:"",job:"",discordUserId:"",discordUsername:"",active:true,eligible:true,priority:"MEMBER",remarks:""});
+ const [editing,setEditing]=useState<M|null>(null);const [editForm,setEditForm]=useState({characterName:"",discordUserId:"",discordUsername:"",active:true,eligible:true,priority:"MEMBER",remarks:""});
+ const [form,setForm]=useState({characterName:"",job:"",discordUserId:"",discordUsername:"",active:true,eligible:true,priority:"MEMBER",remarks:""});
  const [stats,setStats]=useState<Record<string,string>>(emptyStats());
  const filtered=members.filter(m=>(m.characterName??"").toLowerCase().includes(search.toLowerCase())||(m.discordUsername??"").toLowerCase().includes(search.toLowerCase())||(m.job??"").toLowerCase().includes(search.toLowerCase()));
  async function refresh(){const r=await fetch("/api/guild/members",{cache:"no-store"});const d=await r.json();if(r.ok)setMembers(d.members??[]);}
