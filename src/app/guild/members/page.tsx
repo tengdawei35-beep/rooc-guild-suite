@@ -16,6 +16,7 @@ export default async function MembersPage() {
           characterName: "asc",
         },
         include: {
+          gameData: true,
           leaveDates: {
             orderBy: {
               date: "asc",
@@ -41,7 +42,12 @@ export default async function MembersPage() {
     );
   }
 
-  if (guild.gameType === "RO3") {\n    const ro3Members = guild.members.map((member) => ({ ...member, gameData: (auth.role !== "MEMBER" || member.userId === auth.user.id || member.discordUserId === auth.user.discordId) ? member.gameData : null }));\n    return <main className="min-h-screen bg-zinc-950 text-white"><div className="mx-auto max-w-7xl px-6 py-10"><Link href="/" className="text-sm text-zinc-500 hover:text-white">← Dashboard</Link><header className="mt-4"><p className="text-sm uppercase tracking-widest text-zinc-500">{guild.name}</p><h1 className="mt-1 text-3xl font-bold">Guild Members</h1><p className="mt-2 text-zinc-400">RO3 member roster and character statistics.</p></header><RO3MembersClient initial={ro3Members as never} /></div></main>;\n  }\n\n  const canViewOtherStats = auth.role !== "MEMBER";
+  if (guild.gameType === "RO3") {
+    const ro3Members = guild.members.map((member) => ({ ...member, gameData: (auth.role !== "MEMBER" || member.userId === auth.user.id || member.discordUserId === auth.user.discordId) ? member.gameData : null }));
+    return <main className="min-h-screen bg-zinc-950 text-white"><div className="mx-auto max-w-7xl px-6 py-10"><Link href="/" className="text-sm text-zinc-500 hover:text-white">← Dashboard</Link><header className="mt-4"><p className="text-sm uppercase tracking-widest text-zinc-500">{guild.name}</p><h1 className="mt-1 text-3xl font-bold">Guild Members</h1><p className="mt-2 text-zinc-400">RO3 member roster and character statistics.</p></header><RO3MembersClient initial={ro3Members as never} /></div></main>;
+  }
+
+  const canViewOtherStats = auth.role !== "MEMBER";
 
   const members = guild.members.map((member) => {
     const isOwnMember = member.userId === auth.user.id || member.discordUserId === auth.user.discordId;
