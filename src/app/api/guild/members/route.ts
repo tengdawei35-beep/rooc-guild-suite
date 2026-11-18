@@ -479,7 +479,17 @@ export async function DELETE(request: Request) {
     const existing = await prisma.guildMember.findFirst({ where: { id, guildId: auth.guild.id } });
     if (!existing) return NextResponse.json({ error: "Member not found." }, { status: 404 });
 
-    await prisma.guildMember.delete({ where: { id } });
+    await prisma.$transaction(async (tx) => {
+      const member = await tx.guildMember.findFirst({where:{id,guildId:auth.guild.id},include:{leaveDates:true}});
+      if (!member) throw new Error("Member not found.");
+      for (const leave of member.leaveDates) {
+        await tx.$executeRaw`
+          INSERT INTO "LeaveHistory" ("id", "guildId", "originalMemberId", "discordUserId", "discordUsername", "characterName", "job", "date", "reason")
+          VALUES (${crypto.randomUUID()}, ${auth.guild.id}, ${member.id}, ${member.discordUserId}, ${member.discordUsername}, ${member.characterName}, ${member.job}, ${leave.date}, ${leave.reason})
+        `;
+      }
+      await tx.guildMember.delete({where:{id}});
+    });
     if (auth.guild.gameType === "ROOC") await refreshGuildRankings(auth.guild.id);
 
     return NextResponse.json({ success: true });
