@@ -19,7 +19,7 @@ const RO3_FIELDS = [["hp","HP"],["patk","PATK"],["matk","MATK"],["pdef","PDEF"],
 type Stats = Record<Field, string>;
 type Existing = { id: string; characterName: string; job: string | null; status?: "PENDING" | "ACCEPTED" | "DENIED"; ro3Stats?: Record<string, number|string|null> } & Partial<Record<Field, number | string | null>>;
 
-function emptyStats(existing?: Existing | null): Stats { return Object.fromEntries(FIELDS.map(([key]) => [key, existing?.[key] == null ? "" : String(existing[key])])) as Stats; }
+function emptyStats(existing?: Existing | null): Stats { return Object.fromEntries(ROOC_FIELDS.map(([key]) => [key, existing?.[key] == null ? "" : String(existing[key])])) as Stats; }
 
 export default function ApplicantApplyClient({ token, guildId, gameType, discordUserId, discordUsername, existingApplication }: { token: string; guildId: string; gameType: "ROOC" | "RO3"; discordUserId: string; discordUsername: string; existingApplication: Existing | null }) {\n  const FIELDS = gameType === "RO3" ? RO3_FIELDS : ROOC_FIELDS;
   const [characterName, setCharacterName] = useState(existingApplication?.characterName ?? "");
@@ -35,7 +35,7 @@ export default function ApplicantApplyClient({ token, guildId, gameType, discord
   const locked = existingApplication?.status === "ACCEPTED";
   const isDenied = existingApplication?.status === "DENIED";
 
-  const rawPdef = gameType === "ROOC" ? useMemo(() => { const absolute = Number(stats.pdef || 0); const percent = Number(stats.equipmentPdefPercent || 0) / 100; return percent <= -1 ? 0 : absolute / (1 + percent); }, [stats.pdef, stats.equipmentPdefPercent]) : 0;
+  const rawPdef = useMemo(() => { if (gameType !== "ROOC") return 0; const absolute = Number(stats.pdef || 0); const percent = Number(stats.equipmentPdefPercent || 0) / 100; return percent <= -1 ? 0 : absolute / (1 + percent); }, [gameType, stats.pdef, stats.equipmentPdefPercent]);
 
   async function readScreenshots() {
     if (!files.length) return setError("Select at least one screenshot first.");
