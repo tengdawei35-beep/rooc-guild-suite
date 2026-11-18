@@ -335,7 +335,33 @@ export async function PUT(request: Request) {
     const auth = await getAuth();
     if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
 
-    const body = (await request.json()) as MemberRequest;
+    const guildGameType = await prisma.guild.findUnique({where:{id:auth.guild.id},select:{gameType:true}});
+    const incoming = await request.json();
+    if (guildGameType?.gameType === "RO3") {
+      if (!incoming.id) return NextResponse.json({error:"Member ID is required."},{status:400});
+      if (!hasPermission(auth.role,"members.edit")) return NextResponse.json({error:"Permission denied."},{status:403});
+      const existingRO3 = await prisma.guildMember.findFirst({where:{id:incoming.id,guildId:auth.guild.id},include:{gameData:true}});
+      if (!existingRO3) return NextResponse.json({error:"Member not found."},{status:404});
+      const priority = incoming.priority ?? existingRO3.priority;
+      if (!["LEADER","OFFICER","COUNCIL","MEMBER"].includes(priority)) return NextResponse.json({error:"Invalid priority."},{status:400});
+      let discordUserId=existingRO3.discordUserId, discordUsername=existingRO3.discordUsername, userId=existingRO3.userId;
+      if (incoming.discordUserId || incoming.discordUsername) {
+        const id=String(incoming.discordUserId??"").trim(), username=String(incoming.discordUsername??"").trim();
+        if (!/^\d{17,20}$/.test(id)||!username) return NextResponse.json({error:"Valid Discord ID and username are required."},{status:400});
+        const linkedUser=await prisma.user.findUnique({where:{discordId:id},select:{id:true,username:true}});
+        if (linkedUser&&linkedUser.username!==username) return NextResponse.json({error:"Discord ID and username mismatch."},{status:409});
+        const other=await prisma.guildMember.findFirst({where:{guildId:auth.guild.id,discordUserId:id,NOT:{id:existingRO3.id}}});
+        if(other)return NextResponse.json({error:"Discord account already linked to another member."},{status:409});
+        discordUserId=id;discordUsername=username;userId=linkedUser?.id??null;
+      }
+      const characterName=String(incoming.characterName??existingRO3.characterName).trim();
+      if(!characterName)return NextResponse.json({error:"Character name is required."},{status:400});
+      const duplicate=await prisma.guildMember.findFirst({where:{guildId:auth.guild.id,characterName,NOT:{id:existingRO3.id}}});
+      if(duplicate)return NextResponse.json({error:"Character name already exists."},{status:409});
+      const updated=await prisma.guildMember.update({where:{id:existingRO3.id},data:{characterName,discordUserId,discordUsername,userId,active:incoming.active!==false,eligible:incoming.eligible!==false,priority,remarks:typeof incoming.remarks==="string"?incoming.remarks.trim()||null:existingRO3.remarks}});
+      return NextResponse.json({member:updated});
+    }
+    const body = incoming as MemberRequest;
     if (!body.id) return NextResponse.json({ error: "Member ID is required." }, { status: 400 });
 
     const existing = await prisma.guildMember.findFirst({
