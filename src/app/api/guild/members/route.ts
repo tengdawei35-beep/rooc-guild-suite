@@ -201,6 +201,7 @@ export async function GET() {
 
     await refreshGuildRankings(auth.guild.id);
 
+    const guild = await prisma.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true } });
     const members = await prisma.guildMember.findMany({
       where: { guildId: auth.guild.id },
       include: { leaveDates: { orderBy: { date: "asc" } } },
@@ -246,7 +247,7 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json({ members: safeMembers });
+    return NextResponse.json({ gameType: guild?.gameType === "RO3" ? "RO3" : "ROOC", members: safeMembers });
   } catch (error) {
     console.error("[MEMBERS] Failed to fetch members:", error);
     return NextResponse.json({ error: "Failed to fetch members." }, { status: 500 });

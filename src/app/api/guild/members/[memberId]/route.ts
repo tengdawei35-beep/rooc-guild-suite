@@ -17,6 +17,7 @@ export async function GET(_request: Request, context: RouteContext) {
     const member = await prisma.guildMember.findFirst({ where: { id: memberId, guildId: auth.guild.id }, include: { leaveDates: { orderBy: { date: "asc" }, select: { id: true, date: true, reason: true } }, rosterAssignments: { where: { party: { roster: { event: { guildId: auth.guild.id } } } }, orderBy: { createdAt: "desc" }, include: { party: { include: { roster: { include: { event: { select: { id: true, type: true, date: true } } } } } } } } } });
     if (!member) return NextResponse.json({ error: "Guild member not found." }, { status: 404 });
 
+    const guild = await prisma.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true } });
     const isOwnProfile = member.userId === auth.user.id || member.discordUserId === auth.user.discordId;
     const canViewCharacterStats = auth.role !== "MEMBER" || isOwnProfile;
 
@@ -32,7 +33,7 @@ export async function GET(_request: Request, context: RouteContext) {
 
     const stats = canViewCharacterStats ? { ro3Stats: member.ro3Stats, pdef: member.pdef, mdef: member.mdef, rawPdef: calculateRawPdef(member.pdef, member.equipmentPdefPercent), patk: member.patk, matk: member.matk, hp: member.hp, critRes: member.critRes, ignorePdef: member.ignorePdef, ignoreMdef: member.ignoreMdef, pvpDamageBonus: member.pvpDamageBonus, pvpDamageReduction: member.pvpDamageReduction, pdmgPercent: member.pdmgPercent, mdmgPercent: member.mdmgPercent, pdmgReductionPercent: member.pdmgReductionPercent, mdmgReductionPercent: member.mdmgReductionPercent, damageVsSmall: member.damageVsSmall, damageReductionVsSmall: member.damageReductionVsSmall, damageVsMedium: member.damageVsMedium, damageReductionVsMedium: member.damageReductionVsMedium, damageVsDemiHuman: member.damageVsDemiHuman, damageReductionVsDemiHuman: member.damageReductionVsDemiHuman, damageVsBrute: member.damageVsBrute, damageReductionVsBrute: member.damageReductionVsBrute, equipmentPdefPercent: member.equipmentPdefPercent, equipmentMdefPercent: member.equipmentMdefPercent } : {};
 
-    return NextResponse.json({ member: { id: member.id, userId: member.userId, discordUserId: member.discordUserId, discordUsername: member.discordUsername, characterName: member.characterName, job: member.job, active: member.active, eligible: member.eligible, priority: member.priority, remarks: member.remarks, leaveDates: member.leaveDates, ...stats }, current, history, canViewCharacterStats });
+    return NextResponse.json({ gameType: guild?.gameType === "RO3" ? "RO3" : "ROOC", member: { id: member.id, userId: member.userId, discordUserId: member.discordUserId, discordUsername: member.discordUsername, characterName: member.characterName, job: member.job, active: member.active, eligible: member.eligible, priority: member.priority, remarks: member.remarks, leaveDates: member.leaveDates, ...stats }, current, history, canViewCharacterStats });
   } catch (error) {
     console.error("[MEMBER PROFILE] Failed to fetch:", error);
     return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to fetch member profile." }, { status: 500 });
