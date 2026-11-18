@@ -178,6 +178,7 @@ export async function POST(
         }
       );
     }
+    if (auth.guild.gameType === "RO3") return NextResponse.json({error:"This ROOC module is not available for RO3 guilds."},{status:409});
 
     if (!(await requireResourceSuite(auth.guild.id))) {
       return NextResponse.json(
@@ -323,6 +324,7 @@ export async function PUT(
         }
       );
     }
+    if (auth.guild.gameType === "RO3") return NextResponse.json({error:"This ROOC module is not available for RO3 guilds."},{status:409});
 
     if (!(await requireResourceSuite(auth.guild.id))) {
       return NextResponse.json(
@@ -510,6 +512,7 @@ export async function DELETE(
         }
       );
     }
+    if (auth.guild.gameType === "RO3") return NextResponse.json({error:"This ROOC module is not available for RO3 guilds."},{status:409});
 
     if (!(await requireResourceSuite(auth.guild.id))) {
       return NextResponse.json(
