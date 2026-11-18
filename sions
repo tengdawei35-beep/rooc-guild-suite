@@ -1,0 +1,115 @@
+[1mdiff --git a/src/app/events/[eventId]/EventClient.tsx b/src/app/events/[eventId]/EventClient.tsx[m
+[1mindex 07ceb26..369775a 100644[m
+[1m--- a/src/app/events/[eventId]/EventClient.tsx[m
+[1m+++ b/src/app/events/[eventId]/EventClient.tsx[m
+[36m@@ -150,6 +150,9 @@[m [mexport default function EventClient({[m
+   const [showUnavailable, setShowUnavailable] =[m
+     useState(true);[m
+ [m
+[32m+[m[32m  const [showParticipation, setShowParticipation] =[m
+[32m+[m[32m    useState(false);[m
+[32m+[m
+   // ==========================================================[m
+   // ROSTER EDITING[m
+   // ==========================================================[m
+[36m@@ -1130,12 +1133,14 @@[m [mexport default function EventClient({[m
+             </div>[m
+ [m
+             <div className="flex flex-wrap gap-3">[m
+[31m-              <Link[m
+[31m-                href={`/allocation?eventId=${data.event.id}`}[m
+[31m-                className="rounded-lg border border-zinc-700 px-4 py-2.5 text-sm font-medium text-zinc-300 transition hover:border-zinc-500 hover:text-white"[m
+[31m-              >[m
+[31m-                Allocation[m
+[31m-              </Link>[m
+[32m+[m[32m              {canManageEvents && ([m
+[32m+[m[32m                <Link[m
+[32m+[m[32m                  href={`/allocation?eventId=${data.event.id}`}[m
+[32m+[m[32m                  className="rounded-lg border border-zinc-700 px-4 py-2.5 text-sm font-medium text-zinc-300 transition hover:border-zinc-500 hover:text-white"[m
+[32m+[m[32m                >[m
+[32m+[m[32m                  Allocation[m
+[32m+[m[32m                </Link>[m
+[32m+[m[32m              )}[m
+ [m
+               <button[m
+                 type="button"[m
+[36m@@ -1217,7 +1222,8 @@[m [mexport default function EventClient({[m
+             PARTICIPATION[m
+         ==================================================== */}[m
+ [m
+[31m-        <section className="mt-10">[m
+[32m+[m[32m        {showParticipation && ([m
+[32m+[m[32m          <section className="mt-10">[m
+           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">[m
+             <div>[m
+               <h2 className="text-xl font-semibold">[m
+[36m@@ -1303,13 +1309,12 @@[m [mexport default function EventClient({[m
+             )}[m
+           </div>[m
+         </section>[m
+[31m-[m
+[32m+[m[32m        )}[m
+         {/* ====================================================[m
+             ROSTERS[m
+         ==================================================== */}[m
+[31m-[m
+[31m-        <section className="mt-10">[m
+[31m-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">[m
+[32m+[m[32m          <section className="mt-10">[m
+[32m+[m[32m            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">[m
+             <div>[m
+               <h2 className="text-xl font-semibold">[m
+                 Rosters[m
+[36m@@ -1458,12 +1463,40 @@[m [mexport default function EventClient({[m
+               </div>[m
+             )}[m
+           </div>[m
+[31m-        </section>[m
+[32m+[m[32m         </section>[m
+ [m
+[31m-        {/* ====================================================[m
+[31m-            ALLOCATION[m
+[31m-        ==================================================== */}[m
+[32m+[m[32m          <div className="mt-6 flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-900 px-5 py-4">[m
+[32m+[m[32m            <div>[m
+[32m+[m[32m              <p className="font-medium">[m
+[32m+[m[32m                Participation[m
+[32m+[m[32m              </p>[m
+[32m+[m
+[32m+[m[32m              <p className="mt-1 text-sm text-zinc-500">[m
+[32m+[m[32m                {data.stats.availableMembers} available ·{" "}[m
+[32m+[m[32m                {data.stats.totalMembers} total members[m
+[32m+[m[32m              </p>[m
+[32m+[m[32m            </div>[m
+[32m+[m
+[32m+[m[32m            <button[m
+[32m+[m[32m              type="button"[m
+[32m+[m[32m              onClick={() =>[m
+[32m+[m[32m                setShowParticipation([m
+[32m+[m[32m                  (value) => !value[m
+[32m+[m[32m                )[m
+[32m+[m[32m              }[m
+[32m+[m[32m              className="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-300 transition hover:border-zinc-500 hover:text-white"[m
+[32m+[m[32m            >[m
+[32m+[m[32m              {showParticipation[m
+[32m+[m[32m                ? "Hide Participation"[m
+[32m+[m[32m                : "Show Participation"}[m
+[32m+[m[32m            </button>[m
+[32m+[m[32m          </div>[m
+ [m
+[32m+[m[32m      {/* ====================================================[m
+[32m+[m[32m          ALLOCATION[m
+[32m+[m[32m      ==================================================== */}[m
+[32m+[m
+[32m+[m[32m      {canManageEvents && ([m
+         <section className="mt-10 pb-12">[m
+           <div>[m
+             <h2 className="text-xl font-semibold">[m
+[36m@@ -1528,6 +1561,7 @@[m [mexport default function EventClient({[m
+             )}[m
+           </div>[m
+         </section>[m
+[32m+[m[32m        )}[m
+       </div>[m
+ [m
+       {/* ======================================================[m

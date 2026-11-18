@@ -1,0 +1,126 @@
+﻿
+Path                                                                                  LineNumber Line                                                       
+----                                                                                  ---------- ----                                                       
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\allocation\preview\route.ts                  10   hasPermission,                                           
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\allocation\preview\route.ts                  52       !hasPermission(                                      
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\allocation\preview\route.ts                  53         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\allocation\run\route.ts                      10   hasPermission,                                           
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\allocation\run\route.ts                      64       !hasPermission(                                      
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\allocation\run\route.ts                      65         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\auth\me\route.ts                             51       auth.role,                                           
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\rosters\members\route.ts               5   hasPermission,                                           
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\rosters\members\route.ts              36 function unauthorizedResponse() {                          
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\rosters\members\route.ts              48 function forbiddenResponse() {                             
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\rosters\members\route.ts              72       return unauthorizedResponse();                       
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\rosters\members\route.ts              76       !hasPermission(                                      
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\rosters\members\route.ts              77         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\rosters\members\route.ts              81       return forbiddenResponse();                          
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\rosters\members\route.ts             519       return unauthorizedResponse();                       
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\rosters\members\route.ts             523       !hasPermission(                                      
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\rosters\members\route.ts             524         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\rosters\members\route.ts             528       return forbiddenResponse();                          
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\rosters\members\route.ts             904       return unauthorizedResponse();                       
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\rosters\members\route.ts             908       !hasPermission(                                      
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\rosters\members\route.ts             909         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\rosters\members\route.ts             913       return forbiddenResponse();                          
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\rosters\parties\route.ts               8   hasPermission,                                           
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\rosters\parties\route.ts              60       !hasPermission(                                      
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\rosters\parties\route.ts              61         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\rosters\parties\route.ts             357       !hasPermission(                                      
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\rosters\parties\route.ts             358         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\rosters\route.ts                       3 import { getCurrentAuth, hasPermission } from "@/lib/auth";
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\rosters\route.ts                      73       if (!hasPermission(auth.role, "events.manage")) {    
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\rosters\route.ts                      90       if (!hasPermission(auth.role, "rosters.edit")) {     
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\rosters\route.ts                     298     if (!hasPermission(auth.role, "events.view")) {        
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\[eventId]\preferred\route.ts           5   hasPermission,                                           
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\[eventId]\preferred\route.ts          57       !hasPermission(                                      
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\[eventId]\preferred\route.ts          58         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\[eventId]\rosters\route.ts             9   hasPermission,                                           
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\[eventId]\rosters\route.ts           142       !hasPermission(                                      
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\[eventId]\rosters\route.ts           143         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\[eventId]\route.ts                     5   hasPermission,                                           
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\[eventId]\route.ts                    41       !hasPermission(                                      
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\[eventId]\route.ts                    42         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\[eventId]\route.ts                   352           hasPermission(                                   
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\[eventId]\route.ts                   353             auth.role,                                     
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\[eventId]\route.ts                   358           hasPermission(                                   
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\[eventId]\route.ts                   359             auth.role,                                     
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\[eventId]\route.ts                   616       hasPermission(                                       
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\[eventId]\route.ts                   617         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\route.ts                              10   hasPermission,                                           
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\route.ts                             180       hasPermission(                                       
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\route.ts                             181         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\route.ts                             186       hasPermission(                                       
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\route.ts                             187         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\route.ts                             379       !hasPermission(                                      
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\events\route.ts                             380         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\members\import\sheets\route.ts          5   hasPermission,                                           
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\members\import\sheets\route.ts         47       !hasPermission(                                      
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\members\import\sheets\route.ts         48         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\members\import\route.ts                 4 import { getCurrentAuth, hasPermission } from "@/lib/auth";
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\members\import\route.ts               215   if (!hasPermission(auth.role, "members.import")) {       
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\members\leave\route.ts                  5   hasPermission,                                           
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\members\leave\route.ts                119       hasPermission(                                       
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\members\leave\route.ts                120         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\members\leave\route.ts                130       hasPermission(                                       
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\members\leave\route.ts                131         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\members\leave\route.ts                307       hasPermission(                                       
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\members\leave\route.ts                308         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\members\leave\route.ts                318       hasPermission(                                       
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\members\leave\route.ts                319         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\members\leave\route.ts                479       hasPermission(                                       
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\members\leave\route.ts                480         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\members\leave\route.ts                490       hasPermission(                                       
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\members\leave\route.ts                491         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\members\[memberId]\route.ts             5   hasPermission,                                           
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\members\[memberId]\route.ts            39       !hasPermission(                                      
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\members\[memberId]\route.ts            40         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\members\[memberId]\route.ts           374       !hasPermission(                                      
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\members\[memberId]\route.ts           375         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\members\route.ts                        5   hasPermission,                                           
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\members\route.ts                      368       !hasPermission(                                      
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\members\route.ts                      369         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\members\route.ts                      445       !hasPermission(                                      
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\members\route.ts                      446         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\members\route.ts                      705       hasPermission(                                       
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\members\route.ts                      706         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\members\route.ts                      716       hasPermission(                                       
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\members\route.ts                      717         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\members\route.ts                      964       !hasPermission(                                      
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\members\route.ts                      965         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\rankings\route.ts                       8   hasPermission,                                           
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\rankings\route.ts                      59     if (!hasPermission(auth.role, "members.view")) {       
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\reservations\route.ts                   8   hasPermission,                                           
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\reservations\route.ts                 166       !hasPermission(                                      
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\reservations\route.ts                 167         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\reservations\route.ts                 326       !hasPermission(                                      
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\reservations\route.ts                 327         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\reservations\route.ts                 528       !hasPermission(                                      
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\reservations\route.ts                 529         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\resources\route.ts                      8   hasPermission,                                           
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\resources\route.ts                    169       !hasPermission(                                      
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\resources\route.ts                    170         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\resources\route.ts                    302       !hasPermission(                                      
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\resources\route.ts                    303         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\resources\route.ts                    477       !hasPermission(                                      
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\resources\route.ts                    478         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\users\[userId]\route.ts                10   hasPermission,                                           
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\users\[userId]\route.ts                62       !hasPermission(                                      
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\users\[userId]\route.ts                63         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\users\[userId]\route.ts               170         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\users\[userId]\route.ts               316       !hasPermission(                                      
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\users\[userId]\route.ts               317         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\users\[userId]\route.ts               399         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\users\route.ts                          9   hasPermission,                                           
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\users\route.ts                         60       !hasPermission(                                      
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\users\route.ts                         61         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\users\route.ts                         77       auth.role ===                                        
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\users\route.ts                        159           auth.role,                                       
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\users\route.ts                        261       !hasPermission(                                      
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\users\route.ts                        262         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\users\route.ts                        334         auth.role,                                         
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\route.ts                                8   hasPermission,                                           
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\route.ts                               82       !hasPermission(                                      
+D:\rooc-guild-suite\rooc-guild-suite\src\app\api\guild\route.ts                               83         auth.role,                                         
+
+
