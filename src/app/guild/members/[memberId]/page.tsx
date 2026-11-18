@@ -1,4 +1,5 @@
 import MemberProfileClient from "./MemberProfileClient";
+import RO3MemberStatsClient from "./RO3MemberStatsClient";
 import { hasPermission, requirePageAuth } from "@/lib/auth";
 import { calculateRawPdef, calculateRawMdef } from "@/lib/scoring/roo-scoring";
 import { prisma } from "@/lib/prisma";
@@ -15,6 +16,7 @@ export default async function MemberProfilePage({ params }: PageProps) {
   }
 
   const { memberId } = await params;
+  const guildGame = await prisma.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true } });
   const member = await prisma.guildMember.findFirst({
     where: { id: memberId, guildId: auth.guild.id },
     select: {
