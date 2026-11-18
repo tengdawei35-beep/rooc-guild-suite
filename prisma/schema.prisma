@@ -143,6 +143,7 @@ model GuildMember {
   eligible Boolean @default(true)
   priority MemberPriority @default(MEMBER)
   remarks String?
+  ro3Stats Json?
   pdef Float?
   mdef Float?
   pvpDamageBonus Float?
@@ -574,6 +575,7 @@ model GuildApplicant {
   job String?
   status ApplicantStatus @default(PENDING)
   remarks String?
+  ro3Stats Json?
   pdef Float?
   mdef Float?
   pvpDamageBonus Float?
