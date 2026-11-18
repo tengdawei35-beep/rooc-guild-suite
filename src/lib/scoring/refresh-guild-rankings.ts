@@ -1,24 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import { scoreRooPlayers } from "@/lib/scoring/roo-scoring";
-
-const DPS_JOBS = new Set([
-  "Lord Knight",
-  "Paladin",
-  "High Wizard",
-  "Sniper",
-  "Assassin Cross",
-  "Stalker",
-  "Champion",
-  "Mastersmith",
-  "Biochemist (Physical)",
-  "Doram (Physical)",
-  "Gunslinger",
-  "Super Novice",
-  "Doram (Magic)",
-  "Shiranui",
-]);
-
-type LiveMember = {
+import { scoreRooPlayers } from "@/lib/games/rooc/scoring";
+import { ROOC_DPS_JOBS } from "@/lib/games/rooc/jobs";
+\ntype LiveMember = {
   id: string;
   job: string | null;
   pdef: number | null;
