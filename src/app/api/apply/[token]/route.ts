@@ -32,7 +32,51 @@ export async function POST(request: Request, context: { params: Promise<{ token:
   const existingMember = await prisma.guildMember.findFirst({ where: { guildId: invite.guildId, discordUserId: user.discordId }, select: { id: true } });
   if (existingMember) return NextResponse.json({ error: "You are already a member of this guild." }, { status: 409 });
 
+  const guild = await prisma.guild.findUnique({ where: { id: invite.guildId }, select: { gameType: true } });
+  if (!guild) return NextResponse.json({ error: "Guild not found." }, { status: 404 });
+
   const body = (await request.json()) as Record<string, unknown>;
+
+  // RO3 submissions use the game adapter and game-specific payload storage.
+  // The guild's GameType is resolved server-side from the invite.
+  if (guild.gameType === "RO3") {
+    const { getGameRuntime } = await import("@/lib/games");
+    const validation = getGameRuntime("RO3").application.validateApplication(body);
+    if (!validation.valid) return NextResponse.json({ error: "Application data is invalid.", errors: validation.errors }, { status: 400 });
+
+    const normalized = validation.normalized;
+    const ro3Name = String(normalized.characterName ?? "").trim();
+    const ro3Job = String(normalized.job ?? "");
+    const existing = await prisma.guildApplicant.findUnique({
+      where: { guildId_discordUserId: { guildId: invite.guildId, discordUserId: user.discordId } },
+    });
+    const sharedData = {
+      inviteId: invite.id,
+      discordUserId: user.discordId,
+      discordUsername: user.username,
+      userId: user.id,
+      characterName: ro3Name,
+      job: ro3Job,
+      status: "PENDING" as const,
+      reviewedAt: null,
+      reviewedByUserId: null,
+      decidedAt: null,
+      decidedByUserId: null,
+    };
+    const saved = await prisma.$transaction(async (tx) => {
+      const applicant = existing
+        ? await tx.guildApplicant.update({ where: { id: existing.id }, data: sharedData })
+        : await tx.guildApplicant.create({ data: { guildId: invite.guildId, ...sharedData } });
+      await tx.guildApplicantGameData.upsert({
+        where: { applicantId: applicant.id },
+        create: { applicantId: applicant.id, gameType: "RO3", payload: normalized, schemaVersion: 1 },
+        update: { gameType: "RO3", payload: normalized, schemaVersion: 1 },
+      });
+      return applicant;
+    });
+    return NextResponse.json({ application: saved });
+  }
+
   const characterName = String(body.characterName ?? "").trim();
   const job = String(body.job ?? "").trim();
   if (!characterName) return NextResponse.json({ error: "Character Name is required." }, { status: 400 });
