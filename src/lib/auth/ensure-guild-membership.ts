@@ -86,23 +86,34 @@ export async function ensureGuildMembershipsForDiscordUser({
   // Keep the stored Discord identity current without touching updatedAt.
   // updatedAt drives the dashboard's "Member profile updated" activity, and
   // routine authentication must not appear as a profile edit.
+  const successfullyLinkedGuildIds = new Set<string>();
+
   for (const memberId of linkedMemberIds) {
-    await prisma.$executeRaw`
-      UPDATE "GuildMember"
-      SET "discordUserId" = ${discordId},
-          "discordUsername" = ${username},
-          "userId" = ${userId}
-      WHERE "id" = ${memberId}
-    `;
+    const member = linkedMembers.find((candidate) => candidate.id === memberId);
+    if (!member) continue;
+
+    try {
+      await prisma.$executeRaw\`
+        UPDATE "GuildMember"
+        SET "discordUserId" = ${discordId},
+            "discordUsername" = ${username},
+            "userId" = ${userId}
+        WHERE "id" = ${memberId}
+      \`;
+      successfullyLinkedGuildIds.add(member.guildId);
+    } catch (error) {
+      // PostgreSQL unique violations surfaced through Prisma raw SQL commonly
+      // include SQLSTATE 23505. Skip this conflicted link without breaking login.
+      const details = error instanceof Error ? error.message : String(error);
+      if (/23505|unique constraint|duplicate key/i.test(details)) {
+        console.warn("Skipped Discord member link due to uniqueness conflict.");
+        continue;
+      }
+      throw error;
+    }
   }
 
-  const guildIds = Array.from(
-    new Set(
-      linkedMembers.map(
-        (member) => member.guildId
-      )
-    )
-  );
+  const guildIds = Array.from(successfullyLinkedGuildIds);
 
   for (const guildId of guildIds) {
     await prisma.guildMembership.upsert({
