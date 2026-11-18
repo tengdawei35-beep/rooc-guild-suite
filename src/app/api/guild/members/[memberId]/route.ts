@@ -23,7 +23,7 @@ export async function GET(_request: Request, context: RouteContext) {
 
     let current = null;
     if (canViewCharacterStats) {
-      await refreshGuildRankings(auth.guild.id);
+      const guildGame = await prisma.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true } });\n      if (guildGame?.gameType === "ROOC") await refreshGuildRankings(auth.guild.id);
       const liveMember = await prisma.guildMember.findUnique({ where: { id: member.id }, select: { guildPercentile: true, tankScore: true, dpsScore: true, pvpScore: true } });
       const latestAssignment = member.rosterAssignments[0] ?? null;
       current = liveMember ? { guildPercentile: liveMember.guildPercentile ?? 0, tankScore: liveMember.tankScore ?? 0, dpsScore: liveMember.dpsScore ?? 0, pvpScore: liveMember.pvpScore ?? 0, event: latestAssignment ? { id: latestAssignment.party.roster.event.id, type: latestAssignment.party.roster.event.type, date: latestAssignment.party.roster.event.date, battlefield: latestAssignment.party.battlefield, partyNumber: latestAssignment.party.partyNumber, slotNumber: latestAssignment.slotNumber } : null } : null;
@@ -58,7 +58,7 @@ export async function PATCH(request: Request, context: RouteContext) {
 
     for (const field of numericFields) { if (!(field in body)) continue; if (body[field] === null || body[field] === "") data[field] = null; else if (typeof body[field] === "number" && Number.isFinite(body[field])) data[field] = body[field]; else return NextResponse.json({ error: `Invalid value for ${field}.` }, { status: 400 }); }
     const updated = await prisma.guildMember.update({ where: { id: member.id }, data, select: { id: true, characterName: true, job: true, updatedAt: true } });
-    await refreshGuildRankings(auth.guild.id);
+    const guildGame = await prisma.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true } });\n    if (guildGame?.gameType === "ROOC") await refreshGuildRankings(auth.guild.id);
     return NextResponse.json({ success: true, member: updated });
   } catch (error) { console.error("[MEMBER PROFILE] Failed to update:", error); return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to update member profile." }, { status: 500 }); }
 }
