@@ -109,6 +109,10 @@ function validateMember(body: MemberRequest, gameType: "ROOC" | "RO3") {
     }
   }
 
+  if (gameType === "RO3" && numericFields.some(([field]) => body[field] !== null && body[field] !== undefined && body[field] !== "")) {
+    return { error: "Use the RO3 stats object for RO3 character statistics." };
+  }
+
   let ro3Stats: Record<string, number | null> | null = null;
   if (gameType === "RO3") {
     if (!body.ro3Stats || typeof body.ro3Stats !== "object" || Array.isArray(body.ro3Stats)) return { error: "RO3 stats are required." };
