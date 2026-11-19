@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentAuth, hasPermission } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { jobsForGame } from "@/lib/constants/jobs";
-import { RO3_STAT_KEYS } from "@/lib/ocr/ro3-stats";
+import { RO3_STAT_KEYS } from "@/lib/constants/ro3-stats";
 import { calculateRawPdef } from "@/lib/scoring/roo-scoring";
 import { refreshGuildRankings } from "@/lib/scoring/refresh-guild-rankings";
 
