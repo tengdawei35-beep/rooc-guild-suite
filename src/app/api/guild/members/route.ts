@@ -203,9 +203,8 @@ export async function GET() {
       return NextResponse.json({ error: "You do not have permission to view members." }, { status: 403 });
     }
 
-    await refreshGuildRankings(auth.guild.id);
-
     const guild = await prisma.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true } });
+    if (guild?.gameType !== "RO3") await refreshGuildRankings(auth.guild.id);
     const members = await prisma.guildMember.findMany({
       where: { guildId: auth.guild.id },
       include: { leaveDates: { orderBy: { date: "asc" } } },
@@ -327,7 +326,7 @@ export async function POST(request: Request) {
       include: { leaveDates: true },
     });
 
-    await refreshGuildRankings(auth.guild.id);
+    if (gameType !== "RO3") await refreshGuildRankings(auth.guild.id);
     return NextResponse.json({ member });
   } catch (error) {
     console.error("[MEMBERS] Failed to create member:", error);
@@ -462,7 +461,8 @@ export async function DELETE(request: Request) {
     if (!existing) return NextResponse.json({ error: "Member not found." }, { status: 404 });
 
     await prisma.guildMember.delete({ where: { id } });
-    await refreshGuildRankings(auth.guild.id);
+    const guild = await prisma.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true } });
+    if (guild?.gameType !== "RO3") await refreshGuildRankings(auth.guild.id);
 
     return NextResponse.json({ success: true });
   } catch (error) {

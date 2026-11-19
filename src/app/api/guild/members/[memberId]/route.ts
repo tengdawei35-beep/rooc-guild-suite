@@ -108,7 +108,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
       return { id: memberId };
     });
 
-    await refreshGuildRankings(auth.guild.id);
+    if (guild?.gameType !== "RO3") await refreshGuildRankings(auth.guild.id);
     return NextResponse.json({ success: true, id: result.id });
   } catch (error) {
     console.error("[MEMBER PROFILE] Failed to delete:", error);
