@@ -90,8 +90,27 @@ export async function POST(request: Request, context: { params: Promise<{ token:
       status: "PENDING" as const, reviewedAt: null, reviewedByUserId: null,
       decidedAt: null, decidedByUserId: null,
     };
-    const saved = existing ? await prisma.guildApplicant.update({ where: { id: existing.id }, data: payload }) : await prisma.guildApplicant.create({ data: { guildId: invite.guildId, ...payload } });
-    return NextResponse.json({ application: saved });
+    try {
+      const saved = await prisma.$transaction(async (tx) => {
+        const [currentInvite, currentGuild, currentMember] = await Promise.all([
+          tx.applicantInvite.findFirst({ where: { id: invite.id, guildId: invite.guildId, active: true } }),
+          tx.guild.findUnique({ where: { id: invite.guildId }, select: { gameType: true } }),
+          tx.guildMember.findFirst({ where: { guildId: invite.guildId, discordUserId: user.discordId }, select: { id: true } }),
+        ]);
+        if (!currentInvite) throw new Error("This application link has been revoked.");
+        if (!currentGuild || currentGuild.gameType !== "RO3") throw new Error("The guild game configuration changed. Please reload the application.");
+        if (currentMember) throw new Error("You are already a member of this guild.");
+        const current = await tx.guildApplicant.findUnique({ where: { guildId_discordUserId: { guildId: invite.guildId, discordUserId: user.discordId } } });
+        if (current?.status === "ACCEPTED") throw new Error("This application has already been accepted.");
+        return current
+          ? tx.guildApplicant.update({ where: { id: current.id }, data: payload })
+          : tx.guildApplicant.create({ data: { guildId: invite.guildId, ...payload } });
+      }, { isolationLevel: "Serializable" });
+      return NextResponse.json({ application: saved });
+    } catch (error) {
+      console.error("[APPLY] RO3 submission failed:", error);
+      return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to submit application." }, { status: 409 });
+    }
   }
 
   const applicantStats = Object.fromEntries(STAT_FIELDS.map((field) => [field, cleanNumber(body[field])])) as Record<(typeof STAT_FIELDS)[number], number>;
@@ -131,9 +150,25 @@ export async function POST(request: Request, context: { params: Promise<{ token:
     decidedByUserId: null,
   };
 
-  const saved = existing
-    ? await prisma.guildApplicant.update({ where: { id: existing.id }, data: payload })
-    : await prisma.guildApplicant.create({ data: { guildId: invite.guildId, ...payload } });
-
-  return NextResponse.json({ application: saved });
+  try {
+    const saved = await prisma.$transaction(async (tx) => {
+      const [currentInvite, currentGuild, currentMember] = await Promise.all([
+        tx.applicantInvite.findFirst({ where: { id: invite.id, guildId: invite.guildId, active: true } }),
+        tx.guild.findUnique({ where: { id: invite.guildId }, select: { gameType: true } }),
+        tx.guildMember.findFirst({ where: { guildId: invite.guildId, discordUserId: user.discordId }, select: { id: true } }),
+      ]);
+      if (!currentInvite) throw new Error("This application link has been revoked.");
+      if (!currentGuild || currentGuild.gameType !== "ROOC") throw new Error("The guild game configuration changed. Please reload the application.");
+      if (currentMember) throw new Error("You are already a member of this guild.");
+      const current = await tx.guildApplicant.findUnique({ where: { guildId_discordUserId: { guildId: invite.guildId, discordUserId: user.discordId } } });
+      if (current?.status === "ACCEPTED") throw new Error("This application has already been accepted.");
+      return current
+        ? tx.guildApplicant.update({ where: { id: current.id }, data: payload })
+        : tx.guildApplicant.create({ data: { guildId: invite.guildId, ...payload } });
+    }, { isolationLevel: "Serializable" });
+    return NextResponse.json({ application: saved });
+  } catch (error) {
+    console.error("[APPLY] ROOC submission failed:", error);
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to submit application." }, { status: 409 });
+  }
 }
