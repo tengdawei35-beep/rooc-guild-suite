@@ -87,7 +87,7 @@ export async function POST(request: Request) {
     const updated = await prisma.guildApplicant.update({ where: { id: applicant.id }, data: { status: "DENIED", remarks: body.remarks?.trim() || null, decidedAt: new Date(), decidedByUserId: auth.user.id } });
     return NextResponse.json({ application: updated });
   }
-  let created;
+  let created: Awaited<ReturnType<typeof prisma.guildMember.create>>;
   try {
     created = await prisma.$transaction(async (tx) => {
     // Re-read mutable records inside the transaction so a concurrent game switch
