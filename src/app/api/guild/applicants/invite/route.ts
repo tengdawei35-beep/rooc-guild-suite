@@ -26,24 +26,41 @@ export async function POST() {
   if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   if (!hasPermission(auth.role, "applicants.manage")) return forbidden();
 
-  const existing = await prisma.applicantInvite.findFirst({
-    where: { guildId: auth.guild.id, active: true },
-    orderBy: { createdAt: "desc" },
-  });
+  try {
+    // Serializable isolation prevents concurrent requests from both observing
+    // "no active invite" and creating separate active links for the same guild.
+    const result = await prisma.$transaction(async (tx) => {
+      const existing = await tx.applicantInvite.findFirst({
+        where: { guildId: auth.guild.id, active: true },
+        orderBy: { createdAt: "desc" },
+      });
 
-  if (existing) {
-    return NextResponse.json({ invite: existing, reused: true });
+      if (existing) return { invite: existing, reused: true };
+
+      const invite = await tx.applicantInvite.create({
+        data: {
+          guildId: auth.guild.id,
+          token: randomBytes(32).toString("base64url"),
+          createdByUserId: auth.user.id,
+        },
+      });
+      return { invite, reused: false };
+    }, { isolationLevel: "Serializable" });
+
+    return NextResponse.json(result, { status: result.reused ? 200 : 201 });
+  } catch (error) {
+    const code = error && typeof error === "object" && "code" in error ? String(error.code) : "";
+    if (code === "P2034") {
+      // A concurrent invite request won the serializable transaction race.
+      const existing = await prisma.applicantInvite.findFirst({
+        where: { guildId: auth.guild.id, active: true },
+        orderBy: { createdAt: "desc" },
+      });
+      if (existing) return NextResponse.json({ invite: existing, reused: true });
+    }
+    console.error("[APPLICANTS] Invite creation failed:", error);
+    return NextResponse.json({ error: "Failed to create an application link. Please try again." }, { status: 409 });
   }
-
-  const invite = await prisma.applicantInvite.create({
-    data: {
-      guildId: auth.guild.id,
-      token: randomBytes(32).toString("base64url"),
-      createdByUserId: auth.user.id,
-    },
-  });
-
-  return NextResponse.json({ invite }, { status: 201 });
 }
 
 export async function DELETE(request: Request) {
