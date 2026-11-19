@@ -102,7 +102,7 @@ type MemberForm = {
 };
 
 const RO3_FIELDS = RO3_STAT_FIELDS.map(({ key }) => key);
-const RO3_LABELS: Record<string, string> = RO3_STAT_LABELS;
+const RO3_LABELS: Record<string, string> = RO3_STAT_LABELS as Record<string, string>;
 
 const MEMBER_DISPLAY_FIELDS = [
   { key: "characterName", label: "Character", group: "Identity & Guild" },
