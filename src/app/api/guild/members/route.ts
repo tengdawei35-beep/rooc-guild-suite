@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { getCurrentAuth, hasPermission } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/generated/prisma/client";
 import { jobsForGame } from "@/lib/constants/jobs";
 import { RO3_STAT_KEYS } from "@/lib/ocr/ro3-stats";
 import { refreshGuildRankings } from "@/lib/scoring/refresh-guild-rankings";
@@ -294,7 +295,7 @@ export async function POST(request: Request) {
         userId: discordIdentity.userId,
         characterName: data.characterName,
         job: data.job,
-        ro3Stats: data.ro3Stats,
+        ro3Stats: data.ro3Stats ?? Prisma.DbNull,
         pdef: data.pdef,
         mdef: data.mdef,
         pvpDamageBonus: data.pvpDamageBonus,

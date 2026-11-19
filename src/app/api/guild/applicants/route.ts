@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { getCurrentAuth, hasPermission } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/generated/prisma/client";
+import { RO3_JOBS, ROOC_JOBS } from "@/lib/constants/jobs";
+import { RO3_STAT_KEYS } from "@/lib/ocr/ro3-stats";
 import { findClosestRooMember, scoreRooPlayers } from "@/lib/scoring/roo-scoring";
 
 const MEMBER_STATS_SELECT = {
@@ -131,7 +134,7 @@ export async function POST(request: Request) {
       guildId: auth.guild.id, userId, discordUserId: currentApplicant.discordUserId,
       discordUsername: currentApplicant.discordUsername?.trim() || null,
       characterName: currentCharacterName, job: currentJob, active: true, eligible: true,
-      ro3Stats: gameType === "RO3" ? currentApplicant.ro3Stats ?? {} : null,
+      ro3Stats: gameType === "RO3" ? currentApplicant.ro3Stats as Prisma.InputJsonValue : Prisma.DbNull,
       pdef: gameType === "ROOC" ? currentApplicant.pdef : null,
       mdef: gameType === "ROOC" ? currentApplicant.mdef : null,
       pvpDamageBonus: gameType === "ROOC" ? currentApplicant.pvpDamageBonus : null,

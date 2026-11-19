@@ -19,7 +19,7 @@ const RO3_FIELDS = [["hp","HP"],["patk","PATK"],["matk","MATK"],["pdef","PDEF"],
 
 type Field = string;
 type Stats = Record<Field, string>;
-type Existing = { id: string; characterName: string; job: string | null; status?: "PENDING" | "ACCEPTED" | "DENIED"; ro3Stats?: Record<string, number|string|null> } & Partial<Record<Field, number | string | null>>;
+type Existing = { id: string; characterName: string; job: string | null; status?: "PENDING" | "ACCEPTED" | "DENIED"; ro3Stats?: Record<string, number|string|null>; [key: string]: unknown };
 
 function emptyStats(existing?: Existing | null): Stats { return Object.fromEntries(ROOC_FIELDS.map(([key]) => [key, existing?.[key] == null ? "" : String(existing[key])])) as Stats; }
 
