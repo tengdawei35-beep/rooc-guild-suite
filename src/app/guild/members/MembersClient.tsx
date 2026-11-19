@@ -202,7 +202,7 @@ export default function MembersClient({ initialMembers, gameType }: { initialMem
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [sortField, setSortField] = useState<MemberDisplayField>("characterName");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
-  const [displayFields, setDisplayFields] = useState<MemberDisplayField[]>(DEFAULT_MEMBER_DISPLAY_FIELDS);
+  const [displayFields, setDisplayFields] = useState<MemberDisplayField[]>(gameType === "RO3" ? [...DEFAULT_MEMBER_DISPLAY_FIELDS, "ro3_hp", "ro3_patk", "ro3_matk", "ro3_pdef", "ro3_mdef", "ro3_damageVsMedium", "ro3_damageReductionVsMedium"] : DEFAULT_MEMBER_DISPLAY_FIELDS);
   const [showFieldPicker, setShowFieldPicker] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [leaveDate, setLeaveDate] = useState("");
