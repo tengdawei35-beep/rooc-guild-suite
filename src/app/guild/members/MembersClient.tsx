@@ -9,6 +9,7 @@ import {
 import Link from "next/link";
 
 import ImportMembersModal from "./ImportMembersModal";
+import { jobsForGame } from "@/lib/constants/jobs";
 
 import {
   hasPermission,
@@ -99,8 +100,6 @@ type MemberForm = {
   ro3Stats: Record<string, string>;
 };
 
-const ROOC_JOBS = ["Lord Knight","Paladin","High Priest","Champion","Sniper","Bard","Gypsy","High Wizard","Professor","Assassin Cross","Stalker","Mastersmith","Biochemist (Plant)","Doram (Physical)","Gunslinger","Super Novice","Doram (Magic)","Biochemist (Physical)","Shiranui","Doram (Support)"] as const;
-const RO3_JOBS = ["Mechanic","Royal Guard","Rune Knight","Warlock","Ranger","Archbishop","Guillotine Cross"] as const;
 const RO3_FIELDS = ["hp","patk","matk","pdef","mdef","healingDonePercent","critDamagePercent","critDamageReductionPercent","physicalDamageBonusPercent","physicalDamageReductionPercent","magicDamageBonusPercent","magicDamageReductionPercent","damageIncreasePercent","damageReductionPercent","physicalPenetrationPercent","magicPenetrationPercent","damageVsAllJob","damageReductionVsAllJob","damageVsMedium","damageReductionVsMedium","bladeCrystal","shieldCrystal","manaCrystal","magicDefCrystal"] as const;
 const RO3_LABELS: Record<string, string> = {"hp":"HP","patk":"PATK","matk":"MATK","pdef":"PDEF","mdef":"MDEF","healingDonePercent":"Healing Done %","critDamagePercent":"Crit Damage %","critDamageReductionPercent":"Crit Damage Reduction %","physicalDamageBonusPercent":"Physical Damage Bonus %","physicalDamageReductionPercent":"Physical Damage Reduction %","magicDamageBonusPercent":"Magic Damage Bonus %","magicDamageReductionPercent":"Magic Damage Reduction %","damageIncreasePercent":"Damage Increase %","damageReductionPercent":"Damage Reduction %","physicalPenetrationPercent":"Physical Penetration","magicPenetrationPercent":"Magic Penetration","damageVsAllJob":"DMG vs All Job","damageReductionVsAllJob":"DMG Reduction vs All Job","damageVsMedium":"DMG vs Medium","damageReductionVsMedium":"DMG Reduction vs Medium","bladeCrystal":"Blade Crystal","shieldCrystal":"Shield Crystal","manaCrystal":"Mana Crystal","magicDefCrystal":"Magic DEF Crystal"};
 
@@ -186,7 +185,7 @@ function formatPriority(priority: Member["priority"]) {
 }
 
 export default function MembersClient({ initialMembers, gameType }: { initialMembers: Member[]; gameType: "ROOC" | "RO3" }) {
-  const availableJobs = gameType === "RO3" ? RO3_JOBS : ROOC_JOBS;
+  const availableJobs = jobsForGame(gameType);
   const [members, setMembers] = useState<Member[]>(initialMembers);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
