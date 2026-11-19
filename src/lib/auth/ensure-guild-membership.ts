@@ -106,7 +106,7 @@ export async function ensureGuildMembershipsForDiscordUser({
         error instanceof Error ? error.message : String(error),
         error && typeof error === "object" && "meta" in error ? JSON.stringify(error.meta) : "",
       ].join(" ");
-      if (/P2010|23505|unique constraint|duplicate key/i.test(details)) {
+      if (/23505|unique constraint|duplicate key/i.test(details)) {
         console.warn("Skipped Discord member link due to a guild membership uniqueness conflict.");
         continue;
       }

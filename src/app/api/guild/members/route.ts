@@ -287,7 +287,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "A member with this character name already exists." }, { status: 409 });
     }
 
-    let member;
+    let member: Awaited<ReturnType<typeof prisma.guildMember.create>>;
     try {
       member = await prisma.guildMember.create({
       data: {
@@ -441,7 +441,7 @@ export async function PUT(request: Request) {
       updateData.remarks = data.remarks;
     }
 
-    let member;
+    let member: Awaited<ReturnType<typeof prisma.guildMember.create>>;
     try {
       member = await prisma.guildMember.update({
         where: { id: body.id },
