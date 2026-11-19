@@ -69,7 +69,23 @@ export async function POST(request: Request, context: { params: Promise<{ token:
 
     const existing = await prisma.guildApplicant.findUnique({ where: { guildId_discordUserId: { guildId: invite.guildId, discordUserId: user.discordId } } });
     if (existing?.status === "ACCEPTED") return NextResponse.json({ error: "This application has already been accepted." }, { status: 409 });
-    const payload = { inviteId: invite.id, discordUserId: user.discordId, discordUsername: user.username, userId: user.id, characterName, job, ro3Stats, status: "PENDING" as const, reviewedAt: null, reviewedByUserId: null, decidedAt: null, decidedByUserId: null };
+    const payload = {
+      inviteId: invite.id, discordUserId: user.discordId, discordUsername: user.username,
+      userId: user.id, characterName, job, ro3Stats,
+      // Clear any legacy ROOC scalar values if this applicant previously applied
+      // while the guild was configured for ROOC.
+      pdef: null, mdef: null, pvpDamageBonus: null, pvpDamageReduction: null,
+      pdmgPercent: null, mdmgPercent: null, pdmgReductionPercent: null,
+      mdmgReductionPercent: null, critRes: null, ignorePdef: null, ignoreMdef: null,
+      damageVsMedium: null, damageReductionVsMedium: null, damageVsSmall: null,
+      damageReductionVsSmall: null, damageVsDemiHuman: null, damageReductionVsDemiHuman: null,
+      damageVsBrute: null, damageReductionVsBrute: null, equipmentPdefPercent: null,
+      equipmentMdefPercent: null, patk: null, matk: null, hp: null,
+      dpsScore: null, tankScore: null, pvpScore: null,
+      dpsPercentile: null, tankPercentile: null, pvpPercentile: null,
+      status: "PENDING" as const, reviewedAt: null, reviewedByUserId: null,
+      decidedAt: null, decidedByUserId: null,
+    };
     const saved = existing ? await prisma.guildApplicant.update({ where: { id: existing.id }, data: payload }) : await prisma.guildApplicant.create({ data: { guildId: invite.guildId, ...payload } });
     return NextResponse.json({ application: saved });
   }
