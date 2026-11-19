@@ -38,22 +38,7 @@ type RankingMember = {
   totalRanked: number;
 };
 
-const DPS_JOBS = new Set([
-  "Lord Knight",
-  "Paladin",
-  "High Wizard",
-  "Sniper",
-  "Assassin Cross",
-  "Stalker",
-  "Champion",
-  "Mastersmith",
-  "Biochemist (Physical)",
-  "Doram (Physical)",
-  "Gunslinger",
-  "Super Novice",
-  "Doram (Magic)",
-  "Shiranui",
-]);
+import { isDpsJobForGame } from "@/lib/constants/jobs";
 
 type RankingsResponse = {
   rankings: RankingMember[];
@@ -131,7 +116,7 @@ export default function RankingsClient() {
         (statusFilter === "INACTIVE" && !member.active);
 
       const matchesCategory =
-        category !== "DPS" || DPS_JOBS.has(member.job ?? "");
+        category !== "DPS" || isDpsJobForGame("ROOC", member.job);
 
       return matchesSearch && matchesJob && matchesStatus && matchesCategory;
     });

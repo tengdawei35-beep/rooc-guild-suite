@@ -1,22 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { scoreRooPlayers } from "@/lib/scoring/roo-scoring";
-
-const DPS_JOBS = new Set([
-  "Lord Knight",
-  "Paladin",
-  "High Wizard",
-  "Sniper",
-  "Assassin Cross",
-  "Stalker",
-  "Champion",
-  "Mastersmith",
-  "Biochemist (Physical)",
-  "Doram (Physical)",
-  "Gunslinger",
-  "Super Novice",
-  "Doram (Magic)",
-  "Shiranui",
-]);
+import { isDpsJobForGame } from "@/lib/constants/jobs";
 
 type LiveMember = {
   id: string;
@@ -108,7 +92,7 @@ export async function refreshGuildRankings(guildId: string) {
 
   const scored = scoreRooPlayers(members);
   const tankValues = scored.map((member) => member.tankScore);
-  const dpsRanked = scored.filter((member) => DPS_JOBS.has(member.job ?? ""));
+  const dpsRanked = scored.filter((member) => isDpsJobForGame("ROOC", member.job));
   const dpsValues = dpsRanked.map((member) => member.dpsScore);
   const pvpValues = scored.map((member) => member.pvpScore);
 
