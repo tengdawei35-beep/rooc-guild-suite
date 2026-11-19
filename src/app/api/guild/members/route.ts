@@ -287,7 +287,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "A member with this character name already exists." }, { status: 409 });
     }
 
-    const member = await prisma.guildMember.create({
+    let member;
+    try {
+      member = await prisma.guildMember.create({
       data: {
         guildId: auth.guild.id,
         discordUserId: discordIdentity.discordUserId,
@@ -326,7 +328,13 @@ export async function POST(request: Request) {
         remarks: data.remarks,
       },
       include: { leaveDates: true },
-    });
+      });
+    } catch (error) {
+      if (error && typeof error === "object" && "code" in error && error.code === "P2002") {
+        return NextResponse.json({ error: "That Discord account or character is already registered in this guild." }, { status: 409 });
+      }
+      throw error;
+    }
 
     if (gameType !== "RO3") await refreshGuildRankings(auth.guild.id);
     return NextResponse.json({ member });
@@ -433,11 +441,19 @@ export async function PUT(request: Request) {
       updateData.remarks = data.remarks;
     }
 
-    const member = await prisma.guildMember.update({
-      where: { id: body.id },
-      data: updateData,
-      include: { leaveDates: true },
-    });
+    let member;
+    try {
+      member = await prisma.guildMember.update({
+        where: { id: body.id },
+        data: updateData,
+        include: { leaveDates: true },
+      });
+    } catch (error) {
+      if (error && typeof error === "object" && "code" in error && error.code === "P2002") {
+        return NextResponse.json({ error: "That Discord account or character is already registered in this guild." }, { status: 409 });
+      }
+      throw error;
+    }
 
     if (gameType !== "RO3") await refreshGuildRankings(auth.guild.id);
     return NextResponse.json({ member });
