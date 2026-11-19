@@ -117,17 +117,11 @@ function validateMember(body: MemberRequest, gameType: "ROOC" | "RO3") {
   let ro3Stats: Record<string, number | null> | null = null;
   if (gameType === "RO3") {
     if (!body.ro3Stats || typeof body.ro3Stats !== "object" || Array.isArray(body.ro3Stats)) return { error: "RO3 stats are required." };
-    const statsInput = body.ro3Stats;
-    const unknownStats = Object.keys(statsInput).filter((key) => !(RO3_STAT_KEYS as readonly string[]).includes(key));
-    if (unknownStats.length) return { error: `Unknown RO3 stat: ${unknownStats.join(", ")}.` };
-    const missingStats = RO3_STAT_KEYS.filter((key) =>
-      !(key in statsInput) || statsInput[key] === null || statsInput[key] === ""
-    );
-    if (missingStats.length) {
-      return { error: `All RO3 stats are required. Missing: ${missingStats.join(", ")}.` };
-    }
+    if (Object.keys(body.ro3Stats).length === 0) return { error: "At least one RO3 stat is required." };
     ro3Stats = {};
-    for (const [key, value] of Object.entries(statsInput)) {
+    for (const [key, value] of Object.entries(body.ro3Stats)) {
+      if (!(RO3_STAT_KEYS as readonly string[]).includes(key)) return { error: `Unknown RO3 stat: ${key}.` };
+      if (value === null || value === "") { ro3Stats[key] = null; continue; }
       const number = Number(value);
       if (!Number.isFinite(number) || number < 0) return { error: `Invalid value for RO3 stat ${key}.` };
       if (["bladeCrystal", "shieldCrystal", "manaCrystal", "magicDefCrystal"].includes(key) && number > 50) return { error: `${key} must be between 0 and 50.` };
