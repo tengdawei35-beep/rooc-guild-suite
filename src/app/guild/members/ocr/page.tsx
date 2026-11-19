@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import OcrMemberImport from "./OcrMemberImport";
 import { ROOC_JOBS, RO3_JOBS } from "@/lib/constants/jobs";
+import { RO3_STAT_INPUT_FIELDS } from "@/lib/constants/ro3-stats";
 
 type Values = Record<string, string>;
 
@@ -16,17 +17,7 @@ const FIELDS = [
   ["equipmentPdefPercent", "Equipment PDEF %"], ["equipmentMdefPercent", "Equipment MDEF %"],
 ] as const;
 
-const RO3_FIELDS = [
-  ["characterName", "Character name"], ["job", "Job"], ["hp", "HP"], ["patk", "PATK"], ["matk", "MATK"], ["pdef", "PDEF"], ["mdef", "MDEF"],
-  ["healingDonePercent", "Healing Done %"], ["critDamagePercent", "Crit Damage %"], ["critDamageReductionPercent", "Crit Damage Reduction %"],
-  ["physicalDamageBonusPercent", "Physical Damage Bonus %"], ["physicalDamageReductionPercent", "Physical Damage Reduction %"],
-  ["magicDamageBonusPercent", "Magic Damage Bonus %"], ["magicDamageReductionPercent", "Magic Damage Reduction %"],
-  ["damageIncreasePercent", "Damage Increase %"], ["damageReductionPercent", "Damage Reduction %"],
-  ["physicalPenetrationPercent", "Physical Penetration %"], ["magicPenetrationPercent", "Magic Penetration %"],
-  ["damageVsAllJob", "Damage vs All Job"], ["damageReductionVsAllJob", "Reduction vs All Job"],
-  ["damageVsMedium", "Damage vs Medium"], ["damageReductionVsMedium", "Reduction vs Medium"],
-  ["bladeCrystal", "Blade Crystal"], ["shieldCrystal", "Shield Crystal"], ["manaCrystal", "Mana Crystal"], ["magicDefCrystal", "Magic DEF Crystal"],
-] as const;
+const RO3_FIELDS = [["characterName", "Character name"], ["job", "Job"], ...RO3_STAT_INPUT_FIELDS] as const;
 const NUMERIC_FIELDS = FIELDS.filter(([field]) => field !== "characterName" && field !== "job");
 const RO3_NUMERIC_FIELDS = RO3_FIELDS.filter(([field]) => field !== "characterName" && field !== "job");
 
