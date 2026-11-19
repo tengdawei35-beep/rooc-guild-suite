@@ -10,6 +10,7 @@ import Link from "next/link";
 
 import ImportMembersModal from "./ImportMembersModal";
 import { jobsForGame } from "@/lib/constants/jobs";
+import { RO3_STAT_FIELDS, RO3_STAT_LABELS } from "@/lib/constants/ro3-stats";
 
 import {
   hasPermission,
@@ -100,8 +101,8 @@ type MemberForm = {
   ro3Stats: Record<string, string>;
 };
 
-const RO3_FIELDS = ["hp","patk","matk","pdef","mdef","healingDonePercent","critDamagePercent","critDamageReductionPercent","physicalDamageBonusPercent","physicalDamageReductionPercent","magicDamageBonusPercent","magicDamageReductionPercent","damageIncreasePercent","damageReductionPercent","physicalPenetrationPercent","magicPenetrationPercent","damageVsAllJob","damageReductionVsAllJob","damageVsMedium","damageReductionVsMedium","bladeCrystal","shieldCrystal","manaCrystal","magicDefCrystal"] as const;
-const RO3_LABELS: Record<string, string> = {"hp":"HP","patk":"PATK","matk":"MATK","pdef":"PDEF","mdef":"MDEF","healingDonePercent":"Healing Done %","critDamagePercent":"Crit Damage %","critDamageReductionPercent":"Crit Damage Reduction %","physicalDamageBonusPercent":"Physical Damage Bonus %","physicalDamageReductionPercent":"Physical Damage Reduction %","magicDamageBonusPercent":"Magic Damage Bonus %","magicDamageReductionPercent":"Magic Damage Reduction %","damageIncreasePercent":"Damage Increase %","damageReductionPercent":"Damage Reduction %","physicalPenetrationPercent":"Physical Penetration","magicPenetrationPercent":"Magic Penetration","damageVsAllJob":"DMG vs All Job","damageReductionVsAllJob":"DMG Reduction vs All Job","damageVsMedium":"DMG vs Medium","damageReductionVsMedium":"DMG Reduction vs Medium","bladeCrystal":"Blade Crystal","shieldCrystal":"Shield Crystal","manaCrystal":"Mana Crystal","magicDefCrystal":"Magic DEF Crystal"};
+const RO3_FIELDS = RO3_STAT_FIELDS.map(({ key }) => key);
+const RO3_LABELS: Record<string, string> = RO3_STAT_LABELS;
 
 const MEMBER_DISPLAY_FIELDS = [
   { key: "characterName", label: "Character", group: "Identity & Guild" },
