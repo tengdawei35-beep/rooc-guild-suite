@@ -11,26 +11,23 @@ const percentKeys=new Set<RO3StatKey>(["healingDonePercent","critDamagePercent",
 function find(text: string): RO3Stats {
   const out: RO3Stats = {};
 
-  for (const line of text.split(/\\r?\\n/)) {
+  for (const line of text.split(/\r?\n/)) {
     const normalizedLine = norm(line);
 
     for (const [key, aliases] of Object.entries(LABELS) as [RO3StatKey, string[]][]) {
       for (const alias of aliases) {
         const normalizedAlias = norm(alias);
         const isCrystal = ["bladeCrystal", "shieldCrystal", "manaCrystal", "magicDefCrystal"].includes(key);
-        // Normal stat labels must begin the OCR line. A substring match would
-        // misclassify "Crit Damage Reduction" as generic "Damage Reduction".
+        // Anchor normal stat labels to avoid matching overlapping labels.
         const index = isCrystal
           ? normalizedLine.indexOf(normalizedAlias)
           : normalizedLine.startsWith(normalizedAlias) ? 0 : -1;
         if (index < 0) continue;
 
-        // Special Dish crystal quantities are displayed immediately BEFORE
-        // the crystal name in the game UI (e.g. "0 Blade Crystal"). They are
-        // not the "Uses Remaining: 50/50" counter shown on the right.
-        if (["bladeCrystal", "shieldCrystal", "manaCrystal", "magicDefCrystal"].includes(key)) {
+        if (isCrystal) {
+          // Crystal value precedes the name; Uses Remaining is a separate counter.
           const prefix = normalizedLine.slice(0, index);
-          const matches = [...prefix.matchAll(/(?:^|\\s)(\\d{1,2})(?=\\s|$)/g)];
+          const matches = [...prefix.matchAll(/(?:^|\s)(\d{1,2})(?=\s|$)/g)];
           const displayedValue = matches.at(-1)?.[1];
           if (displayedValue !== undefined) {
             const parsed = Number(num(displayedValue));
@@ -40,7 +37,7 @@ function find(text: string): RO3Stats {
         }
 
         const valueText = normalizedLine.slice(index + normalizedAlias.length);
-        const match = valueText.match(/[-+]?\\d[\\d,.]*%?/);
+        const match = valueText.match(/[-+]?\d[\d,.]*%?/);
         if (!match) continue;
         if (percentKeys.has(key) && !match[0].includes("%")) continue;
 
