@@ -90,11 +90,13 @@ export default function MemberOcrPage() {
     setSaving(true); setMessage(null);
     try {
       const payload: Record<string, unknown> = gameType === "RO3" ? { job: values.job.trim(), ro3Stats: {} as Record<string, number> } : { job: values.job.trim() };
-      for (const [field] of numericFields) {
+      for (const [field, label] of numericFields) {
         const value = (values[field] ?? "").trim();
+        if (!value) continue;
         const normalized = value.replace(/,/g, "");
         const number = Number(normalized);
-        if (!Number.isFinite(number)) throw new Error(`${field} must be a valid number.`);
+        if (!Number.isFinite(number) || number < 0) throw new Error(`${label} must be a valid non-negative number.`);
+        if (gameType === "RO3" && ["bladeCrystal", "shieldCrystal", "manaCrystal", "magicDefCrystal"].includes(field) && number > 50) throw new Error(`${label} must be between 0 and 50.`);
         if (gameType === "RO3") (payload.ro3Stats as Record<string, number>)[field] = number; else payload[field] = number;
       }
       const response = await fetch(`/api/guild/members/${memberId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
@@ -115,10 +117,12 @@ export default function MemberOcrPage() {
     setSaving(true); setMessage(null);
     try {
       const payload: Record<string, unknown> = { ...(gameType === "RO3" ? { ro3Stats: {} as Record<string, number> } : {}), discordUserId: discordUserId.trim() || null, discordUsername: discordUsername.trim() || null, characterName: values.characterName.trim(), job: values.job.trim(), priority: "MEMBER", active: true, eligible: true };
-      for (const [field] of NUMERIC_FIELDS) {
+      for (const [field, label] of numericFields) {
         const value = (values[field] ?? "").trim();
+        if (!value) continue;
         const number = Number(value.replace(/,/g, ""));
-        if (!Number.isFinite(number)) throw new Error(`${field} must be a valid number.`);
+        if (!Number.isFinite(number) || number < 0) throw new Error(`${label} must be a valid non-negative number.`);
+        if (gameType === "RO3" && ["bladeCrystal", "shieldCrystal", "manaCrystal", "magicDefCrystal"].includes(field) && number > 50) throw new Error(`${label} must be between 0 and 50.`);
         if (gameType === "RO3") (payload.ro3Stats as Record<string, number>)[field] = number; else payload[field] = number;
       }
       const response = await fetch("/api/guild/members", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });

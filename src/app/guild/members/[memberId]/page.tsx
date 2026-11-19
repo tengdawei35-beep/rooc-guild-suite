@@ -77,8 +77,10 @@ export default async function MemberProfilePage({ params }: PageProps) {
     );
   }
 
-  const rawPdef = calculateRawPdef(member.pdef, member.equipmentPdefPercent);
-  const rawMdef = calculateRawMdef(member.mdef, member.equipmentMdefPercent);
+  const guild = await prisma.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true } });
+  const isRO3 = guild?.gameType === "RO3";
+  const rawPdef = isRO3 ? 0 : calculateRawPdef(member.pdef, member.equipmentPdefPercent);
+  const rawMdef = isRO3 ? 0 : calculateRawMdef(member.mdef, member.equipmentMdefPercent);
 
   return <MemberProfileClient memberId={memberId} rawPdef={rawPdef} rawMdef={rawMdef} />;
 }

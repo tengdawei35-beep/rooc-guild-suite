@@ -68,7 +68,7 @@ type HistoryEntry = {
   createdAt: string;
 };
 
-type ApiResponse = { member: MemberProfile; current: CurrentScore; history: HistoryEntry[] };
+type ApiResponse = { gameType: "ROOC" | "RO3"; member: MemberProfile; current: CurrentScore; history: HistoryEntry[] };
 
 export default function MemberProfileClient({ memberId, rawPdef, rawMdef }: { memberId: string; rawPdef: number; rawMdef: number }) {
   const [data, setData] = useState<ApiResponse | null>(null);
@@ -100,7 +100,7 @@ export default function MemberProfileClient({ memberId, rawPdef, rawMdef }: { me
   if (error) return <main className="min-h-screen bg-zinc-950 text-white"><div className="mx-auto max-w-7xl p-6"><div className="rounded-lg border border-red-900 bg-red-950/40 p-4 text-sm text-red-400">{error}</div><Link href="/guild/members" className="mt-4 inline-block text-sm text-zinc-500 transition hover:text-white">← Back to members</Link></div></main>;
   if (!data) return null;
 
-  const { member, current, history } = data;
+  const { member, current, history, gameType } = data;
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
@@ -116,7 +116,7 @@ export default function MemberProfileClient({ memberId, rawPdef, rawMdef }: { me
           </div>
         </div>
 
-        <section className="mb-8">
+        {gameType === "ROOC" && <section className="mb-8">
           <SectionTitle>Performance</SectionTitle>
           {current ? (
             <>
@@ -139,17 +139,18 @@ export default function MemberProfileClient({ memberId, rawPdef, rawMdef }: { me
           ) : (
             <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-6 text-sm text-zinc-500">No roster performance history yet.</div>
           )}
-        </section>
+        </section>}
 
         <section className="mb-8"><SectionTitle>Character Information</SectionTitle><div className="grid gap-px overflow-hidden rounded-lg border border-zinc-800 bg-zinc-800 md:grid-cols-2"><InfoRow label="Character" value={member.characterName} /><InfoRow label="Discord Name" value={member.discordUsername} /><InfoRow label="Job" value={member.job} /><InfoRow label="Priority" value={member.priority} /><InfoRow label="Active" value={member.active ? "Yes" : "No"} /><InfoRow label="Eligible" value={member.eligible ? "Yes" : "No"} />{member.remarks ? <div className="bg-zinc-900 p-4 md:col-span-2"><div className="text-xs font-medium uppercase tracking-wide text-zinc-500">Remarks</div><div className="mt-2 whitespace-pre-wrap text-sm text-zinc-300">{member.remarks}</div></div> : null}</div></section>
 
-        {member.ro3Stats ? <StatSection title="RO3 Character Stats" stats={Object.entries(member.ro3Stats).map(([key, value]) => [key.replace(/([A-Z])/g, " $1").replace(/^./, (letter) => letter.toUpperCase()), typeof value === "number" ? value : null] as [string, number | null])} /> : null}
+        {gameType === "RO3" ? (member.ro3Stats ? <StatSection title="RO3 Character Stats" stats={Object.entries(member.ro3Stats).map(([key, value]) => [key.replace(/([A-Z])/g, " $1").replace(/^./, (letter) => letter.toUpperCase()), typeof value === "number" ? value : null] as [string, number | null])} /> : <div className="mb-8 rounded-lg border border-zinc-800 bg-zinc-900 p-5 text-sm text-zinc-500">No RO3 character stats have been submitted.</div>) : <>
         <StatSection title="Derived Character Stats" stats={[["RAW PDEF", rawPdef], ["RAW MDEF", rawMdef]]} />
         <StatSection title="Core Stats" stats={[["HP", member.hp], ["P.ATK", member.patk], ["M.ATK", member.matk], ["P.DEF", member.pdef], ["M.DEF", member.mdef], ["Crit RES", member.critRes], ["Ignore P.DEF", member.ignorePdef], ["Ignore M.DEF", member.ignoreMdef]]} />
         <StatSection title="PvP" stats={[["PvP Damage Bonus", member.pvpDamageBonus], ["PvP Damage Reduction", member.pvpDamageReduction], ["PDMG %", member.pdmgPercent, true], ["MDMG %", member.mdmgPercent, true], ["PDMG Reduction %", member.pdmgReductionPercent, true], ["MDMG Reduction %", member.mdmgReductionPercent, true]]} />
         <StatSection title="Size Modifiers" stats={[["Damage vs Small", member.damageVsSmall, true], ["Reduction vs Small", member.damageReductionVsSmall, true], ["Damage vs Medium", member.damageVsMedium, true], ["Reduction vs Medium", member.damageReductionVsMedium, true]]} />
         <StatSection title="Race Modifiers" stats={[["Damage vs Demi-Human", member.damageVsDemiHuman, true], ["Reduction vs Demi-Human", member.damageReductionVsDemiHuman, true], ["Damage vs Brute", member.damageVsBrute, true], ["Reduction vs Brute", member.damageReductionVsBrute, true]]} />
         <StatSection title="Equipment" stats={[["Equipment P.DEF %", member.equipmentPdefPercent, true], ["Equipment M.DEF %", member.equipmentMdefPercent, true]]} />
+        </>}
 
         <section className="mb-8"><SectionTitle>Leave / Unavailability</SectionTitle>{member.leaveDates.length === 0 ? <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-5 text-sm text-zinc-500">No leave dates recorded.</div> : <div className="overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900"><table className="w-full text-sm"><thead className="border-b border-zinc-800 bg-zinc-950"><tr><th className="px-4 py-3 text-left font-medium text-zinc-400">Date</th><th className="px-4 py-3 text-left font-medium text-zinc-400">Reason</th></tr></thead><tbody>{member.leaveDates.map((leave) => <tr key={leave.id} className="border-b border-zinc-800 last:border-0"><td className="px-4 py-3 text-zinc-300">{formatDate(leave.date)}</td><td className="px-4 py-3 text-zinc-400">{leave.reason || "—"}</td></tr>)}</tbody></table></div>}</section>
 
