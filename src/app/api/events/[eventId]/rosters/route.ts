@@ -194,6 +194,7 @@ export async function POST(
           guildId: true,
           type: true,
           date: true,
+          guild: { select: { gameType: true } },
         },
       });
 
@@ -206,6 +207,15 @@ export async function POST(
         {
           status: 404,
         }
+      );
+    }
+
+    // Automatic/preferred roster generation depends on ROOC-only scoring.
+    // Never run those formulas against RO3 member records.
+    if (event.guild.gameType === "RO3") {
+      return NextResponse.json(
+        { error: "Automatic roster generation is not available for RO3 until RO3 scoring is configured. You can still create and edit a roster manually." },
+        { status: 409 }
       );
     }
 

@@ -2,7 +2,7 @@ import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentAuth, hasPermission } from "@/lib/auth";
-import { JOBS } from "@/lib/constants/jobs";
+import { jobsForGame } from "@/lib/constants/jobs";
 
 const JOB_MAX_LENGTH = 60;
 
@@ -88,14 +88,16 @@ export async function PATCH(request: Request, context: RouteContext) {
       return errorResponse("Assignment ID is required.", 400);
     }
 
+    const event = await prisma.event.findFirst({
+      where: { id: eventId, guildId: auth.guild.id },
+      select: { guild: { select: { gameType: true } } },
+    });
+    if (!event) return errorResponse("Event not found.", 404);
+
     const rawJob = typeof body.job === "string" ? body.job.trim() : "";
-    if (
-      rawJob &&
-      !JOBS.includes(
-        rawJob as (typeof JOBS)[number]
-      )
-    ) {
-      return errorResponse("Invalid job.", 400);
+    const validJobs = jobsForGame(event.guild.gameType);
+    if (rawJob && !validJobs.includes(rawJob as (typeof validJobs)[number])) {
+      return errorResponse("Invalid job for this game's guild.", 400);
     }
     if (rawJob.length > JOB_MAX_LENGTH) {
       return errorResponse(`Job must be ${JOB_MAX_LENGTH} characters or fewer.`, 400);
