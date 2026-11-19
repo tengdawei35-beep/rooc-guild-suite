@@ -4,7 +4,7 @@ import { getCurrentAuth, hasPermission } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 import { jobsForGame } from "@/lib/constants/jobs";
-import { RO3_STAT_KEYS } from "@/lib/ocr/ro3-stats";
+import { RO3_STAT_KEYS } from "@/lib/constants/ro3-stats";
 import { refreshGuildRankings } from "@/lib/scoring/refresh-guild-rankings";
 
 type MemberRequest = {
