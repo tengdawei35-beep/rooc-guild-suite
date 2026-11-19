@@ -60,6 +60,14 @@ function percentile(value: number, values: number[]) {
 }
 
 export async function refreshGuildRankings(guildId: string) {
+  // ROO scoring is not valid for RO3. Guard before reading or writing member
+  // ranking fields so background refresh callers cannot contaminate RO3 data.
+  const guild = await prisma.guild.findUnique({
+    where: { id: guildId },
+    select: { gameType: true },
+  });
+  if (!guild || guild.gameType !== "ROOC") return;
+
   const members = await prisma.guildMember.findMany({
     where: {
       guildId,
