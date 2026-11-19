@@ -17,7 +17,12 @@ function find(text: string): RO3Stats {
     for (const [key, aliases] of Object.entries(LABELS) as [RO3StatKey, string[]][]) {
       for (const alias of aliases) {
         const normalizedAlias = norm(alias);
-        const index = normalizedLine.indexOf(normalizedAlias);
+        const isCrystal = ["bladeCrystal", "shieldCrystal", "manaCrystal", "magicDefCrystal"].includes(key);
+        // Normal stat labels must begin the OCR line. A substring match would
+        // misclassify "Crit Damage Reduction" as generic "Damage Reduction".
+        const index = isCrystal
+          ? normalizedLine.indexOf(normalizedAlias)
+          : normalizedLine.startsWith(normalizedAlias) ? 0 : -1;
         if (index < 0) continue;
 
         // Special Dish crystal quantities are displayed immediately BEFORE
