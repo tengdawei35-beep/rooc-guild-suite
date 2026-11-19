@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getCurrentAuth } from "@/lib/auth";
+import { getCurrentAuth, hasPermission } from "@/lib/auth";
 import { readRooStats } from "@/lib/ocr/roo-stats";
 import { readRO3Stats } from "@/lib/ocr/ro3-stats";
 import { prisma } from "@/lib/prisma";
@@ -16,6 +16,26 @@ export async function POST(request: Request) {
 
   try {
     const formData = await request.formData();
+    const memberIdValue = formData.get("memberId");
+    const memberId = typeof memberIdValue === "string" ? memberIdValue : null;
+
+    if (memberId) {
+      const member = await prisma.guildMember.findFirst({
+        where: { id: memberId, guildId: auth.guild.id },
+        select: { id: true, userId: true, discordUserId: true },
+      });
+      if (!member) return NextResponse.json({ error: "Guild member not found." }, { status: 404 });
+
+      const isOwnMember = member.userId === auth.user.id || member.discordUserId === auth.user.discordId;
+      const canEditAny = hasPermission(auth.role, "members.edit");
+      const canEditOwn = isOwnMember && hasPermission(auth.role, "profile.editOwn");
+      if (!canEditAny && !canEditOwn) {
+        return NextResponse.json({ error: "You do not have permission to read stats for this member." }, { status: 403 });
+      }
+    } else if (!hasPermission(auth.role, "members.import")) {
+      return NextResponse.json({ error: "You do not have permission to import member screenshots." }, { status: 403 });
+    }
+
     const entries = formData.getAll("images");
     const files = entries.filter((entry): entry is File => entry instanceof File);
 
@@ -26,6 +46,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "A maximum of 12 screenshots can be read at once." }, { status: 400 });
     }
 
+    let totalBytes = 0;
     for (const file of files) {
       if (!ALLOWED_TYPES.has(file.type)) {
         return NextResponse.json({ error: `${file.name || "File"} is not a supported image type.` }, { status: 400 });
@@ -33,11 +54,16 @@ export async function POST(request: Request) {
       if (file.size > MAX_FILE_BYTES) {
         return NextResponse.json({ error: `${file.name || "File"} is larger than 8 MB.` }, { status: 400 });
       }
+      totalBytes += file.size;
+    }
+    if (totalBytes > 24 * 1024 * 1024) {
+      return NextResponse.json({ error: "Combined screenshot size cannot exceed 24 MB." }, { status: 400 });
     }
 
     const buffers = await Promise.all(files.map(async (file) => Buffer.from(await file.arrayBuffer())));
     const guild = await prisma.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true } });
-    const result = guild?.gameType === "RO3" ? await readRO3Stats(buffers) : await readRooStats(buffers);
+    if (!guild) return NextResponse.json({ error: "Guild not found." }, { status: 404 });
+    const result = guild.gameType === "RO3" ? await readRO3Stats(buffers) : await readRooStats(buffers);
     return NextResponse.json(result);
   } catch (error) {
     console.error("[MEMBER OCR] Failed to read screenshots:", error);

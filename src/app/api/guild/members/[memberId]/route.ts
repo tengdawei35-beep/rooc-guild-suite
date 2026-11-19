@@ -77,7 +77,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     if (guild?.gameType === "RO3" && numericFields.some((field) => field in body)) return NextResponse.json({ error: "Use the RO3 stats object for RO3 character statistics." }, { status: 400 });
     for (const field of numericFields) { if (!(field in body)) continue; if (body[field] === null || body[field] === "") data[field] = null; else if (typeof body[field] === "number" && Number.isFinite(body[field])) data[field] = body[field]; else return NextResponse.json({ error: `Invalid value for ${field}.` }, { status: 400 }); }
     const updated = await prisma.guildMember.update({ where: { id: member.id }, data, select: { id: true, characterName: true, job: true, updatedAt: true } });
-    await refreshGuildRankings(auth.guild.id);
+    if (guild?.gameType !== "RO3") await refreshGuildRankings(auth.guild.id);
     return NextResponse.json({ success: true, member: updated });
   } catch (error) { console.error("[MEMBER PROFILE] Failed to update:", error); return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to update member profile." }, { status: 500 }); }
 }
