@@ -173,6 +173,10 @@ export async function POST(request: Request) {
     return member;
     }, { isolationLevel: "Serializable" });
   } catch (error) {
+    const code = error && typeof error === "object" && "code" in error ? String(error.code) : "";
+    if (code === "P2002") {
+      return NextResponse.json({ error: "That Discord account or character is already registered in this guild. The applicant was not accepted." }, { status: 409 });
+    }
     console.error("[APPLICANTS] Acceptance failed:", error);
     return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to accept applicant." }, { status: 409 });
   }

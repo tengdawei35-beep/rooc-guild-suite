@@ -338,7 +338,20 @@ export async function POST(request: Request) {
       operationMeta.push({ row: index + 2, discordUsername, action: existing ? "updated" : "created" });
     }
 
-    await prisma.$transaction(operations);
+    try {
+      await prisma.$transaction(operations);
+    } catch (error) {
+      if (error && typeof error === "object" && "code" in error && error.code === "P2002") {
+        return NextResponse.json({
+          success: false,
+          created: 0,
+          updated: 0,
+          errors: [],
+          message: "Import conflicts with existing guild membership records. No changes were made.",
+        }, { status: 409 });
+      }
+      throw error;
+    }
 
     const created = operationMeta.filter((result) => result.action === "created").length;
     const updated = operationMeta.length - created;
