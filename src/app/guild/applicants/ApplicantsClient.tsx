@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { RO3_STAT_FIELDS, RO3_STAT_LABELS, type RO3StatKey } from "@/lib/constants/ro3-stats";
 
 type Applicant = {
   id: string;
@@ -133,25 +134,11 @@ function StatsGrid({ applicant }: { applicant: Applicant }) {
 
 
 function RO3StatsGrid({ stats }: { stats: Record<string, number | null> | null }) {
-  const labels: Record<string, string> = {
-    hp: "HP", patk: "PATK", matk: "MATK", pdef: "PDEF", mdef: "MDEF",
-    healingDonePercent: "Healing Done %", critDamagePercent: "Crit Damage %",
-    critDamageReductionPercent: "Crit Damage Reduction %", physicalDamageBonusPercent: "Physical Damage Bonus %",
-    physicalDamageReductionPercent: "Physical Damage Reduction %", magicDamageBonusPercent: "Magic Damage Bonus %",
-    magicDamageReductionPercent: "Magic Damage Reduction %", damageIncreasePercent: "Damage Increase %",
-    damageReductionPercent: "Damage Reduction %", physicalPenetrationPercent: "Physical Penetration",
-    magicPenetrationPercent: "Magic Penetration", damageVsAllJob: "DMG vs All Job",
-    damageReductionVsAllJob: "DMG Reduction vs All Job", damageVsMedium: "DMG vs Medium",
-    damageReductionVsMedium: "DMG Reduction vs Medium", bladeCrystal: "Blade Crystal",
-    shieldCrystal: "Shield Crystal", manaCrystal: "Mana Crystal", magicDefCrystal: "Magic DEF Crystal",
-  };
-  const groups = [
-    { title: "Core Stats", keys: ["hp", "patk", "matk", "pdef", "mdef"] },
-    { title: "Combat Modifiers", keys: ["healingDonePercent", "critDamagePercent", "critDamageReductionPercent", "physicalDamageBonusPercent", "physicalDamageReductionPercent", "magicDamageBonusPercent", "magicDamageReductionPercent", "damageIncreasePercent", "damageReductionPercent", "physicalPenetrationPercent", "magicPenetrationPercent"] },
-    { title: "Target Modifiers", keys: ["damageVsAllJob", "damageReductionVsAllJob", "damageVsMedium", "damageReductionVsMedium"] },
-    { title: "Special Dish", keys: ["bladeCrystal", "shieldCrystal", "manaCrystal", "magicDefCrystal"] },
-  ];
-  return <div className="grid gap-4 md:grid-cols-2">{groups.map(group => <section key={group.title} className="rounded-xl border border-zinc-800 bg-zinc-950 p-5"><h3 className="font-semibold">{group.title}</h3><div className="mt-4 grid grid-cols-2 gap-2">{group.keys.map(key => <div key={key} className="rounded-lg border border-zinc-800 px-3 py-2"><p className="text-xs text-zinc-500">{labels[key]}</p><p className="mt-1 text-sm font-semibold">{stats?.[key] == null ? "—" : formatStat(stats[key]!)}</p></div>)}</div></section>)}</div>;
+  const groups = ["Core Stats", "Combat Modifiers", "Target Modifiers", "Special Dish"] as const;
+  return <div className="grid gap-4 md:grid-cols-2">{groups.map(group => {
+    const fields = RO3_STAT_FIELDS.filter(field => field.group === group);
+    return <section key={group} className="rounded-xl border border-zinc-800 bg-zinc-950 p-5"><h3 className="font-semibold">{group}</h3><div className="mt-4 grid grid-cols-2 gap-2">{fields.map(({ key }) => <div key={key} className="rounded-lg border border-zinc-800 px-3 py-2"><p className="text-xs text-zinc-500">{RO3_STAT_LABELS[key as RO3StatKey]}</p><p className="mt-1 text-sm font-semibold">{stats?.[key] == null ? "—" : formatStat(stats[key]!)}</p></div>)}</div></section>;
+  })}</div>;
 }
 
 function formatStat(value: number | null) {
