@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { jobsForGame } from "@/lib/constants/jobs";
+import { RO3_STAT_INPUT_FIELDS } from "@/lib/constants/ro3-stats";
 
 const ROOC_FIELDS = [
   ["pdef", "PDEF"], ["mdef", "MDEF"], ["patk", "PATK"], ["matk", "MATK"], ["hp", "HP"],
@@ -15,7 +16,7 @@ const ROOC_FIELDS = [
   ["equipmentPdefPercent", "Equipment PDEF %"], ["equipmentMdefPercent", "Equipment MDEF %"],
 ] as const;
 
-const RO3_FIELDS = [["hp","HP"],["patk","PATK"],["matk","MATK"],["pdef","PDEF"],["mdef","MDEF"],["healingDonePercent","Healing Done %"],["critDamagePercent","Crit Damage %"],["critDamageReductionPercent","Crit Damage Reduction %"],["physicalDamageBonusPercent","Physical Damage Bonus %"],["physicalDamageReductionPercent","Physical Damage Reduction %"],["magicDamageBonusPercent","Magic Damage Bonus %"],["magicDamageReductionPercent","Magic Damage Reduction %"],["damageIncreasePercent","Damage Increase %"],["damageReductionPercent","Damage Reduction %"],["physicalPenetrationPercent","Physical Penetration"],["magicPenetrationPercent","Magic Penetration"],["damageVsAllJob","Damage vs All Job"],["damageReductionVsAllJob","Reduction vs All Job"],["damageVsMedium","Damage vs Medium"],["damageReductionVsMedium","Reduction vs Medium"],["bladeCrystal","Blade Crystal"],["shieldCrystal","Shield Crystal"],["manaCrystal","Mana Crystal"],["magicDefCrystal","Magic DEF Crystal"]] as const;
+const RO3_FIELDS = RO3_STAT_INPUT_FIELDS;
 
 type Field = string;
 type Stats = Record<Field, string>;

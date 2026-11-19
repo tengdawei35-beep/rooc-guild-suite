@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { RO3_STAT_LABELS, type RO3StatKey } from "@/lib/constants/ro3-stats";
 
 type MemberProfile = {
   id: string;
@@ -143,7 +144,7 @@ export default function MemberProfileClient({ memberId, rawPdef, rawMdef }: { me
 
         <section className="mb-8"><SectionTitle>Character Information</SectionTitle><div className="grid gap-px overflow-hidden rounded-lg border border-zinc-800 bg-zinc-800 md:grid-cols-2"><InfoRow label="Character" value={member.characterName} /><InfoRow label="Discord Name" value={member.discordUsername} /><InfoRow label="Job" value={member.job} /><InfoRow label="Priority" value={member.priority} /><InfoRow label="Active" value={member.active ? "Yes" : "No"} /><InfoRow label="Eligible" value={member.eligible ? "Yes" : "No"} />{member.remarks ? <div className="bg-zinc-900 p-4 md:col-span-2"><div className="text-xs font-medium uppercase tracking-wide text-zinc-500">Remarks</div><div className="mt-2 whitespace-pre-wrap text-sm text-zinc-300">{member.remarks}</div></div> : null}</div></section>
 
-        {gameType === "RO3" ? (member.ro3Stats ? <StatSection title="RO3 Character Stats" stats={Object.entries(member.ro3Stats).map(([key, value]) => [key.replace(/([A-Z])/g, " $1").replace(/^./, (letter) => letter.toUpperCase()), typeof value === "number" ? value : null] as [string, number | null])} /> : <div className="mb-8 rounded-lg border border-zinc-800 bg-zinc-900 p-5 text-sm text-zinc-500">No RO3 character stats have been submitted.</div>) : <>
+        {gameType === "RO3" ? (member.ro3Stats ? <StatSection title="RO3 Character Stats" stats={Object.entries(member.ro3Stats).map(([key, value]) => [(RO3_STAT_LABELS[key as RO3StatKey] ?? key.replace(/([A-Z])/g, " $1").replace(/^./, (letter) => letter.toUpperCase())), typeof value === "number" ? value : null] as [string, number | null])} /> : <div className="mb-8 rounded-lg border border-zinc-800 bg-zinc-900 p-5 text-sm text-zinc-500">No RO3 character stats have been submitted.</div>) : <>
         <StatSection title="Derived Character Stats" stats={[["RAW PDEF", rawPdef], ["RAW MDEF", rawMdef]]} />
         <StatSection title="Core Stats" stats={[["HP", member.hp], ["P.ATK", member.patk], ["M.ATK", member.matk], ["P.DEF", member.pdef], ["M.DEF", member.mdef], ["Crit RES", member.critRes], ["Ignore P.DEF", member.ignorePdef], ["Ignore M.DEF", member.ignoreMdef]]} />
         <StatSection title="PvP" stats={[["PvP Damage Bonus", member.pvpDamageBonus], ["PvP Damage Reduction", member.pvpDamageReduction], ["PDMG %", member.pdmgPercent, true], ["MDMG %", member.mdmgPercent, true], ["PDMG Reduction %", member.pdmgReductionPercent, true], ["MDMG Reduction %", member.mdmgReductionPercent, true]]} />
