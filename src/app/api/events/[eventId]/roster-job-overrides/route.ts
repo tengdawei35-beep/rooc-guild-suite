@@ -95,8 +95,8 @@ export async function PATCH(request: Request, context: RouteContext) {
     if (!event) return errorResponse("Event not found.", 404);
 
     const rawJob = typeof body.job === "string" ? body.job.trim() : "";
-    const validJobs = jobsForGame(event.guild.gameType);
-    if (rawJob && !validJobs.includes(rawJob as (typeof validJobs)[number])) {
+    const validJobs: readonly string[] = jobsForGame(event.guild.gameType);
+    if (rawJob && !validJobs.includes(rawJob)) {
       return errorResponse("Invalid job for this game's guild.", 400);
     }
     if (rawJob.length > JOB_MAX_LENGTH) {
