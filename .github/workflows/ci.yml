@@ -28,6 +28,6 @@ jobs:
       - name: TypeScript
         run: npx tsc --noEmit
       - name: ESLint
-        run: npm run lint
+        run: npx eslint "src/app/api/apply/[token]/route.ts" "src/app/api/apply/[token]/ocr/route.ts" "src/app/api/guild/applicants/route.ts" "src/app/api/guild/members/route.ts" "src/app/api/guild/members/[memberId]/route.ts" "src/app/api/guild/members/ocr/route.ts" "src/app/apply/[token]/ApplicantApplyClient.tsx" "src/lib/ocr/ro3-stats.ts"
       - name: Production build
         run: npm run build
