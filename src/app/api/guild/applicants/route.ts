@@ -40,13 +40,15 @@ export async function GET() {
   if (!hasPermission(auth.role, "applicants.view")) return forbidden();
   // Load the guild roster once. Previously this query ran once per applicant,
   // multiplying database work and delaying the entire response.
-  const [applicants, members] = await Promise.all([
+  const [guild, applicants, members] = await Promise.all([
+    prisma.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true } }),
     prisma.guildApplicant.findMany({ where: { guildId: auth.guild.id } }),
     getActiveGuildMembers(auth.guild.id),
   ]);
+  const gameType = guild?.gameType === "RO3" ? "RO3" : "ROOC";
   const rankedApplicants = applicants.map((applicant) => ({
     ...applicant,
-    comparison: buildComparison(applicant, members),
+    comparison: gameType === "ROOC" ? buildComparison(applicant, members) : null,
   }));
 
   const statusOrder = { PENDING: 0, ACCEPTED: 1, DENIED: 2 } as const;
@@ -68,7 +70,7 @@ export async function GET() {
     return statusDifference;
   });
 
-  return NextResponse.json({ applicants: rankedApplicants });
+  return NextResponse.json({ gameType, applicants: rankedApplicants });
 }
 
 export async function POST(request: Request) {
@@ -84,6 +86,8 @@ export async function POST(request: Request) {
     const updated = await prisma.guildApplicant.update({ where: { id: applicant.id }, data: { status: "DENIED", remarks: body.remarks?.trim() || null, decidedAt: new Date(), decidedByUserId: auth.user.id } });
     return NextResponse.json({ application: updated });
   }
+  const guild = await prisma.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true } });
+  const gameType = guild?.gameType === "RO3" ? "RO3" : "ROOC";
   const existingMember = await prisma.guildMember.findFirst({ where: { guildId: auth.guild.id, discordUserId: applicant.discordUserId } });
   if (existingMember) return NextResponse.json({ error: "This Discord account is already a guild member." }, { status: 409 });
   const userId = applicant.userId;
@@ -93,8 +97,9 @@ export async function POST(request: Request) {
   if (!userId) return NextResponse.json({ error: "Applicant Discord account is not linked to a user record." }, { status: 409 });
   if (!characterName) return NextResponse.json({ error: "Applicant character name is required before acceptance." }, { status: 409 });
   if (!job) return NextResponse.json({ error: "Applicant job is required before acceptance." }, { status: 409 });
+  if (gameType === "RO3" && (!applicant.ro3Stats || typeof applicant.ro3Stats !== "object")) return NextResponse.json({ error: "RO3 character stats are missing from this application." }, { status: 409 });
   const created = await prisma.$transaction(async (tx) => {
-    const member = await tx.guildMember.create({ data: { guildId: auth.guild.id, userId, discordUserId: applicant.discordUserId, discordUsername: discordUsername || null, characterName, job, active: true, eligible: true, pdef: applicant.pdef, mdef: applicant.mdef, pvpDamageBonus: applicant.pvpDamageBonus, pvpDamageReduction: applicant.pvpDamageReduction, pdmgPercent: applicant.pdmgPercent, mdmgPercent: applicant.mdmgPercent, pdmgReductionPercent: applicant.pdmgReductionPercent, mdmgReductionPercent: applicant.mdmgReductionPercent, critRes: applicant.critRes, ignorePdef: applicant.ignorePdef, ignoreMdef: applicant.ignoreMdef, damageVsMedium: applicant.damageVsMedium, damageReductionVsMedium: applicant.damageReductionVsMedium, damageVsSmall: applicant.damageVsSmall, damageReductionVsSmall: applicant.damageReductionVsSmall, damageVsDemiHuman: applicant.damageVsDemiHuman, damageReductionVsDemiHuman: applicant.damageReductionVsDemiHuman, damageVsBrute: applicant.damageVsBrute, damageReductionVsBrute: applicant.damageReductionVsBrute, equipmentPdefPercent: applicant.equipmentPdefPercent, equipmentMdefPercent: applicant.equipmentMdefPercent, patk: applicant.patk, matk: applicant.matk, hp: applicant.hp } });
+    const member = await tx.guildMember.create({ data: { guildId: auth.guild.id, userId, discordUserId: applicant.discordUserId, discordUsername: discordUsername || null, characterName, job, active: true, eligible: true, ro3Stats: gameType === "RO3" ? applicant.ro3Stats ?? {} : null, pdef: applicant.pdef, mdef: applicant.mdef, pvpDamageBonus: applicant.pvpDamageBonus, pvpDamageReduction: applicant.pvpDamageReduction, pdmgPercent: applicant.pdmgPercent, mdmgPercent: applicant.mdmgPercent, pdmgReductionPercent: applicant.pdmgReductionPercent, mdmgReductionPercent: applicant.mdmgReductionPercent, critRes: applicant.critRes, ignorePdef: applicant.ignorePdef, ignoreMdef: applicant.ignoreMdef, damageVsMedium: applicant.damageVsMedium, damageReductionVsMedium: applicant.damageReductionVsMedium, damageVsSmall: applicant.damageVsSmall, damageReductionVsSmall: applicant.damageReductionVsSmall, damageVsDemiHuman: applicant.damageVsDemiHuman, damageReductionVsDemiHuman: applicant.damageReductionVsDemiHuman, damageVsBrute: applicant.damageVsBrute, damageReductionVsBrute: applicant.damageReductionVsBrute, equipmentPdefPercent: applicant.equipmentPdefPercent, equipmentMdefPercent: applicant.equipmentMdefPercent, patk: applicant.patk, matk: applicant.matk, hp: applicant.hp } });
     await tx.guildMembership.upsert({ where: { userId_guildId: { userId, guildId: auth.guild.id } }, update: { role: "MEMBER" }, create: { userId, guildId: auth.guild.id, role: "MEMBER" } });
     await tx.guildApplicant.update({ where: { id: applicant.id }, data: { status: "ACCEPTED", remarks: body.remarks?.trim() || null, decidedAt: new Date(), decidedByUserId: auth.user.id } });
     return member;
