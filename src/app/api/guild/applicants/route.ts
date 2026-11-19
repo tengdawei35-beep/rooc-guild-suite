@@ -87,22 +87,84 @@ export async function POST(request: Request) {
     const updated = await prisma.guildApplicant.update({ where: { id: applicant.id }, data: { status: "DENIED", remarks: body.remarks?.trim() || null, decidedAt: new Date(), decidedByUserId: auth.user.id } });
     return NextResponse.json({ application: updated });
   }
-  const guild = await prisma.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true } });
-  const gameType = guild?.gameType === "RO3" ? "RO3" : "ROOC";
-  const existingMember = await prisma.guildMember.findFirst({ where: { guildId: auth.guild.id, discordUserId: applicant.discordUserId } });
-  if (existingMember) return NextResponse.json({ error: "This Discord account is already a guild member." }, { status: 409 });
-  const userId = applicant.userId;
-  const characterName = applicant.characterName?.trim();
-  const job = applicant.job?.trim();
-  const discordUsername = applicant.discordUsername?.trim();
-  if (!userId) return NextResponse.json({ error: "Applicant Discord account is not linked to a user record." }, { status: 409 });
-  if (!characterName) return NextResponse.json({ error: "Applicant character name is required before acceptance." }, { status: 409 });
-  if (!job) return NextResponse.json({ error: "Applicant job is required before acceptance." }, { status: 409 });
-  if (gameType === "RO3" && (!applicant.ro3Stats || typeof applicant.ro3Stats !== "object" || Array.isArray(applicant.ro3Stats) || Object.keys(applicant.ro3Stats as object).length === 0)) return NextResponse.json({ error: "RO3 character stats are missing from this application." }, { status: 409 });
   const created = await prisma.$transaction(async (tx) => {
-    const member = await tx.guildMember.create({ data: { guildId: auth.guild.id, userId, discordUserId: applicant.discordUserId, discordUsername: discordUsername || null, characterName, job, active: true, eligible: true, ro3Stats: gameType === "RO3" ? applicant.ro3Stats ?? {} : null, pdef: gameType === "ROOC" ? applicant.pdef : null, mdef: gameType === "ROOC" ? applicant.mdef : null, pvpDamageBonus: gameType === "ROOC" ? applicant.pvpDamageBonus : null, pvpDamageReduction: gameType === "ROOC" ? applicant.pvpDamageReduction : null, pdmgPercent: gameType === "ROOC" ? applicant.pdmgPercent : null, mdmgPercent: gameType === "ROOC" ? applicant.mdmgPercent : null, pdmgReductionPercent: gameType === "ROOC" ? applicant.pdmgReductionPercent : null, mdmgReductionPercent: gameType === "ROOC" ? applicant.mdmgReductionPercent : null, critRes: gameType === "ROOC" ? applicant.critRes : null, ignorePdef: gameType === "ROOC" ? applicant.ignorePdef : null, ignoreMdef: gameType === "ROOC" ? applicant.ignoreMdef : null, damageVsMedium: gameType === "ROOC" ? applicant.damageVsMedium : null, damageReductionVsMedium: gameType === "ROOC" ? applicant.damageReductionVsMedium : null, damageVsSmall: gameType === "ROOC" ? applicant.damageVsSmall : null, damageReductionVsSmall: gameType === "ROOC" ? applicant.damageReductionVsSmall : null, damageVsDemiHuman: gameType === "ROOC" ? applicant.damageVsDemiHuman : null, damageReductionVsDemiHuman: gameType === "ROOC" ? applicant.damageReductionVsDemiHuman : null, damageVsBrute: gameType === "ROOC" ? applicant.damageVsBrute : null, damageReductionVsBrute: gameType === "ROOC" ? applicant.damageReductionVsBrute : null, equipmentPdefPercent: gameType === "ROOC" ? applicant.equipmentPdefPercent : null, equipmentMdefPercent: gameType === "ROOC" ? applicant.equipmentMdefPercent : null, patk: gameType === "ROOC" ? applicant.patk : null, matk: gameType === "ROOC" ? applicant.matk : null, hp: gameType === "ROOC" ? applicant.hp : null } });
-    await tx.guildMembership.upsert({ where: { userId_guildId: { userId, guildId: auth.guild.id } }, update: { role: "MEMBER" }, create: { userId, guildId: auth.guild.id, role: "MEMBER" } });
-    await tx.guildApplicant.update({ where: { id: applicant.id }, data: { status: "ACCEPTED", remarks: body.remarks?.trim() || null, decidedAt: new Date(), decidedByUserId: auth.user.id } });
+    // Re-read mutable records inside the transaction so a concurrent game switch
+    // or second acceptance cannot create a member using stale application state.
+    const [currentGuild, currentApplicant] = await Promise.all([
+      tx.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true } }),
+      tx.guildApplicant.findFirst({ where: { id: applicant.id, guildId: auth.guild.id } }),
+    ]);
+    if (!currentGuild || !currentApplicant) throw new Error("Guild or applicant not found.");
+    if (currentApplicant.status !== "PENDING") throw new Error("This application has already been decided.");
+    const gameType = currentGuild.gameType === "RO3" ? "RO3" : "ROOC";
+    const validJobs = gameType === "RO3" ? RO3_JOBS : ROOC_JOBS;
+    const currentJob = currentApplicant.job?.trim();
+    const currentCharacterName = currentApplicant.characterName?.trim();
+    if (!currentApplicant.userId || !currentCharacterName || !currentJob || !validJobs.includes(currentJob as never)) {
+      throw new Error("Applicant identity or job is invalid for the guild's current game.");
+    }
+    if (gameType === "RO3") {
+      const stats = currentApplicant.ro3Stats;
+      if (!stats || typeof stats !== "object" || Array.isArray(stats) || Object.keys(stats).length === 0) {
+        throw new Error("RO3 character stats are missing from this application.");
+      }
+      for (const [key, value] of Object.entries(stats as Record<string, unknown>)) {
+        if (!RO3_STAT_KEYS.includes(key as (typeof RO3_STAT_KEYS)[number]) || (value !== null && (typeof value !== "number" || !Number.isFinite(value) || value < 0))) {
+          throw new Error("RO3 character stats are invalid. Ask the applicant to resubmit.");
+        }
+        if (["bladeCrystal", "shieldCrystal", "manaCrystal", "magicDefCrystal"].includes(key) && typeof value === "number" && value > 50) {
+          throw new Error("RO3 crystal values must be between 0 and 50.");
+        }
+      }
+    }
+
+    const existingMember = await tx.guildMember.findFirst({
+      where: { guildId: auth.guild.id, discordUserId: currentApplicant.discordUserId },
+      select: { id: true },
+    });
+    if (existingMember) throw new Error("This Discord account is already a guild member.");
+
+    const userId = currentApplicant.userId;
+    const member = await tx.guildMember.create({ data: {
+      guildId: auth.guild.id, userId, discordUserId: currentApplicant.discordUserId,
+      discordUsername: currentApplicant.discordUsername?.trim() || null,
+      characterName: currentCharacterName, job: currentJob, active: true, eligible: true,
+      ro3Stats: gameType === "RO3" ? currentApplicant.ro3Stats ?? {} : null,
+      pdef: gameType === "ROOC" ? currentApplicant.pdef : null,
+      mdef: gameType === "ROOC" ? currentApplicant.mdef : null,
+      pvpDamageBonus: gameType === "ROOC" ? currentApplicant.pvpDamageBonus : null,
+      pvpDamageReduction: gameType === "ROOC" ? currentApplicant.pvpDamageReduction : null,
+      pdmgPercent: gameType === "ROOC" ? currentApplicant.pdmgPercent : null,
+      mdmgPercent: gameType === "ROOC" ? currentApplicant.mdmgPercent : null,
+      pdmgReductionPercent: gameType === "ROOC" ? currentApplicant.pdmgReductionPercent : null,
+      mdmgReductionPercent: gameType === "ROOC" ? currentApplicant.mdmgReductionPercent : null,
+      critRes: gameType === "ROOC" ? currentApplicant.critRes : null,
+      ignorePdef: gameType === "ROOC" ? currentApplicant.ignorePdef : null,
+      ignoreMdef: gameType === "ROOC" ? currentApplicant.ignoreMdef : null,
+      damageVsMedium: gameType === "ROOC" ? currentApplicant.damageVsMedium : null,
+      damageReductionVsMedium: gameType === "ROOC" ? currentApplicant.damageReductionVsMedium : null,
+      damageVsSmall: gameType === "ROOC" ? currentApplicant.damageVsSmall : null,
+      damageReductionVsSmall: gameType === "ROOC" ? currentApplicant.damageReductionVsSmall : null,
+      damageVsDemiHuman: gameType === "ROOC" ? currentApplicant.damageVsDemiHuman : null,
+      damageReductionVsDemiHuman: gameType === "ROOC" ? currentApplicant.damageReductionVsDemiHuman : null,
+      damageVsBrute: gameType === "ROOC" ? currentApplicant.damageVsBrute : null,
+      damageReductionVsBrute: gameType === "ROOC" ? currentApplicant.damageReductionVsBrute : null,
+      equipmentPdefPercent: gameType === "ROOC" ? currentApplicant.equipmentPdefPercent : null,
+      equipmentMdefPercent: gameType === "ROOC" ? currentApplicant.equipmentMdefPercent : null,
+      patk: gameType === "ROOC" ? currentApplicant.patk : null,
+      matk: gameType === "ROOC" ? currentApplicant.matk : null,
+      hp: gameType === "ROOC" ? currentApplicant.hp : null,
+    } });
+    await tx.guildMembership.upsert({
+      where: { userId_guildId: { userId, guildId: auth.guild.id } },
+      update: { role: "MEMBER" },
+      create: { userId, guildId: auth.guild.id, role: "MEMBER" },
+    });
+    const decision = await tx.guildApplicant.updateMany({
+      where: { id: currentApplicant.id, guildId: auth.guild.id, status: "PENDING" },
+      data: { status: "ACCEPTED", remarks: body.remarks?.trim() || null, decidedAt: new Date(), decidedByUserId: auth.user.id },
+    });
+    if (decision.count !== 1) throw new Error("This application has already been decided.");
     return member;
   });
   return NextResponse.json({ success: true, member: created });
