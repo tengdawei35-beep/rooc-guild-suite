@@ -83,11 +83,23 @@ export async function POST(request: Request) {
   if (!hasPermission(auth.role, "applicants.manage")) return forbidden();
   const body = (await request.json()) as { id?: string; decision?: "ACCEPTED" | "DENIED"; remarks?: string };
   if (!body.id || !body.decision) return NextResponse.json({ error: "Applicant ID and decision are required." }, { status: 400 });
+  if (body.decision !== "ACCEPTED" && body.decision !== "DENIED") {
+    return NextResponse.json({ error: "Decision must be ACCEPTED or DENIED." }, { status: 400 });
+  }
   const applicant = await prisma.guildApplicant.findFirst({ where: { id: body.id, guildId: auth.guild.id } });
   if (!applicant) return NextResponse.json({ error: "Applicant not found." }, { status: 404 });
   if (applicant.status !== "PENDING") return NextResponse.json({ error: "This application has already been decided." }, { status: 409 });
   if (body.decision === "DENIED") {
-    const updated = await prisma.guildApplicant.update({ where: { id: applicant.id }, data: { status: "DENIED", remarks: body.remarks?.trim() || null, decidedAt: new Date(), decidedByUserId: auth.user.id } });
+    // Make the decision conditional on the application still being pending.
+    // This prevents a stale denial request from overwriting a concurrent acceptance.
+    const decision = await prisma.guildApplicant.updateMany({
+      where: { id: applicant.id, guildId: auth.guild.id, status: "PENDING" },
+      data: { status: "DENIED", remarks: body.remarks?.trim() || null, decidedAt: new Date(), decidedByUserId: auth.user.id },
+    });
+    if (decision.count !== 1) {
+      return NextResponse.json({ error: "This application has already been decided." }, { status: 409 });
+    }
+    const updated = await prisma.guildApplicant.findFirst({ where: { id: applicant.id, guildId: auth.guild.id } });
     return NextResponse.json({ application: updated });
   }
   let created: Awaited<ReturnType<typeof prisma.guildMember.create>>;
