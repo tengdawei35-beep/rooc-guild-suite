@@ -63,6 +63,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       if (guild?.gameType !== "RO3") return NextResponse.json({ error: "RO3 stats cannot be saved for a ROOC guild." }, { status: 400 });
       const stats = body.ro3Stats;
       if (!stats || typeof stats !== "object" || Array.isArray(stats)) return NextResponse.json({ error: "RO3 stats must be an object." }, { status: 400 });
+      if (Object.keys(stats).length === 0) return NextResponse.json({ error: "At least one RO3 stat is required." }, { status: 400 });
       const clean: Record<string, number | null> = {};
       for (const [key, value] of Object.entries(stats as Record<string, unknown>)) {
         if (!(RO3_STAT_KEYS as readonly string[]).includes(key)) return NextResponse.json({ error: `Unknown RO3 stat: ${key}.` }, { status: 400 });
@@ -90,6 +91,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
     const { memberId } = await context.params;
     if (!memberId) return NextResponse.json({ error: "Member ID is required." }, { status: 400 });
 
+    const guild = await prisma.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true } });
     const result = await prisma.$transaction(async (tx) => {
       const member = await tx.guildMember.findFirst({
         where: { id: memberId, guildId: auth.guild.id },

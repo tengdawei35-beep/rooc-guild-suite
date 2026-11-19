@@ -116,6 +116,7 @@ function validateMember(body: MemberRequest, gameType: "ROOC" | "RO3") {
   let ro3Stats: Record<string, number | null> | null = null;
   if (gameType === "RO3") {
     if (!body.ro3Stats || typeof body.ro3Stats !== "object" || Array.isArray(body.ro3Stats)) return { error: "RO3 stats are required." };
+    if (Object.keys(body.ro3Stats).length === 0) return { error: "At least one RO3 stat is required." };
     ro3Stats = {};
     for (const [key, value] of Object.entries(body.ro3Stats)) {
       if (!(RO3_STAT_KEYS as readonly string[]).includes(key)) return { error: `Unknown RO3 stat: ${key}.` };
