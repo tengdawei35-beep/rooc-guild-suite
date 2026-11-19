@@ -437,7 +437,7 @@ export async function PUT(request: Request) {
       include: { leaveDates: true },
     });
 
-    await refreshGuildRankings(auth.guild.id);
+    if (gameType !== "RO3") await refreshGuildRankings(auth.guild.id);
     return NextResponse.json({ member });
   } catch (error) {
     console.error("[MEMBERS] Failed to update member:", error);
