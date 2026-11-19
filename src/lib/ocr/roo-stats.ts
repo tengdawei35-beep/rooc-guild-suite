@@ -26,7 +26,99 @@ function extractPvpFromText(texts:string[]){const result:RooStats={};const reduc
  const bonusPatterns=[/(?:PVP|2VP|>VP|\?VP)\s*DMG\s*BON(?:US)?[^0-9]{0,24}(\d{3,6})/gi,/[>2"~“”]?\s*P\s+DMG\s+BON(?:US)?[^0-9]{0,24}(\d{3,6})/gi];
  const candidates=(patterns:RegExp[])=>texts.flatMap(text=>patterns.flatMap(re=>[...normalise(text).matchAll(re)].map(m=>repairNumber(m[1]))));
  for(const[key,values]of[["pvpDamageReduction",candidates(reductionPatterns)],["pvpDamageBonus",candidates(bonusPatterns)]]as const){if(!values.length)continue;const counts:Record<string,number>={};values.forEach(v=>counts[v]=(counts[v]??0)+1);result[key]=[...new Set(values)].sort((a,b)=>counts[b]-counts[a]||b.length-a.length)[0];}return result;}
-export async function readRooStats(images:Buffer[]):Promise<{stats:RooStats;rawText:string}>{if(!images.length)throw new Error("At least one screenshot is required.");if(images.length>12)throw new Error("A maximum of 12 screenshots can be read at once.");const worker=await createWorker("eng",1);const stats:RooStats={};const raw:string[]=[];try{for(const image of images){const variants=await Promise.all([preprocess(image,"normal"),preprocess(image,"contrast"),preprocess(image,"threshold")]);for(const variant of variants){for(const psm of [PSM.SINGLE_BLOCK,PSM.SPARSE_TEXT]){const text=await recognise(worker,variant,psm);raw.push(text);Object.assign(stats,extractLabelValues(text));}}}Object.assign(stats,extractPvpFromText(raw));const notice=raw.join("\n");const pdef=[...notice.matchAll(/EQUIPMENT\s*PDEF\s*[:：]?\s*(\d{3,6})(?!\s*%)/gi)].map(m=>m[1]);const mdef=[...notice.matchAll(/EQUIPMENT\s*MDEF\s*[:：]?\s*(\d{3,6})(?!\s*%)/gi)].map(m=>m[1]);if(pdef.length)stats.pdef=pdef.sort((a,b)=>Number(b)-Number(a))[0];if(mdef.length)stats.mdef=mdef.sort((a,b)=>Number(b)-Number(a))[0];
+type PvpKey = "pvpDamageReduction" | "pvpDamageBonus";
+type PvpCandidate = { value: string; confidence: number };
+
+const PVP_POSITIONAL_ROIS = {
+  pvpDamageReduction: { x: 0.30, y: 0.885, width: 0.22, height: 0.085 },
+  pvpDamageBonus: { x: 0.79, y: 0.885, width: 0.20, height: 0.085 },
+} as const;
+
+function isQuasiStatsScreenshot(text: string, width: number, height: number) {
+  const normalized = normalise(text).replace(/[^A-Z0-9]/g, "");
+  const hasQuasiMarkers =
+    normalized.includes("QUASISTATS") ||
+    (normalized.includes("PDMG") && normalized.includes("MDMG") && normalized.includes("IGNOREPDEF"));
+  const ratio = width > 0 && height > 0 ? width / height : 0;
+  return hasQuasiMarkers || (ratio >= 0.85 && ratio <= 1.05);
+}
+
+function choosePositionalCandidate(candidates: PvpCandidate[]) {
+  if (!candidates.length) return null;
+  const counts = new Map<string, number>();
+  for (const candidate of candidates) {
+    counts.set(candidate.value, (counts.get(candidate.value) ?? 0) + 1);
+  }
+  return [...candidates].sort((a, b) =>
+    (counts.get(b.value)! - counts.get(a.value)!) ||
+    (b.confidence - a.confidence)
+  )[0]?.value ?? null;
+}
+
+async function extractPositionalPvp(worker: OcrWorker, image: Buffer, fullText: string) {
+  const oriented = await sharp(image).rotate().png().toBuffer();
+  const metadata = await sharp(oriented).metadata();
+  const width = metadata.width ?? 0;
+  const height = metadata.height ?? 0;
+  if (!isQuasiStatsScreenshot(fullText, width, height)) return {} as Partial<Record<PvpKey, string>>;
+
+  const candidates: Record<PvpKey, PvpCandidate[]> = {
+    pvpDamageReduction: [],
+    pvpDamageBonus: [],
+  };
+  const modes = ["normal", "contrast", "highcontrast", "threshold170", "threshold200", "threshold220"] as const;
+
+  for (const [key, region] of Object.entries(PVP_POSITIONAL_ROIS) as [PvpKey, (typeof PVP_POSITIONAL_ROIS)[PvpKey]][]) {
+    const left = Math.max(0, Math.min(Math.round(width * region.x), width - 1));
+    const top = Math.max(0, Math.min(Math.round(height * region.y), height - 1));
+    const cropWidth = Math.max(1, Math.min(Math.round(width * region.width), width - left));
+    const cropHeight = Math.max(1, Math.min(Math.round(height * region.height), height - top));
+
+    for (const mode of modes) {
+      let crop = sharp(oriented)
+        .extract({ left, top, width: cropWidth, height: cropHeight })
+        .resize({ width: 1000, withoutEnlargement: false })
+        .grayscale()
+        .normalize();
+
+      if (mode === "contrast") crop = crop.linear(1.35, -35);
+      if (mode === "highcontrast") crop = crop.linear(1.65, -70);
+      if (mode === "threshold170") crop = crop.threshold(170);
+      if (mode === "threshold200") crop = crop.threshold(200);
+      if (mode === "threshold220") crop = crop.threshold(220);
+
+      const processed = await crop.sharpen().png().toBuffer();
+      await worker.setParameters({
+        tessedit_pageseg_mode: PSM.SINGLE_LINE,
+        tessedit_char_whitelist: "0123456789",
+        preserve_interword_spaces: "1",
+        user_defined_dpi: "300",
+      });
+
+      const result = await worker.recognize(processed);
+      const digitTokens = String(result.data.text ?? "").match(/\\d+/g);
+      if (!digitTokens?.length) continue;
+      const digits = digitTokens.join("");
+      if (!/^\\d{3,6}$/.test(digits)) continue;
+      const value = Number(digits);
+      if (!Number.isSafeInteger(value) || value > 1_000_000) continue;
+
+      candidates[key].push({
+        value: String(value),
+        confidence: Number(result.data.confidence ?? 0),
+      });
+    }
+  }
+
+  const positional: Partial<Record<PvpKey, string>> = {};
+  for (const key of Object.keys(candidates) as PvpKey[]) {
+    const value = choosePositionalCandidate(candidates[key]);
+    if (value !== null) positional[key] = value;
+  }
+  return positional;
+}
+
+export async function readRooStats(images:Buffer[]):Promise<{stats:RooStats;rawText:string}>{if(!images.length)throw new Error("At least one screenshot is required.");if(images.length>12)throw new Error("A maximum of 12 screenshots can be read at once.");const worker=await createWorker("eng",1);const stats:RooStats={};const raw:string[]=[];const positionalTexts:string[]=[];const positionalImages:Buffer[]=[];try{for(const image of images){const variants=await Promise.all([preprocess(image,"normal"),preprocess(image,"contrast"),preprocess(image,"threshold")]);const screenshotTexts:string[]=[];for(const variant of variants){for(const psm of [PSM.SINGLE_BLOCK,PSM.SPARSE_TEXT]){const text=await recognise(worker,variant,psm);raw.push(text);screenshotTexts.push(text);Object.assign(stats,extractLabelValues(text));}}positionalImages.push(image);positionalTexts.push(screenshotTexts.join("\\n"));}Object.assign(stats,extractPvpFromText(raw));for(let index=0;index<positionalImages.length;index++){const positional=await extractPositionalPvp(worker,positionalImages[index],positionalTexts[index]);Object.assign(stats,positional);}const notice=raw.join("\n");const pdef=[...notice.matchAll(/EQUIPMENT\s*PDEF\s*[:：]?\s*(\d{3,6})(?!\s*%)/gi)].map(m=>m[1]);const mdef=[...notice.matchAll(/EQUIPMENT\s*MDEF\s*[:：]?\s*(\d{3,6})(?!\s*%)/gi)].map(m=>m[1]);if(pdef.length)stats.pdef=pdef.sort((a,b)=>Number(b)-Number(a))[0];if(mdef.length)stats.mdef=mdef.sort((a,b)=>Number(b)-Number(a))[0];
  const hpCandidates=raw.flatMap(t=>t.split(/\r?\n/).map(normalise).filter(l=>/^HP\s+\d{4,7}(?:\s+|$)/.test(l)).map(l=>l.match(/^HP\s+(\d{4,7})/)?.[1]).filter((v):v is string=>!!v));
  if(hpCandidates.length){const counts:Record<string,number>={};hpCandidates.forEach(v=>counts[v]=(counts[v]??0)+1);stats.hp=[...new Set(hpCandidates)].sort((a,b)=>counts[b]-counts[a]||Number(b)-Number(a))[0];}
  }finally{await worker.terminate();}return{stats,rawText:raw.join("\n")};}
