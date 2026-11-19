@@ -17,6 +17,9 @@ function find(text: string): RO3Stats {
     for (const [key, aliases] of Object.entries(LABELS) as [RO3StatKey, string[]][]) {
       for (const alias of aliases) {
         const normalizedAlias = norm(alias);
+        // "Crit Damage" is a prefix of "Crit Damage Reduction"; prefer
+        // the longer semantic label rather than populating both fields.
+        if (key === "critDamagePercent" && normalizedLine.startsWith("CRIT DAMAGE REDUCTION")) continue;
         const isCrystal = ["bladeCrystal", "shieldCrystal", "manaCrystal", "magicDefCrystal"].includes(key);
         // Anchor normal stat labels to avoid matching overlapping labels.
         const index = isCrystal
