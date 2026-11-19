@@ -7,7 +7,7 @@ export type { RO3StatKey };
 export type RO3Stats = Partial<Record<RO3StatKey, string>>;
 
 const normalize = (value: string) =>
-  value.toUpperCase().replace(/[^A-Z0-9% .-]/g, " ").replace(/\\s+/g, " ").trim();
+  value.toUpperCase().replace(/[^A-Z0-9% .-]/g, " ").replace(/\s+/g, " ").trim();
 
 const normalizeNumber = (value: string) =>
   value.replace(/,/g, "").replace(/[Oo]/g, "0").replace(/[Il|]/g, "1").trim();
@@ -18,7 +18,7 @@ function parseLines(text: string): RO3Stats {
     field.aliases.map((alias) => ({ field, alias: normalize(alias) })),
   ).sort((a, b) => b.alias.length - a.alias.length);
 
-  for (const rawLine of text.split(/\\r?\\n/)) {
+  for (const rawLine of text.split(/\r?\n/)) {
     const line = normalize(rawLine);
     if (!line) continue;
 
@@ -30,13 +30,13 @@ function parseLines(text: string): RO3Stats {
       const remainder = line.slice(index + alias.length);
       // The generic Damage Reduction row must not consume the value from
       // the more specific "Damage Reduction vs ..." target-modifier rows.
-      if (field.key === "damageReductionPercent" && /^\\s*VS\\b/.test(remainder)) continue;
+      if (field.key === "damageReductionPercent" && /^\s*VS\b/.test(remainder)) continue;
 
       if (isCrystal) {
         // Crystal amount is printed before its label; "Uses Remaining" is
         // another number later in the line and must not be mistaken for it.
         const prefix = line.slice(0, index);
-        const values = [...prefix.matchAll(/(?:^|\\s)(\\d{1,2})(?=\\s|$)/g)];
+        const values = [...prefix.matchAll(/(?:^|\s)(\d{1,2})(?=\s|$)/g)];
         const value = values.at(-1)?.[1];
         if (value !== undefined) {
           const parsed = Number(normalizeNumber(value));
@@ -47,7 +47,7 @@ function parseLines(text: string): RO3Stats {
         break;
       }
 
-      const valueMatch = remainder.match(/[-+]?\\d[\\d,.]*%?/);
+      const valueMatch = remainder.match(/[-+]?\d[\d,.]*%?/);
       if (!valueMatch) continue;
       if ("percent" in field && field.percent === true && !valueMatch[0].includes("%")) continue;
 
@@ -94,7 +94,7 @@ export async function readRO3Stats(
       texts.push(String((await worker.recognize(processed)).data.text ?? ""));
     }
 
-    const rawText = texts.join("\\n");
+    const rawText = texts.join("\n");
     return { stats: parseLines(rawText), rawText };
   } finally {
     await worker.terminate();
