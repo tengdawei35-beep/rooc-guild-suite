@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { readRooStats } from "@/lib/ocr/roo-stats";
+import { readRO3Stats } from "@/lib/ocr/ro3-stats";
 import { getApplicantSession } from "@/lib/auth/applicant";
 import { prisma } from "@/lib/prisma";
 
@@ -33,7 +34,9 @@ export async function POST(
     }
 
     const buffers = await Promise.all(files.map(async (file) => Buffer.from(await file.arrayBuffer())));
-    return NextResponse.json(await readRooStats(buffers));
+    const guild = await prisma.guild.findUnique({ where: { id: invite.guildId }, select: { gameType: true } });
+    const result = guild?.gameType === "RO3" ? await readRO3Stats(buffers) : await readRooStats(buffers);
+    return NextResponse.json(result);
   } catch (error) {
     console.error("[APPLICANT OCR]", error);
     return NextResponse.json({ error: error instanceof Error ? error.message : "OCR failed." }, { status: 500 });

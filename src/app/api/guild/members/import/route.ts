@@ -178,6 +178,17 @@ export async function POST(request: Request) {
   }
 
   try {
+    const guild = await prisma.guild.findUnique({
+      where: { id: auth.guild.id },
+      select: { gameType: true },
+    });
+    if (guild?.gameType === "RO3") {
+      return NextResponse.json(
+        { error: "Spreadsheet member import currently supports ROOC only. Use the RO3 member form or OCR import to avoid mapping RO3 data into ROOC fields." },
+        { status: 409 }
+      );
+    }
+
     const body = await request.json();
     const rows = body.rows;
     if (!Array.isArray(rows)) return NextResponse.json({ error: "Import rows are required." }, { status: 400 });

@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { getApplicantSession } from "@/lib/auth/applicant";
 import { prisma } from "@/lib/prisma";
 import { scoreRooPlayers } from "@/lib/scoring/roo-scoring";
+import { RO3_JOBS, ROOC_JOBS } from "@/lib/constants/jobs";
+import { RO3_STAT_KEYS } from "@/lib/ocr/ro3-stats";
 
 const STAT_FIELDS = [
   "pdef", "mdef", "pvpDamageBonus", "pvpDamageReduction", "pdmgPercent", "mdmgPercent",
@@ -16,6 +18,16 @@ function cleanNumber(value: unknown) {
   if (value === null || value === undefined || value === "") return 0;
   const parsed = Number(String(value).replace(/,/g, "").replace(/%/g, "").trim());
   return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function cleanRO3Number(value: unknown, key: string): number | null {
+  if (value === null || value === undefined || String(value).trim() === "") return null;
+  const parsed = Number(String(value).replace(/,/g, "").replace(/%/g, "").trim());
+  if (!Number.isFinite(parsed) || parsed < 0) throw new Error(`Invalid value for RO3 stat ${key}.`);
+  if (["bladeCrystal", "shieldCrystal", "manaCrystal", "magicDefCrystal"].includes(key) && parsed > 50) {
+    throw new Error(`${key} must be between 0 and 50.`);
+  }
+  return parsed;
 }
 
 export async function POST(request: Request, context: { params: Promise<{ token: string }> }) {
@@ -32,11 +44,55 @@ export async function POST(request: Request, context: { params: Promise<{ token:
   const existingMember = await prisma.guildMember.findFirst({ where: { guildId: invite.guildId, discordUserId: user.discordId }, select: { id: true } });
   if (existingMember) return NextResponse.json({ error: "You are already a member of this guild." }, { status: 409 });
 
+  const guild = await prisma.guild.findUnique({ where: { id: invite.guildId }, select: { gameType: true } });
+  const isRO3 = guild?.gameType === "RO3";
   const body = (await request.json()) as Record<string, unknown>;
   const characterName = String(body.characterName ?? "").trim();
   const job = String(body.job ?? "").trim();
   if (!characterName) return NextResponse.json({ error: "Character Name is required." }, { status: 400 });
   if (!job) return NextResponse.json({ error: "Job is required." }, { status: 400 });
+  const validJobs = isRO3 ? RO3_JOBS : ROOC_JOBS;
+  if (!validJobs.includes(job as never)) return NextResponse.json({ error: "Invalid job for this guild game." }, { status: 400 });
+
+  if (isRO3) {
+    const unknownFields = Object.keys(body).filter((key) =>
+      !["applicationId", "characterName", "job", ...RO3_STAT_KEYS].includes(key)
+    );
+    if (unknownFields.length) return NextResponse.json({ error: `Unknown application fields: ${unknownFields.join(", ")}.` }, { status: 400 });
+
+    let ro3Stats: Record<string, number | null>;
+    try {
+      ro3Stats = Object.fromEntries(RO3_STAT_KEYS.map((key) => [key, cleanRO3Number(body[key], key)]));
+      const missingStats = RO3_STAT_KEYS.filter((key) => ro3Stats[key] === null);
+      if (missingStats.length) {
+        return NextResponse.json({ error: `All RO3 stats are required. Missing: ${missingStats.join(", ")}.` }, { status: 400 });
+      }
+    } catch (error) {
+      return NextResponse.json({ error: error instanceof Error ? error.message : "Invalid RO3 stats." }, { status: 400 });
+    }
+
+    const existing = await prisma.guildApplicant.findUnique({ where: { guildId_discordUserId: { guildId: invite.guildId, discordUserId: user.discordId } } });
+    if (existing?.status === "ACCEPTED") return NextResponse.json({ error: "This application has already been accepted." }, { status: 409 });
+    const payload = {
+      inviteId: invite.id, discordUserId: user.discordId, discordUsername: user.username,
+      userId: user.id, characterName, job, ro3Stats,
+      // Clear any legacy ROOC scalar values if this applicant previously applied
+      // while the guild was configured for ROOC.
+      pdef: null, mdef: null, pvpDamageBonus: null, pvpDamageReduction: null,
+      pdmgPercent: null, mdmgPercent: null, pdmgReductionPercent: null,
+      mdmgReductionPercent: null, critRes: null, ignorePdef: null, ignoreMdef: null,
+      damageVsMedium: null, damageReductionVsMedium: null, damageVsSmall: null,
+      damageReductionVsSmall: null, damageVsDemiHuman: null, damageReductionVsDemiHuman: null,
+      damageVsBrute: null, damageReductionVsBrute: null, equipmentPdefPercent: null,
+      equipmentMdefPercent: null, patk: null, matk: null, hp: null,
+      dpsScore: null, tankScore: null, pvpScore: null,
+      dpsPercentile: null, tankPercentile: null, pvpPercentile: null,
+      status: "PENDING" as const, reviewedAt: null, reviewedByUserId: null,
+      decidedAt: null, decidedByUserId: null,
+    };
+    const saved = existing ? await prisma.guildApplicant.update({ where: { id: existing.id }, data: payload }) : await prisma.guildApplicant.create({ data: { guildId: invite.guildId, ...payload } });
+    return NextResponse.json({ application: saved });
+  }
 
   const applicantStats = Object.fromEntries(STAT_FIELDS.map((field) => [field, cleanNumber(body[field])])) as Record<(typeof STAT_FIELDS)[number], number>;
   const members = await prisma.guildMember.findMany({

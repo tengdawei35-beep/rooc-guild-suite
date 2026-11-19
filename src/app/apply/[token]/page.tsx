@@ -10,7 +10,7 @@ export default async function ApplicantApplyPage({ params }: { params: Promise<{
     return <main className="min-h-screen bg-zinc-950 p-6 text-white"><div className="mx-auto max-w-xl rounded-2xl border border-zinc-800 bg-zinc-900 p-8"><h1 className="text-2xl font-bold">Application link unavailable</h1><p className="mt-3 text-zinc-400">This guild application link is invalid or has been revoked.</p></div></main>;
   }
 
-  const guild = await prisma.guild.findUnique({ where: { id: invite.guildId }, select: { name: true } });
+  const guild = await prisma.guild.findUnique({ where: { id: invite.guildId }, select: { name: true, gameType: true } });
   const session = await getApplicantSession();
   const user = session ? await prisma.user.findUnique({ where: { id: session.userId } }) : null;
 
@@ -35,9 +35,11 @@ export default async function ApplicantApplyPage({ params }: { params: Promise<{
   return <ApplicantApplyClient
     token={token}
     guildId={invite.guildId}
+    gameType={guild?.gameType === "RO3" ? "RO3" : "ROOC"}
     discordUserId={user.discordId}
     discordUsername={user.username}
     existingApplication={existing ? {
+      ro3Stats: existing.ro3Stats as Record<string, number|string|null> | undefined,
       id: existing.id,
       characterName: existing.characterName,
       job: existing.job,

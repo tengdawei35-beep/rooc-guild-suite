@@ -79,6 +79,7 @@ export default async function MembersPage() {
       patk: canViewCharacterStats ? member.patk : null,
       matk: canViewCharacterStats ? member.matk : null,
       hp: canViewCharacterStats ? member.hp : null,
+      ro3Stats: canViewCharacterStats ? member.ro3Stats as Record<string, number | null> | null : null,
 
       active: member.active,
       eligible: member.eligible,
@@ -110,7 +111,7 @@ export default async function MembersPage() {
             )}
           </div>
         </header>
-        <MembersClient initialMembers={members} />
+        <MembersClient initialMembers={members} gameType={guild.gameType} />
       </div>
     </main>
   );

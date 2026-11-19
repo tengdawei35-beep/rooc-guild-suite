@@ -10,6 +10,7 @@ type Applicant = {
   job: string | null;
   status: "PENDING" | "ACCEPTED" | "DENIED";
   createdAt: string;
+  ro3Stats: Record<string, number | null> | null;
   pdef: number | null;
   mdef: number | null;
   pvpDamageBonus: number | null;
@@ -45,6 +46,7 @@ type ComparisonScores = NonNullable<Applicant["comparison"]>["scores"];
 
 export default function ApplicantsClient({ canManage }: { canManage: boolean }) {
   const [applicants, setApplicants] = useState<Applicant[]>([]);
+  const [gameType, setGameType] = useState<"ROOC" | "RO3">("ROOC");
   const [invites, setInvites] = useState<Invite[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -59,6 +61,7 @@ export default function ApplicantsClient({ canManage }: { canManage: boolean }) 
       const inviteData = await invitesResponse.json();
       if (!applicationsResponse.ok) throw new Error(applications.error ?? "Failed to load applicants.");
       if (!invitesResponse.ok) throw new Error(inviteData.error ?? "Failed to load application links.");
+      setGameType(applications.gameType === "RO3" ? "RO3" : "ROOC");
       setApplicants(applications.applicants ?? []); setInvites(inviteData.invites ?? []);
     } catch (err) { setError(err instanceof Error ? err.message : "Failed to load applicants."); }
     finally { setLoading(false); }
@@ -91,7 +94,7 @@ export default function ApplicantsClient({ canManage }: { canManage: boolean }) 
   }
 
   return <main className="min-h-screen bg-zinc-950 p-6 text-white"><div className="mx-auto max-w-7xl py-8">
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-sm uppercase tracking-widest text-zinc-500">Recruitment</p><h1 className="mt-2 text-3xl font-bold">Applicants</h1><p className="mt-2 text-zinc-400">Review ROO stats, projected guild percentiles and the closest current member.</p></div>{canManage && <button onClick={generateInvite} disabled={busy} className="rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-black disabled:opacity-50">Generate application link</button>}</div>
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-sm uppercase tracking-widest text-zinc-500">Recruitment</p><h1 className="mt-2 text-3xl font-bold">Applicants</h1><p className="mt-2 text-zinc-400">Review {gameType} character stats{gameType === "ROOC" ? ", projected guild percentiles and the closest current member." : "."}</p></div>{canManage && <button onClick={generateInvite} disabled={busy} className="rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-black disabled:opacity-50">Generate application link</button>}</div>
     {error && <p className="mt-6 rounded-lg border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</p>}
     <section className="mt-8 rounded-2xl border border-zinc-800 bg-zinc-900 p-6"><h2 className="font-semibold">Application links</h2><div className="mt-4 space-y-3">{invites.filter((invite) => invite.active).map((invite) => <div key={invite.id} className="flex flex-col gap-3 rounded-xl border border-zinc-800 bg-zinc-950 p-4 sm:flex-row sm:items-center sm:justify-between"><code className="break-all text-sm text-zinc-300">{typeof window !== "undefined" ? `${window.location.origin}/apply/${invite.token}` : `/apply/${invite.token}`}</code>{canManage && <button onClick={() => revokeInvite(invite.id)} disabled={busy} className="rounded-lg border border-red-900 px-3 py-2 text-xs text-red-300 hover:bg-red-950">Revoke</button>}</div>)}{invites.filter((invite) => invite.active).length === 0 && <p className="text-sm text-zinc-500">No active application link.</p>}</div></section>
     <section className="mt-8 space-y-4">{loading ? <p className="text-zinc-500">Loading applicants…</p> : applicants.length === 0 ? <div className="rounded-2xl border border-dashed border-zinc-800 p-10 text-center text-zinc-500">No applications yet.</div> : applicants.map((applicant) => <article key={applicant.id} className={`rounded-2xl border bg-zinc-900 p-6 transition ${expandedApplicantId === applicant.id ? "border-zinc-600" : "border-zinc-800 hover:border-zinc-700"}`}>
@@ -100,8 +103,8 @@ export default function ApplicantsClient({ canManage }: { canManage: boolean }) 
       </button>
       {canManage && applicant.status === "PENDING" && <div className="mt-4 flex gap-2"><button onClick={() => decide(applicant.id, "ACCEPTED")} disabled={busy} className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-medium hover:bg-emerald-600 disabled:opacity-50">Accept</button><button onClick={() => decide(applicant.id, "DENIED")} disabled={busy} className="rounded-lg border border-red-900 px-4 py-2 text-sm font-medium text-red-300 hover:bg-red-950 disabled:opacity-50">Deny</button></div>}
       {expandedApplicantId === applicant.id && <div className="mt-6 space-y-4">
-        {applicant.comparison && <div className="grid gap-4 lg:grid-cols-[1fr_1fr]"><ScorePanel title="Projected guild standing" scores={applicant.comparison.scores} /><div className="rounded-xl border border-zinc-800 bg-zinc-950 p-5"><h3 className="font-semibold">Closest current member</h3>{applicant.comparison.closest ? <><p className="mt-3 text-lg font-medium">{applicant.comparison.closest.characterName ?? "Unnamed"}</p><p className="text-xs text-zinc-500">{applicant.comparison.closest.job ?? "Job not specified"}</p><div className="mt-4 grid grid-cols-3 gap-3 text-center"><Metric label="PvP" value={applicant.comparison.closest.pvpScore} /><Metric label="DPS" value={applicant.comparison.closest.dpsScore} /><Metric label="Tank" value={applicant.comparison.closest.tankScore} /></div></> : <p className="mt-3 text-sm text-zinc-500">No active guild members available for comparison.</p>}</div></div>}
-        <StatsGrid applicant={applicant} />
+        {gameType === "ROOC" && applicant.comparison && <div className="grid gap-4 lg:grid-cols-[1fr_1fr]"><ScorePanel title="Projected guild standing" scores={applicant.comparison.scores} /><div className="rounded-xl border border-zinc-800 bg-zinc-950 p-5"><h3 className="font-semibold">Closest current member</h3>{applicant.comparison.closest ? <><p className="mt-3 text-lg font-medium">{applicant.comparison.closest.characterName ?? "Unnamed"}</p><p className="text-xs text-zinc-500">{applicant.comparison.closest.job ?? "Job not specified"}</p><div className="mt-4 grid grid-cols-3 gap-3 text-center"><Metric label="PvP" value={applicant.comparison.closest.pvpScore} /><Metric label="DPS" value={applicant.comparison.closest.dpsScore} /><Metric label="Tank" value={applicant.comparison.closest.tankScore} /></div></> : <p className="mt-3 text-sm text-zinc-500">No active guild members available for comparison.</p>}</div></div>}
+        {gameType === "RO3" ? <RO3StatsGrid stats={applicant.ro3Stats} /> : <StatsGrid applicant={applicant} />}
       </div>}
     </article>)}</section>
   </div></main>;
@@ -126,6 +129,29 @@ function StatsGrid({ applicant }: { applicant: Applicant }) {
   ] as const;
 
   return <div className="grid gap-4 lg:grid-cols-3">{sections.map((section) => <div key={section.title} className="rounded-xl border border-zinc-800 bg-zinc-950 p-5"><h3 className="font-semibold">{section.title}</h3><div className="mt-4 grid grid-cols-2 gap-2">{section.items.map(([label, value]) => <div key={label} className="rounded-lg border border-zinc-800 px-3 py-2"><p className="text-xs text-zinc-500">{label}</p><p className="mt-1 text-sm font-semibold">{formatStat(value)}</p></div>)}</div></div>)}</div>;
+}
+
+
+function RO3StatsGrid({ stats }: { stats: Record<string, number | null> | null }) {
+  const labels: Record<string, string> = {
+    hp: "HP", patk: "PATK", matk: "MATK", pdef: "PDEF", mdef: "MDEF",
+    healingDonePercent: "Healing Done %", critDamagePercent: "Crit Damage %",
+    critDamageReductionPercent: "Crit Damage Reduction %", physicalDamageBonusPercent: "Physical Damage Bonus %",
+    physicalDamageReductionPercent: "Physical Damage Reduction %", magicDamageBonusPercent: "Magic Damage Bonus %",
+    magicDamageReductionPercent: "Magic Damage Reduction %", damageIncreasePercent: "Damage Increase %",
+    damageReductionPercent: "Damage Reduction %", physicalPenetrationPercent: "Physical Penetration",
+    magicPenetrationPercent: "Magic Penetration", damageVsAllJob: "DMG vs All Job",
+    damageReductionVsAllJob: "DMG Reduction vs All Job", damageVsMedium: "DMG vs Medium",
+    damageReductionVsMedium: "DMG Reduction vs Medium", bladeCrystal: "Blade Crystal",
+    shieldCrystal: "Shield Crystal", manaCrystal: "Mana Crystal", magicDefCrystal: "Magic DEF Crystal",
+  };
+  const groups = [
+    { title: "Core Stats", keys: ["hp", "patk", "matk", "pdef", "mdef"] },
+    { title: "Combat Modifiers", keys: ["healingDonePercent", "critDamagePercent", "critDamageReductionPercent", "physicalDamageBonusPercent", "physicalDamageReductionPercent", "magicDamageBonusPercent", "magicDamageReductionPercent", "damageIncreasePercent", "damageReductionPercent", "physicalPenetrationPercent", "magicPenetrationPercent"] },
+    { title: "Target Modifiers", keys: ["damageVsAllJob", "damageReductionVsAllJob", "damageVsMedium", "damageReductionVsMedium"] },
+    { title: "Special Dish", keys: ["bladeCrystal", "shieldCrystal", "manaCrystal", "magicDefCrystal"] },
+  ];
+  return <div className="grid gap-4 md:grid-cols-2">{groups.map(group => <section key={group.title} className="rounded-xl border border-zinc-800 bg-zinc-950 p-5"><h3 className="font-semibold">{group.title}</h3><div className="mt-4 grid grid-cols-2 gap-2">{group.keys.map(key => <div key={key} className="rounded-lg border border-zinc-800 px-3 py-2"><p className="text-xs text-zinc-500">{labels[key]}</p><p className="mt-1 text-sm font-semibold">{stats?.[key] == null ? "—" : formatStat(stats[key]!)}</p></div>)}</div></section>)}</div>;
 }
 
 function formatStat(value: number | null) {

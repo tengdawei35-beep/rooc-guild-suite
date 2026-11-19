@@ -69,6 +69,16 @@ export async function GET() {
     }
 
     const guildId = auth.guild.id;
+    const guild = await prisma.guild.findUnique({
+      where: { id: guildId },
+      select: { gameType: true },
+    });
+    if (guild?.gameType === "RO3") {
+      return NextResponse.json(
+        { error: "Guild rankings are currently available for ROOC guilds only. RO3 scoring is not configured yet." },
+        { status: 409 }
+      );
+    }
 
     const missingLiveRankings = await prisma.guildMember.count({
       where: {
