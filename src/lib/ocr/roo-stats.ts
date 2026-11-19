@@ -60,7 +60,7 @@ async function extractPositionalPvp(worker: OcrWorker, image: Buffer, fullText: 
   const metadata = await sharp(oriented).metadata();
   const width = metadata.width ?? 0;
   const height = metadata.height ?? 0;
-  if (!isQuasiStatsScreenshot(fullText, width, height)) return {} as Partial<Record<PvpKey, string>>;
+  if (!width || !height || !isQuasiStatsScreenshot(fullText, width, height)) return {} as Partial<Record<PvpKey, string>>;
 
   const candidates: Record<PvpKey, PvpCandidate[]> = {
     pvpDamageReduction: [],
@@ -96,10 +96,10 @@ async function extractPositionalPvp(worker: OcrWorker, image: Buffer, fullText: 
       });
 
       const result = await worker.recognize(processed);
-      const digitTokens = String(result.data.text ?? "").match(/\\d+/g);
+      const digitTokens = String(result.data.text ?? "").match(/\d+/g);
       if (!digitTokens?.length) continue;
       const digits = digitTokens.join("");
-      if (!/^\\d{3,6}$/.test(digits)) continue;
+      if (!/^\d{3,6}$/.test(digits)) continue;
       const value = Number(digits);
       if (!Number.isSafeInteger(value) || value > 1_000_000) continue;
 
