@@ -55,7 +55,7 @@ export default function ApplicantApplyClient({ token, guildId, gameType, discord
 
   async function submit() {
     if (!characterName.trim() || !job.trim()) return setError("Character Name and Job are required.");
-    if (!ocrComplete) return setError("Read your {gameType} screenshots before submitting.");
+    if (!ocrComplete) return setError(`Read your ${gameType} screenshots before submitting.`);
     setSubmitting(true); setError(""); setMessage("");
     try { const response = await fetch(`/api/apply/${token}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ applicationId: existingApplication?.id, characterName: characterName.trim(), job: job.trim(), ...stats }) }); const data = await response.json(); if (!response.ok) throw new Error(data.error ?? "Application failed."); setMessage("Application submitted successfully. Guild officers can now review your stats."); }
     catch (err) { setError(err instanceof Error ? err.message : "Application failed."); }

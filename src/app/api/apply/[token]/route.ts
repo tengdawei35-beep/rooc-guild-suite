@@ -20,6 +20,16 @@ function cleanNumber(value: unknown) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+function cleanRO3Number(value: unknown, key: string): number | null {
+  if (value === null || value === undefined || String(value).trim() === "") return null;
+  const parsed = Number(String(value).replace(/,/g, "").replace(/%/g, "").trim());
+  if (!Number.isFinite(parsed) || parsed < 0) throw new Error(`Invalid value for RO3 stat ${key}.`);
+  if (["bladeCrystal", "shieldCrystal", "manaCrystal", "magicDefCrystal"].includes(key) && parsed > 50) {
+    throw new Error(`${key} must be between 0 and 50.`);
+  }
+  return parsed;
+}
+
 export async function POST(request: Request, context: { params: Promise<{ token: string }> }) {
   const session = await getApplicantSession();
   if (!session) return NextResponse.json({ error: "Discord authentication required." }, { status: 401 });
@@ -45,8 +55,20 @@ export async function POST(request: Request, context: { params: Promise<{ token:
   if (!validJobs.includes(job as never)) return NextResponse.json({ error: "Invalid job for this guild game." }, { status: 400 });
 
   if (isRO3) {
-    const ro3Stats = Object.fromEntries(RO3_STAT_KEYS.map((key) => [key, cleanNumber(body[key])])) as Record<(typeof RO3_STAT_KEYS)[number], number>;
+    const unknownFields = Object.keys(body).filter((key) =>
+      !["applicationId", "characterName", "job", ...RO3_STAT_KEYS].includes(key)
+    );
+    if (unknownFields.length) return NextResponse.json({ error: `Unknown application fields: ${unknownFields.join(", ")}.` }, { status: 400 });
+
+    let ro3Stats: Record<string, number | null>;
+    try {
+      ro3Stats = Object.fromEntries(RO3_STAT_KEYS.map((key) => [key, cleanRO3Number(body[key], key)]));
+    } catch (error) {
+      return NextResponse.json({ error: error instanceof Error ? error.message : "Invalid RO3 stats." }, { status: 400 });
+    }
+
     const existing = await prisma.guildApplicant.findUnique({ where: { guildId_discordUserId: { guildId: invite.guildId, discordUserId: user.discordId } } });
+    if (existing?.status === "ACCEPTED") return NextResponse.json({ error: "This application has already been accepted." }, { status: 409 });
     const payload = { inviteId: invite.id, discordUserId: user.discordId, discordUsername: user.username, userId: user.id, characterName, job, ro3Stats, status: "PENDING" as const, reviewedAt: null, reviewedByUserId: null, decidedAt: null, decidedByUserId: null };
     const saved = existing ? await prisma.guildApplicant.update({ where: { id: existing.id }, data: payload }) : await prisma.guildApplicant.create({ data: { guildId: invite.guildId, ...payload } });
     return NextResponse.json({ application: saved });
