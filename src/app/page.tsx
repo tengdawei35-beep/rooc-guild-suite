@@ -18,7 +18,7 @@ export default async function Home() {
   const guild = await prisma.guild.findUnique({ where: { id: auth.guild.id }, include: { members: { where: { active: true }, orderBy: { updatedAt: "desc" }, take: 6 }, resources: { where: { active: true } }, reservedAllocations: true, allocationRuns: { orderBy: { createdAt: "desc" }, take: 5, include: { event: true, bidPages: true } }, events: { orderBy: { date: "desc" }, take: 5, include: { rosters: true } }, _count: { select: { members: { where: { active: true } } } } } });
   const canViewAllocation = hasResourceSuite && hasPermission(auth.role, "allocation.view");
   const canViewApplicants = hasPermission(auth.role, "applicants.view");
-  const ownMember = await prisma.guildMember.findFirst({ where: { guildId: auth.guild.id, userId: auth.user.id, active: true }, select: { id: true, characterName: true } });
+  const ownMember = await prisma.guildMember.findFirst({ where: { guildId: auth.guild.id, active: true, OR: [{ userId: auth.user.id }, { discordUserId: auth.user.discordId }] }, select: { id: true, characterName: true } });
 
   const serverToday = new Intl.DateTimeFormat("en-CA", { timeZone: SERVER_TIME_ZONE, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
   const todayStart = new Date(`${serverToday}T00:00:00+07:00`);
