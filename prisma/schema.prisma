@@ -63,6 +63,7 @@ enum Ro3SeasonStatus {
 enum Ro3OptInCapMode {
   TOTAL
   PER_CATEGORY
+  COMBINED
 }
 
 enum Ro3QueueEntryStatus {
