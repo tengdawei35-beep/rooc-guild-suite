@@ -302,21 +302,19 @@ export async function POST(
       }
     );
   } catch (error) {
-    console.error(
-      "[ROSTER PARTIES] Failed to create:",
-      error
-    );
-
+    console.error("[ROSTER PARTIES] Failed to create:", error);
+    const code = typeof error === "object" && error !== null && "code" in error
+      ? String((error as { code?: unknown }).code)
+      : "";
+    if (code === "P2002") {
+      return NextResponse.json(
+        { error: "This party already exists." },
+        { status: 409 }
+      );
+    }
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to create party.",
-      },
-      {
-        status: 500,
-      }
+      { error: error instanceof Error ? error.message : "Failed to create party." },
+      { status: 500 }
     );
   }
 }
