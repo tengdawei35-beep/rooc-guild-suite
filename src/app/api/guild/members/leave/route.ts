@@ -122,9 +122,8 @@ export async function POST(
       );
 
     const isOwnMember =
-      member.userId !== null &&
-      member.userId ===
-        auth.user.id;
+      member.userId === auth.user.id ||
+      member.discordUserId === auth.user.discordId;
 
     const canManageOwn =
       hasPermission(
@@ -310,9 +309,8 @@ export async function PUT(
       );
 
     const isOwnMember =
-      existing.member.userId !== null &&
-      existing.member.userId ===
-        auth.user.id;
+      existing.member.userId === auth.user.id ||
+      existing.member.discordUserId === auth.user.discordId;
 
     const canManageOwn =
       hasPermission(
@@ -482,9 +480,8 @@ export async function DELETE(
       );
 
     const isOwnMember =
-      existing.member.userId !== null &&
-      existing.member.userId ===
-        auth.user.id;
+      existing.member.userId === auth.user.id ||
+      existing.member.discordUserId === auth.user.discordId;
 
     const canManageOwn =
       hasPermission(
