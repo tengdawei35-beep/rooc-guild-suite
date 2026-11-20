@@ -3,7 +3,7 @@ import { getCurrentAuth, hasPermission } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 import { RO3_JOBS, ROOC_JOBS } from "@/lib/constants/jobs";
-import { RO3_STAT_KEYS } from "@/lib/ocr/ro3-stats";
+import { RO3_STAT_KEYS } from "@/lib/constants/ro3-stats";
 import { findClosestRooMember, scoreRooPlayers } from "@/lib/scoring/roo-scoring";
 
 const MEMBER_STATS_SELECT = {
@@ -122,10 +122,17 @@ export async function POST(request: Request) {
     }
     if (gameType === "RO3") {
       const stats = currentApplicant.ro3Stats;
-      if (!stats || typeof stats !== "object" || Array.isArray(stats) || Object.keys(stats).length === 0) {
+      if (!stats || typeof stats !== "object" || Array.isArray(stats)) {
         throw new Error("RO3 character stats are missing from this application.");
       }
-      for (const [key, value] of Object.entries(stats as Record<string, unknown>)) {
+      const statsRecord = stats as Record<string, unknown>;
+      const missingStats = RO3_STAT_KEYS.filter((key) =>
+        !(key in statsRecord) || statsRecord[key] === null || statsRecord[key] === undefined
+      );
+      if (missingStats.length) {
+        throw new Error(`RO3 character stats are incomplete. Ask the applicant to resubmit. Missing: ${missingStats.join(", ")}.`);
+      }
+      for (const [key, value] of Object.entries(statsRecord)) {
         if (!RO3_STAT_KEYS.includes(key as (typeof RO3_STAT_KEYS)[number]) || (value !== null && (typeof value !== "number" || !Number.isFinite(value) || value < 0))) {
           throw new Error("RO3 character stats are invalid. Ask the applicant to resubmit.");
         }
