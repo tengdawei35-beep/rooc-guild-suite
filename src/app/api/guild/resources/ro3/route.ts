@@ -7,7 +7,9 @@ import { prisma } from "@/lib/prisma";
 const categories = ["CARD", "EQUIPMENT", "ECHO"] as const;
 const capModes = ["TOTAL", "PER_CATEGORY", "COMBINED"] as const;
 
-async function authorize(requireManage = false) {
+type AuthContext = NonNullable<Awaited<ReturnType<typeof getCurrentAuth>>>;
+
+async function authorize(requireManage = false): Promise<{ auth: AuthContext; response?: never } | { response: ReturnType<typeof NextResponse.json>; auth?: never }> {
   const auth = await getCurrentAuth();
   if (!auth) return { response: NextResponse.json({ error: "Authentication required." }, { status: 401 }) };
   if (await isRoocGuild(auth.guild.id)) return { response: NextResponse.json({ error: "RO3 resource pools are only available to RO3 guilds." }, { status: 409 }) };
