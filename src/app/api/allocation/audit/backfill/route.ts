@@ -3,7 +3,7 @@ import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getCurrentAuth } from "@/lib/auth";
 import { hasPermission } from "@/lib/permissions";
-import { hasGuildModule, RESOURCE_SUITE_MODULE } from "@/lib/auth/modules";
+import { hasGuildModule, isRoocGuild, RESOURCE_SUITE_MODULE } from "@/lib/auth/modules";
 
 const OLD_IMPLEMENTATION_CUTOFF = new Date("2026-09-08T14:18:07.000Z");
 const BACKFILL_MARKER = "ROTATION_BACKFILL";
