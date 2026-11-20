@@ -10,6 +10,7 @@ import {
 
 import {
   hasGuildModule,
+  isRoocGuild,
   RESOURCE_SUITE_MODULE,
 } from "@/lib/auth/modules";
 
