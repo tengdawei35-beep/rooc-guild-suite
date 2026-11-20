@@ -11,6 +11,7 @@ import {
 import {
   hasGuildModule,
   RESOURCE_SUITE_MODULE,
+  isRoocGuild,
 } from "@/lib/auth/modules";
 
 import {
@@ -18,6 +19,7 @@ import {
 } from "@/lib/prisma";
 
 import ResourcesClient from "./ResourcesClient";
+import Ro3ResourcesClient from "./Ro3ResourcesClient";
 
 export default async function ResourcesPage() {
   const auth =
@@ -78,6 +80,41 @@ export default async function ResourcesPage() {
               You do not have permission to view guild resources.
             </p>
           </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (!(await isRoocGuild(auth.guild.id))) {
+    const seasons = await prisma.ro3Season.findMany({
+      where: { guildId: auth.guild.id },
+      orderBy: [{ status: "asc" }, { createdAt: "desc" }],
+      include: {
+        resources: { orderBy: [{ category: "asc" }, { name: "asc" }] },
+        eventTypes: {
+          orderBy: { name: "asc" },
+          include: {
+            rewardPool: {
+              include: { resource: { select: { id: true, name: true, category: true } } },
+              orderBy: { resource: { name: "asc" } },
+            },
+          },
+        },
+      },
+    });
+
+    return (
+      <main className="min-h-screen bg-zinc-950 text-white">
+        <div className="mx-auto max-w-7xl px-6 py-10">
+          <Link href="/" className="text-sm text-zinc-500 hover:text-white">← Dashboard</Link>
+          <div className="mt-8">
+            <h1 className="text-3xl font-bold tracking-tight">Guild Resources</h1>
+            <p className="mt-2 text-sm text-zinc-400">Manage item pools, event reward quantities and member opt-in limits.</p>
+          </div>
+          <Ro3ResourcesClient initialSeasons={seasons.map((season) => ({
+            ...season,
+            updatedAt: season.updatedAt.toISOString(),
+          }))} />
         </div>
       </main>
     );
