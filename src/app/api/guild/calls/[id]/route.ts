@@ -13,8 +13,166 @@ function canManage(call:any, auth:any){return call.creatorUserId===auth.user.id|
 export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) { const auth = await getCurrentAuth(); if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 }); if (!hasPermission(auth.role, "events.view")) return NextResponse.json({ error: "You do not have permission to view this call." }, { status: 403 }); try { await ensureCallTables(); const { id } = await params; const call = await getCall(id, auth.guild.id); if (!call) return NextResponse.json({ error: "Call not found." }, { status: 404 }); const requirements = await prisma.$queryRawUnsafe<CallRequirement[]>(`SELECT id, requirement, quantity FROM "guild_call_requirements" WHERE call_id = $1 ORDER BY created_at`, id); const participants = await prisma.$queryRawUnsafe<any[]>(`SELECT p.id, p.requirement_id AS "requirementId", p.status, p.signed_up_at AS "signedUpAt", p.member_id AS "memberId", p.job, m."characterName" AS "characterName", m."discordUsername" AS "discordUsername", m."discordUserId" AS "discordUserId" FROM "guild_call_participants" p JOIN "GuildMember" m ON m.id = p.member_id WHERE p.call_id = $1 ORDER BY p.signed_up_at`, id); const currentMember = await prisma.guildMember.findFirst({ where: { guildId: auth.guild.id, active: true, OR: [{ userId: auth.user.id }, ...(auth.user.discordId ? [{ discordUserId: auth.user.discordId }] : [])] }, select: { id: true } }); const webhook = await prisma.$queryRawUnsafe<Array<{ webhook_url: string }>>(`SELECT webhook_url FROM "guild_call_webhooks" WHERE guild_id = $1`, auth.guild.id); const manager = canManage(call,auth); const guild = await prisma.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true } }); return NextResponse.json({ gameType: guild?.gameType === "RO3" ? "RO3" : "ROOC", call, requirements, participants, signedUp: participants.some((p) => p.memberId === currentMember?.id), webhookConfigured: Boolean(webhook[0]), canManage: manager }); } catch (error) { console.error("[CALL TO ARMS] detail failed", error); return NextResponse.json({ error: "Failed to load Call To Arms. Please try again." }, { status: 500 }); } }
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) { const auth = await getCurrentAuth(); if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 }); if (!hasPermission(auth.role, "events.view")) return NextResponse.json({ error: "You do not have permission to use calls." }, { status: 403 }); try { await ensureCallTables(); const { id } = await params; const call = await getCall(id, auth.guild.id); if (!call) return NextResponse.json({ error: "Call not found." }, { status: 404 }); const guild = await prisma.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true } }); const gameType = guild?.gameType === "RO3" ? "RO3" : "ROOC"; const body = await request.json(); const action = body.action;
-if (action === "edit") { if (!canManage(call,auth)) return NextResponse.json({ error: "Only the creator or guild managers can edit this call." }, { status: 403 }); if (["CANCELLED","COMPLETED"].includes(call.status)) return NextResponse.json({ error: "This call can no longer be edited." }, { status: 400 }); const title=String(body.title??"").trim(); const description=body.description==null?null:String(body.description); const startAt=String(body.startAt??""); const requirements=Array.isArray(body.requirements)?body.requirements:[]; if(!title||!startAt||!requirements.length)return NextResponse.json({error:"Name, time and at least one job requirement are required."},{status:400}); const parsedDate=new Date(startAt); if(Number.isNaN(parsedDate.getTime())||parsedDate<=new Date())return NextResponse.json({error:"Call time must be a valid future date."},{status:400}); const clean=requirements.map((r:any): CallRequirement=>({id:String(r.id||""),requirement:String(r.requirement||"").trim(),quantity:Number(r.quantity)})); if(clean.some((r:CallRequirement)=>!r.requirement||!isValidCallRequirement(r.requirement,gameType)||!Number.isInteger(r.quantity)||r.quantity<1||r.quantity>50))return NextResponse.json({error:"Each requirement must use a valid job or DPS and have at least 1 slot."},{status:400}); const existing=await prisma.$queryRawUnsafe<CallRequirement[]>(`SELECT id, requirement, quantity FROM "guild_call_requirements" WHERE call_id=$1 ORDER BY created_at`,id); const active=await prisma.$queryRawUnsafe<ActiveParticipant[]>(`SELECT requirement_id, job FROM "guild_call_participants" WHERE call_id=$1 AND status='ACTIVE'`,id); for(const p of active){const next=clean.find((r:CallRequirement)=>r.id===p.requirement_id); if(!next||!requirementMatchesJob(next.requirement,p.job,gameType))return NextResponse.json({error:"Cannot change or remove a filled job slot while a participant is assigned to it. Ask the participant to leave first."},{status:400}); const old=existing.find((r:CallRequirement)=>r.id===p.requirement_id); if(old&&next.quantity<active.filter((x:ActiveParticipant)=>x.requirement_id===p.requirement_id).length)return NextResponse.json({error:"A requirement cannot be reduced below its current number of participants."},{status:400});}
-await prisma.$executeRawUnsafe(`UPDATE "guild_calls" SET title=$2,description=$3,start_at=$4,status='OPEN',announced_at=NULL,reminder_sent_at=NULL,updated_at=now() WHERE id=$1`,id,title,description,parsedDate); const keepIds=new Set(clean.map((r:CallRequirement)=>r.id).filter(Boolean)); for(const r of existing){if(r.id&&!keepIds.has(r.id)){await prisma.$executeRawUnsafe(`DELETE FROM "guild_call_requirements" WHERE id=$1 AND call_id=$2`,r.id,id)}} for(const r of clean){if(r.id&&existing.some((x:CallRequirement)=>x.id===r.id)){await prisma.$executeRawUnsafe(`UPDATE "guild_call_requirements" SET requirement=$2,quantity=$3 WHERE id=$1 AND call_id=$4`,r.id,r.requirement,r.quantity,id)}else{await prisma.$executeRawUnsafe(`INSERT INTO "guild_call_requirements" (id,call_id,requirement,quantity) VALUES ($1,$2,$3,$4)`,newId("requirement"),id,r.requirement,r.quantity)}} await refreshCallStatus(id); return NextResponse.json({ok:true}); }
+if (action === "edit") {
+  if (!canManage(call, auth)) {
+    return NextResponse.json({ error: "Only the creator or guild managers can edit this call." }, { status: 403 });
+  }
+
+  const title = String(body.title ?? "").trim();
+  const description = body.description == null ? null : String(body.description);
+  const startAt = String(body.startAt ?? "");
+  const requirements = Array.isArray(body.requirements) ? body.requirements : [];
+  if (!title || !startAt || !requirements.length) {
+    return NextResponse.json({ error: "Name, time and at least one job requirement are required." }, { status: 400 });
+  }
+
+  const parsedDate = new Date(startAt);
+  if (Number.isNaN(parsedDate.getTime()) || parsedDate <= new Date()) {
+    return NextResponse.json({ error: "Call time must be a valid future date." }, { status: 400 });
+  }
+
+  const clean = requirements.map((r: any): CallRequirement => ({
+    id: String(r.id || ""),
+    requirement: String(r.requirement || "").trim(),
+    quantity: Number(r.quantity),
+  }));
+  if (
+    clean.some((r: CallRequirement) =>
+      !r.requirement ||
+      !isValidCallRequirement(r.requirement, gameType) ||
+      !Number.isInteger(r.quantity) ||
+      r.quantity < 1 ||
+      r.quantity > 50
+    ) ||
+    new Set(clean.map((r: CallRequirement) => r.id).filter(Boolean)).size !== clean.filter((r: CallRequirement) => r.id).length
+  ) {
+    return NextResponse.json({
+      error: "Each requirement must use a valid job or role, have 1–50 slots, and appear only once.",
+    }, { status: 400 });
+  }
+
+  const editResult = await prisma.$transaction(async (tx) => {
+    const locked = await tx.$queryRawUnsafe<Array<{ status: string }>>(
+      `SELECT status FROM "guild_calls"
+       WHERE id = $1 AND guild_id = $2
+       FOR UPDATE`,
+      id,
+      auth.guild.id
+    );
+    if (!locked.length) return { error: "Call not found.", statusCode: 404 as const };
+    if (["CANCELLED", "COMPLETED"].includes(locked[0].status)) {
+      return { error: "This call can no longer be edited.", statusCode: 400 as const };
+    }
+
+    const existing = await tx.$queryRawUnsafe<CallRequirement[]>(
+      `SELECT id, requirement, quantity
+       FROM "guild_call_requirements"
+       WHERE call_id = $1
+       ORDER BY created_at`,
+      id
+    );
+    const participants = await tx.$queryRawUnsafe<Array<{
+      requirement_id: string;
+      job: string | null;
+      status: string;
+    }>>(
+      `SELECT requirement_id, job, status
+       FROM "guild_call_participants"
+       WHERE call_id = $1`,
+      id
+    );
+
+    for (const participant of participants) {
+      const next = clean.find((r: CallRequirement) => r.id === participant.requirement_id);
+      if (!next || !requirementMatchesJob(next.requirement, participant.job, gameType)) {
+        return {
+          error: "Cannot change or remove a requirement while participants are assigned to it. Ask them to leave first.",
+          statusCode: 400 as const,
+        };
+      }
+    }
+
+    for (const requirement of existing) {
+      const activeCount = participants.filter(
+        (p) => p.requirement_id === requirement.id && p.status === "ACTIVE"
+      ).length;
+      const next = clean.find((r: CallRequirement) => r.id === requirement.id);
+      if (next && next.quantity < activeCount) {
+        return {
+          error: "A requirement cannot be reduced below its current number of active participants.",
+          statusCode: 400 as const,
+        };
+      }
+    }
+
+    await tx.$executeRawUnsafe(
+      `UPDATE "guild_calls"
+       SET title = $2, description = $3, start_at = $4,
+           status = 'OPEN', announced_at = NULL, reminder_sent_at = NULL,
+           updated_at = now()
+       WHERE id = $1`,
+      id,
+      title,
+      description,
+      parsedDate
+    );
+
+    const keepIds = new Set(clean.map((r: CallRequirement) => r.id).filter(Boolean));
+    for (const requirement of existing) {
+      if (!keepIds.has(requirement.id)) {
+        await tx.$executeRawUnsafe(
+          `DELETE FROM "guild_call_requirements" WHERE id = $1 AND call_id = $2`,
+          requirement.id,
+          id
+        );
+      }
+    }
+
+    for (const requirement of clean) {
+      if (requirement.id && existing.some((r) => r.id === requirement.id)) {
+        await tx.$executeRawUnsafe(
+          `UPDATE "guild_call_requirements"
+           SET requirement = $2, quantity = $3
+           WHERE id = $1 AND call_id = $4`,
+          requirement.id,
+          requirement.requirement,
+          requirement.quantity,
+          id
+        );
+      } else {
+        await tx.$executeRawUnsafe(
+          `INSERT INTO "guild_call_requirements" (id, call_id, requirement, quantity)
+           VALUES ($1, $2, $3, $4)`,
+          newId("requirement"),
+          id,
+          requirement.requirement,
+          requirement.quantity
+        );
+      }
+    }
+
+    const totals = await tx.$queryRawUnsafe<Array<{ required: bigint; active: bigint }>>(
+      `SELECT
+         COALESCE((SELECT SUM(quantity) FROM "guild_call_requirements" WHERE call_id = $1), 0) AS required,
+         COALESCE((SELECT COUNT(*) FROM "guild_call_participants" WHERE call_id = $1 AND status = 'ACTIVE'), 0) AS active`,
+      id
+    );
+    const nextStatus = Number(totals[0]?.active ?? 0) >= Number(totals[0]?.required ?? 0)
+      ? "FILLED"
+      : "OPEN";
+    await tx.$executeRawUnsafe(
+      `UPDATE "guild_calls" SET status = $2, updated_at = now() WHERE id = $1`,
+      id,
+      nextStatus
+    );
+    return { ok: true };
+  }, { isolationLevel: "Serializable" });
+
+  if ("error" in editResult) {
+    return NextResponse.json({ error: editResult.error }, { status: editResult.statusCode });
+  }
+  return NextResponse.json({ ok: true });
+}
 if (action === "signup") {
   const result = await prisma.$transaction(async (tx) => {
     // Serialize all capacity changes for this call before counting slots.
