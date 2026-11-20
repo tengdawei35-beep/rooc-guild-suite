@@ -463,20 +463,14 @@ export async function POST(
     // ---------------------------------------------------------
 
     const existing =
-      await prisma.event.findUnique(
-        {
-          where: {
-            guildId_type_date: {
-              guildId:
-                auth.guild.id,
-
-              type,
-
-              date,
-            },
-          },
-        }
-      );
+      await prisma.event.findFirst({
+        where: {
+          guildId: auth.guild.id,
+          type,
+          date,
+          ro3EventTypeId: null,
+        },
+      });
 
     if (existing) {
       return NextResponse.json(

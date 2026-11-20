@@ -45,6 +45,35 @@ enum BidPageType {
 enum EventType {
   GUILD_LEAGUE
   EMPERIUM_OVERRUN
+  RO3_CUSTOM
+}
+
+enum Ro3ResourceCategory {
+  CARD
+  EQUIPMENT
+  ECHO
+}
+
+enum Ro3SeasonStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum Ro3OptInCapMode {
+  TOTAL
+  PER_CATEGORY
+}
+
+enum Ro3QueueEntryStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum Ro3AllocationStatus {
+  RUNNING
+  COMPLETED
+  FAILED
 }
 
 enum Battlefield {
@@ -111,6 +140,8 @@ model Guild {
   owner User? @relation("GuildOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
   subscriptions GuildSubscription[]
   moduleEntitlements GuildModuleEntitlement[]
+  ro3Seasons Ro3Season[]
+  ro3EventTypes Ro3EventType[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@index([ownerUserId])
@@ -188,6 +219,10 @@ model GuildMember {
   participations EventParticipation[]
   rosterAssignments RosterMember[]
   preferredRosterAssignments PreferredRosterMember[]
+  ro3PersistentInterests Ro3PersistentInterest[]
+  ro3EventOptIns Ro3EventOptIn[]
+  ro3QueueEntries Ro3ResourceQueueEntry[]
+  ro3AllocationResults Ro3AllocationResult[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@unique([guildId, discordUserId])
@@ -347,16 +382,21 @@ model Event {
   type EventType
   date DateTime
   finalRosterId String?
+  ro3EventTypeId String?
   guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  ro3EventType Ro3EventType? @relation(fields: [ro3EventTypeId], references: [id], onDelete: SetNull)
+  ro3Rewards Ro3EventReward[]
+  ro3AllocationRun Ro3AllocationRun?
   participations EventParticipation[]
   rosters Roster[]
   finalRoster Roster? @relation("EventFinalRoster", fields: [finalRosterId], references: [id], onDelete: SetNull)
   allocationRuns AllocationRun[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  @@unique([guildId, type, date])
   @@index([guildId])
   @@index([date])
+  @@index([ro3EventTypeId])
+  @@unique([guildId, type, date, ro3EventTypeId])
   @@unique([finalRosterId])
   @@index([finalRosterId])
 }
@@ -616,4 +656,199 @@ model GuildApplicant {
   @@index([guildId, status])
   @@index([guildId, discordUserId])
   @@index([inviteId])
+}
+
+
+//
+// RO3 RESOURCE BIDDING FOUNDATION
+// These models are intentionally separate from the legacy ROOC allocation
+// models so that the two game modules can evolve independently.
+//
+
+model Ro3Season {
+  id String @id @default(cuid())
+  guildId String
+  name String
+  status Ro3SeasonStatus @default(DRAFT)
+  startsAt DateTime?
+  endsAt DateTime?
+  capMode Ro3OptInCapMode @default(TOTAL)
+  totalOptInCap Int?
+  cardOptInCap Int?
+  equipmentOptInCap Int?
+  echoOptInCap Int?
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  resources Ro3SeasonResource[]
+  eventTypes Ro3EventType[]
+  allocationRuns Ro3AllocationRun[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([guildId, name])
+  @@index([guildId, status])
+}
+
+model Ro3SeasonResource {
+  id String @id @default(cuid())
+  seasonId String
+  name String
+  category Ro3ResourceCategory
+  active Boolean @default(true)
+  season Ro3Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  persistentInterests Ro3PersistentInterest[]
+  rewardPoolEntries Ro3EventRewardPool[]
+  eventOptIns Ro3EventOptIn[]
+  eventRewards Ro3EventReward[]
+  rotation Ro3ResourceRotation?
+  allocationResults Ro3AllocationResult[]
+  allocationResourceResults Ro3AllocationResourceResult[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([seasonId, name])
+  @@index([seasonId, category])
+  @@index([seasonId, active])
+}
+
+model Ro3EventType {
+  id String @id @default(cuid())
+  guildId String
+  seasonId String
+  name String
+  active Boolean @default(true)
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  season Ro3Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  events Event[]
+  rewardPool Ro3EventRewardPool[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([seasonId, name])
+  @@index([guildId])
+  @@index([seasonId, active])
+}
+
+model Ro3EventRewardPool {
+  id String @id @default(cuid())
+  eventTypeId String
+  resourceId String
+  quantity Int
+  eventType Ro3EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  resource Ro3SeasonResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([eventTypeId, resourceId])
+  @@index([resourceId])
+}
+
+model Ro3EventReward {
+  id String @id @default(cuid())
+  eventId String
+  resourceId String
+  quantity Int
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  resource Ro3SeasonResource @relation(fields: [resourceId], references: [id], onDelete: Restrict)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([eventId, resourceId])
+  @@index([resourceId])
+}
+
+model Ro3PersistentInterest {
+  id String @id @default(cuid())
+  memberId String
+  resourceId String
+  quantity Int
+  active Boolean @default(true)
+  member GuildMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  resource Ro3SeasonResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([memberId, resourceId])
+  @@index([resourceId, active])
+}
+
+model Ro3EventOptIn {
+  id String @id @default(cuid())
+  eventId String
+  memberId String
+  resourceId String
+  quantity Int
+  member GuildMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  resource Ro3SeasonResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([eventId, memberId, resourceId])
+  @@index([eventId, resourceId])
+  @@index([memberId])
+}
+
+model Ro3ResourceRotation {
+  id String @id @default(cuid())
+  resourceId String @unique
+  initializedAt DateTime?
+  initializedByUserId String?
+  resource Ro3SeasonResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  entries Ro3ResourceQueueEntry[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Ro3ResourceQueueEntry {
+  id String @id @default(cuid())
+  rotationId String
+  memberId String
+  position Int
+  status Ro3QueueEntryStatus @default(ACTIVE)
+  joinedAt DateTime @default(now())
+  removedAt DateTime?
+  rotation Ro3ResourceRotation @relation(fields: [rotationId], references: [id], onDelete: Cascade)
+  member GuildMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([rotationId, memberId])
+  @@index([rotationId, status, position])
+  @@index([memberId])
+}
+
+model Ro3AllocationRun {
+  id String @id @default(cuid())
+  seasonId String
+  eventId String @unique
+  status Ro3AllocationStatus @default(RUNNING)
+  errorMessage String?
+  rotationSnapshotBefore Json?
+  rotationSnapshotAfter Json?
+  season Ro3Season @relation(fields: [seasonId], references: [id], onDelete: Restrict)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  results Ro3AllocationResult[]
+  resourceResults Ro3AllocationResourceResult[]
+  createdAt DateTime @default(now())
+  completedAt DateTime?
+  @@index([seasonId, createdAt])
+}
+
+model Ro3AllocationResult {
+  id String @id @default(cuid())
+  allocationRunId String
+  memberId String
+  resourceId String
+  quantity Int
+  allocationRun Ro3AllocationRun @relation(fields: [allocationRunId], references: [id], onDelete: Cascade)
+  member GuildMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  resource Ro3SeasonResource @relation(fields: [resourceId], references: [id], onDelete: Restrict)
+  createdAt DateTime @default(now())
+  @@unique([allocationRunId, memberId, resourceId])
+  @@index([memberId])
+  @@index([resourceId])
+}
+
+model Ro3AllocationResourceResult {
+  id String @id @default(cuid())
+  allocationRunId String
+  resourceId String
+  totalQuantity Int
+  allocatedQuantity Int
+  unallocatedQuantity Int
+  allocationRun Ro3AllocationRun @relation(fields: [allocationRunId], references: [id], onDelete: Cascade)
+  resource Ro3SeasonResource @relation(fields: [resourceId], references: [id], onDelete: Restrict)
+  @@unique([allocationRunId, resourceId])
+  @@index([resourceId])
 }

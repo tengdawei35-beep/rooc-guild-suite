@@ -25,7 +25,7 @@ type RankingMember = {
   pvpRank: number;
   event: {
     id: string;
-    type: "GUILD_LEAGUE" | "EMPERIUM_OVERRUN";
+    type: "GUILD_LEAGUE" | "EMPERIUM_OVERRUN" | "RO3_CUSTOM";
     date: Date;
   } | null;
   overallRank: number;
