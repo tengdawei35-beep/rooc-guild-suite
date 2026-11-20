@@ -129,6 +129,14 @@ export async function POST(request: Request) {
       },
     });
   } catch (error) {
+    const code = error && typeof error === "object" && "code" in error ? String(error.code) : "";
+    if (code === "P2034") {
+      return NextResponse.json(
+        { error: "Guild ownership changed while this transfer was being processed. Refresh and try again." },
+        { status: 409 }
+      );
+    }
+
     console.error("[GUILD OWNERSHIP] Failed to transfer ownership:", error);
 
     return NextResponse.json(
