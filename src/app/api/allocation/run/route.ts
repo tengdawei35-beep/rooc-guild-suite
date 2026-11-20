@@ -4,7 +4,7 @@ import { notifyBidComplete } from "@/lib/discord-notifications";
 import { getCurrentAuth } from "@/lib/auth";
 import { hasPermission } from "@/lib/permissions";
 import { buildAllocation, applyAllocationOverrides, type AllocationOverride } from "@/lib/allocation/engine";
-import { hasGuildModule, RESOURCE_SUITE_MODULE } from "@/lib/auth/modules";
+import { hasGuildModule, isRoocGuild, RESOURCE_SUITE_MODULE } from "@/lib/auth/modules";
 
 type RunRequest = { eventId?: string; nonReservedMemberCount?: number; overrides?: AllocationOverride[] };
 type BidSlotData = { memberId: string; resourceId: string };
