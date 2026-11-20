@@ -384,7 +384,7 @@ model Event {
   finalRosterId String?
   ro3EventTypeId String?
   guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
-  ro3EventType Ro3EventType? @relation(fields: [ro3EventTypeId], references: [id], onDelete: Restrict)
+  ro3EventType Ro3EventType? @relation(fields: [ro3EventTypeId], references: [id], onDelete: SetNull)
   ro3Rewards Ro3EventReward[]
   ro3AllocationRun Ro3AllocationRun?
   participations EventParticipation[]
