@@ -169,14 +169,12 @@ async function createEvent(
   }
 
   const existing =
-    await prisma.event.findUnique({
+    await prisma.event.findFirst({
       where: {
-        guildId_type_date_ro3EventTypeId: {
-            ro3EventTypeId: null,
-          guildId,
-          type: body.type,
-          date,
-        },
+        guildId,
+        type: body.type,
+        date,
+        ro3EventTypeId: null,
       },
     });
 
