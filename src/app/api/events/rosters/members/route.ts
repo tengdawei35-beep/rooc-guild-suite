@@ -66,447 +66,137 @@ export async function POST(
   request: Request
 ) {
   try {
-    const auth =
-      await getCurrentAuth();
+    const auth = await getCurrentAuth();
+    if (!auth) return unauthorizedResponse();
+    if (!hasPermission(auth.role, "rosters.edit")) return forbiddenResponse();
 
-    if (!auth) {
-      return unauthorizedResponse();
-    }
+    const body = (await request.json()) as AddMemberRequest;
+    if (!body.partyId) return NextResponse.json({ error: "Party ID is required." }, { status: 400 });
+    if (!body.memberId) return NextResponse.json({ error: "Member ID is required." }, { status: 400 });
+    if (!isValidSlot(body.slotNumber)) return NextResponse.json({ error: "Slot number must be between 1 and 5." }, { status: 400 });
 
-    if (
-      !hasPermission(
-        auth.role,
-        "rosters.edit"
-      )
-    ) {
-      return forbiddenResponse();
-    }
+    // Serialize assignment writes for this roster. The lock is acquired
+    // before checking capacity, slot occupancy, or duplicate membership.
+    const result = await prisma.$transaction(async (tx) => {
+      const lockedRoster = await tx.$queryRawUnsafe<Array<{ id: string }>>(
+        `SELECT r.id
+         FROM "Roster" r
+         JOIN "Event" e ON e.id = r."eventId"
+         WHERE r.id = (
+           SELECT rp."rosterId" FROM "RosterParty" rp WHERE rp.id = $1
+         )
+           AND e."guildId" = $2
+         FOR UPDATE OF r`,
+        body.partyId,
+        auth.guild.id
+      );
+      if (!lockedRoster.length) return { error: "Party not found.", status: 404 as const };
 
-    const body =
-      (await request.json()) as AddMemberRequest;
+      const party = await tx.rosterParty.findUnique({
+        where: { id: body.partyId! },
+        include: { roster: { include: { event: true } }, members: true },
+      });
+      if (!party || party.roster.event.guildId !== auth.guild.id) {
+        return { error: "Party not found.", status: 404 as const };
+      }
+      if (party.members.length >= PARTY_SIZE) {
+        return { error: "A party cannot contain more than 5 members.", status: 400 as const };
+      }
 
-    if (!body.partyId) {
-      return NextResponse.json(
-        {
-          error:
-            "Party ID is required.",
+      const member = await tx.guildMember.findFirst({
+        where: { id: body.memberId!, guildId: auth.guild.id },
+      });
+      if (!member) return { error: "Guild member not found.", status: 404 as const };
+      if (!member.active) return { error: "Inactive members cannot be assigned to a roster.", status: 400 as const };
+
+      const eventDate = new Date(party.roster.event.date);
+      const eventDateEnd = new Date(eventDate.getTime() + 24 * 60 * 60 * 1000);
+      const leave = await tx.memberLeave.findFirst({
+        where: { memberId: member.id, date: { gte: eventDate, lt: eventDateEnd } },
+      });
+      if (leave) return { error: "This member is unavailable on the event date.", status: 400 as const };
+
+      const participation = await tx.eventParticipation.findUnique({
+        where: { eventId_memberId: { eventId: party.roster.event.id, memberId: member.id } },
+      });
+      if (participation && !participation.available) {
+        return { error: "This member is marked unavailable for this event.", status: 400 as const };
+      }
+
+      const existingAssignment = await tx.rosterMember.findFirst({
+        where: { memberId: member.id, party: { rosterId: party.roster.id } },
+      });
+      if (existingAssignment) {
+        return { error: "This member is already assigned to this roster.", status: 409 as const };
+      }
+
+      if (party.members.some((assignment) => assignment.slotNumber === body.slotNumber)) {
+        return { error: "This slot is already occupied.", status: 409 as const };
+      }
+
+      const previousAssignment = await tx.rosterMember.findFirst({
+        where: {
+          memberId: member.id,
+          party: { roster: { event: { guildId: auth.guild.id } } },
         },
-        {
-          status: 400,
-        }
-      );
-    }
-
-    if (!body.memberId) {
-      return NextResponse.json(
-        {
-          error:
-            "Member ID is required.",
+        orderBy: { createdAt: "desc" },
+        select: {
+          guildPercentile: true,
+          tankScore: true,
+          tankPercentile: true,
+          dpsScore: true,
+          dpsPercentile: true,
+          pvpScore: true,
+          pvpPercentile: true,
         },
-        {
-          status: 400,
-        }
-      );
-    }
+      });
 
-    if (
-      !isValidSlot(
-        body.slotNumber
-      )
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            "Slot number must be between 1 and 5.",
+      const assignment = await tx.rosterMember.create({
+        data: {
+          partyId: party.id,
+          memberId: member.id,
+          slotNumber: body.slotNumber!,
+          guildPercentile: previousAssignment?.guildPercentile ?? 0,
+          tankScore: previousAssignment?.tankScore ?? 0,
+          tankPercentile: previousAssignment?.tankPercentile ?? 0,
+          dpsScore: previousAssignment?.dpsScore ?? 0,
+          dpsPercentile: previousAssignment?.dpsPercentile ?? 0,
+          pvpScore: previousAssignment?.pvpScore ?? 0,
+          pvpPercentile: previousAssignment?.pvpPercentile ?? 0,
         },
-        {
-          status: 400,
-        }
-      );
-    }
-
-    // ---------------------------------------------------------
-    // LOAD PARTY + ROSTER + EVENT
-    // ---------------------------------------------------------
-
-    const party =
-      await prisma.rosterParty.findUnique(
-        {
-          where: {
-            id: body.partyId,
-          },
-
-          include: {
-            roster: {
-              include: {
-                event: true,
-              },
-            },
-
-            members: true,
-          },
-        }
-      );
-
-    if (!party) {
-      return NextResponse.json(
-        {
-          error:
-            "Party not found.",
+        include: {
+          member: { select: { id: true, characterName: true, job: true, priority: true } },
         },
-        {
-          status: 404,
-        }
-      );
+      });
+
+      return { assignment, eventId: party.roster.event.id, rosterId: party.roster.id };
+    }, { isolationLevel: "Serializable" });
+
+    if ("error" in result) {
+      return NextResponse.json({ error: result.error }, { status: result.status });
     }
-
-    // Critical guild isolation check.
-    if (
-      party.roster.event.guildId !==
-      auth.guild.id
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            "Party not found.",
-        },
-        {
-          status: 404,
-        }
-      );
-    }
-
-    if (
-      party.members.length >=
-      PARTY_SIZE
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            "A party cannot contain more than 5 members.",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
-
-    // ---------------------------------------------------------
-    // LOAD MEMBER
-    // ---------------------------------------------------------
-
-    const member =
-      await prisma.guildMember.findFirst(
-        {
-          where: {
-            id: body.memberId,
-
-            guildId:
-              auth.guild.id,
-          },
-        }
-      );
-
-    if (!member) {
-      return NextResponse.json(
-        {
-          error:
-            "Guild member not found.",
-        },
-        {
-          status: 404,
-        }
-      );
-    }
-
-    if (!member.active) {
-      return NextResponse.json(
-        {
-          error:
-            "Inactive members cannot be assigned to a roster.",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
-
-    // ---------------------------------------------------------
-    // CHECK LEAVE DATE
-    // ---------------------------------------------------------
-
-    const eventDate =
-      new Date(
-        party.roster.event.date
-      );
-
-    const eventDateEnd =
-      new Date(
-        eventDate.getTime() +
-          24 *
-            60 *
-            60 *
-            1000
-      );
-
-    const leave =
-      await prisma.memberLeave.findFirst(
-        {
-          where: {
-            memberId:
-              member.id,
-
-            date: {
-              gte: eventDate,
-              lt: eventDateEnd,
-            },
-          },
-        }
-      );
-
-    if (leave) {
-      return NextResponse.json(
-        {
-          error:
-            "This member is unavailable on the event date.",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
-
-    // ---------------------------------------------------------
-    // CHECK EVENT PARTICIPATION
-    // ---------------------------------------------------------
-
-    const participation =
-      await prisma.eventParticipation.findUnique(
-        {
-          where: {
-            eventId_memberId: {
-              eventId:
-                party.roster.event.id,
-
-              memberId:
-                member.id,
-            },
-          },
-        }
-      );
-
-    if (
-      participation &&
-      !participation.available
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            "This member is marked unavailable for this event.",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
-
-    // ---------------------------------------------------------
-    // CHECK EXISTING ASSIGNMENT
-    // ---------------------------------------------------------
-
-    const existingAssignment =
-      await prisma.rosterMember.findFirst(
-        {
-          where: {
-            memberId:
-              member.id,
-
-            party: {
-              rosterId:
-                party.roster.id,
-            },
-          },
-        }
-      );
-
-    if (existingAssignment) {
-      return NextResponse.json(
-        {
-          error:
-            "This member is already assigned to this roster.",
-        },
-        {
-          status: 409,
-        }
-      );
-    }
-
-    // ---------------------------------------------------------
-    // CHECK DESTINATION SLOT
-    // ---------------------------------------------------------
-
-    const existingSlot =
-      party.members.find(
-        (assignment) =>
-          assignment.slotNumber ===
-          body.slotNumber
-      );
-
-    if (existingSlot) {
-      return NextResponse.json(
-        {
-          error:
-            "This slot is already occupied.",
-        },
-        {
-          status: 409,
-        }
-      );
-    }
-
-    // ---------------------------------------------------------
-    // PRESERVE PREVIOUS RANKING SNAPSHOT
-    // ---------------------------------------------------------
-
-    const previousAssignment =
-      await prisma.rosterMember.findFirst(
-        {
-          where: {
-            memberId:
-              member.id,
-
-            party: {
-              roster: {
-                event: {
-                  guildId:
-                    auth.guild.id,
-                },
-              },
-            },
-          },
-
-          orderBy: {
-            createdAt:
-              "desc",
-          },
-
-          select: {
-            guildPercentile:
-              true,
-
-            tankScore:
-              true,
-
-            tankPercentile:
-              true,
-
-            dpsScore:
-              true,
-
-            dpsPercentile:
-              true,
-
-            pvpScore:
-              true,
-
-            pvpPercentile:
-              true,
-          },
-        }
-      );
-
-    // ---------------------------------------------------------
-    // CREATE ASSIGNMENT
-    // ---------------------------------------------------------
-
-    const assignment =
-      await prisma.rosterMember.create(
-        {
-          data: {
-            partyId:
-              party.id,
-
-            memberId:
-              member.id,
-
-            slotNumber:
-              body.slotNumber,
-
-            guildPercentile:
-              previousAssignment
-                ?.guildPercentile ??
-              0,
-
-            tankScore:
-              previousAssignment
-                ?.tankScore ??
-              0,
-
-            tankPercentile:
-              previousAssignment
-                ?.tankPercentile ??
-              0,
-
-            dpsScore:
-              previousAssignment
-                ?.dpsScore ??
-              0,
-
-            dpsPercentile:
-              previousAssignment
-                ?.dpsPercentile ??
-              0,
-
-            pvpScore:
-              previousAssignment
-                ?.pvpScore ??
-              0,
-
-            pvpPercentile:
-              previousAssignment
-                ?.pvpPercentile ??
-              0,
-          },
-
-          include: {
-            member: {
-              select: {
-                id: true,
-                characterName: true,
-                job: true,
-                priority: true,
-              },
-            },
-          },
-        }
-      );
 
     await notifyRosterUpdate({
       guildId: auth.guild.id,
-      eventId: party.roster.event.id,
-      rosterId: party.roster.id,
+      eventId: result.eventId,
+      rosterId: result.rosterId,
     });
 
-    return NextResponse.json({
-      success: true,
-      assignment,
-    });
+    return NextResponse.json({ success: true, assignment: result.assignment });
   } catch (error) {
-    console.error(
-      "[ROSTER MEMBERS] Failed to add member:",
-      error
-    );
-
+    console.error("[ROSTER MEMBERS] Failed to add member:", error);
+    const code = typeof error === "object" && error !== null && "code" in error
+      ? String((error as { code?: unknown }).code)
+      : "";
+    if (code === "P2002" || code === "P2034") {
+      return NextResponse.json(
+        { error: "The roster changed while this assignment was being saved. Refresh and try again." },
+        { status: 409 }
+      );
+    }
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to add member to roster.",
-      },
-      {
-        status: 500,
-      }
+      { error: error instanceof Error ? error.message : "Failed to add member to roster." },
+      { status: 500 }
     );
   }
 }
