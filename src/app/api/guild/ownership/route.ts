@@ -90,11 +90,16 @@ export async function POST(request: Request) {
       );
     }
 
-    await prisma.$transaction(async (tx) => {
-      await tx.guild.update({
-        where: { id: guild.id },
+    const transferred = await prisma.$transaction(async (tx) => {
+      // Compare-and-set the owner before changing either membership role.
+      // This prevents two concurrent transfers from leaving multiple ADMIN
+      // memberships after one request silently overwrites the other owner.
+      const ownerUpdate = await tx.guild.updateMany({
+        where: { id: guild.id, ownerUserId: auth.user.id },
         data: { ownerUserId: newOwnerUserId },
       });
+
+      if (ownerUpdate.count !== 1) return false;
 
       await tx.guildMembership.update({
         where: { id: previousOwnerMembership.id },
@@ -105,7 +110,16 @@ export async function POST(request: Request) {
         where: { id: targetMembership.id },
         data: { role: "ADMIN" },
       });
-    });
+
+      return true;
+    }, { isolationLevel: "Serializable" });
+
+    if (!transferred) {
+      return NextResponse.json(
+        { error: "Guild ownership changed while this transfer was being processed. Refresh and try again." },
+        { status: 409 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
