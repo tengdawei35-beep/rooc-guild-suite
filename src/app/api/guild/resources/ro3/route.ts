@@ -97,7 +97,7 @@ export async function POST(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
-    const access = await authorize();
+    const access = await authorize(true);
     if (access.response) return access.response;
     const guildId = access.auth!.guild.id;
     const body = await request.json();
