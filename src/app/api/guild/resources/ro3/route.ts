@@ -27,7 +27,17 @@ export async function GET() {
       orderBy: [{ status: "asc" }, { createdAt: "desc" }],
       include: {
         resources: { orderBy: [{ category: "asc" }, { name: "asc" }] },
-        eventTypes: { orderBy: { name: "asc" }, include: { rewardPool: { include: { resource: { select: { id: true, name: true, category: true } } }, orderBy: { resource: { name: "asc" } } } },
+        eventTypes: {
+          orderBy: { name: "asc" },
+          include: {
+            rewardPool: {
+              orderBy: { resource: { name: "asc" } },
+              include: {
+                resource: { select: { id: true, name: true, category: true } },
+              },
+            },
+          },
+        },
       },
     });
     return NextResponse.json({ seasons });
