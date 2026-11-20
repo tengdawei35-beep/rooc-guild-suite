@@ -358,7 +358,7 @@ export async function PUT(request: Request) {
     if (!existing) return NextResponse.json({ error: "Member not found." }, { status: 404 });
 
     const canEditAny = hasPermission(auth.role, "members.edit");
-    const isOwnMember = existing.userId !== null && existing.userId === auth.user.id;
+    const isOwnMember = existing.userId === auth.user.id || existing.discordUserId === auth.user.discordId;
     const canEditOwn = hasPermission(auth.role, "profile.editOwn") && isOwnMember;
 
     if (!canEditAny && !canEditOwn) {
