@@ -7,18 +7,18 @@ import { prisma } from "@/lib/prisma";
 const categories = ["CARD", "EQUIPMENT", "ECHO"] as const;
 const capModes = ["TOTAL", "PER_CATEGORY", "COMBINED"] as const;
 
-async function authorize() {
+async function authorize(requireManage = false) {
   const auth = await getCurrentAuth();
   if (!auth) return { response: NextResponse.json({ error: "Authentication required." }, { status: 401 }) };
   if (await isRoocGuild(auth.guild.id)) return { response: NextResponse.json({ error: "RO3 resource pools are only available to RO3 guilds." }, { status: 409 }) };
   if (!(await hasGuildModule(auth.guild.id, RESOURCE_SUITE_MODULE))) return { response: NextResponse.json({ error: "The Resource Suite is not subscribed for this guild." }, { status: 403 }) };
-  if (!hasPermission(auth.role, "allocation.run")) return { response: NextResponse.json({ error: "You do not have permission to manage resources." }, { status: 403 }) };
+  if (!hasPermission(auth.role, requireManage ? "allocation.run" : "allocation.view")) return { response: NextResponse.json({ error: requireManage ? "You do not have permission to manage resources." : "You do not have permission to view resources." }, { status: 403 }) };
   return { auth };
 }
 
 export async function GET() {
   try {
-    const access = await authorize();
+    const access = await authorize(false);
     if (access.response) return access.response;
     const seasons = await prisma.ro3Season.findMany({
       where: { guildId: access.auth!.guild.id },
@@ -37,7 +37,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const access = await authorize();
+    const access = await authorize(true);
     if (access.response) return access.response;
     const guildId = access.auth!.guild.id;
     const body = await request.json();
