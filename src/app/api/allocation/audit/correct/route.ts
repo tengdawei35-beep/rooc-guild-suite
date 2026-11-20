@@ -21,18 +21,37 @@ export async function POST(request: Request) {
       include: { resource: { select: { name: true } } },
     });
     if (!state) return NextResponse.json({ error: "Rotation state not found." }, { status: 404 });
-    if (state.rotationIndex !== body.expectedCurrentIndex) {
-      return NextResponse.json({ error: `Rotation state changed since the audit. Current index is ${state.rotationIndex}; expected ${body.expectedCurrentIndex}. Refresh the audit before correcting it.` }, { status: 409 });
-    }
-    if (state.rotationIndex === body.correctedIndex) return NextResponse.json({ success: true, alreadyCorrect: true, resourceName: state.resource.name, rotationIndex: state.rotationIndex });
 
-    const updated = await prisma.rotationState.update({
-      where: { id: state.id },
+    // Compare-and-set the index in one database statement. A separate read
+    // followed by update() can overwrite another administrator's correction
+    // if both requests pass the stale-index check at the same time.
+    const result = await prisma.rotationState.updateMany({
+      where: {
+        id: state.id,
+        guildId: auth.guild.id,
+        rotationIndex: body.expectedCurrentIndex,
+      },
       data: { rotationIndex: body.correctedIndex },
-      select: { rotationIndex: true, resource: { select: { name: true } } },
     });
 
-    return NextResponse.json({ success: true, resourceName: updated.resource.name, rotationIndex: updated.rotationIndex, previousIndex: state.rotationIndex });
+    if (result.count !== 1) {
+      const current = await prisma.rotationState.findUnique({
+        where: { id: state.id },
+        select: { rotationIndex: true },
+      });
+      if (!current) return NextResponse.json({ error: "Rotation state not found." }, { status: 404 });
+      return NextResponse.json({
+        error: `Rotation state changed since the audit. Current index is ${current.rotationIndex}; expected ${body.expectedCurrentIndex}. Refresh the audit before correcting it.`,
+      }, { status: 409 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      alreadyCorrect: state.rotationIndex === body.correctedIndex,
+      resourceName: state.resource.name,
+      rotationIndex: body.correctedIndex,
+      previousIndex: state.rotationIndex,
+    });
   } catch (error) {
     console.error("[ALLOCATION AUDIT CORRECT] Failed:", error);
     return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to correct rotation index." }, { status: 500 });
