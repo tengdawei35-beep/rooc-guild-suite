@@ -8,6 +8,7 @@ export async function GET() {
   try {
     const auth = await getCurrentAuth();
     if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+    if (!(await isRoocGuild(auth.guild.id))) return NextResponse.json({ error: "The legacy resource allocation system is currently available to ROOC guilds only." }, { status: 409 });
     const canReset = hasPermission(auth.role, "allocation.run") &&
       await hasGuildModule(auth.guild.id, RESOURCE_SUITE_MODULE);
     return NextResponse.json({ canReset });
@@ -21,6 +22,7 @@ export async function POST() {
   try {
     const auth = await getCurrentAuth();
     if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+    if (!(await isRoocGuild(auth.guild.id))) return NextResponse.json({ error: "The legacy resource allocation system is currently available to ROOC guilds only." }, { status: 409 });
     if (!(await hasGuildModule(auth.guild.id, RESOURCE_SUITE_MODULE))) {
       return NextResponse.json({ error: "The Resource Suite is not subscribed for this guild." }, { status: 403 });
     }
