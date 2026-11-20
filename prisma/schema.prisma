@@ -396,6 +396,7 @@ model Event {
   @@index([guildId])
   @@index([date])
   @@index([ro3EventTypeId])
+  @@unique([guildId, type, date, ro3EventTypeId])
   @@unique([finalRosterId])
   @@index([finalRosterId])
 }
