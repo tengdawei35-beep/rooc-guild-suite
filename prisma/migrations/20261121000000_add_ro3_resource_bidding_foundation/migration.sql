@@ -225,4 +225,4 @@ ALTER TABLE "Ro3AllocationResult" ADD CONSTRAINT "Ro3AllocationResult_memberId_f
 ALTER TABLE "Ro3AllocationResult" ADD CONSTRAINT "Ro3AllocationResult_resourceId_fkey" FOREIGN KEY ("resourceId") REFERENCES "Ro3SeasonResource"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE "Ro3AllocationResourceResult" ADD CONSTRAINT "Ro3AllocationResourceResult_allocationRunId_fkey" FOREIGN KEY ("allocationRunId") REFERENCES "Ro3AllocationRun"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "Ro3AllocationResourceResult" ADD CONSTRAINT "Ro3AllocationResourceResult_resourceId_fkey" FOREIGN KEY ("resourceId") REFERENCES "Ro3SeasonResource"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-ALTER TABLE "Event" ADD CONSTRAINT "Event_ro3EventTypeId_fkey" FOREIGN KEY ("ro3EventTypeId") REFERENCES "Ro3EventType"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Event" ADD CONSTRAINT "Event_ro3EventTypeId_fkey" FOREIGN KEY ("ro3EventTypeId") REFERENCES "Ro3EventType"("id") ON DELETE SET NULL ON UPDATE CASCADE;
