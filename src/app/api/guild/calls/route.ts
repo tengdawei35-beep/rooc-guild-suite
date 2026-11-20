@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentAuth, hasPermission } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { announceNewCall, ensureCallTables, newId, refreshCallStatus } from "@/lib/call-to-arms";
+import { announceNewCall, ensureCallTables, isValidCallRequirement, newId, refreshCallStatus } from "@/lib/call-to-arms";
 
 export async function GET(request: Request) {
   const auth = await getCurrentAuth();
@@ -10,8 +10,9 @@ export async function GET(request: Request) {
   try {
     await ensureCallTables();
     const url = new URL(request.url); const mine = url.searchParams.get("mine") === "true";
+    const guild = await prisma.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true } });
     const calls = await prisma.$queryRawUnsafe<any[]>(`SELECT c.id,c.title,c.description,c.start_at AS "startAt",c.status,c.creator_user_id AS "creatorUserId",u.username AS "creatorUsername",COALESCE((SELECT SUM(quantity)::integer FROM "guild_call_requirements" r WHERE r.call_id=c.id),0)::integer AS "requiredCount",COALESCE((SELECT COUNT(*)::integer FROM "guild_call_participants" p WHERE p.call_id=c.id AND p.status='ACTIVE'),0)::integer AS "activeCount",EXISTS(SELECT 1 FROM "guild_call_participants" p JOIN "GuildMember" m ON m.id=p.member_id WHERE p.call_id=c.id AND m."userId"=$2) AS "signedUp" FROM "guild_calls" c JOIN "User" u ON u.id=c.creator_user_id WHERE c.guild_id=$1 AND c.start_at > now() ${mine?`AND EXISTS(SELECT 1 FROM "guild_call_participants" p JOIN "GuildMember" m ON m.id=p.member_id WHERE p.call_id=c.id AND m."userId"=$2)`:``} ORDER BY c.start_at ASC`,auth.guild.id,auth.user.id);
-    return NextResponse.json({ calls });
+    return NextResponse.json({ calls, gameType: guild?.gameType === "RO3" ? "RO3" : "ROOC" });
   } catch (error) { console.error("[CALL TO ARMS] list failed",error); return NextResponse.json({ error:"Failed to load Call To Arms. Please try again."},{status:500}); }
 }
 
@@ -23,7 +24,9 @@ export async function POST(request: Request) {
     const body=await request.json(); const title=String(body.title??"").trim(); const description=String(body.description??"").trim()||null; const startAt=new Date(body.startAt); const requirements=Array.isArray(body.requirements)?body.requirements:[];
     if(!title||Number.isNaN(startAt.getTime()))return NextResponse.json({error:"Event name and a valid date/time are required."},{status:400});
     if(!requirements.length)return NextResponse.json({error:"Add at least one required job or role."},{status:400});
-    if(requirements.some((r:any)=>!String(r.requirement??"").trim()||!Number.isInteger(Number(r.quantity))||Number(r.quantity)<1||Number(r.quantity)>50))return NextResponse.json({error:"Each requirement must have a valid quantity."},{status:400});
+    const guild = await prisma.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true } });
+    const gameType = guild?.gameType === "RO3" ? "RO3" : "ROOC";
+    if(requirements.some((r:any)=>!String(r.requirement??"").trim()||!isValidCallRequirement(String(r.requirement).trim(),gameType)||!Number.isInteger(Number(r.quantity))||Number(r.quantity)<1||Number(r.quantity)>50))return NextResponse.json({error:"Each requirement must be a valid job or role for this game and have a quantity between 1 and 50."},{status:400});
     await ensureCallTables();
     const webhookRows=await prisma.$queryRawUnsafe<Array<{webhook_url:string|null}>>(`SELECT webhook_url FROM "guild_call_webhooks" WHERE guild_id=$1 LIMIT 1`,auth.guild.id);
     const webhookUrl=webhookRows[0]?.webhook_url??null;
