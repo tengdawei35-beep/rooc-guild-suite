@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentAuth } from "@/lib/auth";
 import { hasPermission } from "@/lib/permissions";
-import { hasGuildModule, RESOURCE_SUITE_MODULE } from "@/lib/auth/modules";
+import { hasGuildModule, isRoocGuild, RESOURCE_SUITE_MODULE } from "@/lib/auth/modules";
 
 export async function GET() {
   try {
