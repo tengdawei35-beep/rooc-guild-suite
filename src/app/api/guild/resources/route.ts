@@ -150,7 +150,7 @@ function validateResourceData(
 async function requireResourceSuite(
   guildId: string
 ) {
-  return hasGuildModule(
+  return (await isRoocGuild(guildId)) && hasGuildModule(
     guildId,
     RESOURCE_SUITE_MODULE
   );
