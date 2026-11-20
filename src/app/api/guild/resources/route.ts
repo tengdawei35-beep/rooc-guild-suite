@@ -10,6 +10,7 @@ import {
 
 import {
   hasGuildModule,
+  isRoocGuild,
   RESOURCE_SUITE_MODULE,
 } from "@/lib/auth/modules";
 
@@ -150,7 +151,7 @@ function validateResourceData(
 async function requireResourceSuite(
   guildId: string
 ) {
-  return hasGuildModule(
+  return (await isRoocGuild(guildId)) && hasGuildModule(
     guildId,
     RESOURCE_SUITE_MODULE
   );

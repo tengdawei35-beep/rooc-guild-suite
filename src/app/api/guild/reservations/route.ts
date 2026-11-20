@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentAuth } from "@/lib/auth";
+import { isRoocGuild } from "@/lib/auth/modules";
 import { hasPermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 
@@ -10,6 +11,7 @@ export async function GET() {
   try {
     const auth = await getCurrentAuth();
     if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+    if (!(await isRoocGuild(auth.guild.id))) return NextResponse.json({ error: "The legacy resource allocation system is currently available to ROOC guilds only." }, { status: 409 });
     if (!hasPermission(auth.role, "allocation.view")) return NextResponse.json({ error: "You do not have permission to view reservations." }, { status: 403 });
     const guild = await prisma.guild.findUnique({ where: { id: auth.guild.id }, include: { members: { where: { active: true }, orderBy: { characterName: "asc" }, select: { id: true, characterName: true, eligible: true } }, resources: { where: { active: true }, orderBy: { name: "asc" }, select: { id: true, name: true, type: true, total: true, hardCap: true, perPlayerLimit: true } }, reservedAllocations: { include: { member: { select: { characterName: true } }, resource: { select: { name: true, type: true, total: true } } }, orderBy: { member: { characterName: "asc" } } } } });
     if (!guild) return NextResponse.json({ error: "Guild not found." }, { status: 404 });

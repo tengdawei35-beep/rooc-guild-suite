@@ -43,3 +43,16 @@ export async function requireGuildModule(guildId: string, module: SaaSModule) {
 
   return true;
 }
+
+/**
+ * Legacy FEATHER/CARD resources and allocation are ROOC-specific.
+ * Read the guild's authoritative game type rather than trusting request data.
+ */
+export async function isRoocGuild(guildId: string): Promise<boolean> {
+  const guild = await prisma.guild.findUnique({
+    where: { id: guildId },
+    select: { gameType: true },
+  });
+
+  return guild?.gameType === "ROOC";
+}

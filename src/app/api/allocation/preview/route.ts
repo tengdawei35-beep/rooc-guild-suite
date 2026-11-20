@@ -2,13 +2,14 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentAuth } from "@/lib/auth";
 import { hasPermission } from "@/lib/permissions";
-import { hasGuildModule, RESOURCE_SUITE_MODULE } from "@/lib/auth/modules";
+import { hasGuildModule, isRoocGuild, RESOURCE_SUITE_MODULE } from "@/lib/auth/modules";
 import { buildAllocation } from "@/lib/allocation/engine";
 
 export async function POST(request: Request) {
   try {
     const auth = await getCurrentAuth();
     if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+    if (!(await isRoocGuild(auth.guild.id))) return NextResponse.json({ error: "The legacy resource allocation system is currently available to ROOC guilds only." }, { status: 409 });
     if (!(await hasGuildModule(auth.guild.id, RESOURCE_SUITE_MODULE))) return NextResponse.json({ error: "The Resource Suite is not subscribed for this guild." }, { status: 403 });
     if (!hasPermission(auth.role, "allocation.view")) return NextResponse.json({ error: "You do not have permission to view allocation information." }, { status: 403 });
 
