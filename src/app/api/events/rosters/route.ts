@@ -171,7 +171,8 @@ async function createEvent(
   const existing =
     await prisma.event.findUnique({
       where: {
-        guildId_type_date: {
+        guildId_type_date_ro3EventTypeId: {
+            ro3EventTypeId: null,
           guildId,
           type: body.type,
           date,
