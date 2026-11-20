@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentAuth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { hasPermission } from "@/lib/permissions";
 import { notifyBidComplete, notifyRosterUpdate } from "@/lib/discord-notifications";
 
@@ -35,9 +36,24 @@ export async function POST(request: Request) {
         );
       }
 
+      const event = await prisma.event.findFirst({
+        where: {
+          id: body.eventId,
+          guildId: auth.guild.id,
+        },
+        select: { id: true },
+      });
+
+      if (!event) {
+        return NextResponse.json(
+          { error: "Event not found." },
+          { status: 404 }
+        );
+      }
+
       await notifyRosterUpdate({
         guildId: auth.guild.id,
-        eventId: body.eventId,
+        eventId: event.id,
         rosterId: body.rosterId,
       });
 
@@ -59,9 +75,25 @@ export async function POST(request: Request) {
         );
       }
 
+      const allocationRun = await prisma.allocationRun.findFirst({
+        where: {
+          id: body.allocationRunId,
+          guildId: auth.guild.id,
+          status: "COMPLETED",
+        },
+        select: { id: true },
+      });
+
+      if (!allocationRun) {
+        return NextResponse.json(
+          { error: "Completed allocation run not found." },
+          { status: 404 }
+        );
+      }
+
       await notifyBidComplete({
         guildId: auth.guild.id,
-        allocationRunId: body.allocationRunId,
+        allocationRunId: allocationRun.id,
       });
 
       return NextResponse.json({ success: true });
