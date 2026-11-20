@@ -8,7 +8,7 @@ type Resource = { id: string; name: string; category: Category; active: boolean 
 type Reward = { resourceId: string; quantity: number; resource: { id: string; name: string; category: Category } };
 type EventType = { id: string; name: string; active: boolean; rewardPool: Reward[] };
 type Season = {
-  id: string; name: string; status: "DRAFT" | "ACTIVE" | "ARCHIVED";
+  id: string; name: string; updatedAt: string; status: "DRAFT" | "ACTIVE" | "ARCHIVED";
   capMode: CapMode; totalOptInCap: number | null; cardOptInCap: number | null;
   equipmentOptInCap: number | null; echoOptInCap: number | null;
   resources: Resource[]; eventTypes: EventType[];
@@ -39,7 +39,7 @@ export default function Ro3ResourcesClient({ initialSeasons }: { initialSeasons:
       if (!refreshed.ok) throw new Error(data.error || "Unable to refresh resource pools.");
       setSeasons(data.seasons);
       if (result.season?.id) setSelectedId(result.season.id);
-      if (result.resource?.id) setSelectedId(result.resource.seasonId ? selectedId : selectedId);
+      if (result.resource?.seasonId) setSelectedId(result.resource.seasonId);
       if (result.eventType?.id) setSelectedId(result.eventType.seasonId ?? selectedId);
       return true;
     } catch (e) { setError(e instanceof Error ? e.message : "Unable to save resource settings."); return false; }
