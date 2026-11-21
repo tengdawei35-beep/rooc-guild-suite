@@ -388,6 +388,7 @@ model Event {
   guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
   ro3EventType Ro3EventType? @relation(fields: [ro3EventTypeId], references: [id], onDelete: SetNull)
   ro3Rewards Ro3EventReward[]
+  ro3EventOptIns Ro3EventOptIn[]
   ro3AllocationRun Ro3AllocationRun?
   participations EventParticipation[]
   rosters Roster[]
@@ -774,6 +775,7 @@ model Ro3EventOptIn {
   resourceId String
   quantity Int
   member GuildMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
   resource Ro3SeasonResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
