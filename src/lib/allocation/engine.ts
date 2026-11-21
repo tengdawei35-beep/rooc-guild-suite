@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 
-export type AllocationInput = { guildId: string; nonReservedMemberCount: number; eventDate: Date };
+export type AllocationInput = { guildId: string; nonReservedMemberCount: number; eventDate: Date; timeZone?: string | null };
 export type AllocationAssignment = {
   memberId: string;
   memberName: string | null;
@@ -72,7 +72,9 @@ export async function buildAllocation(input: AllocationInput): Promise<Allocatio
     throw new Error("A valid event date is required.");
   }
 
-  const eventDateStart = new Date(input.eventDate);
+  const dateParts = new Intl.DateTimeFormat("en-CA", { timeZone: input.timeZone || "UTC", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(input.eventDate);
+  const part = (type: string) => dateParts.find((item) => item.type === type)?.value ?? "";
+  const eventDateStart = new Date(`${part("year")}-${part("month")}-${part("day")}T00:00:00.000Z`);
   const eventDateEnd = new Date(eventDateStart.getTime() + 24 * 60 * 60 * 1000);
   const guild = await prisma.guild.findUnique({
     where: { id: input.guildId },
