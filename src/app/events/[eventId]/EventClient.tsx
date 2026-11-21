@@ -1163,6 +1163,7 @@ async function loadPreferredRoster() {
 
             <div className="flex flex-wrap gap-3">
               {canManageEvents && (
+                <>
                 <button
                   type="button"
                   onClick={sendAttendancePromptAgain}
@@ -1177,6 +1178,7 @@ async function loadPreferredRoster() {
                 >
                   Allocation
                 </Link>
+                </>
               )}
 
               <button
