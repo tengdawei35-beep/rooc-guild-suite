@@ -1,1 +1,0 @@
-ALTER TABLE "Guild" ALTER COLUMN "discordGuildId" DROP NOT NULL;
