@@ -49,17 +49,16 @@ export async function GET(_request: Request, context: Context) {
       discordUsername: canManage ? member.user?.username ?? null : null,
     };
   });
-  const totalActiveMembers = await prisma.guildMember.count({ where: { guildId: auth.guild.id, active: true } });
   const counts = {
-    available: event.attendance.filter(item => item.status === "AVAILABLE").length,
-    unavailable: event.attendance.filter(item => item.status === "UNAVAILABLE").length,
-    afkBusy: event.attendance.filter(item => item.status === "AFK_BUSY").length,
-    noResponse: Math.max(0, totalActiveMembers - event.attendance.length),
+    available: attendance.filter(item => item.status === "AVAILABLE").length,
+    unavailable: attendance.filter(item => item.status === "UNAVAILABLE").length,
+    afkBusy: attendance.filter(item => item.status === "AFK_BUSY").length,
+    noResponse: attendance.filter(item => item.status === null).length,
   };
   return NextResponse.json({
     attendance,
     counts,
-    ownStatus: ownMember ? event.attendance.find(item => item.memberId === ownMember.id)?.status ?? null : null,
+    ownStatus: ownMember ? (memberLeaveIds.has(ownMember.id) ? "UNAVAILABLE" : event.attendance.find(item => item.memberId === ownMember.id)?.status ?? null) : null,
     locked: event.date.getTime() - Date.now() <= 30 * 60 * 1000,
     canManage,
   });
