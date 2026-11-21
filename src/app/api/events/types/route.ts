@@ -45,7 +45,7 @@ export async function GET() {
         orderBy: { name: "asc" },
       })
     : [];
-  return NextResponse.json({ eventTypes, resourceEventTypes, timeZone: auth.guild.timeZone ?? null });
+  return NextResponse.json({ eventTypes, resourceEventTypes, isRo3: true, timeZone: auth.guild.timeZone ?? null });
 }
 
 export async function POST(request: Request) {

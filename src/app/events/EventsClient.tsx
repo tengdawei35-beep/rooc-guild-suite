@@ -202,9 +202,7 @@ export default function EventsClient({
       }
 
       setSuccess(
-        `${formatEventType(
-          form.type
-        )} created successfully.`
+        `${isRo3 ? customEventTypes.find(item => item.id === selectedGuildEventTypeId)?.name ?? "Event" : formatEventType(form.type)} created successfully.`
       );
 
       setForm(EMPTY_FORM);
@@ -866,9 +864,7 @@ function EventCard({
       <div className="flex items-start justify-between gap-4">
         <div>
           <span className="rounded-full border border-zinc-700 bg-zinc-950 px-3 py-1 text-xs text-zinc-400">
-            {formatEventType(
-              event.type
-            )}
+            {formatEventType(event.type, event.eventTypeName)}
           </span>
 
           <h3 className="mt-4 text-lg font-semibold transition group-hover:text-zinc-300">
@@ -1188,12 +1184,11 @@ function EmptyState({
 // =============================================================
 
 function formatEventType(
-  type: EventType
+  type: EventType,
+  customName?: string | null
 ) {
-  return type ===
-    "GUILD_LEAGUE"
-    ? "Guild League"
-    : "Emperium Overrun";
+  if (type === "RO3_CUSTOM") return customName || "RO3 Event";
+  return type === "GUILD_LEAGUE" ? "Guild League" : "Emperium Overrun";
 }
 
 function formatEventDate(
