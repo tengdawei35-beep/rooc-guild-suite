@@ -17,6 +17,7 @@ function validateGuildData(body: GuildRequest) {
 
   if (!name) return { error: "Guild name is required." };
   if (!discordGuildId) return { error: "Discord Guild ID is required." };
+  if (!/^\d{17,20}$/.test(discordGuildId)) return { error: "Enter a valid Discord server ID." };
   if (!isGameType(body.gameType)) return { error: "A valid game type is required." };
 
   return { name, discordGuildId, gameType: body.gameType };
@@ -52,27 +53,34 @@ export async function PUT(request: Request) {
 
     const conflictingGuild = await prisma.guild.findFirst({
       where: { discordGuildId: data.discordGuildId, NOT: { id: guild.id } },
+      select: { id: true, name: true },
     });
 
-    if (conflictingGuild) {
-      return NextResponse.json(
-        { error: "That Discord Guild ID is already associated with another guild." },
-        { status: 409 }
-      );
-    }
+    // A Discord server can be linked to only one HMDL guild. When a manager
+    // intentionally assigns it to this guild, atomically release the old link.
+    // No guild, member, event, or historical data is moved or deleted.
+    const updatedGuild = await prisma.$transaction(async (tx) => {
+      if (conflictingGuild) {
+        await tx.guild.update({
+          where: { id: conflictingGuild.id },
+          data: { discordGuildId: null },
+        });
+      }
 
-    // Game switching intentionally changes only the guild's active module.
-    // Game-specific records are retained and are never converted or deleted here.
-    const updatedGuild = await prisma.guild.update({
-      where: { id: guild.id },
-      data: {
-        name: data.name,
-        discordGuildId: data.discordGuildId,
-        gameType: data.gameType,
-      },
+      return tx.guild.update({
+        where: { id: guild.id },
+        data: {
+          name: data.name,
+          discordGuildId: data.discordGuildId,
+          gameType: data.gameType,
+        },
+      });
     });
 
-    return NextResponse.json({ guild: updatedGuild });
+    return NextResponse.json({
+      guild: updatedGuild,
+      discordAssociationTransferredFrom: conflictingGuild?.name ?? null,
+    });
   } catch (error) {
     console.error("[GUILD] Failed to update guild:", error);
     return NextResponse.json({ error: "Failed to update guild." }, { status: 500 });
