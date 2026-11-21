@@ -19,13 +19,21 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const auth = await getCurrentAuth();
-  const [accessibleGuildCount, isPlatformAdmin, hasResourceSuite] = auth
+  const [accessibleGuildCount, isPlatformAdmin, hasResourceSuite, ownMember] = auth
     ? await Promise.all([
         prisma.guildMembership.count({ where: { userId: auth.user.id } }),
         getPlatformAdmin().then(Boolean),
         hasGuildModule(auth.guild.id, RESOURCE_SUITE_MODULE),
+        prisma.guildMember.findFirst({
+          where: {
+            guildId: auth.guild.id,
+            active: true,
+            OR: [{ userId: auth.user.id }, { discordUserId: auth.user.discordId }],
+          },
+          select: { id: true },
+        }),
       ])
-    : [0, false, false];
+    : [0, false, false, null];
 
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
@@ -38,6 +46,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             accessibleGuildCount={accessibleGuildCount}
             isPlatformAdmin={isPlatformAdmin}
             hasResourceSuite={hasResourceSuite}
+            ownMemberId={ownMember?.id ?? null}
           >
             {children}
           </AppShell>
