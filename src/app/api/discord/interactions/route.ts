@@ -54,17 +54,23 @@ export async function POST(request: Request) {
   }
   if (event.date.getTime() - Date.now() <= 30 * 60 * 1000) return ephemeral("Attendance is locked 30 minutes before the event starts.");
 
-  const member = await prisma.guildMember.findFirst({
-    where: {
-      guildId: event.guildId,
-      active: true,
-      OR: [{ discordUserId }, { user: { is: { discordId: discordUserId } } }],
-    },
-    select: { id: true },
+  // Prefer the explicit guild-member Discord ID. The OR query could match
+  // two different member rows when a stale account link exists, causing a
+  // valid response to be saved against the wrong character.
+  let member = await prisma.guildMember.findFirst({
+    where: { guildId: event.guildId, discordUserId, active: true },
+    select: { id: true, characterName: true },
   });
+  if (!member) {
+    member = await prisma.guildMember.findFirst({
+      where: { guildId: event.guildId, active: true, user: { is: { discordId: discordUserId } } },
+      select: { id: true, characterName: true },
+    });
+  }
   if (!member) return ephemeral("Your Discord account is not linked to an active HMDL guild member.");
 
   await syncEventAttendanceAndLeave({ eventId, memberId: member.id, eventDate: event.date, timeZone: event.scheduleTimeZone, status });
+  console.info("[DISCORD ATTENDANCE] Saved response", { eventId, memberId: member.id, characterName: member.characterName, status });
 
   const channelId = interaction.channel_id;
   const messageId = interaction.message?.id;
@@ -78,5 +84,5 @@ export async function POST(request: Request) {
     UNAVAILABLE: "🔴 Unavailable",
     AFK_BUSY: "🟡 AFK / Busy",
   };
-  return ephemeral("Your attendance response is saved: " + labels[status] + ". You can change it until 30 minutes before the event.");
+  return ephemeral("Your attendance response is saved for **" + (member.characterName || "your character") + "**: " + labels[status] + ". You can change it until 30 minutes before the event.");
 }
