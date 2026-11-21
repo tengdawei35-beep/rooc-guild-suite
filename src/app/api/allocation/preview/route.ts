@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     const event = await prisma.event.findFirst({ where: { id: eventId, guildId: auth.guild.id }, select: { id: true, guildId: true, type: true, date: true, scheduleTimeZone: true } });
     if (!event) return NextResponse.json({ error: "Event not found." }, { status: 404 });
 
-    const preview = await buildAllocation({ guildId: auth.guild.id, nonReservedMemberCount, eventDate: event.date, timeZone: event.scheduleTimeZone });
+    const preview = await buildAllocation({ guildId: auth.guild.id, nonReservedMemberCount, eventDate: event.date, eventId: event.id, timeZone: event.scheduleTimeZone });
     return NextResponse.json({ preview, canEdit: hasPermission(auth.role, "allocation.run"), event: { id: event.id, guildId: event.guildId, type: event.type, date: event.date } });
   } catch (error) {
     console.error("[ALLOCATION PREVIEW]", error);
