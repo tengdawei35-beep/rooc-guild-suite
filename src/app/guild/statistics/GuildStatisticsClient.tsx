@@ -170,7 +170,7 @@ export default function GuildStatisticsClient() {
                       {sortedPlayers.map((player, index) => (
                         <tr key={player.id} className="hover:bg-white/[0.03]">
                           <td className="px-5 py-3 text-gray-600">{index + 1}</td>
-                          <td className="px-5 py-3 font-medium text-white">{player.characterName ?? "Unnamed"}</td>
+                          <td className="px-5 py-3 font-medium"><Link href={`/guild/members/${player.id}`} className="text-white underline-offset-4 hover:text-sky-300 hover:underline focus:outline-none focus:ring-1 focus:ring-sky-400 rounded-sm">{player.characterName ?? "Unnamed"}</Link></td>
                           <td className="px-5 py-3 tabular-nums">{formatScore(player.pvpScore)}</td>
                           <td className="px-5 py-3 tabular-nums">{formatScore(player.dpsScore)}</td>
                           <td className="px-5 py-3 tabular-nums">{formatScore(player.tankScore)}</td>
