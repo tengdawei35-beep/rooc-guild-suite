@@ -398,102 +398,41 @@ export async function POST(
       );
     }
 
-    const body =
-      await request.json();
-
-    const type =
-      body.type as EventType;
-
-    const date =
-      normalizeDate(
-        body.date
-      );
-
-    const ro3EventTypeId =
-      body.ro3EventTypeId === null || body.ro3EventTypeId === undefined || body.ro3EventTypeId === ""
-        ? null
-        : typeof body.ro3EventTypeId === "string"
-          ? body.ro3EventTypeId
-          : undefined;
-
-    if (ro3EventTypeId === undefined) {
-      return NextResponse.json({ error: "Invalid RO3 event type." }, { status: 400 });
-    }
-
-    if (ro3EventTypeId !== null) {
-      if (await isRoocGuild(auth.guild.id)) {
-        return NextResponse.json({ error: "RO3 event types can only be used by RO3 guilds." }, { status: 409 });
+    const body = await request.json();
+    const isRo3 = !(await isRoocGuild(auth.guild.id));
+    const date = normalizeDate(body.date);
+    if (!date) return NextResponse.json({ error: "A valid event date is required." }, { status: 400 });
+    let type: EventType = body.type as EventType;
+    let guildEventTypeId: string | null = null;
+    let eventTypeName: string | null = null;
+    let battlefieldCount: number | null = null;
+    let partiesPerBattlefield: number | null = null;
+    let scheduleTimeZone: string | null = null;
+    let ro3EventTypeId: string | null = null;
+    if (isRo3) {
+      guildEventTypeId = typeof body.guildEventTypeId === "string" ? body.guildEventTypeId : "";
+      if (!guildEventTypeId) return NextResponse.json({ error: "Select a configured event type." }, { status: 400 });
+      const configured = await prisma.guildEventType.findFirst({ where: { id: guildEventTypeId, guildId: auth.guild.id, active: true } });
+      if (!configured) return NextResponse.json({ error: "That event type is no longer active." }, { status: 400 });
+      const weekday = new Date(date.getTime() + 7 * 60 * 60 * 1000).getUTCDay();
+      if (!configured.weekdays.includes(weekday)) return NextResponse.json({ error: "This event type is not scheduled for the selected weekday." }, { status: 400 });
+      type = "RO3_CUSTOM";
+      eventTypeName = configured.name;
+      battlefieldCount = configured.battlefieldCount;
+      partiesPerBattlefield = configured.partiesPerBattlefield;
+      scheduleTimeZone = configured.timeZone;
+      const requestedResourceTypeId = typeof body.ro3EventTypeId === "string" && body.ro3EventTypeId ? body.ro3EventTypeId : null;
+      if (requestedResourceTypeId) {
+        if (!(await hasGuildModule(auth.guild.id, RESOURCE_SUITE_MODULE))) return NextResponse.json({ error: "The Resource Suite is not subscribed for this guild." }, { status: 403 });
+        const rewardType = await prisma.ro3EventType.findFirst({ where: { id: requestedResourceTypeId, guildId: auth.guild.id, active: true, guildEventTypeId, season: { is: { guildId: auth.guild.id, status: "ACTIVE" } } }, select: { id: true } });
+        if (!rewardType) return NextResponse.json({ error: "The selected resource reward configuration does not match this event type in the active Resources pool." }, { status: 400 });
+        ro3EventTypeId = requestedResourceTypeId;
       }
-      if (!(await hasGuildModule(auth.guild.id, RESOURCE_SUITE_MODULE))) {
-        return NextResponse.json({ error: "The Resource Suite is not subscribed for this guild." }, { status: 403 });
-      }
-      const eventType = await prisma.ro3EventType.findFirst({
-        where: {
-          id: ro3EventTypeId,
-          guildId: auth.guild.id,
-          active: true,
-          season: { is: { guildId: auth.guild.id, status: "ACTIVE" } },
-        },
-        select: { id: true },
-      });
-      if (!eventType) {
-        return NextResponse.json({ error: "Choose an active event type from the guild's active Resources pool." }, { status: 400 });
-      }
-    }
-
-    // ---------------------------------------------------------
-    // VALIDATE TYPE
-    // ---------------------------------------------------------
-
-    if (
-      type !==
-        "GUILD_LEAGUE" &&
-      type !==
-        "EMPERIUM_OVERRUN"
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            "Invalid event type.",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
-
-    // ---------------------------------------------------------
-    // VALIDATE DATE
-    // ---------------------------------------------------------
-
-    if (!date) {
-      return NextResponse.json(
-        {
-          error:
-            "A valid event date is required.",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
-
-    const dateError =
-      validateEventDate(
-        type,
-        date
-      );
-
-    if (dateError) {
-      return NextResponse.json(
-        {
-          error:
-            dateError,
-        },
-        {
-          status: 400,
-        }
-      );
+    } else {
+      if (body.type !== "GUILD_LEAGUE" && body.type !== "EMPERIUM_OVERRUN") return NextResponse.json({ error: "Invalid event type." }, { status: 400 });
+      type = body.type as EventType;
+      const dateError = validateEventDate(type, date);
+      if (dateError) return NextResponse.json({ error: dateError }, { status: 400 });
     }
 
     // ---------------------------------------------------------
@@ -507,6 +446,7 @@ export async function POST(
           type,
           date,
           ro3EventTypeId,
+          guildEventTypeId,
         },
       });
 
@@ -538,6 +478,11 @@ export async function POST(
             date,
 
             ro3EventTypeId,
+            guildEventTypeId,
+            eventTypeName,
+            battlefieldCount,
+            partiesPerBattlefield,
+            scheduleTimeZone,
           },
         }
       );
@@ -556,6 +501,8 @@ export async function POST(
 
           date:
             event.date,
+          eventTypeName: event.eventTypeName,
+          guildEventTypeId: event.guildEventTypeId,
         },
       },
       {
