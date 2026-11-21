@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 
-export type AllocationInput = { guildId: string; nonReservedMemberCount: number; eventDate: Date; timeZone?: string | null };
+export type AllocationInput = { guildId: string; nonReservedMemberCount: number; eventDate: Date; eventId?: string; timeZone?: string | null };
 export type AllocationAssignment = {
   memberId: string;
   memberName: string | null;
@@ -84,6 +84,7 @@ export async function buildAllocation(input: AllocationInput): Promise<Allocatio
           active: true,
           eligible: true,
           leaveDates: { none: { date: { gte: eventDateStart, lt: eventDateEnd } } },
+          ...(input.eventId ? { eventAttendance: { none: { eventId: input.eventId, status: { in: ["UNAVAILABLE", "AFK_BUSY"] } } } } : {}),
         },
         orderBy: { characterName: "asc" },
       },
