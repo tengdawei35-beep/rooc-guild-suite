@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentAuth } from "@/lib/auth";
 import { hasPermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
+import { refreshGuildRankings } from "@/lib/scoring/refresh-guild-rankings";
 
 type RouteContext = { params: Promise<{ job: string }> };
 
@@ -19,6 +20,8 @@ export async function GET(_request: Request, context: RouteContext) {
       where: { id: auth.guild.id },
       select: { gameType: true },
     });
+
+    if (guild?.gameType !== "RO3") await refreshGuildRankings(auth.guild.id);
 
     const members = await prisma.guildMember.findMany({
       where: { guildId: auth.guild.id, job },
