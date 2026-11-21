@@ -9,7 +9,8 @@ import {
 
 type EventType =
   | "GUILD_LEAGUE"
-  | "EMPERIUM_OVERRUN";
+  | "EMPERIUM_OVERRUN"
+  | "RO3_CUSTOM";
 
 type EventsView =
   | "events"
@@ -20,6 +21,9 @@ type EventItem = {
   id: string;
   guildId: string;
   type: EventType;
+  eventTypeName?: string | null;
+  guildEventTypeId?: string | null;
+  scheduleTimeZone?: string | null;
   date: string;
   participationCount: number;
   rosterCount: number;
@@ -66,9 +70,10 @@ export default function EventsClient({
   const [form, setForm] =
     useState(EMPTY_FORM);
 
-  const [ro3EventTypes, setRo3EventTypes] = useState<
-    { id: string; name: string }[]
-  >([]);
+  const [isRo3, setIsRo3] = useState(false);
+  const [customEventTypes, setCustomEventTypes] = useState<{ id: string; name: string; weekdays: number[]; startTime: string; timeZone: string; battlefieldCount: number; partiesPerBattlefield: number }[]>([]);
+  const [resourceEventTypes, setResourceEventTypes] = useState<{ id: string; name: string; guildEventTypeId: string | null }[]>([]);
+  const [selectedGuildEventTypeId, setSelectedGuildEventTypeId] = useState("");
   const [selectedRo3EventTypeId, setSelectedRo3EventTypeId] = useState("");
 
   const [view, setView] =
@@ -136,20 +141,20 @@ export default function EventsClient({
 
   useEffect(() => {
     let cancelled = false;
-    async function loadRo3EventTypes() {
+    async function loadConfiguredEventTypes() {
       try {
-        const response = await fetch("/api/guild/resources/ro3", { cache: "no-store" });
+        const response = await fetch("/api/events/types", { cache: "no-store" });
         if (!response.ok) return;
         const result = await response.json();
-        const activeSeason = Array.isArray(result.seasons)
-          ? result.seasons.find((season: { status: string }) => season.status === "ACTIVE")
-          : null;
-        if (!cancelled) setRo3EventTypes(activeSeason?.eventTypes?.filter((item: { active: boolean }) => item.active).map((item: { id: string; name: string }) => ({ id: item.id, name: item.name })) ?? []);
+        if (cancelled) return;
+        setIsRo3(Boolean(result.isRo3));
+        setCustomEventTypes(Array.isArray(result.eventTypes) ? result.eventTypes.filter((item: { active: boolean; weekdays: number[]; startTime: string }) => item.active && item.weekdays.length > 0 && Boolean(item.startTime)) : []);
+        setResourceEventTypes(Array.isArray(result.resourceEventTypes) ? result.resourceEventTypes : []);
       } catch {
-        // ROOC guilds do not expose the RO3 Resources API.
+        // Configured event types load when the API responds.
       }
     }
-    void loadRo3EventTypes();
+    void loadConfiguredEventTypes();
     return () => { cancelled = true; };
   }, []);
 
@@ -185,9 +190,10 @@ export default function EventsClient({
           },
 
           body: JSON.stringify({
-            type: form.type,
+            type: isRo3 ? "RO3_CUSTOM" : form.type,
             date: form.date,
-            ro3EventTypeId: selectedRo3EventTypeId || null,
+            guildEventTypeId: isRo3 ? selectedGuildEventTypeId : null,
+            ro3EventTypeId: isRo3 ? (selectedRo3EventTypeId || null) : null,
           }),
         });
 
@@ -202,12 +208,11 @@ export default function EventsClient({
       }
 
       setSuccess(
-        `${formatEventType(
-          form.type
-        )} created successfully.`
+        `${isRo3 ? customEventTypes.find(item => item.id === selectedGuildEventTypeId)?.name ?? "Event" : formatEventType(form.type)} created successfully.`
       );
 
       setForm(EMPTY_FORM);
+      setSelectedGuildEventTypeId("");
       setSelectedRo3EventTypeId("");
 
       await loadEvents();
@@ -357,6 +362,7 @@ export default function EventsClient({
             <p className="mt-2 text-zinc-400">
               {pageDescription}
             </p>
+            <Link href="/events/results" className="mt-3 inline-flex rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 transition hover:border-zinc-500 hover:text-white">Event Results →</Link>
           </div>
         </div>
 
@@ -428,68 +434,30 @@ export default function EventsClient({
               >
                 <div className="grid gap-5 lg:grid-cols-3">
                   {/* EVENT TYPE */}
-
                   <div>
-                    <label
-                      htmlFor="eventType"
-                      className="block text-sm font-medium text-zinc-300"
-                    >
-                      Event Type
-                    </label>
-
-                    <select
-                      id="eventType"
-                      value={form.type}
-                      onChange={(event) => {
-                        setForm({
-                          ...form,
-                          type:
-                            event.target
-                              .value as EventType,
-                        });
-
-                        setError(null);
-                        setSuccess(null);
-                      }}
-                      disabled={creating}
-                      className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-zinc-400 disabled:opacity-50"
-                    >
-                      <option value="GUILD_LEAGUE">
-                        Guild League
-                      </option>
-
-                      <option value="EMPERIUM_OVERRUN">
-                        Emperium Overrun
-                      </option>
-                    </select>
-                  </div>
-
-                  {ro3EventTypes.length > 0 && (
-                    <div>
-                      <label
-                        htmlFor="ro3EventType"
-                        className="block text-sm font-medium text-zinc-300"
-                      >
-                        RO3 Resource Event Type
-                      </label>
-                      <select
-                        id="ro3EventType"
-                        value={selectedRo3EventTypeId}
-                        onChange={event => setSelectedRo3EventTypeId(event.target.value)}
-                        disabled={creating}
-                        className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-zinc-400 disabled:opacity-50"
-                      >
-                        <option value="">Not linked to Resources</option>
-                        {ro3EventTypes.map(item => (
-                          <option key={item.id} value={item.id}>{item.name}</option>
-                        ))}
+                    <label htmlFor="eventType" className="block text-sm font-medium text-zinc-300">Event Type</label>
+                    {isRo3 ? (
+                      <select id="eventType" value={selectedGuildEventTypeId} onChange={event => { setSelectedGuildEventTypeId(event.target.value); setSelectedRo3EventTypeId(""); setError(null); }} disabled={creating} className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-zinc-400 disabled:opacity-50">
+                        <option value="">Select configured event type</option>
+                        {customEventTypes.map(item => <option key={item.id} value={item.id}>{item.name} · {item.startTime}</option>)}
                       </select>
-                      <p className="mt-2 text-xs text-zinc-600">
-                        Select the reward pool configuration members should use for Event Opt-ins.
-                      </p>
+                    ) : (
+                      <select id="eventType" value={form.type} onChange={event => { setForm({ ...form, type: event.target.value as EventType }); setError(null); setSuccess(null); }} disabled={creating} className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-zinc-400 disabled:opacity-50">
+                        <option value="GUILD_LEAGUE">Guild League</option>
+                        <option value="EMPERIUM_OVERRUN">Emperium Overrun</option>
+                      </select>
+                    )}
+                  </div>
+                  {isRo3 && selectedGuildEventTypeId && resourceEventTypes.some(item => item.guildEventTypeId === selectedGuildEventTypeId) && (
+                    <div>
+                      <label htmlFor="ro3EventType" className="block text-sm font-medium text-zinc-300">Resource Reward Configuration</label>
+                      <select id="ro3EventType" value={selectedRo3EventTypeId} onChange={event => setSelectedRo3EventTypeId(event.target.value)} disabled={creating} className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none focus:border-zinc-400 disabled:opacity-50">
+                        <option value="">Not linked to Resources</option>
+                        {resourceEventTypes.filter(item => item.guildEventTypeId === selectedGuildEventTypeId).map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
+                      </select>
+                      <p className="mt-2 text-xs text-zinc-600">Select the reward quantities configured for this event type in Resources.</p>
                     </div>
                   )}
-
                   {/* DATE */}
 
                   <div>
@@ -519,11 +487,7 @@ export default function EventsClient({
                       className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-zinc-400 disabled:opacity-50"
                     />
 
-                    <p className="mt-2 text-xs text-zinc-600">
-                      {getScheduleDescription(
-                        form.type
-                      )}
-                    </p>
+                    {!isRo3 && <p className="mt-2 text-xs text-zinc-600">{getScheduleDescription(form.type)}</p>}
                   </div>
 
                   {/* CREATE */}
@@ -533,7 +497,8 @@ export default function EventsClient({
                       type="submit"
                       disabled={
                         creating ||
-                        !form.date
+                        !form.date ||
+                        (isRo3 && !selectedGuildEventTypeId)
                       }
                       className="w-full rounded-lg bg-white px-5 py-3 font-medium text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
                     >
@@ -546,11 +511,9 @@ export default function EventsClient({
 
                 {/* EVENT RULES */}
 
-                <div className="mt-6 rounded-xl border border-zinc-800 bg-zinc-950 p-5">
-                  <EventRules
-                    type={form.type}
-                  />
-                </div>
+                {!isRo3 && <div className="mt-6 rounded-xl border border-zinc-800 bg-zinc-950 p-5"><EventRules type={form.type} /></div>}
+                {isRo3 && selectedGuildEventTypeId && <p className="mt-6 text-sm text-zinc-400">{customEventTypes.find(item => item.id === selectedGuildEventTypeId)?.battlefieldCount} battlefields · {customEventTypes.find(item => item.id === selectedGuildEventTypeId)?.partiesPerBattlefield} parties per battlefield · 5 members per party.</p>}
+                {isRo3 && customEventTypes.length === 0 && <p className="mt-6 text-sm text-amber-300">Configure an active event type with at least one weekday and a start time before creating RO3 events.</p>}
               </form>
 
               {error && (
@@ -866,15 +829,11 @@ function EventCard({
       <div className="flex items-start justify-between gap-4">
         <div>
           <span className="rounded-full border border-zinc-700 bg-zinc-950 px-3 py-1 text-xs text-zinc-400">
-            {formatEventType(
-              event.type
-            )}
+            {formatEventType(event.type, event.eventTypeName)}
           </span>
 
           <h3 className="mt-4 text-lg font-semibold transition group-hover:text-zinc-300">
-            {formatEventDate(
-              event.date
-            )}
+            {formatEventDate(event.date, event.type === "RO3_CUSTOM" ? event.scheduleTimeZone ?? "Asia/Bangkok" : "Asia/Bangkok", event.type === "RO3_CUSTOM")}
           </h3>
         </div>
 
@@ -891,12 +850,7 @@ function EventCard({
         </span>
       </div>
 
-      <div className="mt-6">
-        <EventRules
-          type={event.type}
-          compact
-        />
-      </div>
+      {event.type !== "RO3_CUSTOM" && <div className="mt-6"><EventRules type={event.type} compact /></div>}
 
       <div className="mt-6 grid grid-cols-3 gap-3 border-t border-zinc-800 pt-5">
         <Metric
@@ -1188,16 +1142,17 @@ function EmptyState({
 // =============================================================
 
 function formatEventType(
-  type: EventType
+  type: EventType,
+  customName?: string | null
 ) {
-  return type ===
-    "GUILD_LEAGUE"
-    ? "Guild League"
-    : "Emperium Overrun";
+  if (type === "RO3_CUSTOM") return customName || "RO3 Event";
+  return type === "GUILD_LEAGUE" ? "Guild League" : "Emperium Overrun";
 }
 
 function formatEventDate(
-  value: string
+  value: string,
+  timeZone?: string,
+  includeTime = false
 ) {
   const date =
     new Date(value);
@@ -1214,12 +1169,14 @@ function formatEventDate(
     "en-GB",
     {
       timeZone:
-        "Asia/Bangkok",
+        timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone,
 
       weekday: "long",
       day: "numeric",
       month: "short",
       year: "numeric",
+      hour: includeTime ? "2-digit" : undefined,
+      minute: includeTime ? "2-digit" : undefined,
     }
   ).format(date);
 }

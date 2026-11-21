@@ -30,6 +30,7 @@ export async function GET() {
         eventTypes: {
           orderBy: { name: "asc" },
           include: {
+            guildEventType: { select: { name: true } },
             rewardPool: {
               orderBy: { resource: { name: "asc" } },
               include: {
@@ -40,7 +41,7 @@ export async function GET() {
         },
       },
     });
-    return NextResponse.json({ seasons });
+    return NextResponse.json({ seasons: seasons.map(season => ({ ...season, eventTypes: season.eventTypes.map(eventType => ({ ...eventType, name: eventType.guildEventType?.name ?? eventType.name })) })) });
   } catch (error) {
     console.error("[RO3 RESOURCES GET]", error);
     return NextResponse.json({ error: "Failed to load RO3 resource pools." }, { status: 500 });
@@ -75,11 +76,14 @@ export async function POST(request: Request) {
 
     if (action === "createEventType") {
       const seasonId = typeof body.seasonId === "string" ? body.seasonId : "";
-      const name = typeof body.name === "string" ? body.name.trim() : "";
-      if (!name || name.length > 80) return NextResponse.json({ error: "Enter an event type name (1–80 characters)." }, { status: 400 });
+      const guildEventTypeId = typeof body.guildEventTypeId === "string" ? body.guildEventTypeId : "";
       const season = await prisma.ro3Season.findFirst({ where: { id: seasonId, guildId } });
       if (!season || season.status === "ARCHIVED") return NextResponse.json({ error: "An editable resource pool could not be found." }, { status: 404 });
-      const eventType = await prisma.ro3EventType.create({ data: { guildId, seasonId, name } });
+      const configuredType = await prisma.guildEventType.findFirst({ where: { id: guildEventTypeId, guildId, active: true } });
+      if (!configuredType) return NextResponse.json({ error: "Select an active event type configured under Events." }, { status: 400 });
+      const eventType = await prisma.ro3EventType.create({
+        data: { guildId, seasonId, name: configuredType.name, guildEventTypeId: configuredType.id },
+      });
       return NextResponse.json({ eventType }, { status: 201 });
     }
 

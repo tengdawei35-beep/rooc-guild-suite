@@ -4,10 +4,13 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import RaidManagement from "./RaidManagement";
 import RosterJobOverrides from "./RosterJobOverrides";
+import EventAttendancePanel from "./EventAttendancePanel";
+import EventResultsUploader from "./EventResultsUploader";
 
 type EventType =
   | "GUILD_LEAGUE"
-  | "EMPERIUM_OVERRUN";
+  | "EMPERIUM_OVERRUN"
+  | "RO3_CUSTOM";
 
 type Participant = {
   id: string;
@@ -30,6 +33,11 @@ type EventData = {
   id: string;
   guildId: string;
   type: EventType;
+  eventTypeName?: string | null;
+  guildEventTypeId?: string | null;
+  battlefieldCount?: number | null;
+  partiesPerBattlefield?: number | null;
+  scheduleTimeZone?: string | null;
   date: string;
   guild: {
     id: string;
@@ -56,9 +64,7 @@ type RosterMember = {
 type RosterParty = {
   id: string;
   partyNumber: number;
-  battlefield:
-    | "BATTLEFIELD_1"
-    | "BATTLEFIELD_2";
+  battlefield: string;
   members: RosterMember[];
 };
 
@@ -140,6 +146,7 @@ export default function EventClient({
 
   const [generatingRoster, setGeneratingRoster] =
     useState(false);
+  const [creatingManualRoster, setCreatingManualRoster] = useState(false);
 
   const [savingPreferred, setSavingPreferred] =
     useState(false);
@@ -281,6 +288,21 @@ export default function EventClient({
   // ==========================================================
   // GENERATE ROSTER
   // ==========================================================
+
+async function createManualRoster() {
+  if (!data) return;
+  const name = window.prompt("Name this roster", "Main Roster");
+  if (!name || !name.trim()) return;
+  setCreatingManualRoster(true);
+  setError(null);
+  try {
+    const response = await fetch("/api/events/rosters", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ eventId, name: name.trim(), generationMode: "MANUAL" }) });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || "Failed to create manual roster.");
+    await loadEvent();
+  } catch (err) { setError(err instanceof Error ? err.message : "Failed to create manual roster."); }
+  finally { setCreatingManualRoster(false); }
+}
 
 async function generateRoster() {
   setGeneratingRoster(true);
@@ -1235,9 +1257,7 @@ async function loadPreferredRoster() {
             <div>
               <div className="flex flex-wrap items-center gap-3">
                 <span className="rounded-full border border-zinc-700 bg-zinc-900 px-3 py-1 text-xs text-zinc-400">
-                  {formatEventType(
-                    data.event.type
-                  )}
+                  {formatEventType(data.event.type, data.event.eventTypeName)}
                 </span>
 
                 <span className="rounded-full bg-emerald-950 px-3 py-1 text-xs text-emerald-400">
@@ -1246,9 +1266,7 @@ async function loadPreferredRoster() {
               </div>
 
               <h1 className="mt-4 text-3xl font-bold tracking-tight">
-                {formatEventDate(
-                  data.event.date
-                )}
+                {formatEventDate(data.event.date, data.event.type === "RO3_CUSTOM" ? data.event.scheduleTimeZone ?? "Asia/Bangkok" : "Asia/Bangkok", data.event.type === "RO3_CUSTOM")}
               </h1>
 
               <p className="mt-2 text-zinc-500">
@@ -1283,12 +1301,13 @@ async function loadPreferredRoster() {
           </div>
         )}
 
+        <EventAttendancePanel eventId={eventId} />
+        <EventResultsUploader eventId={eventId} canManage={canManageEvents} />
+
         {preferredSaved && (
           <div className="mt-5 rounded-lg border border-emerald-900 bg-emerald-950/40 px-4 py-3 text-sm text-emerald-400">
             Roster saved as the preferred roster for future{" "}
-            {formatEventType(
-              data.event.type
-            )} events.
+            {formatEventType(data.event.type, data.event.eventTypeName)} events.
           </div>
         )}
 
@@ -1342,12 +1361,18 @@ async function loadPreferredRoster() {
               </h2>
 
               <p className="mt-1 text-sm text-zinc-500">
-                Generate and manually adjust event rosters.
+                {data.event.type === "RO3_CUSTOM" ? "Create a manual roster using the configured battlefield and party capacity, then assign members." : "Generate and manually adjust event rosters."}
               </p>
             </div>
 
             {canEditRosters && (
               <div className="flex flex-wrap gap-3">
+                {data.event.type === "RO3_CUSTOM" ? (
+                  <button type="button" onClick={createManualRoster} disabled={creatingManualRoster} className="rounded-lg bg-white px-5 py-2.5 text-sm font-medium text-black transition hover:bg-zinc-200 disabled:cursor-wait disabled:opacity-50">
+                    {creatingManualRoster ? "Creating..." : "Create Manual Roster"}
+                  </button>
+                ) : (
+                <>
                 <button
                   type="button"
                   onClick={saveRosterAsPreferred}
@@ -1391,6 +1416,8 @@ async function loadPreferredRoster() {
                     ? "Generating..."
                     : "Generate Roster"}
                 </button>
+                </>
+                )}
               </div>
             )}
           </div>
@@ -1404,7 +1431,7 @@ async function loadPreferredRoster() {
                 </p>
 
                 <p className="mt-2 text-sm text-zinc-600">
-                  Generate an automatic roster from the available members.
+                  {data.event.type === "RO3_CUSTOM" ? "Create a manual roster to start assigning members." : "Generate an automatic roster from the available members."}
                 </p>
               </div>
             ) : (
@@ -2189,18 +2216,19 @@ function getPartyNumber(data: EventResponse, partyId: string) {
   return "?";
 }
 
-function formatEventType(type: EventType) {
+function formatEventType(type: EventType, customName?: string | null) {
+  if (type === "RO3_CUSTOM") return customName || "RO3 Event";
   return type === "GUILD_LEAGUE" ? "Guild League" : "Emperium Overrun";
 }
 
-function formatBattlefield(battlefield: "BATTLEFIELD_1" | "BATTLEFIELD_2") {
-  return battlefield === "BATTLEFIELD_1" ? "Battlefield 1" : "Battlefield 2";
+function formatBattlefield(battlefield: string) {
+  return "Battlefield " + battlefield.replace("BATTLEFIELD_", "");
 }
 
-function formatEventDate(value: string) {
+function formatEventDate(value: string, timeZone?: string, includeTime = false) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Bangkok", weekday: "long", day: "numeric", month: "short", year: "numeric" }).format(date);
+  return new Intl.DateTimeFormat("en-GB", { timeZone: timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone, weekday: "long", day: "numeric", month: "short", year: "numeric", hour: includeTime ? "2-digit" : undefined, minute: includeTime ? "2-digit" : undefined }).format(date);
 }
 
 function formatDateTime(value: string) {

@@ -122,6 +122,15 @@ export async function POST(
       if (participation && !participation.available) {
         return { error: "This member is marked unavailable for this event.", status: 400 as const };
       }
+      if (party.roster.event.type === "RO3_CUSTOM") {
+        const attendance = await tx.eventAttendance.findUnique({
+          where: { eventId_memberId: { eventId: party.roster.event.id, memberId: member.id } },
+          select: { status: true },
+        });
+        if (attendance?.status !== "AVAILABLE") {
+          return { error: "Only members who selected Available can be assigned to an active RO3 party. AFK / Busy members remain eligible for rewards.", status: 400 as const };
+        }
+      }
 
       const existingAssignment = await tx.rosterMember.findFirst({
         where: { memberId: member.id, party: { rosterId: party.roster.id } },
@@ -374,6 +383,16 @@ export async function PATCH(
           status: 400,
         }
       );
+    }
+
+    if (source.party.roster.event.type === "RO3_CUSTOM") {
+      const attendance = await prisma.eventAttendance.findUnique({
+        where: { eventId_memberId: { eventId: source.party.roster.event.id, memberId: source.memberId } },
+        select: { status: true },
+      });
+      if (attendance?.status !== "AVAILABLE") {
+        return NextResponse.json({ error: "Only members who selected Available can be assigned to an active RO3 party. AFK / Busy members remain eligible for rewards." }, { status: 400 });
+      }
     }
 
     // ---------------------------------------------------------

@@ -12,9 +12,26 @@ import {
   prisma,
 } from "@/lib/prisma";
 
-type Battlefield =
-  | "BATTLEFIELD_1"
-  | "BATTLEFIELD_2";
+type Battlefield = | "BATTLEFIELD_1"
+  | "BATTLEFIELD_2"
+  | "BATTLEFIELD_3"
+  | "BATTLEFIELD_4"
+  | "BATTLEFIELD_5"
+  | "BATTLEFIELD_6"
+  | "BATTLEFIELD_7"
+  | "BATTLEFIELD_8"
+  | "BATTLEFIELD_9"
+  | "BATTLEFIELD_10"
+  | "BATTLEFIELD_11"
+  | "BATTLEFIELD_12"
+  | "BATTLEFIELD_13"
+  | "BATTLEFIELD_14"
+  | "BATTLEFIELD_15"
+  | "BATTLEFIELD_16"
+  | "BATTLEFIELD_17"
+  | "BATTLEFIELD_18"
+  | "BATTLEFIELD_19"
+  | "BATTLEFIELD_20";
 
 type PartyRequest = {
   rosterId?: string;
@@ -93,10 +110,8 @@ export async function POST(
     }
 
     if (
-      body.battlefield !==
-        "BATTLEFIELD_1" &&
-      body.battlefield !==
-        "BATTLEFIELD_2"
+      typeof body.battlefield !== "string" ||
+      !/^BATTLEFIELD_(?:[1-9]|1[0-9]|20)$/.test(body.battlefield)
     ) {
       return NextResponse.json(
         {
@@ -195,11 +210,9 @@ export async function POST(
     // EVENT LIMITS
     // ---------------------------------------------------------
 
-    const maxParties =
-      roster.event.type ===
-      "GUILD_LEAGUE"
-        ? 8
-        : 16;
+    const isCustomRo3 = roster.event.type === "RO3_CUSTOM";
+    const maxParties = isCustomRo3 ? roster.event.partiesPerBattlefield ?? 0 : roster.event.type === "GUILD_LEAGUE" ? 8 : 16;
+    const maxBattlefields = isCustomRo3 ? roster.event.battlefieldCount ?? 0 : roster.event.type === "GUILD_LEAGUE" ? 2 : 1;
 
     if (
       body.partyNumber < 1 ||
@@ -221,16 +234,12 @@ export async function POST(
     // BATTLEFIELD VALIDATION
     // ---------------------------------------------------------
 
-    if (
-      roster.event.type ===
-        "EMPERIUM_OVERRUN" &&
-      body.battlefield ===
-        "BATTLEFIELD_2"
-    ) {
+    const battlefieldNumber = Number(body.battlefield.replace("BATTLEFIELD_", ""));
+    if (battlefieldNumber > maxBattlefields) {
       return NextResponse.json(
         {
           error:
-            "Emperium Overrun does not have Battlefield 2.",
+            "This event type does not have that battlefield.",
         },
         {
           status: 400,

@@ -306,6 +306,11 @@ export async function GET(
         id: event.id,
         guildId: event.guildId,
         type: event.type,
+        eventTypeName: event.eventTypeName,
+        guildEventTypeId: event.guildEventTypeId,
+        battlefieldCount: event.battlefieldCount,
+        partiesPerBattlefield: event.partiesPerBattlefield,
+        scheduleTimeZone: event.scheduleTimeZone,
         date: event.date,
         finalRosterId:
           event.finalRosterId,

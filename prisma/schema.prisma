@@ -80,6 +80,24 @@ enum Ro3AllocationStatus {
 enum Battlefield {
   BATTLEFIELD_1
   BATTLEFIELD_2
+  BATTLEFIELD_3
+  BATTLEFIELD_4
+  BATTLEFIELD_5
+  BATTLEFIELD_6
+  BATTLEFIELD_7
+  BATTLEFIELD_8
+  BATTLEFIELD_9
+  BATTLEFIELD_10
+  BATTLEFIELD_11
+  BATTLEFIELD_12
+  BATTLEFIELD_13
+  BATTLEFIELD_14
+  BATTLEFIELD_15
+  BATTLEFIELD_16
+  BATTLEFIELD_17
+  BATTLEFIELD_18
+  BATTLEFIELD_19
+  BATTLEFIELD_20
 }
 
 enum RosterGenerationMode {
@@ -129,6 +147,7 @@ model Guild {
   discordGuildId String @unique
   name String
   gameType GameType @default(ROOC)
+  timeZone String?
   ownerUserId String?
   memberships GuildMembership[]
   members GuildMember[]
@@ -143,6 +162,8 @@ model Guild {
   moduleEntitlements GuildModuleEntitlement[]
   ro3Seasons Ro3Season[]
   ro3EventTypes Ro3EventType[]
+  customEventTypes GuildEventType[]
+  eventResultImages EventResultImage[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@index([ownerUserId])
@@ -218,6 +239,7 @@ model GuildMember {
   bidSlots BidSlot[]
   leaveDates MemberLeave[]
   participations EventParticipation[]
+  eventAttendance EventAttendance[]
   rosterAssignments RosterMember[]
   preferredRosterAssignments PreferredRosterMember[]
   ro3PersistentInterests Ro3PersistentInterest[]
@@ -384,9 +406,20 @@ model Event {
   date DateTime
   finalRosterId String?
   ro3EventTypeId String?
+  guildEventTypeId String?
+  eventTypeName String?
+  battlefieldCount Int?
+  partiesPerBattlefield Int?
+  scheduleTimeZone String?
+  attendanceChannelId String?
+  attendanceMessageId String?
+  reminderMessageId String?
   ro3OptInsLockedAt DateTime?
   guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
   ro3EventType Ro3EventType? @relation(fields: [ro3EventTypeId], references: [id], onDelete: SetNull)
+  guildEventType GuildEventType? @relation(fields: [guildEventTypeId], references: [id], onDelete: SetNull)
+  attendance EventAttendance[]
+  resultImages EventResultImage[]
   ro3Rewards Ro3EventReward[]
   ro3EventOptIns Ro3EventOptIn[]
   ro3AllocationRun Ro3AllocationRun?
@@ -399,6 +432,7 @@ model Event {
   @@index([guildId])
   @@index([date])
   @@index([ro3EventTypeId])
+  @@index([guildEventTypeId])
   @@unique([guildId, type, date, ro3EventTypeId])
   @@unique([finalRosterId])
   @@index([finalRosterId])
@@ -720,6 +754,8 @@ model Ro3EventType {
   guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
   season Ro3Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
   events Event[]
+  guildEventTypeId String?
+  guildEventType GuildEventType? @relation(fields: [guildEventTypeId], references: [id], onDelete: SetNull)
   rewardPool Ro3EventRewardPool[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -855,4 +891,59 @@ model Ro3AllocationResourceResult {
   resource Ro3SeasonResource @relation(fields: [resourceId], references: [id], onDelete: Restrict)
   @@unique([allocationRunId, resourceId])
   @@index([resourceId])
+}
+
+enum EventAttendanceStatus {
+  AVAILABLE
+  UNAVAILABLE
+  AFK_BUSY
+}
+
+model GuildEventType {
+  id String @id @default(cuid())
+  guildId String
+  name String
+  active Boolean @default(true)
+  battlefieldCount Int @default(2)
+  partiesPerBattlefield Int @default(4)
+  weekdays Int[]
+  startTime String @default("20:00")
+  timeZone String
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  events Event[]
+  resourceEventTypes Ro3EventType[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([guildId, name])
+  @@index([guildId, active])
+}
+
+model EventAttendance {
+  id String @id @default(cuid())
+  eventId String
+  memberId String
+  status EventAttendanceStatus
+  respondedAt DateTime @default(now())
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  member GuildMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  @@unique([eventId, memberId])
+  @@index([eventId, status])
+  @@index([memberId])
+}
+
+model EventResultImage {
+  id String @id @default(cuid())
+  eventId String
+  guildId String
+  storagePath String @unique
+  url String
+  fileName String
+  contentType String
+  size Int
+  uploadedByUserId String
+  createdAt DateTime @default(now())
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  @@index([guildId, createdAt])
+  @@index([eventId])
 }

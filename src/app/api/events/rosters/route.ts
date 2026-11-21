@@ -269,8 +269,15 @@ async function createRoster(
       data: {
         eventId: event.id,
         name,
-        generationMode:
-          body.generationMode,
+        generationMode: body.generationMode,
+        ...(event.type === "RO3_CUSTOM" && event.battlefieldCount && event.partiesPerBattlefield
+          ? { parties: { create: Array.from({ length: event.battlefieldCount }, (_, index) =>
+              Array.from({ length: event.partiesPerBattlefield! }, (_, partyIndex) => ({
+                battlefield: ("BATTLEFIELD_" + (index + 1)) as any,
+                partyNumber: partyIndex + 1,
+              }))
+            ).flat() } }
+          : {}),
       },
     });
 
