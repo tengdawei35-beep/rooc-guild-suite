@@ -119,7 +119,7 @@ export async function POST(
       const participation = await tx.eventParticipation.findUnique({
         where: { eventId_memberId: { eventId: party.roster.event.id, memberId: member.id } },
       });
-      if (participation && !participation.available) {
+      if (party.roster.event.type !== "RO3_CUSTOM" && participation && !participation.available) {
         return { error: "This member is marked unavailable for this event.", status: 400 as const };
       }
       const attendance = await tx.eventAttendance.findUnique({
