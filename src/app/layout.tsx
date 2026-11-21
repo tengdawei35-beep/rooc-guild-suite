@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
-import { getCurrentAuth } from "@/lib/auth";
+import { getCurrentAuth, hasPermission, type Permission } from "@/lib/auth";
 import { getPlatformAdmin } from "@/lib/platform-admin";
 import { hasGuildModule, RESOURCE_SUITE_MODULE } from "@/lib/auth/modules";
 import { prisma } from "@/lib/prisma";
@@ -19,6 +19,8 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const auth = await getCurrentAuth();
+  const navPermissionKeys: Permission[] = ["members.view", "applicants.view", "users.view", "leave.manageAny", "leave.manageOwn", "events.view", "rosters.view", "allocation.view", "guild.manage"];
+  const permissions = auth ? navPermissionKeys.filter((permission) => hasPermission(auth.role, permission)) : [];
   const [accessibleGuildCount, isPlatformAdmin, hasResourceSuite, ownMember] = auth
     ? await Promise.all([
         prisma.guildMembership.count({ where: { userId: auth.user.id } }),
@@ -47,6 +49,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             isPlatformAdmin={isPlatformAdmin}
             hasResourceSuite={hasResourceSuite}
             ownMemberId={ownMember?.id ?? null}
+            permissions={permissions}
           >
             {children}
           </AppShell>
