@@ -445,8 +445,8 @@ export async function POST(
       if (!guildEventTypeId) return NextResponse.json({ error: "Select a configured event type." }, { status: 400 });
       const configured = await prisma.guildEventType.findFirst({ where: { id: guildEventTypeId, guildId: auth.guild.id, active: true } });
       if (!configured) return NextResponse.json({ error: "That event type is no longer active." }, { status: 400 });
-      const weekdayText = new Intl.DateTimeFormat("en-US", { timeZone: configured.timeZone, weekday: "short" }).format(date);
-      const weekday = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(weekdayText);
+      const [year, month, day] = (body.date as string).split("-").map(Number);
+      const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
       if (!configured.weekdays.includes(weekday)) return NextResponse.json({ error: "This event type is not scheduled for the selected weekday." }, { status: 400 });
       const scheduledDate = localDateTimeToUtc(body.date, configured.startTime, configured.timeZone);
       if (!scheduledDate) return NextResponse.json({ error: "The selected local date/time is invalid in this event type timezone." }, { status: 400 });
@@ -480,8 +480,7 @@ export async function POST(
           guildId: auth.guild.id,
           type,
           date,
-          ro3EventTypeId,
-          guildEventTypeId,
+          ...(isRo3 ? { guildEventTypeId } : { ro3EventTypeId: null }),
         },
       });
 
