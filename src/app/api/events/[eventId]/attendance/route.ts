@@ -12,16 +12,18 @@ export async function GET(_request: Request, context: Context) {
   const { eventId } = await context.params;
   const event = await prisma.event.findFirst({
     where: { id: eventId, guildId: auth.guild.id },
-    select: { id: true, date: true, guildId: true, attendance: { include: { member: { select: { id: true, characterName: true, job: true, userId: true, user: { select: { discordId: true, username: true } } } } }, orderBy: { respondedAt: "asc" } } },
+    select: { id: true, date: true, guildId: true, attendance: { where: { member: { is: { active: true } } }, include: { member: { select: { id: true, characterName: true, job: true, userId: true, user: { select: { discordId: true, username: true } } } } }, orderBy: { respondedAt: "asc" } } },
   });
   if (!event) return NextResponse.json({ error: "Event not found." }, { status: 404 });
   const ownMember = await prisma.guildMember.findFirst({ where: { guildId: auth.guild.id, userId: auth.user.id }, select: { id: true } });
   const canManage = hasPermission(auth.role, "events.manage");
   const attendance = canManage ? event.attendance : event.attendance.filter(item => item.memberId === ownMember?.id);
+  const totalActiveMembers = await prisma.guildMember.count({ where: { guildId: auth.guild.id, active: true } });
   const counts = {
     available: event.attendance.filter(item => item.status === "AVAILABLE").length,
     unavailable: event.attendance.filter(item => item.status === "UNAVAILABLE").length,
     afkBusy: event.attendance.filter(item => item.status === "AFK_BUSY").length,
+    noResponse: Math.max(0, totalActiveMembers - event.attendance.length),
   };
   return NextResponse.json({
     attendance: attendance.map(item => ({
