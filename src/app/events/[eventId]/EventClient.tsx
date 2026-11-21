@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import RaidManagement from "./RaidManagement";
 import RosterJobOverrides from "./RosterJobOverrides";
+import EventAttendancePanel from "./EventAttendancePanel";
 
 type EventType =
   | "GUILD_LEAGUE"
@@ -1282,6 +1283,8 @@ async function loadPreferredRoster() {
             {error}
           </div>
         )}
+
+        <EventAttendancePanel eventId={eventId} />
 
         {preferredSaved && (
           <div className="mt-5 rounded-lg border border-emerald-900 bg-emerald-950/40 px-4 py-3 text-sm text-emerald-400">
