@@ -329,6 +329,7 @@ export async function GET() {
 
             eventTypeName: event.eventTypeName,
             guildEventTypeId: event.guildEventTypeId,
+            scheduleTimeZone: event.scheduleTimeZone,
 
             date:
               event.date,

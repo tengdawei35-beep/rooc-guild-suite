@@ -23,6 +23,7 @@ type EventItem = {
   type: EventType;
   eventTypeName?: string | null;
   guildEventTypeId?: string | null;
+  scheduleTimeZone?: string | null;
   date: string;
   participationCount: number;
   rosterCount: number;
@@ -831,9 +832,7 @@ function EventCard({
           </span>
 
           <h3 className="mt-4 text-lg font-semibold transition group-hover:text-zinc-300">
-            {formatEventDate(
-              event.date
-            )}
+            {formatEventDate(event.date, event.scheduleTimeZone ?? undefined)}
           </h3>
         </div>
 
@@ -1150,7 +1149,8 @@ function formatEventType(
 }
 
 function formatEventDate(
-  value: string
+  value: string,
+  timeZone?: string
 ) {
   const date =
     new Date(value);
@@ -1167,12 +1167,14 @@ function formatEventDate(
     "en-GB",
     {
       timeZone:
-        "Asia/Bangkok",
+        timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone,
 
       weekday: "long",
       day: "numeric",
       month: "short",
       year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     }
   ).format(date);
 }

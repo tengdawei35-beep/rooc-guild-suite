@@ -62,6 +62,18 @@ export async function GET(request: Request) {
     }
   }
 
+  const pendingAttendanceMessages = await prisma.event.findMany({
+    where: { date: { gt: now, lte: new Date(now.getTime() + 30 * 86400000) }, attendanceMessageId: null },
+    select: { id: true },
+  });
+  let attendanceMessagesSent = 0;
+  for (const event of pendingAttendanceMessages) {
+    try {
+      const result = await sendEventAttendanceMessage(event.id);
+      if (result.sent) attendanceMessagesSent++;
+    } catch (error) { console.error("[EVENT CRON] Attendance message retry failed:", error); }
+  }
+
   const reminderStart = new Date(now.getTime() + 47.5 * 60 * 60 * 1000);
   const reminderEnd = new Date(now.getTime() + 48.5 * 60 * 60 * 1000);
   const reminders = await prisma.event.findMany({
@@ -76,5 +88,5 @@ export async function GET(request: Request) {
     } catch (error) { console.error("[EVENT CRON] Attendance reminder failed:", error); }
   }
 
-  return NextResponse.json({ success: true, created, skipped, remindersSent, scannedEventTypes: eventTypes.length, generatedAt: now.toISOString() });
+  return NextResponse.json({ success: true, created, skipped, attendanceMessagesSent, remindersSent, scannedEventTypes: eventTypes.length, generatedAt: now.toISOString() });
 }

@@ -12,10 +12,10 @@ export async function GET() {
     orderBy: [{ event: { date: "desc" } }, { createdAt: "asc" }],
     select: {
       id: true, fileName: true, contentType: true, size: true, createdAt: true,
-      event: { select: { id: true, type: true, eventTypeName: true, date: true } },
+      event: { select: { id: true, type: true, eventTypeName: true, scheduleTimeZone: true, date: true } },
     },
   });
-  const grouped = new Map<string, { event: { id: string; type: string; eventTypeName: string | null; date: Date }; images: typeof results }>();
+  const grouped = new Map<string, { event: { id: string; type: string; eventTypeName: string | null; scheduleTimeZone: string | null; date: Date }; images: typeof results }>();
   for (const item of results) {
     const current = grouped.get(item.event.id);
     if (current) current.images.push(item);
