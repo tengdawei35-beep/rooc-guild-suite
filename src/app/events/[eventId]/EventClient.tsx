@@ -228,6 +228,31 @@ export default function EventClient({
     loadEvent();
   }, [eventId]);
 
+  // Keep roster assignments in sync with attendance changes made in HMDL
+  // or Discord. The server removes assignments immediately; this refresh
+  // makes those removals visible without requiring a manual page reload.
+  useEffect(() => {
+    let cancelled = false;
+    const refreshEvent = async () => {
+      if (document.visibilityState !== "visible") return;
+      try {
+        const response = await fetch(`/api/events/${eventId}`, { cache: "no-store" });
+        if (!response.ok) return;
+        const result = await response.json();
+        if (!cancelled) setData(result);
+      } catch (error) {
+        console.error("[EVENT CLIENT] Failed to refresh event roster:", error);
+      }
+    };
+    const timer = window.setInterval(refreshEvent, 10000);
+    document.addEventListener("visibilitychange", refreshEvent);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", refreshEvent);
+    };
+  }, [eventId]);
+
   useEffect(() => {
     let cancelled = false;
 

@@ -25,25 +25,41 @@ export async function syncEventAttendanceAndLeave(args: {
   status: EventAttendanceStatus;
 }) {
   const leaveDate = dateKeyToUtcDate(localDateKey(args.eventDate, args.timeZone));
-  const attendance = await prisma.eventAttendance.upsert({
-    where: { eventId_memberId: { eventId: args.eventId, memberId: args.memberId } },
-    create: { eventId: args.eventId, memberId: args.memberId, status: args.status },
-    update: { status: args.status, respondedAt: new Date() },
+  return prisma.$transaction(async (tx) => {
+    const attendance = await tx.eventAttendance.upsert({
+      where: { eventId_memberId: { eventId: args.eventId, memberId: args.memberId } },
+      create: { eventId: args.eventId, memberId: args.memberId, status: args.status },
+      update: { status: args.status, respondedAt: new Date() },
+    });
+
+    if (args.status === "UNAVAILABLE") {
+      await tx.memberLeave.upsert({
+        where: { memberId_date: { memberId: args.memberId, date: leaveDate } },
+        create: { memberId: args.memberId, date: leaveDate, reason: "Unavailable for event" },
+        update: {},
+      });
+    } else {
+      await tx.memberLeave.deleteMany({
+        where: { memberId: args.memberId, date: leaveDate },
+      });
+    }
+
+    // No-response members may be rostered. An explicit Unavailable or
+    // AFK / Busy response removes their assignments from this event.
+    if (args.status !== "AVAILABLE") {
+      const assignments = await tx.rosterMember.findMany({
+        where: { memberId: args.memberId, party: { roster: { eventId: args.eventId } } },
+        select: { id: true },
+      });
+      if (assignments.length) {
+        await tx.rosterMember.deleteMany({
+          where: { id: { in: assignments.map((assignment) => assignment.id) } },
+        });
+      }
+    }
+
+    return attendance;
   });
-
-  if (args.status === "UNAVAILABLE") {
-    await prisma.memberLeave.upsert({
-      where: { memberId_date: { memberId: args.memberId, date: leaveDate } },
-      create: { memberId: args.memberId, date: leaveDate, reason: "Unavailable for event" },
-      update: {},
-    });
-  } else {
-    await prisma.memberLeave.deleteMany({
-      where: { memberId: args.memberId, date: leaveDate },
-    });
-  }
-
-  return attendance;
 }
 
 export async function syncManualLeaveToEvents(args: {
