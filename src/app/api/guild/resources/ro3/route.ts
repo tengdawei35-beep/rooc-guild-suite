@@ -30,6 +30,7 @@ export async function GET() {
         eventTypes: {
           orderBy: { name: "asc" },
           include: {
+            guildEventType: { select: { name: true } },
             rewardPool: {
               orderBy: { resource: { name: "asc" } },
               include: {
@@ -40,7 +41,7 @@ export async function GET() {
         },
       },
     });
-    return NextResponse.json({ seasons });
+    return NextResponse.json({ seasons: seasons.map(season => ({ ...season, eventTypes: season.eventTypes.map(eventType => ({ ...eventType, name: eventType.guildEventType?.name ?? eventType.name })) })) });
   } catch (error) {
     console.error("[RO3 RESOURCES GET]", error);
     return NextResponse.json({ error: "Failed to load RO3 resource pools." }, { status: 500 });

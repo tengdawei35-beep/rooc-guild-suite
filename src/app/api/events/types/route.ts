@@ -41,11 +41,11 @@ export async function GET() {
   const resourceEventTypes = activeSeason
     ? await prisma.ro3EventType.findMany({
         where: { guildId: auth.guild.id, seasonId: activeSeason.id, active: true, guildEventTypeId: { not: null } },
-        select: { id: true, name: true, guildEventTypeId: true },
+        select: { id: true, name: true, guildEventTypeId: true, guildEventType: { select: { name: true } } },
         orderBy: { name: "asc" },
       })
     : [];
-  return NextResponse.json({ eventTypes, resourceEventTypes, isRo3: true, timeZone: auth.guild.timeZone ?? null });
+  return NextResponse.json({ eventTypes, resourceEventTypes: resourceEventTypes.map(item => ({ id: item.id, name: item.guildEventType?.name ?? item.name, guildEventTypeId: item.guildEventTypeId })), isRo3: true, timeZone: auth.guild.timeZone ?? null });
 }
 
 export async function POST(request: Request) {

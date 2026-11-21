@@ -45,7 +45,7 @@ export async function PUT(request:Request){
     const normalise=(value:unknown,key:string)=>{if(typeof value!=="string"||!value.trim())return null;const normalized=value.trim();if(!isDiscordWebhookUrl(normalized))throw new Error(`Invalid Discord webhook URL for ${key}.`);return normalized;};
     const calls=normalise(body.callsWebhookUrl,"callsWebhookUrl");
     const eventChannelId = typeof body.eventChannelId === "string" ? body.eventChannelId.trim() : "";
-    if (eventChannelId && !/^\\d{17,20}$/.test(eventChannelId)) throw new Error("Enter a valid Discord event notification channel ID.");
+    if (eventChannelId && !/^\d{17,20}$/.test(eventChannelId)) throw new Error("Enter a valid Discord event notification channel ID.");
     const values:{rosterWebhookUrl?:string|null;bidWebhookUrl?:string|null;statsWebhookUrl?:string|null}={};
     if(body.clearRoster===true)values.rosterWebhookUrl=null;else if(body.rosterWebhookUrl)values.rosterWebhookUrl=normalise(body.rosterWebhookUrl,"rosterWebhookUrl");
     if(body.clearBid===true)values.bidWebhookUrl=null;else if(body.bidWebhookUrl)values.bidWebhookUrl=normalise(body.bidWebhookUrl,"bidWebhookUrl");
