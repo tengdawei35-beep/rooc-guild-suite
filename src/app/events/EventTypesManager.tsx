@@ -62,11 +62,14 @@ export default function EventTypesManager() {
   }
 
   async function toggle(item: EventType) {
+    if (item.active && !window.confirm("Delete this event type from future scheduling? Existing events, rosters and results will be retained.")) return;
     setBusy(true); setError(""); setMessage("");
     try {
-      const response = await fetch("/api/events/types", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: item.id, active: !item.active }) });
+      const response = item.active
+        ? await fetch("/api/events/types?id=" + encodeURIComponent(item.id), { method: "DELETE" })
+        : await fetch("/api/events/types", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: item.id, active: true }) });
       const data = await response.json(); if (!response.ok) throw new Error(data.error || "Unable to update event type.");
-      await load(); setMessage(item.active ? "Event type disabled. Historical events are retained." : "Event type enabled.");
+      await load(); setMessage(item.active ? "Event type deleted from future scheduling. Historical events are retained." : "Event type enabled.");
     } catch (e) { setError(e instanceof Error ? e.message : "Unable to update event type."); }
     finally { setBusy(false); }
   }
@@ -97,7 +100,7 @@ export default function EventTypesManager() {
         <div><p className="mb-2 text-sm text-zinc-400">Recurring weekdays</p><div className="flex flex-wrap gap-2">{days.map((day, index) => <button type="button" key={day} onClick={() => toggleDay(index)} className={`rounded-lg border px-3 py-2 text-xs ${form.weekdays.includes(index) ? "border-white bg-white text-black" : "border-zinc-700 text-zinc-400"}`}>{day.slice(0, 3)}</button>)}</div></div>
         <div className="flex gap-2"><button disabled={busy || !form.name.trim() || form.battlefieldCount < 1 || form.partiesPerBattlefield < 1 || !form.weekdays.length || !form.startTime || !timeZone} onClick={saveType} className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black disabled:opacity-40">{busy ? "Saving…" : editing ? "Save changes" : "Create event type"}</button>{editing && <button disabled={busy} onClick={() => { setEditing(""); setForm(empty); }} className="rounded-lg border border-zinc-700 px-4 py-2 text-sm">Cancel</button>}</div>
       </div>
-      <div className="space-y-3"><h3 className="font-medium">Configured event types</h3>{items.length === 0 && <p className="text-sm text-zinc-500">No custom event types yet.</p>}{items.map(item => <div key={item.id} className="rounded-xl border border-zinc-800 bg-zinc-950 p-4"><div className="flex items-start justify-between gap-3"><div><p className="font-medium">{item.name}</p><p className="mt-1 text-xs text-zinc-500">{item.battlefieldCount} battlefields · {item.partiesPerBattlefield} parties each · {item.startTime} ({item.timeZone})</p><p className="mt-1 text-xs text-zinc-500">{item.weekdays.map(day => days[day]?.slice(0, 3)).join(", ") || "No recurrence"}</p></div><span className={`rounded-full px-2 py-1 text-xs ${item.active ? "bg-emerald-950 text-emerald-300" : "bg-zinc-800 text-zinc-500"}`}>{item.active ? "Active" : "Disabled"}</span></div><div className="mt-3 flex gap-3 text-xs"><button onClick={() => edit(item)} className="text-zinc-300 underline">Edit</button><button disabled={busy} onClick={() => toggle(item)} className="text-zinc-400 underline">{item.active ? "Disable" : "Enable"}</button></div></div>)}</div>
+      <div className="space-y-3"><h3 className="font-medium">Configured event types</h3>{items.length === 0 && <p className="text-sm text-zinc-500">No custom event types yet.</p>}{items.map(item => <div key={item.id} className="rounded-xl border border-zinc-800 bg-zinc-950 p-4"><div className="flex items-start justify-between gap-3"><div><p className="font-medium">{item.name}</p><p className="mt-1 text-xs text-zinc-500">{item.battlefieldCount} battlefields · {item.partiesPerBattlefield} parties each · {item.startTime} ({item.timeZone})</p><p className="mt-1 text-xs text-zinc-500">{item.weekdays.map(day => days[day]?.slice(0, 3)).join(", ") || "No recurrence"}</p></div><span className={`rounded-full px-2 py-1 text-xs ${item.active ? "bg-emerald-950 text-emerald-300" : "bg-zinc-800 text-zinc-500"}`}>{item.active ? "Active" : "Disabled"}</span></div><div className="mt-3 flex gap-3 text-xs"><button onClick={() => edit(item)} className="text-zinc-300 underline">Edit</button><button disabled={busy} onClick={() => toggle(item)} className="text-zinc-400 underline">{item.active ? "Delete" : "Enable"}</button></div></div>)}</div>
     </div>
     {(error || message) && <p className={`mt-4 rounded-lg border p-3 text-sm ${error ? "border-red-900 bg-red-950/40 text-red-300" : "border-emerald-900 bg-emerald-950/40 text-emerald-300"}`}>{error || message}</p>}
   </section>;
