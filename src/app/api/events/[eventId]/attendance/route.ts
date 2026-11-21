@@ -17,7 +17,22 @@ export async function GET(_request: Request, context: Context) {
   if (!event) return NextResponse.json({ error: "Event not found." }, { status: 404 });
   const ownMember = await prisma.guildMember.findFirst({ where: { guildId: auth.guild.id, userId: auth.user.id }, select: { id: true } });
   const canManage = hasPermission(auth.role, "events.manage");
-  const attendance = canManage ? event.attendance : event.attendance.filter(item => item.memberId === ownMember?.id);
+  const visibleMembers = await prisma.guildMember.findMany({
+    where: { guildId: auth.guild.id, active: true, ...(canManage ? {} : { id: ownMember?.id ?? "__none__" }) },
+    select: { id: true, characterName: true, job: true, user: { select: { username: true } } },
+    orderBy: { characterName: "asc" },
+  });
+  const attendance = visibleMembers.map(member => {
+    const response = event.attendance.find(item => item.memberId === member.id);
+    return {
+      memberId: member.id,
+      characterName: member.characterName,
+      job: member.job,
+      status: response?.status ?? null,
+      respondedAt: response?.respondedAt ?? null,
+      discordUsername: canManage ? member.user?.username ?? null : null,
+    };
+  });
   const totalActiveMembers = await prisma.guildMember.count({ where: { guildId: auth.guild.id, active: true } });
   const counts = {
     available: event.attendance.filter(item => item.status === "AVAILABLE").length,
@@ -26,14 +41,7 @@ export async function GET(_request: Request, context: Context) {
     noResponse: Math.max(0, totalActiveMembers - event.attendance.length),
   };
   return NextResponse.json({
-    attendance: attendance.map(item => ({
-      memberId: item.memberId,
-      characterName: item.member.characterName,
-      job: item.member.job,
-      status: item.status,
-      respondedAt: item.respondedAt,
-      discordUsername: canManage ? item.member.user?.username ?? null : null,
-    })),
+    attendance,
     counts,
     ownStatus: ownMember ? event.attendance.find(item => item.memberId === ownMember.id)?.status ?? null : null,
     locked: event.date.getTime() - Date.now() <= 30 * 60 * 1000,
