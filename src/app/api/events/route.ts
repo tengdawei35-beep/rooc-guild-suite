@@ -20,6 +20,8 @@ import {
   prisma,
 } from "@/lib/prisma";
 
+import { sendEventAttendanceMessage } from "@/lib/discord-event-attendance";
+
 type EventType =
   | "GUILD_LEAGUE"
   | "EMPERIUM_OVERRUN"

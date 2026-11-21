@@ -9,7 +9,8 @@ import EventResultsUploader from "./EventResultsUploader";
 
 type EventType =
   | "GUILD_LEAGUE"
-  | "EMPERIUM_OVERRUN";
+  | "EMPERIUM_OVERRUN"
+  | "RO3_CUSTOM";
 
 type Participant = {
   id: string;
@@ -32,6 +33,11 @@ type EventData = {
   id: string;
   guildId: string;
   type: EventType;
+  eventTypeName?: string | null;
+  guildEventTypeId?: string | null;
+  battlefieldCount?: number | null;
+  partiesPerBattlefield?: number | null;
+  scheduleTimeZone?: string | null;
   date: string;
   guild: {
     id: string;

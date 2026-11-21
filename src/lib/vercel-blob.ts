@@ -23,7 +23,7 @@ export async function putPrivateBlob(pathname: string, body: Buffer, contentType
       "x-api-blob-request-attempt": "0",
       "x-content-length": String(body.byteLength),
     },
-    body,
+    body: new Uint8Array(body),
   });
   if (!response.ok) {
     const detail = await response.text().catch(() => "");
