@@ -1,0 +1,61 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { formatCalendarDate, getLocalCalendarDate, zonedDateTimeToUtc } from "@/lib/event-schedule";
+
+export async function GET(request: Request) {
+  const secret = process.env.CRON_SECRET;
+  if (!secret || request.headers.get("authorization") !== `Bearer ${secret}`) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
+
+  const now = new Date();
+  const eventTypes = await prisma.guildEventType.findMany({
+    where: { active: true, guild: { gameType: "RO3" } },
+    select: { id: true, guildId: true, name: true, weekdays: true, startTime: true, timeZone: true, battlefieldCount: true, partiesPerBattlefield: true },
+  });
+
+  let created = 0;
+  let skipped = 0;
+  for (const eventType of eventTypes) {
+    const localToday = getLocalCalendarDate(now, eventType.timeZone);
+    const start = new Date(Date.UTC(localToday.year, localToday.month - 1, localToday.day));
+    for (let offset = 0; offset < 30; offset++) {
+      const calendar = new Date(start.getTime() + offset * 86400000);
+      if (!eventType.weekdays.includes(calendar.getUTCDay())) continue;
+      const dateString = formatCalendarDate(calendar.getUTCFullYear(), calendar.getUTCMonth() + 1, calendar.getUTCDate());
+      const eventDate = zonedDateTimeToUtc(dateString, eventType.startTime, eventType.timeZone);
+      if (!eventDate || eventDate <= now) continue;
+      const existing = await prisma.event.findFirst({
+        where: { guildId: eventType.guildId, guildEventTypeId: eventType.id, type: "RO3_CUSTOM", date: eventDate },
+        select: { id: true },
+      });
+      if (existing) { skipped++; continue; }
+
+      const activeSeason = await prisma.ro3Season.findFirst({
+        where: { guildId: eventType.guildId, status: "ACTIVE" },
+        select: { id: true },
+      });
+      const rewardType = activeSeason ? await prisma.ro3EventType.findFirst({
+        where: { guildId: eventType.guildId, seasonId: activeSeason.id, guildEventTypeId: eventType.id, active: true },
+        select: { id: true },
+      }) : null;
+
+      await prisma.event.create({
+        data: {
+          guildId: eventType.guildId,
+          type: "RO3_CUSTOM",
+          date: eventDate,
+          guildEventTypeId: eventType.id,
+          eventTypeName: eventType.name,
+          battlefieldCount: eventType.battlefieldCount,
+          partiesPerBattlefield: eventType.partiesPerBattlefield,
+          scheduleTimeZone: eventType.timeZone,
+          ro3EventTypeId: rewardType?.id ?? null,
+        },
+      });
+      created++;
+    }
+  }
+
+  return NextResponse.json({ success: true, created, skipped, scannedEventTypes: eventTypes.length, generatedAt: now.toISOString() });
+}
