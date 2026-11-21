@@ -20,7 +20,7 @@ function validateConfig(body: Record<string, unknown>) {
   if (!Number.isInteger(battlefieldCount) || battlefieldCount < 1 || battlefieldCount > 20) return "Battlefield count must be between 1 and 20.";
   if (!Number.isInteger(partiesPerBattlefield) || partiesPerBattlefield < 1 || partiesPerBattlefield > 20) return "Parties per battlefield must be between 1 and 20.";
   if (!Array.isArray(weekdays) || weekdays.length < 1 || weekdays.some((day) => !Number.isInteger(day) || day < 0 || day > 6)) return "Select at least one recurring weekday.";
-  if (!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(startTime)) return "Enter a valid event start time.";
+  if (!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(startTime)) return "Enter a valid event start time.";
   if (!validTimeZone(timeZone)) return "Select a valid IANA timezone.";
   return null;
 }
