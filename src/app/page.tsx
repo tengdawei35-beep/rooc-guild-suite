@@ -35,7 +35,7 @@ export default async function Home() {
   const rosterActivity = (guild?.events ?? []).map((event) => {
     const rosters = event.rosters ?? [];
     const latestRoster = rosters.reduce<Date | null>((latest, roster) => !latest || roster.createdAt > latest ? roster.createdAt : latest, null);
-    return latestRoster ? { date: latestRoster, title: "Roster generated", detail: `${formatEventType(event.type)} · ${formatEventDate(event.date)}`, href: `/events/${event.id}` } : null;
+    return latestRoster ? { date: latestRoster, title: "Roster generated", detail: `${formatEventType(event.type, event.eventTypeName)} · ${formatEventDate(event.date)}`, href: `/events/${event.id}` } : null;
   }).filter((item): item is { date: Date; title: string; detail: string; href: string } => item !== null);
 
   const eventActivityMap = new Map<string, { date: Date; title: string; detail: string; href: string }>();
@@ -48,9 +48,9 @@ export default async function Home() {
     if (run.bidPages.length === 0 || !run.event) continue;
     const eventId = run.event.id;
     const existing = eventActivityMap.get(eventId);
-    const bidItem = { date: run.createdAt, title: "Bidding generated", detail: `${formatEventType(run.event.type)} · ${formatEventDate(run.event.date)} · ${run.bidPages.length} page${run.bidPages.length === 1 ? "" : "s"}`, href: `/allocation/${run.id}/bids` };
+    const bidItem = { date: run.createdAt, title: "Bidding generated", detail: `${formatEventType(run.event.type, run.event.eventTypeName)} · ${formatEventDate(run.event.date)} · ${run.bidPages.length} page${run.bidPages.length === 1 ? "" : "s"}`, href: `/allocation/${run.id}/bids` };
     if (existing) {
-      eventActivityMap.set(eventId, { date: existing.date >= bidItem.date ? existing.date : bidItem.date, title: "Event updated", detail: `${formatEventType(run.event.type)} · ${formatEventDate(run.event.date)} · Roster + Bidding`, href: bidItem.href });
+      eventActivityMap.set(eventId, { date: existing.date >= bidItem.date ? existing.date : bidItem.date, title: "Event updated", detail: `${formatEventType(run.event.type, run.event.eventTypeName)} · ${formatEventDate(run.event.date)} · Roster + Bidding`, href: bidItem.href });
     } else {
       eventActivityMap.set(eventId, bidItem);
     }
@@ -83,7 +83,7 @@ function CompactDashboardLink({ href, title, description }: { href: string; titl
 function StatCard({ label, value }: { label: string; value: number }) { return <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5"><p className="text-sm text-zinc-500">{label}</p><p className="mt-2 text-3xl font-bold">{value}</p></div>; }
 function ActivityList({ title, items, empty }: { title: string; items: { date: Date; title: string; detail: string; href: string }[]; empty: string }) { return <div><div className="border-b border-zinc-800 pb-3"><h3 className="font-semibold">{title}</h3></div>{items.length > 0 ? <div className="divide-y divide-zinc-800">{items.map((item, index) => <Link key={`${item.href}-${item.date.getTime()}-${index}`} href={item.href} className="flex items-center gap-3 py-4 transition hover:bg-zinc-900/40"><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{item.title}</p><p className="mt-1 truncate text-xs text-zinc-500">{item.detail}</p></div><time className="shrink-0 text-xs text-zinc-500">{formatRelative(item.date)}</time></Link>)}</div> : <div className="py-5 text-sm text-zinc-500">{empty}</div>}</div>; }
 function ActivityPanel({ title, items, empty }: { title: string; items: { date: Date; title: string; detail: string; href: string }[]; empty: string }) { return <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900"><div className="border-b border-zinc-800 px-5 py-4"><h3 className="font-semibold">{title}</h3></div>{items.length > 0 ? <div className="divide-y divide-zinc-800">{items.map((item, index) => <Link key={`${item.href}-${item.date.getTime()}-${index}`} href={item.href} className="flex items-center gap-3 px-5 py-4 transition hover:bg-zinc-800"><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{item.title}</p><p className="mt-1 truncate text-xs text-zinc-500">{item.detail}</p></div><time className="shrink-0 text-xs text-zinc-500">{formatRelative(item.date)}</time></Link>)}</div> : <div className="p-5 text-sm text-zinc-500">{empty}</div>}</div>; }
-function formatEventType(type: string) { switch (type) { case "GUILD_LEAGUE": return "Guild League"; case "EMPERIUM_OVERRUN": return "Emperium Overrun"; default: return type; } }
+function formatEventType(type: string, customName?: string | null) { if (type === "RO3_CUSTOM") return customName || "RO3 Event"; switch (type) { case "GUILD_LEAGUE": return "Guild League"; case "EMPERIUM_OVERRUN": return "Emperium Overrun"; default: return type; } }
 function formatEventDate(date: Date) { return new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Bangkok" }).format(date); }
 function formatDate(date: Date) { return new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Bangkok" }).format(date); }
 function formatRelative(date: Date) { const diff = Date.now() - date.getTime(); const minutes = Math.floor(diff / 60000); if (minutes < 1) return "just now"; if (minutes < 60) return `${minutes}m ago`; const hours = Math.floor(minutes / 60); if (hours < 24) return `${hours}h ago`; const days = Math.floor(hours / 24); if (days < 7) return `${days}d ago`; return formatDate(date); }
