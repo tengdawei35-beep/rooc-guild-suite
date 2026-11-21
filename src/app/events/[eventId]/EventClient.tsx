@@ -57,9 +57,7 @@ type RosterMember = {
 type RosterParty = {
   id: string;
   partyNumber: number;
-  battlefield:
-    | "BATTLEFIELD_1"
-    | "BATTLEFIELD_2";
+  battlefield: string;
   members: RosterMember[];
 };
 
@@ -2193,8 +2191,8 @@ function formatEventType(type: EventType, customName?: string | null) {
   return type === "GUILD_LEAGUE" ? "Guild League" : "Emperium Overrun";
 }
 
-function formatBattlefield(battlefield: "BATTLEFIELD_1" | "BATTLEFIELD_2") {
-  return battlefield === "BATTLEFIELD_1" ? "Battlefield 1" : "Battlefield 2";
+function formatBattlefield(battlefield: string) {
+  return "Battlefield " + battlefield.replace("BATTLEFIELD_", "");
 }
 
 function formatEventDate(value: string) {
