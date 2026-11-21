@@ -61,9 +61,9 @@ export async function GET() {
     const now = new Date();
     const [resources, persistent, eventOptIns, events] = await Promise.all([
       prisma.ro3SeasonResource.findMany({ where: { seasonId: season.id, active: true }, orderBy: [{ category: "asc" }, { name: "asc" }] }),
-      prisma.ro3PersistentInterest.findMany({ where: { memberId: member.id, resource: { seasonId: season.id, active: true }, active: true }, select: { resourceId: true } }),
+      prisma.ro3PersistentInterest.findMany({ where: { memberId: member.id, resource: { is: { seasonId: season.id, active: true } }, active: true }, select: { resourceId: true } }),
       prisma.ro3EventOptIn.findMany({
-        where: { memberId: member.id, event: { guildId: auth.guild.id, date: { gt: now }, ro3EventType: { is: { seasonId: season.id, active: true } } }, resource: { seasonId: season.id, active: true } },
+        where: { memberId: member.id, event: { is: { guildId: auth.guild.id, date: { gt: now }, ro3EventType: { is: { seasonId: season.id, active: true } } } }, resource: { seasonId: season.id, active: true } },
         include: { event: { select: { date: true } } }, orderBy: [{ createdAt: "asc" }, { id: "asc" }],
       }),
       prisma.event.findMany({
@@ -147,7 +147,7 @@ export async function POST(request: Request) {
           const [persistent, eventSelections, allResources] = await Promise.all([
             tx.ro3PersistentInterest.findMany({ where: { memberId: member.id, active: true, resource: { seasonId: season.id, active: true } }, select: { resourceId: true } }),
             tx.ro3EventOptIn.findMany({
-              where: { memberId: member.id, event: { guildId: auth.guild.id, date: { gt: new Date() }, ro3EventType: { is: { seasonId: season.id, active: true } } }, resource: { seasonId: season.id, active: true } },
+              where: { memberId: member.id, event: { is: { guildId: auth.guild.id, date: { gt: new Date() }, ro3EventType: { is: { seasonId: season.id, active: true } } } }, resource: { seasonId: season.id, active: true } },
               orderBy: [{ createdAt: "asc" }, { id: "asc" }], select: { resourceId: true },
             }),
             tx.ro3SeasonResource.findMany({ where: { seasonId: season.id, active: true }, select: { id: true, category: true } }),
