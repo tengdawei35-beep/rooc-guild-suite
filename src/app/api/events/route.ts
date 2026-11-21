@@ -94,7 +94,7 @@ function normalizeDate(
 
 
 function localDateTimeToUtc(dateValue: string, timeValue: string, timeZone: string): Date | null {
-  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(dateValue) || !/^([01]\\d|2[0-3]):[0-5]\\d$/.test(timeValue)) return null;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateValue) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(timeValue)) return null;
   const [year, month, day] = dateValue.split("-").map(Number);
   const [hour, minute] = timeValue.split(":").map(Number);
   const calendarCheck = new Date(Date.UTC(year, month - 1, day));
