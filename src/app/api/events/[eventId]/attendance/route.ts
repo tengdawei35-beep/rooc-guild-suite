@@ -4,6 +4,9 @@ import { hasPermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { localDateKey, syncEventAttendanceAndLeave } from "@/lib/events/attendance-leave-sync";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 type Context = { params: Promise<{ eventId: string }> };
 const statuses = ["AVAILABLE", "UNAVAILABLE", "AFK_BUSY"] as const;
 
@@ -16,6 +19,19 @@ export async function GET(_request: Request, context: Context) {
     select: { id: true, date: true, scheduleTimeZone: true, guildId: true, attendance: { where: { member: { is: { active: true } } }, include: { member: { select: { id: true, characterName: true, job: true, userId: true, user: { select: { discordId: true, username: true } } } } }, orderBy: { respondedAt: "asc" } } },
   });
   if (!event) return NextResponse.json({ error: "Event not found." }, { status: 404 });
+
+  const directAttendanceRows = await prisma.eventAttendance.findMany({
+    where: { eventId },
+    select: { id: true, memberId: true, status: true, respondedAt: true, member: { select: { characterName: true, active: true, guildId: true } } },
+    orderBy: { respondedAt: "desc" },
+  });
+  console.info("[EVENT ATTENDANCE GET] Database read", {
+    eventId,
+    guildId: auth.guild.id,
+    relatedRows: event.attendance.length,
+    directRows: directAttendanceRows.length,
+    rows: directAttendanceRows.map(row => ({ memberId: row.memberId, characterName: row.member.characterName, active: row.member.active, memberGuildId: row.member.guildId, status: row.status, respondedAt: row.respondedAt.toISOString() })),
+  });
   // Resolve by explicit Discord ID first, matching the Discord interaction
   // handler. Only fall back to the linked HMDL user when no direct link exists.
   let ownMember = auth.user.discordId
@@ -63,7 +79,8 @@ export async function GET(_request: Request, context: Context) {
     ownStatus: ownMember ? (memberLeaveIds.has(ownMember.id) ? "UNAVAILABLE" : event.attendance.find(item => item.memberId === ownMember.id)?.status ?? null) : null,
     locked: event.date.getTime() - Date.now() <= 30 * 60 * 1000,
     canManage,
-  });
+    ...(canManage ? { attendanceDiagnostics: directAttendanceRows.map(row => ({ memberId: row.memberId, characterName: row.member.characterName, active: row.member.active, status: row.status, respondedAt: row.respondedAt })) } : {}),
+  }, { headers: { "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0" } });
 }
 
 export async function POST(request: Request, context: Context) {
@@ -82,5 +99,5 @@ export async function POST(request: Request, context: Context) {
   if (!member) member = await prisma.guildMember.findFirst({ where: { guildId: auth.guild.id, userId: auth.user.id, active: true }, select: { id: true } });
   if (!member) return NextResponse.json({ error: "Your Discord account is not linked to an active guild member." }, { status: 403 });
   const attendance = await syncEventAttendanceAndLeave({ eventId, memberId: member.id, eventDate: event.date, timeZone: event.scheduleTimeZone, status });
-  return NextResponse.json({ attendance });
+  return NextResponse.json({ attendance }, { headers: { "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0" } });
 }
