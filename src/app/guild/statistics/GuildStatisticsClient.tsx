@@ -83,7 +83,7 @@ export default function GuildStatisticsClient() {
       if (av === null && bv === null) return 0;
       if (av === null) return 1;
       if (bv === null) return -1;
-      const result = av - bv;
+      const result = (av as number) - (bv as number);
       return sortDirection === "asc" ? result : -result;
     });
     return players;
