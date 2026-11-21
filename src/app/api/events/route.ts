@@ -7,6 +7,12 @@ import {
 } from "@/lib/auth";
 
 import {
+  hasGuildModule,
+  isRoocGuild,
+  RESOURCE_SUITE_MODULE,
+} from "@/lib/auth/modules";
+
+import {
   hasPermission,
 } from "@/lib/permissions";
 
@@ -530,6 +536,8 @@ export async function POST(
             type,
 
             date,
+
+            ro3EventTypeId,
           },
         }
       );
