@@ -1,0 +1,1 @@
+ALTER TABLE "Event" ADD COLUMN "ro3OptInsLockedAt" TIMESTAMP(3);
