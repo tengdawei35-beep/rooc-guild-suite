@@ -34,14 +34,14 @@ function eventTitle(event: { type: string; eventTypeName: string | null }) {
   return event.type === "GUILD_LEAGUE" ? "Guild League" : "Emperium Overrun";
 }
 
-export async function sendEventAttendanceMessage(eventId: string) {
+export async function sendEventAttendanceMessage(eventId: string, allowResend = false) {
   const event = await prisma.event.findFirst({
     where: { id: eventId },
     include: { guild: { select: { id: true, name: true, discordGuildId: true } } },
   });
   if (!event) return { sent: false, reason: "event_not_found" };
   if (event.date.getTime() - Date.now() <= 30 * 60 * 1000) return { sent: false, reason: "event_started_or_locked" };
-  if (event.attendanceMessageId) return { sent: false, reason: "already_sent" };
+  if (event.attendanceMessageId && !allowResend) return { sent: false, reason: "already_sent" };
   const channelId = await getEventChannelId(event.guildId);
   if (!channelId || !process.env.DISCORD_BOT_TOKEN) return { sent: false, reason: "discord_not_configured" };
   const date = new Intl.DateTimeFormat("en-GB", {
@@ -51,7 +51,7 @@ export async function sendEventAttendanceMessage(eventId: string) {
   }).format(event.date);
   const response = await discordRequest("/channels/" + channelId + "/messages", "POST", {
     content: "📣 **" + eventTitle(event) + "** — " + event.guild.name + "\n" +
-      "Event time: **" + date + "**\n\n" +
+      "Event time: **" + date + "**\nEvent reference: `" + event.id + "`\n\n" +
       "Please select your attendance status below. You can change your response until 30 minutes before the event starts.\n" +
       "🟢 Available — eligible for normal roster assignment\n" +
       "🔴 Unavailable — excluded from event participation\n" +
