@@ -40,6 +40,7 @@ export async function sendEventAttendanceMessage(eventId: string) {
     include: { guild: { select: { id: true, name: true, discordGuildId: true } } },
   });
   if (!event) return { sent: false, reason: "event_not_found" };
+  if (event.date.getTime() - Date.now() <= 30 * 60 * 1000) return { sent: false, reason: "event_started_or_locked" };
   if (event.attendanceMessageId) return { sent: false, reason: "already_sent" };
   const channelId = await getEventChannelId(event.guildId);
   if (!channelId || !process.env.DISCORD_BOT_TOKEN) return { sent: false, reason: "discord_not_configured" };
