@@ -25,10 +25,10 @@ export async function POST(request: Request) {
     if (typeof nonReservedMemberCount !== "number" || !Number.isInteger(nonReservedMemberCount) || nonReservedMemberCount < 0) return NextResponse.json({ error: "Number of members per allocation must be a non-negative integer." }, { status: 400 });
     if (body.overrides !== undefined && !Array.isArray(body.overrides)) return NextResponse.json({ error: "Invalid allocation edits." }, { status: 400 });
 
-    const event = await prisma.event.findFirst({ where: { id: eventId, guildId: auth.guild.id }, select: { id: true, guildId: true, type: true, date: true } });
+    const event = await prisma.event.findFirst({ where: { id: eventId, guildId: auth.guild.id }, select: { id: true, guildId: true, type: true, date: true, scheduleTimeZone: true } });
     if (!event) return NextResponse.json({ error: "Event not found." }, { status: 404 });
 
-    let preview = await buildAllocation({ guildId: auth.guild.id, nonReservedMemberCount, eventDate: event.date });
+    let preview = await buildAllocation({ guildId: auth.guild.id, nonReservedMemberCount, eventDate: event.date, timeZone: event.scheduleTimeZone });
     if (body.overrides !== undefined) preview = applyAllocationOverrides(preview, body.overrides);
     if (preview.guildId !== auth.guild.id || preview.guildId !== event.guildId) return NextResponse.json({ error: "Allocation does not belong to the configured guild." }, { status: 403 });
 
