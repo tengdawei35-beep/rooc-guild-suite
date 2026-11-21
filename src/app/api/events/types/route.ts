@@ -14,7 +14,7 @@ function validateConfig(body: Record<string, unknown>) {
   const battlefieldCount = Number(body.battlefieldCount);
   const partiesPerBattlefield = Number(body.partiesPerBattlefield);
   const weekdays = body.weekdays;
-  const startTime = typeof body.startTime === "string" ? body.startTime : "";
+  if (!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(startTime)) return "Enter a valid event start time.";
   const timeZone = body.timeZone;
   if (!name || name.length > 80) return "Event type name must be between 1 and 80 characters.";
   if (!Number.isInteger(battlefieldCount) || battlefieldCount < 1 || battlefieldCount > 20) return "Battlefield count must be between 1 and 20.";
