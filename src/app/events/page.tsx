@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import EventsClient from "./EventsClient";
+import EventTypesManager from "./EventTypesManager";
 
 import {
   hasPermission,
@@ -59,8 +60,9 @@ export default async function EventsPage({
   }
 
   return (
-    <EventsClient
-      initialView={view}
-    />
+    <>
+      {view === "events" && auth.guild.gameType === "RO3" && <div className="mx-auto max-w-7xl px-6 pt-8"><EventTypesManager /></div>}
+      <EventsClient initialView={view} />
+    </>
   );
 }
