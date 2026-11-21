@@ -497,7 +497,8 @@ export default function EventsClient({
                       type="submit"
                       disabled={
                         creating ||
-                        !form.date
+                        !form.date ||
+                        (isRo3 && !selectedGuildEventTypeId)
                       }
                       className="w-full rounded-lg bg-white px-5 py-3 font-medium text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
                     >
