@@ -1,76 +1,123 @@
-# Heimdall UI/UX Audit — Initial Source Review
+# Heimdall UI/UX Audit and Product Experience Direction
 
 **Baseline:** `main` at `f7ba8c42f171d02fd0f5843cd464cafb8820e0f2`  
-**Scope reviewed:** App Router route tree (all page/layout/API route paths), root layout and global CSS, dashboard, landing/login, guild configuration, member list/profile, recruitment, events/event detail, statistics, rankings, resource/reservation surfaces, bidding, calls, users and platform-admin entry points.  
-**Method:** Source-level implementation review. This is an initial audit, not a claim of completed cross-device browser testing. Runtime visual inspection and interaction QA remain required during implementation.
+**Status:** Product direction approved for implementation.  
+**Method:** Initial source-level review of the App Router, root layout/global CSS, dashboard, guild configuration, member list/profile, recruitment, events/event detail, statistics, rankings, resource/reservation surfaces, bidding, calls, users and platform-admin entry points. This is not a claim of completed browser QA.
 
-## Executive assessment
+## Product principle
 
-Heimdall already has broad operational functionality, but the UI has evolved feature-by-feature rather than from a shared product system. The dominant issues are inconsistent information architecture, repeated page-specific styling, dense operational views without a common interaction grammar, and desktop-first data layouts. The safest redesign is an incremental frontend refactor that preserves routes, API contracts, permissions, business rules and existing data.
+> **Management gets the tools to run the guild. Members get the tools to participate in the guild.**
 
-## Findings
+Heimdall is a commercial guild operations SaaS product, not a gaming fan project. It serves two audiences with different jobs to be done. They share one platform, identity system, data model, permission system, APIs and design language, but they must not be forced into the same information architecture or screen density.
 
-| Module | Existing Problems | UX Severity | Recommended Improvement | Implementation Priority |
-|---|---|---:|---|---:|
-| Global shell / navigation | No shared authenticated application shell is evident in the route structure; pages independently render their own headers and back links. Navigation context and page hierarchy can vary by module. | High | Establish one responsive app shell with role-aware primary navigation, clear active states, consistent page headers and contextual secondary navigation. Preserve every existing destination and permission gate. | P0 |
-| Design system / global styles | Global CSS contains only a small theme setup plus selector-specific overrides targeting dashboard markup. Most UI styling is embedded in page-level Tailwind strings. | High | Define semantic design tokens and shared primitives for buttons, fields, surfaces, tables, badges, dialogs, feedback and focus states. Remove brittle selector overrides as affected screens are migrated. | P0 |
-| Dashboard | Dashboard is a large server component combining data aggregation, activity shaping, time calculations and presentation. The visible design uses several repeated card/activity patterns. Date calculations use a fixed Asia/Bangkok timezone. | High | Separate data composition from presentation; establish prioritized “today / next actions / activity” hierarchy; use configured guild/user timezone consistently where available; reduce repeated card chrome. | P1 |
-| Public landing / pricing / login | Public landing content exists in more than one implementation path, creating potential content and visual drift. Login is a standalone panel with limited contextual navigation. | Medium | Consolidate public entry presentation and establish consistent brand, typography, CTA hierarchy and accessible auth feedback. | P2 |
-| Guild overview / settings | Guild settings, user management, bot setup, notifications and ownership transfer are distributed across separate surfaces. The page is primarily a grid of cards followed by a separate form. | Medium | Group settings by task and frequency; make configuration status and next steps visible; preserve ownership and permission controls. | P1 |
-| Member management | Member client is a large component with many display fields and a wide table (minimum 900px), filters, field picker, import and edit workflows. Role-dependent filtering is explained in a notice rather than integrated into controls. | High | Create a responsive member directory with compact identity column, saved views/field preferences, clear filters, row-level profile navigation and mobile card/list treatment. Keep advanced stats available through progressive disclosure. | P1 |
-| Member profiles | Profile page has distinct permission-dependent presentations and a separate client component for the full profile. | Medium | Standardize profile header, identity/status, section navigation and restricted-data messaging; ensure the same information hierarchy across member and staff views. | P1 |
-| Recruitment / applications | Applications have a dedicated client workflow, but the source review indicates another independent page-specific visual system. | Medium | Standardize application queue, status filters, applicant detail and decision actions; clarify irreversible decisions and feedback. | P2 |
-| Events list / event types | Event list and event-type management are separate client components. Configuration and operational event discovery risk competing for attention. | High | Make the event list the primary workspace; move configuration into a contextual management area; standardize schedule, timezone, status and empty states. | P1 |
-| Event detail / attendance / roster / results | Event detail composes multiple specialized panels (attendance, roster controls, raids, resource links, overrides and result upload). This is functionally rich but can become a long, fragmented page. | High | Use a consistent event workspace with summary, tabs/sections and a clear event lifecycle; keep attendance and roster actions close together; preserve Discord sync, lock timing, snapshots and result archive behavior. | P1 |
-| Roster management | Roster controls are embedded in event-specific workflows and include specialized party/role operations. | High | Improve roster scanability, party grouping, assignment feedback and mobile read-only layouts; do not change generation rules or member eligibility. | P1 |
-| Statistics / rankings | Statistics and rankings are separate views; job breakdown is modal-based and score availability differs by game. | Medium | Use a consistent analytics layout with clear game-specific score availability, sortable tables and profile links; never apply ROOC scoring formulas to RO3. | P2 |
-| Resources / opt-ins / reservations / history | ROOC and RO3 use distinct resource clients; reservations support bulk entry but render member rows in a fixed multi-column layout. Resource workflows are spread across multiple routes. | High | Unify navigation and shared resource primitives while retaining game-specific workflows; make bulk entry responsive and show limits/remaining capacity contextually. | P1 |
-| Allocation / bidding / audit / history | Allocation and bid-page experiences are separate operational screens with dense data. The route tree includes audit, correction, backfill and reset operations. | High | Establish a consistent operational table pattern, clear run context, visible status and safe confirmation for destructive actions. Preserve allocation engine behavior and audit trail. | P1 |
-| Call To Arms | Call list and detail are separate workflows; the create dialog uses a fixed UTC+7 server-time convention and custom modal implementation. | Medium | Standardize dialog behavior and make timezone explicit and consistent with the app's timezone model. Keep party requirement logic and Discord announcements unchanged. | P2 |
-| Users / permissions | User administration has its own role hierarchy and inline explanatory comments; role boundaries are important and differ from operational permissions. | High | Present role capabilities in a concise matrix or contextual help; make assignable roles explicit; preserve server-side permission enforcement. | P1 |
-| Notifications | A global notification watcher exists, while guild notification configuration is another surface. | Medium | Standardize notification preferences, unread states, toasts and delivery status; avoid duplicate or ambiguous feedback. | P2 |
-| Platform administration | Separate platform-admin routes exist for affiliates and guild creators, distinct from guild-level administration. | Medium | Visually distinguish platform scope from guild scope and keep platform controls inaccessible to ordinary guild roles. | P2 |
-| Responsive / accessibility | Wide tables and fixed multi-column form layouts appear in key workflows. Focus, keyboard, reduced-motion and screen-reader behavior is not centralized in a shared component layer. | High | Establish responsive table patterns, mobile-specific actions, visible focus, semantic dialogs, labels, keyboard support and WCAG 2.2 AA checks. | P0 |
-| Loading / empty / error / success states | Feedback is implemented locally with different patterns (inline messages, modal alerts, empty panels and loading text). | Medium | Standardize status banners, toasts, skeletons, empty states and field-level errors. | P1 |
+### Guild Management workspace
 
-## Information architecture proposal
+Designed for Admins, Managers and Officers according to their existing permissions:
+- High information density where it improves operational speed.
+- Strong overview of guild health, today's activity, upcoming events and pending work.
+- Advanced filtering, sorting, bulk selection/actions and fast access to administrative tools.
+- Clear operational status, auditability, safe destructive actions and efficient desktop workflows.
+- Responsive behavior remains usable on tablets and phones; complex tables may use intentional horizontal scrolling or mobile-specific summaries.
 
-Preserve all existing routes and capabilities, but organize navigation into task-based groups:
+### Guild Member portal
 
-1. **Overview** — Dashboard, guild summary and recent activity.
-2. **People** — Members, recruitment/applications, users & roles, leave/availability.
-3. **Operations** — Events, event results, rosters, Call To Arms.
-4. **Resources** — Resource inventory, reservations, opt-ins, bidding/allocation, audit/history.
-5. **Insights** — Statistics, rankings and player analytics.
-6. **Guild settings** — Guild profile, Discord integrations, notifications, ownership and access.
-7. **Platform administration** — Separate, permission-gated area for platform operators.
+Designed for Members:
+- Simple, calm, personal home screen with the next relevant action prominent.
+- Upcoming events, clear attendance/availability actions and notification visibility.
+- Easy access to own profile, statistics, leave/availability and relevant guild information.
+- Avoid exposing management-only controls, dense analytics or administrative navigation.
+- Mobile-first interaction and concise language.
 
-Navigation visibility must continue to follow existing permissions and module entitlements. A route must not become inaccessible merely because its navigation label moves.
+### Shared platform rules
 
-## Initial design direction
+- Existing server-side authorization and module entitlements remain the source of truth. Navigation visibility is not authorization.
+- Do not invent new application roles to support the visual split. Existing roles remain ADMIN, MANAGER, OFFICER and MEMBER.
+- Management users may be offered a clearly labelled Member View preview/switch, but this must not alter their permissions or impersonate a member.
+- Platform administration remains a separate scope and must not be mixed into guild management navigation.
+- Preserve routes, APIs, database schema, event rules, Discord integration, allocation/bidding behavior, scoring, and stored data unless a separate approved feature explicitly changes them.
 
-- **Character:** restrained dark-neutral operations interface; one clear accent; semantic success/warning/danger colors; minimal decoration.
-- **Hierarchy:** compact page titles, explicit section headings, strong table headers and consistent metadata treatment.
-- **Density:** operationally useful density on desktop; deliberate mobile layouts rather than horizontal shrinkage.
-- **Components:** centralized tokens and primitives; consistent button sizes/variants, inputs, selectors, tables, badges, dialogs, alerts and empty/loading states.
-- **Accessibility:** keyboard-first interaction, visible focus, semantic headings/labels, dialog focus management, adequate contrast and reduced-motion support.
-- **Consistency:** no backend, schema, scoring, permission or business-rule changes as part of the visual refactor.
+## Proposed information architecture
 
-## Delivery phases
+### Management workspace
+- **Overview:** Dashboard, activity, pending actions.
+- **People:** Members, Recruitment, Users & Roles, Leave & Availability.
+- **Operations:** Events, Rosters, Results, Call To Arms.
+- **Resources:** Resource Overview, Opt-ins, Reservations, Allocation, Bidding, History & Audit.
+- **Insights:** Statistics, Rankings.
+- **Configuration:** Guild Settings, Discord Integration, Notifications.
+- **Platform Admin:** Separate, platform-permission-gated entry point.
 
-- **Phase 1 — Audit and foundation:** document findings; establish design tokens and shared primitives.
-- **Phase 2 — App shell and navigation:** responsive shell and permission-aware navigation.
-- **Phase 3 — Core people workflows:** dashboard, member directory, member profile, recruitment and users.
-- **Phase 4 — Operations:** events, event detail, attendance, rosters, results and Call To Arms.
-- **Phase 5 — Resources and analytics:** resources, opt-ins, reservations, allocation, bidding, statistics and rankings.
-- **Phase 6 — Settings and public surfaces:** guild settings, notifications, platform admin, landing, pricing and login.
-- **Phase 7 — QA:** build, lint, route/permission regression, responsive and accessibility checks.
+### Member portal
+- **Home:** Personal overview, next event, outstanding actions and notifications.
+- **My Guild:** Events and guild directory.
+- **My Activity:** Attendance, availability and leave history.
+- **My Profile:** Character profile and statistic submission.
+- **Notifications / Account:** Personal notification and account controls.
 
-## Known follow-up verification
+All existing destinations must remain reachable to users who are authorized for them, even when labels or navigation groupings change.
 
-- Inspect every route at desktop, tablet and mobile breakpoints in a running browser.
-- Exercise member, officer, manager, admin and platform-admin permission paths.
-- Verify all existing game-specific workflows (ROOC and RO3).
-- Verify timezone behavior against configured user/guild settings.
-- Test all loading, empty, error, success and destructive-confirmation states.
-- Confirm no API, database, scoring, allocation or Discord integration behavior changes.
+## Visual and interaction direction
+
+- **Character:** Professional, minimalist SaaS; restrained dark navy/slate surfaces, muted blue accent, semantic status colors and restrained elevation.
+- **Typography:** Geist; clear page-title/section/body/metadata hierarchy; readable numeric alignment in operational tables.
+- **Spacing:** Consistent spacing scale, deliberate page gutters and predictable component heights.
+- **Management density:** Compact controls and tables, strong scan lines, sticky table headers where useful, filter toolbars and bulk-action patterns.
+- **Member simplicity:** Fewer choices per screen, prominent primary actions, concise event cards and personal status.
+- **Navigation:** Persistent, responsive navigation with clear current location; management and member navigation remain distinct.
+- **Feedback:** Consistent loading, empty, success, warning, error and confirmation states.
+- **Accessibility:** Keyboard operation, visible focus, semantic controls/dialogs, sufficient contrast, reduced-motion support and responsive text/layout.
+- **Brand:** Avoid game-themed ornament, excessive gradients, decorative badges and oversized rounded cards.
+
+## Source review findings and priorities
+
+| Area | Finding | Priority |
+|---|---|---:|
+| App shell / navigation | No shared authenticated shell is evident; pages independently render headers/back links. | P0 |
+| Design system | Styling is mostly page-level Tailwind; global CSS contains brittle dashboard selectors. | P0 |
+| Audience separation | Dashboard and navigation do not yet express distinct management/member jobs. | P0 |
+| Dashboard | Large server component combines aggregation, time calculations and presentation; date logic includes fixed Asia/Bangkok assumptions. | P1 |
+| Member directory | Large client component and wide table; filtering, field selection, import and edit flows need a consistent operations pattern. | P1 |
+| Member profiles | Permission-dependent presentations need consistent identity and information hierarchy. | P1 |
+| Events / event detail | Specialized attendance, roster, raids, resource and results panels create a long fragmented workflow. | P1 |
+| Rosters | Dense party/role assignment needs stronger scanability and responsive read-only views. | P1 |
+| Resources / reservations | ROOC and RO3 clients are separate; bulk entry and member rows need responsive patterns. | P1 |
+| Allocation / bidding / history | Dense operational screens need consistent tables, run context and safe confirmations. | P1 |
+| Guild settings / users | Configuration and role management are distributed; role boundaries must remain unchanged. | P1 |
+| Recruitment | Queue, filters, applicant detail and decision feedback need shared patterns. | P2 |
+| Statistics / rankings | Separate views; score availability differs by game. Never apply ROOC formulas to RO3. | P2 |
+| Calls / notifications | Custom dialogs and local feedback patterns need consistency; timezone handling must not be hardcoded as part of visual work. | P2 |
+| Public / platform admin | Public entry points and platform scope need a consistent brand while remaining separate from guild operations. | P2 |
+| Responsive / accessibility | Wide tables and fixed layouts need deliberate small-screen and keyboard treatment. | P0 |
+
+## Implementation roadmap
+
+1. **Foundation and shared shell:** semantic tokens, primitives, responsive shell, distinct management/member navigation, permission-aware route visibility.
+2. **Management overview:** operational dashboard, action queue and management navigation.
+3. **Member portal:** member home, upcoming events, attendance/availability actions, personal navigation.
+4. **People:** directory, profiles, recruitment, user administration.
+5. **Operations:** events, attendance, rosters, results and Call To Arms.
+6. **Resources:** resource views, opt-ins, reservations, allocation, bidding, audit/history.
+7. **Insights and configuration:** statistics, rankings, guild settings, notifications and platform admin.
+8. **QA and polish:** route/permission regression, responsive and accessibility checks, visual consistency.
+
+Each phase is delivered incrementally. Do not replace the whole application at once.
+
+## Non-negotiable regression boundaries
+
+- No database/schema migrations for a visual redesign.
+- No changes to authentication/session semantics or server-side permissions.
+- No changes to event attendance states, Discord synchronization, roster generation, event locks, result archives or timezone configuration behavior.
+- No changes to allocation engine, bidding rules, resource caps, scoring weights or ROOC/RO3 calculation behavior.
+- No destructive data operations.
+- Keep platform-admin access distinct from guild roles.
+- A navigation item being hidden must never be treated as a security boundary.
+
+## Verification required
+
+- Production build and lint/type checks for each phase.
+- Browser QA at desktop, tablet and mobile widths.
+- Test Member, Officer, Manager and Admin navigation and direct-route access; test platform-admin separately.
+- Verify ROOC and RO3 workflows independently.
+- Verify event timezone defaults to the user's computer time with configurable timezone behavior; do not introduce fixed timezone assumptions.
+- Exercise loading, empty, error, success, bulk-action and destructive-confirmation states.
+- Confirm no API, database, permission, scoring, allocation or Discord behavior changes.
