@@ -144,7 +144,7 @@ model User {
 
 model Guild {
   id String @id @default(cuid())
-  discordGuildId String? @unique
+  discordGuildId String @unique
   name String
   gameType GameType @default(ROOC)
   timeZone String?
