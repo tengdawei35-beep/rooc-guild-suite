@@ -24,7 +24,11 @@ export default function EventTypesManager() {
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "Unable to load event types.");
     setItems(data.eventTypes || []);
-    setTimeZone(data.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC");
+    const detectedTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+    setTimeZone(data.timeZone || detectedTimeZone);
+    if (!data.timeZone) {
+      await fetch("/api/events/types", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "setTimeZone", timeZone: detectedTimeZone }) });
+    }
   }
 
   useEffect(() => {
