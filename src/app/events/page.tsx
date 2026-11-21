@@ -61,7 +61,7 @@ export default async function EventsPage({
 
   return (
     <>
-      {view === "events" && auth.guild.gameType === "RO3" && <div className="mx-auto max-w-7xl px-6 pt-8"><EventTypesManager /></div>}
+      {view === "events" && auth.guild.gameType === "RO3" && hasPermission(auth.role, "events.manage") && <div className="mx-auto max-w-7xl px-6 pt-8"><EventTypesManager /></div>}
       <EventsClient initialView={view} />
     </>
   );
