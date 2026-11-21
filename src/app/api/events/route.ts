@@ -297,6 +297,9 @@ export async function GET() {
             type:
               event.type,
 
+            eventTypeName: event.eventTypeName,
+            guildEventTypeId: event.guildEventTypeId,
+
             date:
               event.date,
 

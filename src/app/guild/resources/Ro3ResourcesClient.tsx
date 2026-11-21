@@ -1,12 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type Category = "CARD" | "EQUIPMENT" | "ECHO";
 type CapMode = "TOTAL" | "PER_CATEGORY" | "COMBINED";
 type Resource = { id: string; name: string; category: Category; active: boolean };
 type Reward = { resourceId: string; quantity: number; resource: { id: string; name: string; category: Category } };
-type EventType = { id: string; name: string; active: boolean; rewardPool: Reward[] };
+type EventType = { id: string; name: string; active: boolean; guildEventTypeId: string | null; rewardPool: Reward[] };
 type Season = {
   id: string; name: string; updatedAt: string; status: "DRAFT" | "ACTIVE" | "ARCHIVED";
   capMode: CapMode; totalOptInCap: number | null; cardOptInCap: number | null;
@@ -25,9 +25,21 @@ export default function Ro3ResourcesClient({ initialSeasons }: { initialSeasons:
   const [seasonName, setSeasonName] = useState("");
   const [resourceName, setResourceName] = useState("");
   const [category, setCategory] = useState<Category>("CARD");
-  const [eventName, setEventName] = useState("");
+  const [configuredEventTypes, setConfiguredEventTypes] = useState<{ id: string; name: string; active: boolean }[]>([]);
+  const [selectedConfiguredTypeId, setSelectedConfiguredTypeId] = useState("");
 
   const selected = useMemo(() => seasons.find(s => s.id === selectedId) ?? null, [seasons, selectedId]);
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/events/types", { cache: "no-store" }).then(async response => {
+      if (!response.ok) return null;
+      return response.json();
+    }).then(data => {
+      if (!cancelled && data) setConfiguredEventTypes((data.eventTypes ?? []).filter((item: { active: boolean }) => item.active));
+    }).catch(() => undefined);
+    return () => { cancelled = true; };
+  }, []);
+
   async function call(method: "POST" | "PATCH", body: Record<string, unknown>) {
     setBusy(true); setError("");
     try {
@@ -57,9 +69,9 @@ export default function Ro3ResourcesClient({ initialSeasons }: { initialSeasons:
     if (ok) setResourceName("");
   }
   async function createEventType() {
-    if (!selected || !eventName.trim()) return;
-    const ok = await call("POST", { action: "createEventType", seasonId: selected.id, name: eventName });
-    if (ok) setEventName("");
+    if (!selected || !selectedConfiguredTypeId) return;
+    const ok = await call("POST", { action: "createEventType", seasonId: selected.id, guildEventTypeId: selectedConfiguredTypeId });
+    if (ok) setSelectedConfiguredTypeId("");
   }
 
   return <div className="mt-8 space-y-6">
@@ -99,8 +111,8 @@ export default function Ro3ResourcesClient({ initialSeasons }: { initialSeasons:
     </section>
 
     <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
-      <div className="flex flex-wrap items-end justify-between gap-3"><div><h2 className="text-lg font-semibold">Event Types & Reward Quantities</h2><p className="mt-1 text-sm text-zinc-400">Configure the reward quantity normally made available after each event type.</p></div>
-        {selected.status !== "ARCHIVED" && <div className="flex gap-2"><input value={eventName} onChange={e => setEventName(e.target.value)} placeholder="e.g. Guild League" className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm" /><button disabled={busy || !eventName.trim()} onClick={createEventType} className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black disabled:opacity-40">Add Event Type</button></div>}
+      <div className="flex flex-wrap items-end justify-between gap-3"><div><h2 className="text-lg font-semibold">Event Types & Reward Quantities</h2><p className="mt-1 text-sm text-zinc-400">Select event types created under Events, then configure the reward quantities for this resource pool.</p></div>
+        {selected.status !== "ARCHIVED" && <div className="flex flex-wrap gap-2"><select value={selectedConfiguredTypeId} onChange={e => setSelectedConfiguredTypeId(e.target.value)} className="min-w-56 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"><option value="">Select an Events event type</option>{configuredEventTypes.filter(item => !selected.eventTypes.some(existing => existing.guildEventTypeId === item.id)).map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select><button disabled={busy || !selectedConfiguredTypeId} onClick={createEventType} className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black disabled:opacity-40">Add Reward Configuration</button></div>}
       </div>
       <div className="mt-5 space-y-4">{selected.eventTypes.map(et => <div key={et.id} className="rounded-xl border border-zinc-800 p-4"><div className="flex items-center justify-between"><h3 className="font-medium">{et.name}</h3>{selected.status !== "ARCHIVED" && <button disabled={busy} onClick={() => call("PATCH", { action: "setEventTypeActive", eventTypeId: et.id, active: !et.active })} className="text-xs text-zinc-400 underline">{et.active ? "Disable" : "Enable"}</button>}</div>
         <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{selected.resources.filter(r => r.active).map(r => { const reward = et.rewardPool.find(x => x.resourceId === r.id); return <RewardEditor key={et.id + r.id} name={r.name} category={labels[r.category]} quantity={reward?.quantity ?? 0} disabled={busy || selected.status === "ARCHIVED"} save={quantity => call("POST", { action: "saveReward", eventTypeId: et.id, resourceId: r.id, quantity })} />; })}</div>
