@@ -521,6 +521,9 @@ export async function POST(
         }
       );
 
+    try { await sendEventAttendanceMessage(event.id); }
+    catch (discordError) { console.error("[EVENTS] Discord attendance message could not be posted:", discordError); }
+
     return NextResponse.json(
       {
         event: {

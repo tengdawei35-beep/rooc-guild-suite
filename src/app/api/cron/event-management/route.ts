@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { sendEventAttendanceMessage, sendEventAttendanceReminder } from "@/lib/discord-event-attendance";
 import { formatCalendarDate, getLocalCalendarDate, zonedDateTimeToUtc } from "@/lib/event-schedule";
 
 export async function GET(request: Request) {
@@ -54,8 +55,26 @@ export async function GET(request: Request) {
         },
       });
       created++;
+      try {
+        const createdEvent = await prisma.event.findFirst({ where: { guildId: eventType.guildId, guildEventTypeId: eventType.id, type: "RO3_CUSTOM", date: eventDate }, select: { id: true } });
+        if (createdEvent) await sendEventAttendanceMessage(createdEvent.id);
+      } catch (error) { console.error("[EVENT CRON] Attendance message failed:", error); }
     }
   }
 
-  return NextResponse.json({ success: true, created, skipped, scannedEventTypes: eventTypes.length, generatedAt: now.toISOString() });
+  const reminderStart = new Date(now.getTime() + 47 * 60 * 60 * 1000);
+  const reminderEnd = new Date(now.getTime() + 49 * 60 * 60 * 1000);
+  const reminders = await prisma.event.findMany({
+    where: { date: { gte: reminderStart, lte: reminderEnd }, reminderMessageId: null, attendanceMessageId: { not: null } },
+    select: { id: true },
+  });
+  let remindersSent = 0;
+  for (const event of reminders) {
+    try {
+      const result = await sendEventAttendanceReminder(event.id);
+      if (result.sent) remindersSent++;
+    } catch (error) { console.error("[EVENT CRON] Attendance reminder failed:", error); }
+  }
+
+  return NextResponse.json({ success: true, created, skipped, remindersSent, scannedEventTypes: eventTypes.length, generatedAt: now.toISOString() });
 }
