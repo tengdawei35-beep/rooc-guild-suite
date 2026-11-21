@@ -16,15 +16,17 @@ export async function GET(_request: Request, context: Context) {
     select: { id: true, date: true, scheduleTimeZone: true, guildId: true, attendance: { where: { member: { is: { active: true } } }, include: { member: { select: { id: true, characterName: true, job: true, userId: true, user: { select: { discordId: true, username: true } } } } }, orderBy: { respondedAt: "asc" } } },
   });
   if (!event) return NextResponse.json({ error: "Event not found." }, { status: 404 });
-  // Resolve the signed-in member using the same identity paths as Discord
-  // interactions. A member may be linked by Discord ID without userId being set.
-  let ownMember = await prisma.guildMember.findFirst({
-    where: { guildId: auth.guild.id, userId: auth.user.id, active: true },
-    select: { id: true },
-  });
-  if (!ownMember && auth.user.discordId) {
+  // Resolve by explicit Discord ID first, matching the Discord interaction
+  // handler. Only fall back to the linked HMDL user when no direct link exists.
+  let ownMember = auth.user.discordId
+    ? await prisma.guildMember.findFirst({
+        where: { guildId: auth.guild.id, discordUserId: auth.user.discordId, active: true },
+        select: { id: true },
+      })
+    : null;
+  if (!ownMember) {
     ownMember = await prisma.guildMember.findFirst({
-      where: { guildId: auth.guild.id, discordUserId: auth.user.discordId, active: true },
+      where: { guildId: auth.guild.id, userId: auth.user.id, active: true },
       select: { id: true },
     });
   }
@@ -74,8 +76,10 @@ export async function POST(request: Request, context: Context) {
   const event = await prisma.event.findFirst({ where: { id: eventId, guildId: auth.guild.id }, select: { id: true, date: true, scheduleTimeZone: true } });
   if (!event) return NextResponse.json({ error: "Event not found." }, { status: 404 });
   if (event.date.getTime() - Date.now() <= 30 * 60 * 1000) return NextResponse.json({ error: "Attendance responses are locked 30 minutes before the event starts." }, { status: 409 });
-  let member = await prisma.guildMember.findFirst({ where: { guildId: auth.guild.id, userId: auth.user.id, active: true }, select: { id: true } });
-  if (!member && auth.user.discordId) member = await prisma.guildMember.findFirst({ where: { guildId: auth.guild.id, discordUserId: auth.user.discordId, active: true }, select: { id: true } });
+  let member = auth.user.discordId
+    ? await prisma.guildMember.findFirst({ where: { guildId: auth.guild.id, discordUserId: auth.user.discordId, active: true }, select: { id: true } })
+    : null;
+  if (!member) member = await prisma.guildMember.findFirst({ where: { guildId: auth.guild.id, userId: auth.user.id, active: true }, select: { id: true } });
   if (!member) return NextResponse.json({ error: "Your Discord account is not linked to an active guild member." }, { status: 403 });
   const attendance = await syncEventAttendanceAndLeave({ eventId, memberId: member.id, eventDate: event.date, timeZone: event.scheduleTimeZone, status });
   return NextResponse.json({ attendance });
