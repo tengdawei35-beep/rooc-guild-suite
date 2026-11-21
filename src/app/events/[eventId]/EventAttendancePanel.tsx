@@ -31,7 +31,22 @@ export default function EventAttendancePanel({ eventId }: { eventId: string }) {
     setCanManage(Boolean(data.canManage));
   }
 
-  useEffect(() => { load().catch(e => setError(e instanceof Error ? e.message : "Unable to load attendance.")); }, [eventId]);
+  useEffect(() => {
+    let active = true;
+    const refresh = () => {
+      if (document.visibilityState !== "visible") return;
+      load().catch(e => {
+        if (active) setError(e instanceof Error ? e.message : "Unable to load attendance.");
+      });
+    };
+    refresh();
+    // Keep the HMDL panel in sync with responses submitted through Discord.
+    const interval = window.setInterval(refresh, 10_000);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
+  }, [eventId]);
 
   async function respond(status: Status) {
     setBusy(true); setError("");
