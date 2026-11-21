@@ -14,13 +14,13 @@ function validateConfig(body: Record<string, unknown>) {
   const battlefieldCount = Number(body.battlefieldCount);
   const partiesPerBattlefield = Number(body.partiesPerBattlefield);
   const weekdays = body.weekdays;
-  if (!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(startTime)) return "Enter a valid event start time.";
+  const startTime = typeof body.startTime === "string" ? body.startTime : "";
   const timeZone = body.timeZone;
   if (!name || name.length > 80) return "Event type name must be between 1 and 80 characters.";
   if (!Number.isInteger(battlefieldCount) || battlefieldCount < 1 || battlefieldCount > 20) return "Battlefield count must be between 1 and 20.";
   if (!Number.isInteger(partiesPerBattlefield) || partiesPerBattlefield < 1 || partiesPerBattlefield > 20) return "Parties per battlefield must be between 1 and 20.";
   if (!Array.isArray(weekdays) || weekdays.length < 1 || weekdays.some((day) => !Number.isInteger(day) || day < 0 || day > 6)) return "Select at least one recurring weekday.";
-  if (!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(startTime)) return "Enter a valid event start time.";
+  if (!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(startTime)) return "Enter a valid event start time.";
   if (!validTimeZone(timeZone)) return "Select a valid IANA timezone.";
   return null;
 }
