@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { notifyRosterUpdate } from "@/lib/discord-notifications";
+import { localDateKey } from "@/lib/events/attendance-leave-sync";
 
 import {
   getCurrentAuth,
@@ -194,6 +195,7 @@ export async function POST(
           guildId: true,
           type: true,
           date: true,
+          scheduleTimeZone: true,
           guild: { select: { gameType: true } },
         },
       });
@@ -241,14 +243,7 @@ export async function POST(
     // EVENT DATE
     // ==========================================================
 
-    const eventDateStart =
-      new Date(event.date);
-
-    const eventDateEnd =
-      new Date(
-        eventDateStart.getTime() +
-          24 * 60 * 60 * 1000
-      );
+    const eventDateStart = new Date(`${localDateKey(event.date, event.scheduleTimeZone)}T00:00:00.000Z`);
 
     // ==========================================================
     // LOAD ACTIVE GUILD MEMBERS
@@ -298,10 +293,7 @@ export async function POST(
 
           leaveDates: {
             where: {
-              date: {
-                gte: eventDateStart,
-                lt: eventDateEnd,
-              },
+              date: eventDateStart,
             },
 
             select: {
@@ -466,31 +458,19 @@ export async function POST(
     // EVENT PARTICIPATION
     // ==========================================================
 
-    const participationRows =
-      await prisma.eventParticipation.findMany({
-        where: {
-          eventId:
-            event.id,
-        },
+    const [participationRows, attendanceRows] = await Promise.all([
+      prisma.eventParticipation.findMany({
+        where: { eventId: event.id },
+        select: { memberId: true, available: true },
+      }),
+      prisma.eventAttendance.findMany({
+        where: { eventId: event.id },
+        select: { memberId: true, status: true },
+      }),
+    ]);
 
-        select: {
-          memberId: true,
-          available: true,
-        },
-      });
-
-    const participationMap =
-      new Map<string, boolean>();
-
-    for (
-      const participation of
-        participationRows
-    ) {
-      participationMap.set(
-        participation.memberId,
-        participation.available
-      );
-    }
+    const participationMap = new Map(participationRows.map((row) => [row.memberId, row.available]));
+    const attendanceMap = new Map(attendanceRows.map((row) => [row.memberId, row.status]));
 
     // ==========================================================
     // DETERMINE EVENT-AVAILABLE MEMBERS
@@ -518,20 +498,13 @@ export async function POST(
             return false;
           }
 
-          // No participation record means available.
-          const available =
-            participationMap.get(
-              member.id
-            );
+          // Event attendance is authoritative. Legacy participation is
+          // consulted only for members who have not submitted attendance.
+          const status = attendanceMap.get(member.id);
+          if (status) return status === "AVAILABLE";
 
-          if (
-            available ===
-            undefined
-          ) {
-            return true;
-          }
-
-          return available;
+          const legacyAvailable = participationMap.get(member.id);
+          return legacyAvailable ?? true;
         }
       );
 
