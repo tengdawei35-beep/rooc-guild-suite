@@ -1266,7 +1266,7 @@ async function loadPreferredRoster() {
               </div>
 
               <h1 className="mt-4 text-3xl font-bold tracking-tight">
-                {formatEventDate(data.event.date, data.event.type === "RO3_CUSTOM" ? data.event.scheduleTimeZone ?? undefined : "Asia/Bangkok", data.event.type === "RO3_CUSTOM")}
+                {formatEventDate(data.event.date, data.event.type === "RO3_CUSTOM" ? data.event.scheduleTimeZone ?? "Asia/Bangkok" : "Asia/Bangkok", data.event.type === "RO3_CUSTOM")}
               </h1>
 
               <p className="mt-2 text-zinc-500">
