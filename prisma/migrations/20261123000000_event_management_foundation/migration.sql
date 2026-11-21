@@ -27,7 +27,7 @@ ALTER TABLE "Event"
 ALTER TABLE "Ro3EventType" ADD COLUMN "guildEventTypeId" TEXT;
 
 INSERT INTO "GuildEventType" ("id", "guildId", "name", "active", "battlefieldCount", "partiesPerBattlefield", "weekdays", "startTime", "timeZone", "createdAt", "updatedAt")
-SELECT 'get_' || md5(x."guildId" || ':' || x."name"), x."guildId", x."name", bool_or(x."active"), 2, 4, ARRAY[]::INTEGER[], '20:00', COALESCE(g."timeZone", 'UTC'), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+SELECT 'get_' || md5(x."guildId" || ':' || x."name"), x."guildId", x."name", bool_or(x."active"), 2, 4, ARRAY[]::INTEGER[], '20:00', COALESCE(g."timeZone", 'Asia/Bangkok'), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 FROM "Ro3EventType" x
 JOIN "Guild" g ON g."id" = x."guildId"
 GROUP BY x."guildId", x."name", g."timeZone";
@@ -42,7 +42,7 @@ SET "guildEventTypeId" = r."guildEventTypeId",
     "eventTypeName" = r."name",
     "battlefieldCount" = 2,
     "partiesPerBattlefield" = 4,
-    "scheduleTimeZone" = COALESCE(g."timeZone", 'UTC')
+    "scheduleTimeZone" = COALESCE(g."timeZone", 'Asia/Bangkok')
 FROM "Ro3EventType" r
 JOIN "Guild" g ON g."id" = r."guildId"
 WHERE e."ro3EventTypeId" = r."id";
