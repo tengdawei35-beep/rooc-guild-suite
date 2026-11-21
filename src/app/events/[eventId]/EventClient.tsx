@@ -142,6 +142,8 @@ export default function EventClient({
   const [generatingRoster, setGeneratingRoster] =
     useState(false);
   const [creatingManualRoster, setCreatingManualRoster] = useState(false);
+  const [sendingAttendancePrompt, setSendingAttendancePrompt] = useState(false);
+  const [attendancePromptSent, setAttendancePromptSent] = useState(false);
 
   const [savingPreferred, setSavingPreferred] =
     useState(false);
@@ -288,6 +290,23 @@ async function createManualRoster() {
     await loadEvent();
   } catch (err) { setError(err instanceof Error ? err.message : "Failed to create manual roster."); }
   finally { setCreatingManualRoster(false); }
+}
+
+async function sendAttendancePromptAgain() {
+  if (!window.confirm("Send the attendance prompt again to the configured Discord event channel? Existing prompts will remain active.")) return;
+  setSendingAttendancePrompt(true);
+  setAttendancePromptSent(false);
+  setError(null);
+  try {
+    const response = await fetch(`/api/events/${eventId}/discord-prompt`, { method: "POST" });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || "Failed to send attendance prompt.");
+    setAttendancePromptSent(true);
+  } catch (err) {
+    setError(err instanceof Error ? err.message : "Failed to send attendance prompt.");
+  } finally {
+    setSendingAttendancePrompt(false);
+  }
 }
 
 async function generateRoster() {
@@ -1144,6 +1163,14 @@ async function loadPreferredRoster() {
 
             <div className="flex flex-wrap gap-3">
               {canManageEvents && (
+                <button
+                  type="button"
+                  onClick={sendAttendancePromptAgain}
+                  disabled={sendingAttendancePrompt}
+                  className="rounded-lg border border-indigo-700/70 bg-indigo-950/40 px-4 py-2.5 text-sm font-medium text-indigo-300 transition hover:border-indigo-500 hover:bg-indigo-950 disabled:cursor-wait disabled:opacity-50"
+                >
+                  {sendingAttendancePrompt ? "Sending..." : "Send Attendance Prompt Again"}
+                </button>
                 <Link
                   href={`/allocation?eventId=${data.event.id}`}
                   className="rounded-lg border border-zinc-700 px-4 py-2.5 text-sm font-medium text-zinc-300 transition hover:border-zinc-500 hover:text-white"
@@ -1162,6 +1189,12 @@ async function loadPreferredRoster() {
             </div>
           </div>
         </header>
+
+        {attendancePromptSent && (
+          <div className="mt-5 rounded-lg border border-emerald-900 bg-emerald-950/40 px-4 py-3 text-sm text-emerald-400">
+            Attendance prompt sent to the configured Discord channel.
+          </div>
+        )}
 
         {error && (
           <div className="mt-5 rounded-lg border border-red-900 bg-red-950/40 px-4 py-3 text-sm text-red-400">
