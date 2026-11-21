@@ -62,8 +62,8 @@ export async function GET(request: Request) {
     }
   }
 
-  const reminderStart = new Date(now.getTime() + 47 * 60 * 60 * 1000);
-  const reminderEnd = new Date(now.getTime() + 49 * 60 * 60 * 1000);
+  const reminderStart = new Date(now.getTime() + 47.5 * 60 * 60 * 1000);
+  const reminderEnd = new Date(now.getTime() + 48.5 * 60 * 60 * 1000);
   const reminders = await prisma.event.findMany({
     where: { date: { gte: reminderStart, lte: reminderEnd }, reminderMessageId: null, attendanceMessageId: { not: null } },
     select: { id: true },

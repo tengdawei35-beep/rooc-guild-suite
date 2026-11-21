@@ -47,6 +47,10 @@ export async function POST(request: Request) {
     include: { guild: { select: { id: true, discordGuildId: true } } },
   });
   if (!event || event.guild.discordGuildId !== guildId) return ephemeral("This event does not belong to this Discord server.");
+  const clickedMessageId = interaction.message?.id;
+  if (!event.attendanceChannelId || event.attendanceChannelId !== interaction.channel_id || !clickedMessageId || (clickedMessageId !== event.attendanceMessageId && clickedMessageId !== event.reminderMessageId)) {
+    return ephemeral("This attendance message is no longer valid for this event.");
+  }
   if (event.date.getTime() - Date.now() <= 30 * 60 * 1000) return ephemeral("Attendance is locked 30 minutes before the event starts.");
 
   const member = await prisma.guildMember.findFirst({

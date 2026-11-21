@@ -58,7 +58,10 @@ export async function POST(request: Request) {
     if (body.action === "setTimeZone") {
       const timeZone = body.timeZone;
       if (!validTimeZone(timeZone)) return NextResponse.json({ error: "A valid IANA timezone is required." }, { status: 400 });
-      const guild = await prisma.guild.update({ where: { id: auth.guild.id }, data: { timeZone }, select: { timeZone: true } });
+      const [guild] = await prisma.$transaction([
+        prisma.guild.update({ where: { id: auth.guild.id }, data: { timeZone }, select: { timeZone: true } }),
+        prisma.guildEventType.updateMany({ where: { guildId: auth.guild.id }, data: { timeZone } }),
+      ]);
       return NextResponse.json({ timeZone: guild.timeZone });
     }
     const timeZone = validTimeZone(body.timeZone) ? body.timeZone : auth.guild.timeZone;
@@ -94,7 +97,10 @@ export async function PATCH(request: Request) {
     const body = await request.json() as Record<string, unknown>;
     if (body.action === "setTimeZone") {
       if (!validTimeZone(body.timeZone)) return NextResponse.json({ error: "A valid IANA timezone is required." }, { status: 400 });
-      const result = await prisma.guild.update({ where: { id: auth.guild.id }, data: { timeZone: body.timeZone }, select: { timeZone: true } });
+      const [result] = await prisma.$transaction([
+        prisma.guild.update({ where: { id: auth.guild.id }, data: { timeZone: body.timeZone }, select: { timeZone: true } }),
+        prisma.guildEventType.updateMany({ where: { guildId: auth.guild.id }, data: { timeZone: body.timeZone } }),
+      ]);
       return NextResponse.json({ timeZone: result.timeZone });
     }
     const id = typeof body.id === "string" ? body.id : "";
