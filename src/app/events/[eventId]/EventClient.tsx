@@ -1236,9 +1236,7 @@ async function loadPreferredRoster() {
             <div>
               <div className="flex flex-wrap items-center gap-3">
                 <span className="rounded-full border border-zinc-700 bg-zinc-900 px-3 py-1 text-xs text-zinc-400">
-                  {formatEventType(
-                    data.event.type
-                  )}
+                  {formatEventType(data.event.type, data.event.eventTypeName)}
                 </span>
 
                 <span className="rounded-full bg-emerald-950 px-3 py-1 text-xs text-emerald-400">
@@ -1289,9 +1287,7 @@ async function loadPreferredRoster() {
         {preferredSaved && (
           <div className="mt-5 rounded-lg border border-emerald-900 bg-emerald-950/40 px-4 py-3 text-sm text-emerald-400">
             Roster saved as the preferred roster for future{" "}
-            {formatEventType(
-              data.event.type
-            )} events.
+            {formatEventType(data.event.type, data.event.eventTypeName)} events.
           </div>
         )}
 
@@ -2192,7 +2188,8 @@ function getPartyNumber(data: EventResponse, partyId: string) {
   return "?";
 }
 
-function formatEventType(type: EventType) {
+function formatEventType(type: EventType, customName?: string | null) {
+  if (type === "RO3_CUSTOM") return customName || "RO3 Event";
   return type === "GUILD_LEAGUE" ? "Guild League" : "Emperium Overrun";
 }
 
