@@ -833,7 +833,7 @@ function EventCard({
           </span>
 
           <h3 className="mt-4 text-lg font-semibold transition group-hover:text-zinc-300">
-            {formatEventDate(event.date, event.scheduleTimeZone ?? undefined, event.type === "RO3_CUSTOM")}
+            {formatEventDate(event.date, event.type === "RO3_CUSTOM" ? event.scheduleTimeZone ?? undefined : "Asia/Bangkok", event.type === "RO3_CUSTOM")}
           </h3>
         </div>
 
