@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
-import type { UserRole } from "@/lib/permissions";
+import type { Permission, UserRole } from "@/lib/permissions";
 
 type Props = {
   children: ReactNode;
@@ -13,6 +13,7 @@ type Props = {
   accessibleGuildCount: number;
   isPlatformAdmin: boolean;
   hasResourceSuite: boolean;
+  ownMemberId: string | null;
 };
 
 type NavItem = { label: string; href: string; icon: string };
@@ -32,6 +33,7 @@ export default function AppShell({
   accessibleGuildCount,
   isPlatformAdmin,
   hasResourceSuite,
+  ownMemberId,
 }: Props) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -48,6 +50,7 @@ export default function AppShell({
         { label: "Home", href: "/", icon: "⌂" },
         { label: "Events", href: "/events", icon: "▦" },
         { label: "Guild members", href: "/guild/members", icon: "♧" },
+        ...(ownMemberId ? [{ label: "My profile", href: `/guild/members/${ownMemberId}`, icon: "◎" }] : []),
       ],
     },
     {
@@ -114,7 +117,7 @@ export default function AppShell({
     },
   ];
 
-  function roleCan(permission: Parameters<typeof import("@/lib/permissions").hasPermission>[1]) {
+  function roleCan(permission: Permission) {
     // The server has already computed the effective role; this mirrors the existing
     // role matrix only for navigation visibility. Every destination still enforces
     // its own server-side authorization.
