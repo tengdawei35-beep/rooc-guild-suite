@@ -6,6 +6,7 @@ import {
 } from "@/lib/auth";
 
 import { prisma } from "@/lib/prisma";
+import { localDateKey, syncEventAttendanceAndLeave } from "@/lib/events/attendance-leave-sync";
 
 type RouteContext = {
   params: Promise<{
@@ -86,6 +87,7 @@ export async function GET(
             },
           },
 
+          attendance: true,
           participations: {
             include: {
               member: {
@@ -217,14 +219,7 @@ export async function GET(
     // EVENT DATE RANGE
     // ==========================================================
 
-    const eventDateStart =
-      new Date(event.date);
-
-    const eventDateEnd =
-      new Date(
-        eventDateStart.getTime() +
-          24 * 60 * 60 * 1000
-      );
+    const eventDateStart = new Date(`${localDateKey(event.date, event.scheduleTimeZone)}T00:00:00.000Z`);
 
     // ==========================================================
     // BUILD PARTICIPANT LIST
@@ -246,14 +241,12 @@ export async function GET(
           participationMap.get(
             member.id
           );
+        const attendance = event.attendance.find((response) => response.memberId === member.id);
 
         const leaveEntry =
           member.leaveDates.find(
             (leave) =>
-              leave.date >=
-                eventDateStart &&
-              leave.date <
-                eventDateEnd
+              leave.date.getTime() === eventDateStart.getTime()
           );
 
         const onLeave =
@@ -268,16 +261,17 @@ export async function GET(
           priority: member.priority,
           remarks: member.remarks,
           available:
-            onLeave
+            onLeave || attendance?.status === "UNAVAILABLE" || attendance?.status === "AFK_BUSY"
               ? false
-              : participation?.available ??
-                true,
+              : attendance?.status === "AVAILABLE"
+                ? true
+                : participation?.available ?? true,
           onLeave,
           leaveReason:
             leaveEntry?.reason ??
             null,
           hasParticipationRecord:
-            Boolean(participation),
+            Boolean(attendance || participation),
         };
       });
 
@@ -483,6 +477,8 @@ export async function PATCH(
         select: {
           id: true,
           guildId: true,
+          date: true,
+          scheduleTimeZone: true,
         },
       });
 
@@ -548,21 +544,12 @@ export async function PATCH(
       );
     }
 
-    await prisma.eventParticipation.upsert({
-      where: {
-        eventId_memberId: {
-          eventId: event.id,
-          memberId: member.id,
-        },
-      },
-      create: {
-        eventId: event.id,
-        memberId: member.id,
-        available,
-      },
-      update: {
-        available,
-      },
+    await syncEventAttendanceAndLeave({
+      eventId: event.id,
+      memberId: member.id,
+      eventDate: event.date,
+      timeZone: event.scheduleTimeZone,
+      status: available ? "AVAILABLE" : "UNAVAILABLE",
     });
 
     return NextResponse.json({

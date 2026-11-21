@@ -39,7 +39,6 @@ export default async function EventPage({
       )}
       <EventClient
         eventId={eventId}
-        currentUserId={auth.user.id}
         canManageEvents={hasPermission(
           auth.role,
           "events.manage"

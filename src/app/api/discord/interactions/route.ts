@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createPublicKey, verify } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { updateDiscordAttendanceMessage } from "@/lib/discord-event-attendance";
+import { syncEventAttendanceAndLeave } from "@/lib/events/attendance-leave-sync";
 
 export const runtime = "nodejs";
 
@@ -63,11 +64,7 @@ export async function POST(request: Request) {
   });
   if (!member) return ephemeral("Your Discord account is not linked to an active HMDL guild member.");
 
-  await prisma.eventAttendance.upsert({
-    where: { eventId_memberId: { eventId, memberId: member.id } },
-    create: { eventId, memberId: member.id, status },
-    update: { status, respondedAt: new Date() },
-  });
+  await syncEventAttendanceAndLeave({ eventId, memberId: member.id, eventDate: event.date, timeZone: event.scheduleTimeZone, status });
 
   const channelId = interaction.channel_id;
   const messageId = interaction.message?.id;

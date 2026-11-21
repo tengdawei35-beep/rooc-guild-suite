@@ -6,6 +6,7 @@ import {
 } from "@/lib/auth";
 
 import { prisma } from "@/lib/prisma";
+import { syncManualLeaveToEvents } from "@/lib/events/attendance-leave-sync";
 
 type LeaveRequest = {
   id?: string;
@@ -183,6 +184,8 @@ export async function POST(
           },
         }
       );
+
+    await syncManualLeaveToEvents({ guildId: auth.guild.id, memberId: member.id, date, status: "UNAVAILABLE" });
 
     return NextResponse.json({
       leave: {
@@ -376,6 +379,11 @@ export async function PUT(
         }
       );
 
+    if (existing.date.getTime() !== date.getTime()) {
+      await syncManualLeaveToEvents({ guildId: auth.guild.id, memberId: existing.memberId, date: existing.date, status: "AVAILABLE" });
+    }
+    await syncManualLeaveToEvents({ guildId: auth.guild.id, memberId: existing.memberId, date, status: "UNAVAILABLE" });
+
     return NextResponse.json({
       leave: {
         id:
@@ -509,6 +517,7 @@ export async function DELETE(
         },
       }
     );
+    await syncManualLeaveToEvents({ guildId: auth.guild.id, memberId: existing.memberId, date: existing.date, status: "AVAILABLE" });
 
     return NextResponse.json({
       success: true,

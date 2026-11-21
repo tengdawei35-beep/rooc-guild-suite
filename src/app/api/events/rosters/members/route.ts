@@ -7,6 +7,7 @@ import {
 
 import { prisma } from "@/lib/prisma";
 import { notifyRosterUpdate } from "@/lib/discord-notifications";
+import { localDateKey } from "@/lib/events/attendance-leave-sync";
 
 const PARTY_SIZE = 5;
 const TEMP_SLOT_BASE = 1_000_000;
@@ -109,10 +110,9 @@ export async function POST(
       if (!member) return { error: "Guild member not found.", status: 404 as const };
       if (!member.active) return { error: "Inactive members cannot be assigned to a roster.", status: 400 as const };
 
-      const eventDate = new Date(party.roster.event.date);
-      const eventDateEnd = new Date(eventDate.getTime() + 24 * 60 * 60 * 1000);
-      const leave = await tx.memberLeave.findFirst({
-        where: { memberId: member.id, date: { gte: eventDate, lt: eventDateEnd } },
+      const eventDate = new Date(`${localDateKey(party.roster.event.date, party.roster.event.scheduleTimeZone)}T00:00:00.000Z`);
+      const leave = await tx.memberLeave.findUnique({
+        where: { memberId_date: { memberId: member.id, date: eventDate } },
       });
       if (leave) return { error: "This member is unavailable on the event date.", status: 400 as const };
 
@@ -122,14 +122,15 @@ export async function POST(
       if (participation && !participation.available) {
         return { error: "This member is marked unavailable for this event.", status: 400 as const };
       }
-      if (party.roster.event.type === "RO3_CUSTOM") {
-        const attendance = await tx.eventAttendance.findUnique({
-          where: { eventId_memberId: { eventId: party.roster.event.id, memberId: member.id } },
-          select: { status: true },
-        });
-        if (attendance?.status !== "AVAILABLE") {
-          return { error: "Only members who selected Available can be assigned to an active RO3 party. AFK / Busy members remain eligible for rewards.", status: 400 as const };
-        }
+      const attendance = await tx.eventAttendance.findUnique({
+        where: { eventId_memberId: { eventId: party.roster.event.id, memberId: member.id } },
+        select: { status: true },
+      });
+      if (party.roster.event.type === "RO3_CUSTOM" && attendance?.status !== "AVAILABLE") {
+        return { error: "Only members who selected Available can be assigned to an active RO3 party. AFK / Busy members remain eligible for rewards.", status: 400 as const };
+      }
+      if (party.roster.event.type !== "RO3_CUSTOM" && attendance && attendance.status !== "AVAILABLE") {
+        return { error: "This member is not Available for this event.", status: 400 as const };
       }
 
       const existingAssignment = await tx.rosterMember.findFirst({

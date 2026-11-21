@@ -123,12 +123,10 @@ type AddMemberTarget = {
 
 export default function EventClient({
   eventId,
-  currentUserId,
   canManageEvents,
   canEditRosters,
 }: {
   eventId: string;
-  currentUserId: string;
   canManageEvents: boolean;
   canEditRosters: boolean;
 }) {
@@ -141,9 +139,6 @@ export default function EventClient({
   const [error, setError] =
     useState<string | null>(null);
 
-  const [updatingMember, setUpdatingMember] =
-    useState<string | null>(null);
-
   const [generatingRoster, setGeneratingRoster] =
     useState(false);
   const [creatingManualRoster, setCreatingManualRoster] = useState(false);
@@ -153,15 +148,6 @@ export default function EventClient({
   const [loadingPreferred, setLoadingPreferred] = useState(false);
 
   const [preferredSaved, setPreferredSaved] =
-    useState(false);
-
-  const [search, setSearch] =
-    useState("");
-
-  const [showUnavailable, setShowUnavailable] =
-    useState(true);
-
-  const [showParticipation, setShowParticipation] =
     useState(false);
 
   const [rosterJobOverrides, setRosterJobOverrides] =
@@ -518,91 +504,6 @@ async function loadPreferredRoster() {
     [assignmentId]: overrideJob,
   }));
 }
-
-  // ==========================================================
-  // UPDATE PARTICIPATION
-  // ==========================================================
-
-  async function updateAvailability(
-    memberId: string,
-    available: boolean
-  ) {
-    setUpdatingMember(memberId);
-    setError(null);
-
-    try {
-      const response = await fetch(
-        `/api/events/${eventId}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-          body: JSON.stringify({
-            memberId,
-            available,
-          }),
-        }
-      );
-
-      const result =
-        await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          result.error ??
-            "Failed to update availability."
-        );
-      }
-
-      setData((current) => {
-        if (!current) {
-          return current;
-        }
-
-        const participants =
-          current.participants.map(
-            (participant) =>
-              participant.id ===
-              memberId
-                ? {
-                    ...participant,
-                    available,
-                    hasParticipationRecord:
-                      true,
-                  }
-                : participant
-          );
-
-        return {
-          ...current,
-          participants,
-          stats: {
-            ...current.stats,
-            availableMembers:
-              participants.filter(
-                (member) =>
-                  member.available
-              ).length,
-            unavailableMembers:
-              participants.filter(
-                (member) =>
-                  !member.available
-              ).length,
-          },
-        };
-      });
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to update availability."
-      );
-    } finally {
-      setUpdatingMember(null);
-    }
-  }
 
   // ==========================================================
   // MOVE / SWAP ROSTER MEMBER
@@ -1162,39 +1063,6 @@ async function loadPreferredRoster() {
     ]);
 
   // ==========================================================
-  // PARTICIPATION FILTER
-  // ==========================================================
-
-  const filteredParticipants =
-    data?.participants.filter(
-      (participant) => {
-        const query =
-          search.trim().toLowerCase();
-
-        const matchesSearch =
-          query.length === 0 ||
-          (participant.characterName ?? "")
-                .toLowerCase()
-            .includes(query) ||
-          participant.characterName
-            ?.toLowerCase()
-            .includes(query) ||
-          participant.job
-            ?.toLowerCase()
-            .includes(query);
-
-        const matchesAvailability =
-          showUnavailable ||
-          participant.available;
-
-        return (
-          matchesSearch &&
-          matchesAvailability
-        );
-      }
-    ) ?? [];
-
-  // ==========================================================
   // LOADING
   // ==========================================================
 
@@ -1537,122 +1405,6 @@ async function loadPreferredRoster() {
           </div>
         </section>
 
-          <div className="mt-6 flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-900 px-5 py-4">
-            <div>
-              <p className="font-medium">
-                Participation
-              </p>
-
-              <p className="mt-1 text-sm text-zinc-500">
-                {data.stats.availableMembers} available ·{" "}
-                {data.stats.totalMembers} total members
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={() =>
-                setShowParticipation(
-                  (value) => !value
-                )
-              }
-              className="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-300 transition hover:border-zinc-500 hover:text-white"
-            >
-              {showParticipation
-                ? "Hide Participation"
-                : "Show Participation"}
-            </button>
-          </div>
-
-        {showParticipation && (
-          <section className="mt-10">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <h2 className="text-xl font-semibold">
-                Participation
-              </h2>
-
-              <p className="mt-1 text-sm text-zinc-500">
-                Manage who is available for this event.
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <input
-                value={search}
-                onChange={(event) =>
-                  setSearch(
-                    event.target.value
-                  )
-                }
-                placeholder="Search members..."
-                className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-zinc-500"
-              />
-
-              <button
-                type="button"
-                onClick={() =>
-                  setShowUnavailable(
-                    (value) => !value
-                  )
-                }
-                className="rounded-lg border border-zinc-700 px-4 py-2.5 text-sm text-zinc-300 hover:border-zinc-500 hover:text-white"
-              >
-                {showUnavailable
-                  ? "Hide Unavailable"
-                  : "Show Unavailable"}
-              </button>
-            </div>
-          </div>
-
-          <div className="mt-5 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900">
-            <div className="hidden grid-cols-[2fr_1.2fr_1fr_1fr_120px] gap-4 border-b border-zinc-800 px-5 py-3 text-xs font-medium uppercase tracking-wider text-zinc-600 md:grid">
-              <span>Member</span>
-              <span>Job</span>
-              <span>Priority</span>
-              <span>Status</span>
-              <span className="text-right">
-                Available
-              </span>
-            </div>
-
-            {filteredParticipants.length ===
-            0 ? (
-              <div className="px-6 py-12 text-center text-sm text-zinc-600">
-                No members match the current filters.
-              </div>
-            ) : (
-              <div className="divide-y divide-zinc-800">
-                {filteredParticipants.map(
-                  (participant) => (
-                   <ParticipantRow
-                    key={
-                      participant.id
-                    }
-                    participant={
-                      participant
-                    }
-                    updating={
-                      updatingMember ===
-                      participant.id
-                    }
-                    canEdit={
-                      canManageEvents ||
-                      participant.userId ===
-                        currentUserId
-                    }
-                    onToggle={
-                      updateAvailability
-                    }
-                  />
-                  )
-                )}
-              </div>
-            )}
-          </div>
-        </section>
-        )}
-
       {canManageEvents && (
         <section className="mt-10 pb-12">
           <div>
@@ -1830,138 +1582,6 @@ async function loadPreferredRoster() {
         </div>
       )}
     </main>
-  );
-}
-
-function ParticipantRow({
-  participant,
-  updating,
-  canEdit,
-  onToggle,
-}: {
-  participant: Participant;
-  updating: boolean;
-  canEdit: boolean;
-  onToggle: (
-    memberId: string,
-    available: boolean
-  ) => void;
-}) {
-  return (
-    <div
-      className={`px-5 py-4 transition ${
-        participant.available
-          ? ""
-          : "bg-zinc-950/50"
-      }`}
-    >
-      <div className="grid gap-4 md:grid-cols-[2fr_1.2fr_1fr_1fr_120px] md:items-center">
-        <div>
-          <p
-            className={`font-medium ${
-              participant.available
-                ? "text-white"
-                : "text-zinc-500"
-            }`}
-          >
-            {participant.characterName}
-          </p>
-
-          <div className="mt-1 flex flex-wrap gap-2 text-xs text-zinc-600">
-            {participant.characterName && (
-              <span>
-                {participant.characterName}
-              </span>
-            )}
-
-            {participant.onLeave && (
-              <span className="text-amber-500">
-                On leave
-              </span>
-            )}
-          </div>
-
-          {participant.leaveReason && (
-            <p className="mt-1 text-xs text-zinc-700">
-              {participant.leaveReason}
-            </p>
-          )}
-        </div>
-
-        <div className="text-sm text-zinc-400">
-          {participant.job ??
-            "No job assigned"}
-        </div>
-
-        <div>
-          <span className="rounded-full border border-zinc-700 bg-zinc-950 px-2.5 py-1 text-xs text-zinc-500">
-            {participant.priority}
-          </span>
-        </div>
-
-        <div>
-          {participant.onLeave ? (
-            <span className="text-xs text-amber-500">
-              Leave
-            </span>
-          ) : participant.available ? (
-            <span className="text-xs text-emerald-500">
-              Available
-            </span>
-          ) : (
-            <span className="text-xs text-zinc-600">
-              Unavailable
-            </span>
-          )}
-        </div>
-
-        <div className="flex justify-start md:justify-end">
-          {canEdit ? (
-            <button
-              type="button"
-              disabled={
-                updating ||
-                participant.onLeave
-              }
-              onClick={() =>
-                onToggle(
-                  participant.id,
-                  !participant.available
-                )
-              }
-              className={`relative h-7 w-12 rounded-full transition ${
-                participant.available
-                  ? "bg-emerald-500"
-                  : "bg-zinc-700"
-              } ${
-                updating
-                  ? "cursor-wait opacity-50"
-                  : participant.onLeave
-                    ? "cursor-not-allowed opacity-30"
-                    : ""
-              }`}
-              aria-label={
-                participant.available
-                  ? "Mark unavailable"
-                  : "Mark available"
-              }
-            >
-              <span
-                className={`absolute top-1 h-5 w-5 rounded-full bg-white transition ${
-                  participant.available
-                    ? "left-6"
-                    : "left-1"
-                }`}
-              />
-            </button>
-          ) : (
-            <span className="text-xs text-zinc-700">
-              View only
-            </span>
-          )}
-        </div>
-      </div>
-    </div>
   );
 }
 
