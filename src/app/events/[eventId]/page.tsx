@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import EventClient from "./EventClient";
 import FinalRosterControls from "./FinalRosterControls";
+import Ro3EventResourceLink from "./Ro3EventResourceLink";
 
 import {
   hasPermission,
@@ -30,6 +31,9 @@ export default async function EventPage({
 
   return (
     <>
+      {hasPermission(auth.role, "events.manage") && (
+        <Ro3EventResourceLink eventId={eventId} />
+      )}
       {canEditRosters && (
         <FinalRosterControls eventId={eventId} />
       )}

@@ -66,6 +66,11 @@ export default function EventsClient({
   const [form, setForm] =
     useState(EMPTY_FORM);
 
+  const [ro3EventTypes, setRo3EventTypes] = useState<
+    { id: string; name: string }[]
+  >([]);
+  const [selectedRo3EventTypeId, setSelectedRo3EventTypeId] = useState("");
+
   const [view, setView] =
     useState<EventsView>(initialView);
 
@@ -129,6 +134,25 @@ export default function EventsClient({
     loadEvents();
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    async function loadRo3EventTypes() {
+      try {
+        const response = await fetch("/api/guild/resources/ro3", { cache: "no-store" });
+        if (!response.ok) return;
+        const result = await response.json();
+        const activeSeason = Array.isArray(result.seasons)
+          ? result.seasons.find((season: { status: string }) => season.status === "ACTIVE")
+          : null;
+        if (!cancelled) setRo3EventTypes(activeSeason?.eventTypes?.filter((item: { active: boolean }) => item.active).map((item: { id: string; name: string }) => ({ id: item.id, name: item.name })) ?? []);
+      } catch {
+        // ROOC guilds do not expose the RO3 Resources API.
+      }
+    }
+    void loadRo3EventTypes();
+    return () => { cancelled = true; };
+  }, []);
+
   // ==========================================================
   // CREATE EVENT
   // ==========================================================
@@ -163,6 +187,7 @@ export default function EventsClient({
           body: JSON.stringify({
             type: form.type,
             date: form.date,
+            ro3EventTypeId: selectedRo3EventTypeId || null,
           }),
         });
 
@@ -183,6 +208,7 @@ export default function EventsClient({
       );
 
       setForm(EMPTY_FORM);
+      setSelectedRo3EventTypeId("");
 
       await loadEvents();
     } catch (err) {
@@ -437,6 +463,32 @@ export default function EventsClient({
                       </option>
                     </select>
                   </div>
+
+                  {ro3EventTypes.length > 0 && (
+                    <div>
+                      <label
+                        htmlFor="ro3EventType"
+                        className="block text-sm font-medium text-zinc-300"
+                      >
+                        RO3 Resource Event Type
+                      </label>
+                      <select
+                        id="ro3EventType"
+                        value={selectedRo3EventTypeId}
+                        onChange={event => setSelectedRo3EventTypeId(event.target.value)}
+                        disabled={creating}
+                        className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-zinc-400 disabled:opacity-50"
+                      >
+                        <option value="">Not linked to Resources</option>
+                        {ro3EventTypes.map(item => (
+                          <option key={item.id} value={item.id}>{item.name}</option>
+                        ))}
+                      </select>
+                      <p className="mt-2 text-xs text-zinc-600">
+                        Select the reward pool configuration members should use for Event Opt-ins.
+                      </p>
+                    </div>
+                  )}
 
                   {/* DATE */}
 
