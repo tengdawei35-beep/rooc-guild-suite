@@ -20,6 +20,70 @@ export default async function Home() {
   const canViewApplicants = hasPermission(auth.role, "applicants.view");
   const ownMember = await prisma.guildMember.findFirst({ where: { guildId: auth.guild.id, active: true, OR: [{ userId: auth.user.id }, { discordUserId: auth.user.discordId }] }, select: { id: true, characterName: true } });
 
+  if (auth.role === "MEMBER") {
+    const upcomingEvents = await prisma.event.findMany({
+      where: { guildId: auth.guild.id, date: { gte: new Date() } },
+      orderBy: { date: "asc" },
+      take: 6,
+      include: {
+        attendance: ownMember ? { where: { memberId: ownMember.id }, select: { status: true } } : false,
+      },
+    });
+
+    return <main className="hmdl-member-home">
+      <div className="hmdl-member-page">
+        <header className="hmdl-member-welcome">
+          <div>
+            <p className="hmdl-eyebrow">MEMBER PORTAL</p>
+            <h1>Welcome back, {auth.user.username}</h1>
+            <p>Your guild activity, upcoming events and personal details in one place.</p>
+          </div>
+          <Link href="/events" className="hmdl-primary-action">View all events <span aria-hidden="true">→</span></Link>
+        </header>
+
+        <section className="hmdl-member-summary" aria-label="Your guild profile">
+          <div className="hmdl-member-identity">
+            <span className="hmdl-member-avatar" aria-hidden="true">{(ownMember?.characterName || auth.user.username).slice(0, 1).toUpperCase()}</span>
+            <div>
+              <span className="hmdl-summary-label">YOUR CHARACTER</span>
+              <strong>{ownMember?.characterName || "Profile not linked"}</strong>
+              <span>{ownMember ? "Your character is linked to this account." : "Ask guild management to link your character."}</span>
+            </div>
+          </div>
+          <div className="hmdl-member-actions">
+            {ownMember && <Link href={`/guild/members/${ownMember.id}`}>View profile <span aria-hidden="true">↗</span></Link>}
+            {ownMember && <Link href={`/guild/members/ocr?memberId=${ownMember.id}`}>Update stats <span aria-hidden="true">↗</span></Link>}
+            <Link href="/guild/members/leave">Apply for leave <span aria-hidden="true">↗</span></Link>
+          </div>
+        </section>
+
+        <section className="hmdl-member-section">
+          <div className="hmdl-section-heading">
+            <div><p className="hmdl-eyebrow">YOUR SCHEDULE</p><h2>Upcoming events</h2><p>See what's coming up and check your attendance response.</p></div>
+            <Link href="/events" className="hmdl-text-link">All events <span aria-hidden="true">→</span></Link>
+          </div>
+          {upcomingEvents.length ? <div className="hmdl-upcoming-list">
+            {upcomingEvents.map((event) => {
+              const status = event.attendance[0]?.status ?? null;
+              return <Link href={`/events/${event.id}`} key={event.id} className="hmdl-upcoming-event">
+                <div className="hmdl-event-date"><strong>{new Intl.DateTimeFormat("en", { day: "2-digit", timeZone: event.scheduleTimeZone || "Asia/Bangkok" }).format(event.date)}</strong><span>{new Intl.DateTimeFormat("en", { month: "short", timeZone: event.scheduleTimeZone || "Asia/Bangkok" }).format(event.date)}</span></div>
+                <div className="hmdl-event-copy"><strong>{formatEventType(event.type, event.eventTypeName)}</strong><span>{new Intl.DateTimeFormat("en", { weekday: "long", hour: "numeric", minute: "2-digit", timeZone: event.scheduleTimeZone || "Asia/Bangkok" }).format(event.date)} · {event.scheduleTimeZone || "Guild time"}</span></div>
+                <span className={`hmdl-attendance-status ${status ? "has-response" : ""}`}>{status ? status.replaceAll("_", " ") : "Response needed"}</span>
+                <span className="hmdl-event-arrow" aria-hidden="true">→</span>
+              </Link>;
+            })}
+          </div> : <div className="hmdl-member-empty"><strong>No upcoming events</strong><span>New guild events will appear here when they are scheduled.</span></div>}
+        </section>
+
+        <section className="hmdl-member-shortcuts">
+          <Link href="/guild/members" className="hmdl-shortcut-card"><span className="hmdl-shortcut-icon" aria-hidden="true">♧</span><strong>Guild members</strong><span>Browse your guild directory.</span><span className="hmdl-shortcut-arrow" aria-hidden="true">→</span></Link>
+          <Link href="/guild/members/leave" className="hmdl-shortcut-card"><span className="hmdl-shortcut-icon" aria-hidden="true">◷</span><strong>Leave & availability</strong><span>Submit or review your leave.</span><span className="hmdl-shortcut-arrow" aria-hidden="true">→</span></Link>
+          {ownMember && <Link href={`/guild/members/${ownMember.id}`} className="hmdl-shortcut-card"><span className="hmdl-shortcut-icon" aria-hidden="true">◎</span><strong>My profile</strong><span>View your character information.</span><span className="hmdl-shortcut-arrow" aria-hidden="true">→</span></Link>}
+        </section>
+      </div>
+    </main>;
+  }
+
   const serverToday = new Intl.DateTimeFormat("en-CA", { timeZone: SERVER_TIME_ZONE, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
   const todayStart = new Date(`${serverToday}T00:00:00+07:00`);
   const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
