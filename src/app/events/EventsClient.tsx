@@ -148,7 +148,7 @@ export default function EventsClient({
         const result = await response.json();
         if (cancelled) return;
         setIsRo3(Boolean(result.isRo3));
-        setCustomEventTypes(Array.isArray(result.eventTypes) ? result.eventTypes.filter((item: { active: boolean }) => item.active) : []);
+        setCustomEventTypes(Array.isArray(result.eventTypes) ? result.eventTypes.filter((item: { active: boolean; weekdays: number[]; startTime: string }) => item.active && item.weekdays.length > 0 && Boolean(item.startTime)) : []);
         setResourceEventTypes(Array.isArray(result.resourceEventTypes) ? result.resourceEventTypes : []);
       } catch {
         // Configured event types load when the API responds.
@@ -513,7 +513,7 @@ export default function EventsClient({
 
                 {!isRo3 && <div className="mt-6 rounded-xl border border-zinc-800 bg-zinc-950 p-5"><EventRules type={form.type} /></div>}
                 {isRo3 && selectedGuildEventTypeId && <p className="mt-6 text-sm text-zinc-400">{customEventTypes.find(item => item.id === selectedGuildEventTypeId)?.battlefieldCount} battlefields · {customEventTypes.find(item => item.id === selectedGuildEventTypeId)?.partiesPerBattlefield} parties per battlefield · 5 members per party.</p>}
-                {isRo3 && customEventTypes.length === 0 && <p className="mt-6 text-sm text-amber-300">Create an event type above before creating RO3 events.</p>}
+                {isRo3 && customEventTypes.length === 0 && <p className="mt-6 text-sm text-amber-300">Configure an active event type with at least one weekday and a start time before creating RO3 events.</p>}
               </form>
 
               {error && (
