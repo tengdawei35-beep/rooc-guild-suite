@@ -122,7 +122,7 @@ export async function POST(request: Request) {
 
       if (body.action === "persistent") {
         if (body.selected) {
-          const current = await tx.ro3PersistentInterest.findMany({ where: { memberId: member.id, active: true, resource: { seasonId: season.id, active: true } }, select: { resourceId: true } });
+          const current = await tx.ro3PersistentInterest.findMany({ where: { memberId: member.id, active: true, resource: { is: { seasonId: season.id, active: true } } }, select: { resourceId: true } });
           const ids = new Set(current.map(item => item.resourceId)); ids.add(resource.id);
           const categories = new Map((await tx.ro3SeasonResource.findMany({ where: { seasonId: season.id, active: true }, select: { id: true, category: true } })).map(item => [item.id, item.category as Category]));
           if (!withinCaps(ids, categories, season)) throw new Error("PERSISTENT_CAP_REACHED");
@@ -145,9 +145,9 @@ export async function POST(request: Request) {
         if (!rewardAvailable) throw new Error("RESOURCE_NOT_IN_EVENT_REWARDS");
         if (body.selected) {
           const [persistent, eventSelections, allResources] = await Promise.all([
-            tx.ro3PersistentInterest.findMany({ where: { memberId: member.id, active: true, resource: { seasonId: season.id, active: true } }, select: { resourceId: true } }),
+            tx.ro3PersistentInterest.findMany({ where: { memberId: member.id, active: true, resource: { is: { seasonId: season.id, active: true } } }, select: { resourceId: true } }),
             tx.ro3EventOptIn.findMany({
-              where: { memberId: member.id, event: { is: { guildId: auth.guild.id, date: { gt: new Date() }, ro3EventType: { is: { seasonId: season.id, active: true } } } }, resource: { seasonId: season.id, active: true } },
+              where: { memberId: member.id, event: { is: { guildId: auth.guild.id, date: { gt: new Date() }, ro3EventType: { is: { seasonId: season.id, active: true } } } }, resource: { is: { seasonId: season.id, active: true } } },
               orderBy: [{ createdAt: "asc" }, { id: "asc" }], select: { resourceId: true },
             }),
             tx.ro3SeasonResource.findMany({ where: { seasonId: season.id, active: true }, select: { id: true, category: true } }),
