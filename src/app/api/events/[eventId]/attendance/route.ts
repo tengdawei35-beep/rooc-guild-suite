@@ -15,7 +15,18 @@ export async function GET(_request: Request, context: Context) {
     select: { id: true, date: true, guildId: true, attendance: { where: { member: { is: { active: true } } }, include: { member: { select: { id: true, characterName: true, job: true, userId: true, user: { select: { discordId: true, username: true } } } } }, orderBy: { respondedAt: "asc" } } },
   });
   if (!event) return NextResponse.json({ error: "Event not found." }, { status: 404 });
-  const ownMember = await prisma.guildMember.findFirst({ where: { guildId: auth.guild.id, userId: auth.user.id }, select: { id: true } });
+  // Resolve the signed-in member using the same identity paths as Discord
+  // interactions. A member may be linked by Discord ID without userId being set.
+  let ownMember = await prisma.guildMember.findFirst({
+    where: { guildId: auth.guild.id, userId: auth.user.id, active: true },
+    select: { id: true },
+  });
+  if (!ownMember && auth.user.discordId) {
+    ownMember = await prisma.guildMember.findFirst({
+      where: { guildId: auth.guild.id, discordUserId: auth.user.discordId, active: true },
+      select: { id: true },
+    });
+  }
   const canManage = hasPermission(auth.role, "events.manage");
   const visibleMembers = await prisma.guildMember.findMany({
     where: { guildId: auth.guild.id, active: true, ...(canManage ? {} : { id: ownMember?.id ?? "__none__" }) },
