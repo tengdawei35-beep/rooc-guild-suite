@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import RaidManagement from "./RaidManagement";
 import RosterJobOverrides from "./RosterJobOverrides";
 import EventAttendancePanel from "./EventAttendancePanel";
+import EventResultsUploader from "./EventResultsUploader";
 
 type EventType =
   | "GUILD_LEAGUE"
@@ -1279,6 +1280,7 @@ async function loadPreferredRoster() {
         )}
 
         <EventAttendancePanel eventId={eventId} />
+        <EventResultsUploader eventId={eventId} canManage={canManageEvents} />
 
         {preferredSaved && (
           <div className="mt-5 rounded-lg border border-emerald-900 bg-emerald-950/40 px-4 py-3 text-sm text-emerald-400">

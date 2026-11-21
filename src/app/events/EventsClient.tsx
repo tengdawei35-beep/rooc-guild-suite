@@ -355,6 +355,7 @@ export default function EventsClient({
             <p className="mt-2 text-zinc-400">
               {pageDescription}
             </p>
+            <Link href="/events/results" className="mt-3 inline-flex rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 transition hover:border-zinc-500 hover:text-white">Event Results →</Link>
           </div>
         </div>
 
