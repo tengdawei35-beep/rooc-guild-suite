@@ -403,6 +403,38 @@ export async function POST(
         body.date
       );
 
+    const ro3EventTypeId =
+      body.ro3EventTypeId === null || body.ro3EventTypeId === undefined || body.ro3EventTypeId === ""
+        ? null
+        : typeof body.ro3EventTypeId === "string"
+          ? body.ro3EventTypeId
+          : undefined;
+
+    if (ro3EventTypeId === undefined) {
+      return NextResponse.json({ error: "Invalid RO3 event type." }, { status: 400 });
+    }
+
+    if (ro3EventTypeId !== null) {
+      if (await isRoocGuild(auth.guild.id)) {
+        return NextResponse.json({ error: "RO3 event types can only be used by RO3 guilds." }, { status: 409 });
+      }
+      if (!(await hasGuildModule(auth.guild.id, RESOURCE_SUITE_MODULE))) {
+        return NextResponse.json({ error: "The Resource Suite is not subscribed for this guild." }, { status: 403 });
+      }
+      const eventType = await prisma.ro3EventType.findFirst({
+        where: {
+          id: ro3EventTypeId,
+          guildId: auth.guild.id,
+          active: true,
+          season: { is: { guildId: auth.guild.id, status: "ACTIVE" } },
+        },
+        select: { id: true },
+      });
+      if (!eventType) {
+        return NextResponse.json({ error: "Choose an active event type from the guild's active Resources pool." }, { status: 400 });
+      }
+    }
+
     // ---------------------------------------------------------
     // VALIDATE TYPE
     // ---------------------------------------------------------
@@ -468,7 +500,7 @@ export async function POST(
           guildId: auth.guild.id,
           type,
           date,
-          ro3EventTypeId: null,
+          ro3EventTypeId,
         },
       });
 
