@@ -80,7 +80,10 @@ export default function GuildStatisticsClient() {
         const result = String(av ?? "").localeCompare(String(bv ?? ""));
         return sortDirection === "asc" ? result : -result;
       }
-      const result = (av ?? Number.NEGATIVE_INFINITY) - (bv ?? Number.NEGATIVE_INFINITY);
+      if (av === null && bv === null) return 0;
+      if (av === null) return 1;
+      if (bv === null) return -1;
+      const result = av - bv;
       return sortDirection === "asc" ? result : -result;
     });
     return players;
