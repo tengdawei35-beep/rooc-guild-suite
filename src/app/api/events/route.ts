@@ -89,6 +89,33 @@ function normalizeDate(
   return date;
 }
 
+
+function localDateTimeToUtc(dateValue: string, timeValue: string, timeZone: string): Date | null {
+  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(dateValue) || !/^([01]\\d|2[0-3]):[0-5]\\d$/.test(timeValue)) return null;
+  const [year, month, day] = dateValue.split("-").map(Number);
+  const [hour, minute] = timeValue.split(":").map(Number);
+  const calendarCheck = new Date(Date.UTC(year, month - 1, day));
+  if (calendarCheck.getUTCFullYear() !== year || calendarCheck.getUTCMonth() !== month - 1 || calendarCheck.getUTCDate() !== day) return null;
+  const target = Date.UTC(year, month - 1, day, hour, minute);
+  let guess = target;
+  try {
+    const formatter = new Intl.DateTimeFormat("en-CA", {
+      timeZone, year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23",
+    });
+    for (let i = 0; i < 3; i++) {
+      const parts = Object.fromEntries(formatter.formatToParts(new Date(guess)).map(part => [part.type, part.value]));
+      const represented = Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day), Number(parts.hour), Number(parts.minute), Number(parts.second));
+      guess += target - represented;
+    }
+    const finalParts = Object.fromEntries(formatter.formatToParts(new Date(guess)).map(part => [part.type, part.value]));
+    if (Number(finalParts.year) !== year || Number(finalParts.month) !== month || Number(finalParts.day) !== day || Number(finalParts.hour) !== hour || Number(finalParts.minute) !== minute) return null;
+    return new Date(guess);
+  } catch {
+    return null;
+  }
+}
+
 // =============================================================
 // EVENT RULES
 // =============================================================
@@ -403,7 +430,7 @@ export async function POST(
 
     const body = await request.json();
     const isRo3 = !(await isRoocGuild(auth.guild.id));
-    const date = normalizeDate(body.date);
+    let date = normalizeDate(body.date);
     if (!date) return NextResponse.json({ error: "A valid event date is required." }, { status: 400 });
     let type: EventType = body.type as EventType;
     let guildEventTypeId: string | null = null;
@@ -417,8 +444,12 @@ export async function POST(
       if (!guildEventTypeId) return NextResponse.json({ error: "Select a configured event type." }, { status: 400 });
       const configured = await prisma.guildEventType.findFirst({ where: { id: guildEventTypeId, guildId: auth.guild.id, active: true } });
       if (!configured) return NextResponse.json({ error: "That event type is no longer active." }, { status: 400 });
-      const weekday = new Date(date.getTime() + 7 * 60 * 60 * 1000).getUTCDay();
+      const weekdayText = new Intl.DateTimeFormat("en-US", { timeZone: configured.timeZone, weekday: "short" }).format(date);
+      const weekday = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(weekdayText);
       if (!configured.weekdays.includes(weekday)) return NextResponse.json({ error: "This event type is not scheduled for the selected weekday." }, { status: 400 });
+      const scheduledDate = localDateTimeToUtc(body.date, configured.startTime, configured.timeZone);
+      if (!scheduledDate) return NextResponse.json({ error: "The selected local date/time is invalid in this event type timezone." }, { status: 400 });
+      date = scheduledDate;
       type = "RO3_CUSTOM";
       eventTypeName = configured.name;
       battlefieldCount = configured.battlefieldCount;
