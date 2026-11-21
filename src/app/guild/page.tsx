@@ -12,6 +12,9 @@ import {
 import GuildForm from "./GuildForm";
 import OwnershipTransfer from "./OwnershipTransfer";
 
+const DISCORD_BOT_INVITE_URL =
+  "https://discord.com/oauth2/authorize?client_id=1542583819671175338&permissions=84992&integration_type=0&scope=bot";
+
 export default async function GuildPage() {
   const auth = await requirePageAuth();
 
@@ -98,6 +101,21 @@ export default async function GuildPage() {
                 <span className="text-zinc-600 transition group-hover:text-zinc-300">→</span>
               </div>
             </Link>
+
+            <a
+              href={DISCORD_BOT_INVITE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group rounded-2xl border border-indigo-900/70 bg-indigo-950/30 p-5 transition hover:border-indigo-700 hover:bg-indigo-950/60"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h3 className="font-semibold text-indigo-100 group-hover:text-white">Invite HMDL Bot</h3>
+                  <p className="mt-1 text-sm leading-6 text-indigo-200/60">Add the HMDL attendance bot to your Discord server so it can post event attendance and reminders.</p>
+                </div>
+                <span className="text-indigo-300 transition group-hover:translate-x-1">↗</span>
+              </div>
+            </a>
 
             <Link href="/guild/notifications" className="group rounded-2xl border border-zinc-800 bg-zinc-900 p-5 transition hover:border-zinc-600 hover:bg-zinc-800 sm:col-span-2">
               <div className="flex items-start justify-between">
