@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 
 function verifyDiscordSignature(body: string, signature: string | null, timestamp: string | null) {
   const publicKey = process.env.DISCORD_PUBLIC_KEY;
-  if (!publicKey || !signature || !timestamp || !/^[0-9a-f]{128}$/i.test(signature) || !/^\\d+$/.test(timestamp)) return false;
+  if (!publicKey || !signature || !timestamp || !/^[0-9a-f]{128}$/i.test(signature) || !/^\d+$/.test(timestamp)) return false;
   try {
     const key = createPublicKey({
       key: Buffer.concat([Buffer.from("302a300506032b6570032100", "hex"), Buffer.from(publicKey, "hex")]),
