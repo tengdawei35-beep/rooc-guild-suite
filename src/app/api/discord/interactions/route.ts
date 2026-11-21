@@ -103,5 +103,5 @@ export async function POST(request: Request) {
     UNAVAILABLE: "🔴 Unavailable",
     AFK_BUSY: "🟡 AFK / Busy",
   };
-  return ephemeral("Your attendance response is saved for **" + (member.characterName || "your character") + "**: " + labels[status] + ". You can change it until 30 minutes before the event.");
+  return ephemeral("Your attendance response is saved for **" + (member.characterName || "your character") + "**: " + labels[status] + ". You can change it until 30 minutes before the event.\nEvent reference: `" + eventId + "`");
 }
