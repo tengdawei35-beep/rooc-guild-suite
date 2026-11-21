@@ -353,3 +353,76 @@ body {
   padding-left: 0;
   padding-right: 0;
 }
+
+/* Audience-specific density and layout tokens. These are presentation-only. */
+:root {
+  --hmdl-space-page: 1.5rem;
+  --hmdl-space-section: 1.25rem;
+  --hmdl-control-height: 2.375rem;
+  --hmdl-table-row-height: 2.75rem;
+  --hmdl-management-sidebar: 15.5rem;
+  --hmdl-member-content: 52rem;
+}
+
+.hmdl-management {
+  --hmdl-content-density: compact;
+  --hmdl-control-height: 2.25rem;
+  --hmdl-table-row-height: 2.5rem;
+}
+
+.hmdl-member-portal {
+  --hmdl-content-density: comfortable;
+  --hmdl-control-height: 2.875rem;
+  --hmdl-table-row-height: 3rem;
+}
+
+.hmdl-page {
+  width: 100%;
+  min-width: 0;
+  margin-inline: auto;
+  padding: clamp(1rem, 2.4vw, var(--hmdl-space-page));
+}
+
+.hmdl-management .hmdl-page {
+  max-width: 96rem;
+}
+
+.hmdl-member-portal .hmdl-page {
+  max-width: var(--hmdl-member-content);
+}
+
+.hmdl-page-title {
+  color: var(--hmdl-text);
+  font-size: clamp(1.5rem, 2vw, 1.875rem);
+  font-weight: 650;
+  letter-spacing: -0.035em;
+  line-height: 1.2;
+}
+
+.hmdl-section-title {
+  color: var(--hmdl-text);
+  font-size: 0.9375rem;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.hmdl-management .hmdl-table td {
+  padding-block: 0.625rem;
+}
+
+.hmdl-member-portal .hmdl-surface,
+.hmdl-member-portal .hmdl-surface-raised {
+  border-radius: 1rem;
+}
+
+@media (max-width: 640px) {
+  :root {
+    --hmdl-space-page: 1rem;
+    --hmdl-space-section: 1rem;
+  }
+
+  .hmdl-page {
+    padding: 1rem;
+  }
+}
+
