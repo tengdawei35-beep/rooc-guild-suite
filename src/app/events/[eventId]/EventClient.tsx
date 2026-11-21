@@ -1266,7 +1266,7 @@ async function loadPreferredRoster() {
               </div>
 
               <h1 className="mt-4 text-3xl font-bold tracking-tight">
-                {formatEventDate(data.event.date, data.event.type === "RO3_CUSTOM" ? data.event.scheduleTimeZone ?? undefined : "Asia/Bangkok")}
+                {formatEventDate(data.event.date, data.event.type === "RO3_CUSTOM" ? data.event.scheduleTimeZone ?? undefined : "Asia/Bangkok", data.event.type === "RO3_CUSTOM")}
               </h1>
 
               <p className="mt-2 text-zinc-500">
@@ -2225,10 +2225,10 @@ function formatBattlefield(battlefield: string) {
   return "Battlefield " + battlefield.replace("BATTLEFIELD_", "");
 }
 
-function formatEventDate(value: string, timeZone?: string) {
+function formatEventDate(value: string, timeZone?: string, includeTime = false) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat("en-GB", { timeZone: timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone, weekday: "long", day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(date);
+  return new Intl.DateTimeFormat("en-GB", { timeZone: timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone, weekday: "long", day: "numeric", month: "short", year: "numeric", hour: includeTime ? "2-digit" : undefined, minute: includeTime ? "2-digit" : undefined }).format(date);
 }
 
 function formatDateTime(value: string) {
