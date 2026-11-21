@@ -53,37 +53,6 @@ async function authorize() {
   return { auth, member, season } as const;
 }
 
-async function loadSelections(guildId: string, memberId: string, seasonId: string) {
-  const now = new Date();
-  const [resources, persistent, eventOptIns, events] = await Promise.all([
-    prisma.ro3SeasonResource.findMany({ where: { seasonId, active: true }, orderBy: [{ category: "asc" }, { name: "asc" }] }),
-    prisma.ro3PersistentInterest.findMany({ where: { memberId, resource: { seasonId, active: true }, active: true }, select: { resourceId: true } }),
-    prisma.ro3EventOptIn.findMany({
-      where: { memberId, event: { guildId, date: { gt: now }, ro3EventType: { is: { seasonId } } }, resource: { seasonId, active: true } },
-      include: { event: { select: { date: true } } },
-      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
-    }),
-    prisma.event.findMany({
-      where: { guildId, date: { gt: now }, ro3EventType: { is: { seasonId, active: true } } },
-      orderBy: { date: "asc" },
-      include: {
-        ro3EventType: { include: { rewardPool: { where: { quantity: { gt: 0 } }, include: { resource: { select: { id: true, name: true, category: true, active: true } } } } } },
-        ro3EventOptIns: { where: { memberId }, select: { resourceId: true } },
-      },
-    }),
-  ]);
-
-  const categories = new Map(resources.map(resource => [resource.id, resource.category as Category]));
-  const persistentIds = new Set(persistent.map(item => item.resourceId));
-  const acceptedEventIds = new Set<string>(persistentIds);
-  for (const item of eventOptIns) {
-    const next = new Set(acceptedEventIds);
-    next.add(item.resourceId);
-    if (withinCaps(next, categories, seasonCapsFromResourcesPlaceholder as never)) acceptedEventIds.add(item.resourceId);
-  }
-  return { resources, persistentIds, eventOptIns, events, acceptedEventIds, categories };
-}
-
 export async function GET() {
   try {
     const access = await authorize();
