@@ -69,8 +69,27 @@ export async function POST(request: Request) {
   }
   if (!member) return ephemeral("Your Discord account is not linked to an active HMDL guild member.");
 
-  await syncEventAttendanceAndLeave({ eventId, memberId: member.id, eventDate: event.date, timeZone: event.scheduleTimeZone, status });
-  console.info("[DISCORD ATTENDANCE] Saved response", { eventId, memberId: member.id, characterName: member.characterName, status });
+  const savedAttendance = await syncEventAttendanceAndLeave({ eventId, memberId: member.id, eventDate: event.date, timeZone: event.scheduleTimeZone, status });
+  const persistedAttendance = await prisma.eventAttendance.findUnique({
+    where: { eventId_memberId: { eventId, memberId: member.id } },
+    select: { id: true, eventId: true, memberId: true, status: true, respondedAt: true },
+  });
+  console.info("[DISCORD ATTENDANCE] Write verification", {
+    eventId,
+    eventGuildId: event.guildId,
+    discordGuildId: guildId,
+    memberId: member.id,
+    characterName: member.characterName,
+    requestedStatus: status,
+    upsertedStatus: savedAttendance.status,
+    persistedStatus: persistedAttendance?.status ?? null,
+    persistedEventId: persistedAttendance?.eventId ?? null,
+    persistedMemberId: persistedAttendance?.memberId ?? null,
+    respondedAt: persistedAttendance?.respondedAt?.toISOString() ?? null,
+  });
+  if (!persistedAttendance || persistedAttendance.status !== status) {
+    return ephemeral("HMDL could not verify the saved attendance response. Please contact a guild manager.");
+  }
 
   const channelId = interaction.channel_id;
   const messageId = interaction.message?.id;
