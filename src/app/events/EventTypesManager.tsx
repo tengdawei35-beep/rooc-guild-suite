@@ -7,13 +7,14 @@ type EventType = {
   partiesPerBattlefield: number; weekdays: number[]; startTime: string; timeZone: string;
 };
 const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-const empty = { name: "", battlefieldCount: 0, partiesPerBattlefield: 0, weekdays: [], startTime: "" };
+type EventTypeForm = { name: string; battlefieldCount: number; partiesPerBattlefield: number; weekdays: number[]; startTime: string };
+const empty: EventTypeForm = { name: "", battlefieldCount: 0, partiesPerBattlefield: 0, weekdays: [], startTime: "" };
 
 export default function EventTypesManager() {
   const [items, setItems] = useState<EventType[]>([]);
   const [timeZone, setTimeZone] = useState("");
   const [timeZones, setTimeZones] = useState<string[]>([]);
-  const [form, setForm] = useState(empty);
+  const [form, setForm] = useState<EventTypeForm>(empty);
   const [editing, setEditing] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
