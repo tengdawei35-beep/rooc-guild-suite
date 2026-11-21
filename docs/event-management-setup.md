@@ -27,3 +27,7 @@ The bot posts an attendance message with Available, Unavailable and AFK / Busy b
 ## Cron schedule
 
 The event-management cron currently runs hourly. Vercel Hobby deployments only support daily cron frequency; the hourly schedule therefore requires a Vercel plan that supports sub-daily cron jobs. Do not change it to daily if exact 48-hour reminders are required.
+
+## Railway PostgreSQL migration
+
+After the production deployment is ready, apply the new Prisma migrations to the intended Railway PostgreSQL database with `npx prisma migrate deploy`. Verify the target `DATABASE_URL` points to the correct Railway Production database before running it. Do not use `prisma migrate reset` or any destructive reset command. The project currently has no separate Preview database, so do not point Preview testing at Production or apply migrations from a Preview deployment.
