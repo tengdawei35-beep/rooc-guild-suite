@@ -14,6 +14,7 @@ type Props = {
   isPlatformAdmin: boolean;
   hasResourceSuite: boolean;
   ownMemberId: string | null;
+  permissions: Permission[];
 };
 
 type NavItem = { label: string; href: string; icon: string };
@@ -34,6 +35,7 @@ export default function AppShell({
   isPlatformAdmin,
   hasResourceSuite,
   ownMemberId,
+  permissions,
 }: Props) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -118,17 +120,7 @@ export default function AppShell({
   ];
 
   function roleCan(permission: Permission) {
-    // The server has already computed the effective role; this mirrors the existing
-    // role matrix only for navigation visibility. Every destination still enforces
-    // its own server-side authorization.
-    if (role === "ADMIN") return true;
-    const grants: Record<UserRole, string[]> = {
-      ADMIN: [],
-      MANAGER: ["members.view", "applicants.view", "users.view", "leave.manageAny", "events.view", "rosters.view", "allocation.view", "guild.manage"],
-      OFFICER: ["members.view", "applicants.view", "users.view", "leave.manageAny", "events.view", "rosters.view", "allocation.view"],
-      MEMBER: ["members.view", "events.view", "rosters.view"],
-    };
-    return grants[role].includes(permission);
+    return permissions.includes(permission);
   }
 
   const groups = isMemberPortal ? memberGroups : managementGroups;
