@@ -8,7 +8,7 @@ type GameType = "ROOC" | "RO3";
 type GuildData = {
   id: string;
   name: string;
-  discordGuildId: string;
+  discordGuildId: string | null;
   gameType: GameType;
 };
 
@@ -20,7 +20,7 @@ const GAME_OPTIONS: { value: GameType; label: string; description: string }[] = 
 export default function GuildForm({ guild }: { guild: GuildData }) {
   const router = useRouter();
   const [name, setName] = useState(guild.name);
-  const [discordGuildId, setDiscordGuildId] = useState(guild.discordGuildId);
+  const [discordGuildId, setDiscordGuildId] = useState(guild.discordGuildId ?? "");
   const [gameType, setGameType] = useState<GameType>(guild.gameType);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -28,6 +28,13 @@ export default function GuildForm({ guild }: { guild: GuildData }) {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (discordGuildId.trim() !== (guild.discordGuildId ?? "")) {
+      const confirmed = window.confirm(
+        "You are changing this guild's Discord server association. If that server is currently linked to another HMDL guild, the other guild will be unlinked from Discord. Its members, events and historical data will remain untouched. Continue?"
+      );
+      if (!confirmed) return;
+    }
 
     if (gameType !== guild.gameType) {
       const currentLabel = GAME_OPTIONS.find((game) => game.value === guild.gameType)?.label;
@@ -54,7 +61,11 @@ export default function GuildForm({ guild }: { guild: GuildData }) {
         throw new Error(result.error || "Failed to save guild.");
       }
 
-      setSuccess("Guild settings saved successfully.");
+      setSuccess(
+        result.discordAssociationTransferredFrom
+          ? `Guild settings saved. The Discord server association was transferred from ${result.discordAssociationTransferredFrom}; that guild's data remains intact.`
+          : "Guild settings saved successfully."
+      );
       router.refresh();
     } catch (error) {
       setError(error instanceof Error ? error.message : "Failed to save guild.");
@@ -89,7 +100,9 @@ export default function GuildForm({ guild }: { guild: GuildData }) {
           required
           className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-4 py-3 font-mono text-white outline-none transition focus:border-zinc-400"
         />
-        <p className="mt-2 text-xs text-zinc-500">The Discord server ID associated with this guild.</p>
+        <p className="mt-2 text-xs text-zinc-500">
+          One Discord server can be connected to one HMDL guild at a time. Reassigning it disconnects the previous guild's Discord integration but preserves all of its HMDL data.
+        </p>
       </div>
 
       <div>
