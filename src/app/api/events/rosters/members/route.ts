@@ -126,8 +126,8 @@ export async function POST(
         where: { eventId_memberId: { eventId: party.roster.event.id, memberId: member.id } },
         select: { status: true },
       });
-      if (party.roster.event.type === "RO3_CUSTOM" && attendance?.status !== "AVAILABLE") {
-        return { error: "Only members who selected Available can be assigned to an active RO3 party. AFK / Busy members remain eligible for rewards.", status: 400 as const };
+      if (party.roster.event.type === "RO3_CUSTOM" && attendance && attendance.status !== "AVAILABLE") {
+        return { error: "Members who selected Unavailable or AFK / Busy cannot be assigned to an active RO3 party.", status: 400 as const };
       }
       if (party.roster.event.type !== "RO3_CUSTOM" && attendance && attendance.status !== "AVAILABLE") {
         return { error: "This member is not Available for this event.", status: 400 as const };
@@ -391,8 +391,8 @@ export async function PATCH(
         where: { eventId_memberId: { eventId: source.party.roster.event.id, memberId: source.memberId } },
         select: { status: true },
       });
-      if (attendance?.status !== "AVAILABLE") {
-        return NextResponse.json({ error: "Only members who selected Available can be assigned to an active RO3 party. AFK / Busy members remain eligible for rewards." }, { status: 400 });
+      if (attendance && attendance.status !== "AVAILABLE") {
+        return NextResponse.json({ error: "Members who selected Unavailable or AFK / Busy cannot be assigned to an active RO3 party." }, { status: 400 });
       }
     }
 
