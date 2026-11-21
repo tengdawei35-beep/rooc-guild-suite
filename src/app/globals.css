@@ -1,8 +1,35 @@
 @import "tailwindcss";
 
+/*
+ * Heimdall design foundation
+ * Semantic tokens are intentionally independent of page-specific styling so
+ * modules can migrate incrementally without changing application behavior.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
+  --hmdl-bg: #090b0f;
+  --hmdl-surface: #10141b;
+  --hmdl-surface-raised: #151b24;
+  --hmdl-surface-muted: #0c1016;
+  --hmdl-border: #252d38;
+  --hmdl-border-strong: #394454;
+  --hmdl-text: #eef2f7;
+  --hmdl-text-secondary: #a4afbd;
+  --hmdl-text-muted: #748092;
+  --hmdl-accent: #a9c7f5;
+  --hmdl-accent-strong: #c4d9fb;
+  --hmdl-accent-contrast: #101a2a;
+  --hmdl-success: #43c58a;
+  --hmdl-warning: #e9b85f;
+  --hmdl-danger: #f07878;
+  --hmdl-info: #7eb6ed;
+  --hmdl-radius-sm: 6px;
+  --hmdl-radius-md: 9px;
+  --hmdl-radius-lg: 12px;
+  --hmdl-shadow-popover: 0 16px 48px rgb(0 0 0 / 0.42);
+  --hmdl-focus-ring: 0 0 0 2px var(--hmdl-bg), 0 0 0 4px var(--hmdl-accent);
+  --background: var(--hmdl-bg);
+  --foreground: var(--hmdl-text);
 }
 
 @theme inline {
@@ -12,46 +39,317 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  min-height: 100%;
+  background: var(--hmdl-bg);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100%;
+  background: var(--hmdl-bg);
+  color: var(--hmdl-text);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  text-rendering: optimizeLegibility;
 }
 
-/* Keep dashboard activity columns visually consistent with the unboxed activity list. */
-.grid.gap-4.lg\:grid-cols-4 > .overflow-hidden.rounded-2xl.border,
-.grid.gap-4.lg\:grid-cols-3 > .overflow-hidden.rounded-2xl.border {
+::selection {
+  background: rgb(169 199 245 / 0.28);
+  color: var(--hmdl-text);
+}
+
+:where(button, a, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--hmdl-accent);
+  outline-offset: 2px;
+}
+
+:where(button, input, select, textarea):disabled {
+  cursor: not-allowed;
+}
+
+:where(input, select, textarea) {
+  accent-color: var(--hmdl-accent);
+}
+
+.hmdl-surface {
+  border: 1px solid var(--hmdl-border);
+  border-radius: var(--hmdl-radius-lg);
+  background: var(--hmdl-surface);
+}
+
+.hmdl-surface-raised {
+  border: 1px solid var(--hmdl-border);
+  border-radius: var(--hmdl-radius-lg);
+  background: var(--hmdl-surface-raised);
+}
+
+.hmdl-label {
+  display: block;
+  color: var(--hmdl-text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 550;
+  line-height: 1.35;
+}
+
+.hmdl-field {
+  width: 100%;
+  min-height: 2.5rem;
+  border: 1px solid var(--hmdl-border-strong);
+  border-radius: var(--hmdl-radius-md);
+  background: var(--hmdl-surface-muted);
+  padding: 0.55rem 0.75rem;
+  color: var(--hmdl-text);
+  font: inherit;
+  font-size: 0.875rem;
+  transition: border-color 140ms ease, background-color 140ms ease;
+}
+
+.hmdl-field::placeholder {
+  color: var(--hmdl-text-muted);
+}
+
+.hmdl-field:focus {
+  border-color: var(--hmdl-accent);
+  outline: none;
+}
+
+.hmdl-btn {
+  display: inline-flex;
+  min-height: 2.375rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid transparent;
+  border-radius: var(--hmdl-radius-md);
+  padding: 0.5rem 0.875rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+.hmdl-btn-primary {
+  background: var(--hmdl-accent);
+  color: var(--hmdl-accent-contrast);
+}
+
+.hmdl-btn-primary:hover:not(:disabled) {
+  background: var(--hmdl-accent-strong);
+}
+
+.hmdl-btn-secondary {
+  border-color: var(--hmdl-border-strong);
+  background: var(--hmdl-surface-raised);
+  color: var(--hmdl-text);
+}
+
+.hmdl-btn-secondary:hover:not(:disabled) {
+  border-color: var(--hmdl-text-muted);
+  background: #1a222d;
+}
+
+.hmdl-btn-quiet {
+  background: transparent;
+  color: var(--hmdl-text-secondary);
+}
+
+.hmdl-btn-quiet:hover:not(:disabled) {
+  background: var(--hmdl-surface-raised);
+  color: var(--hmdl-text);
+}
+
+.hmdl-btn-danger {
+  border-color: rgb(240 120 120 / 0.32);
+  background: rgb(240 120 120 / 0.1);
+  color: var(--hmdl-danger);
+}
+
+.hmdl-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border: 1px solid var(--hmdl-border);
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  color: var(--hmdl-text-secondary);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1rem;
+  white-space: nowrap;
+}
+
+.hmdl-badge-success {
+  border-color: rgb(67 197 138 / 0.28);
+  background: rgb(67 197 138 / 0.08);
+  color: var(--hmdl-success);
+}
+
+.hmdl-badge-warning {
+  border-color: rgb(233 184 95 / 0.28);
+  background: rgb(233 184 95 / 0.08);
+  color: var(--hmdl-warning);
+}
+
+.hmdl-badge-danger {
+  border-color: rgb(240 120 120 / 0.28);
+  background: rgb(240 120 120 / 0.08);
+  color: var(--hmdl-danger);
+}
+
+.hmdl-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--hmdl-border);
+  border-radius: var(--hmdl-radius-lg);
+  background: var(--hmdl-surface);
+  overscroll-behavior-inline: contain;
+}
+
+.hmdl-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: left;
+  font-size: 0.8125rem;
+}
+
+.hmdl-table thead {
+  background: var(--hmdl-surface-raised);
+  color: var(--hmdl-text-secondary);
+}
+
+.hmdl-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 0.75rem 0.875rem;
+  font-size: 0.6875rem;
+  font-weight: 650;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.hmdl-table td {
+  border-top: 1px solid var(--hmdl-border);
+  padding: 0.75rem 0.875rem;
+  color: var(--hmdl-text);
+}
+
+.hmdl-table tbody tr:hover {
+  background: rgb(255 255 255 / 0.025);
+}
+
+.hmdl-empty {
+  border: 1px dashed var(--hmdl-border-strong);
+  border-radius: var(--hmdl-radius-lg);
+  padding: 2.5rem 1.25rem;
+  color: var(--hmdl-text-muted);
+  text-align: center;
+}
+
+.hmdl-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  background: rgb(0 0 0 / 0.72);
+  padding: 1rem;
+}
+
+.hmdl-dialog {
+  width: min(100%, 48rem);
+  max-height: min(90dvh, 56rem);
+  overflow: auto;
+  border: 1px solid var(--hmdl-border-strong);
+  border-radius: var(--hmdl-radius-lg);
+  background: var(--hmdl-surface);
+  box-shadow: var(--hmdl-shadow-popover);
+}
+
+@media (max-width: 640px) {
+  .hmdl-table-wrap[data-mobile="cards"] {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+
+  .hmdl-table-wrap[data-mobile="cards"] .hmdl-table,
+  .hmdl-table-wrap[data-mobile="cards"] .hmdl-table tbody {
+    display: block;
+    min-width: 0;
+  }
+
+  .hmdl-table-wrap[data-mobile="cards"] .hmdl-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+
+  .hmdl-table-wrap[data-mobile="cards"] .hmdl-table tr {
+    display: block;
+    margin-bottom: 0.625rem;
+    overflow: hidden;
+    border: 1px solid var(--hmdl-border);
+    border-radius: var(--hmdl-radius-md);
+    background: var(--hmdl-surface);
+  }
+
+  .hmdl-table-wrap[data-mobile="cards"] .hmdl-table td {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    border-top: 1px solid var(--hmdl-border);
+    padding: 0.625rem 0.75rem;
+  }
+
+  .hmdl-table-wrap[data-mobile="cards"] .hmdl-table td:first-child {
+    border-top: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Legacy dashboard activity selectors retained until that module is migrated. */
+.grid.gap-4.lg\\:grid-cols-4 > .overflow-hidden.rounded-2xl.border,
+.grid.gap-4.lg\\:grid-cols-3 > .overflow-hidden.rounded-2xl.border {
   border: 0;
   border-radius: 0;
   background: transparent;
 }
 
-.grid.gap-4.lg\:grid-cols-4 > .overflow-hidden.rounded-2xl.border > div:first-child,
-.grid.gap-4.lg\:grid-cols-3 > .overflow-hidden.rounded-2xl.border > div:first-child {
+.grid.gap-4.lg\\:grid-cols-4 > .overflow-hidden.rounded-2xl.border > div:first-child,
+.grid.gap-4.lg\\:grid-cols-3 > .overflow-hidden.rounded-2xl.border > div:first-child {
   padding: 0 0 0.75rem;
 }
 
-.grid.gap-4.lg\:grid-cols-4 > .overflow-hidden.rounded-2xl.border > .divide-y > a,
-.grid.gap-4.lg\:grid-cols-3 > .overflow-hidden.rounded-2xl.border > .divide-y > a {
+.grid.gap-4.lg\\:grid-cols-4 > .overflow-hidden.rounded-2xl.border > .divide-y > a,
+.grid.gap-4.lg\\:grid-cols-3 > .overflow-hidden.rounded-2xl.border > .divide-y > a {
   padding-left: 0;
   padding-right: 0;
   transition: background-color 150ms ease;
 }
 
-.grid.gap-4.lg\:grid-cols-4 > .overflow-hidden.rounded-2xl.border > .divide-y > a:hover,
-.grid.gap-4.lg\:grid-cols-3 > .overflow-hidden.rounded-2xl.border > .divide-y > a:hover {
+.grid.gap-4.lg\\:grid-cols-4 > .overflow-hidden.rounded-2xl.border > .divide-y > a:hover,
+.grid.gap-4.lg\\:grid-cols-3 > .overflow-hidden.rounded-2xl.border > .divide-y > a:hover {
   background: rgb(24 24 27 / 0.4);
 }
 
-.grid.gap-4.lg\:grid-cols-4 > .overflow-hidden.rounded-2xl.border > div:last-child:not(.divide-y),
-.grid.gap-4.lg\:grid-cols-3 > .overflow-hidden.rounded-2xl.border > div:last-child:not(.divide-y) {
+.grid.gap-4.lg\\:grid-cols-4 > .overflow-hidden.rounded-2xl.border > div:last-child:not(.divide-y),
+.grid.gap-4.lg\\:grid-cols-3 > .overflow-hidden.rounded-2xl.border > div:last-child:not(.divide-y) {
   padding-left: 0;
   padding-right: 0;
 }
