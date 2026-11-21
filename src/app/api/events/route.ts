@@ -22,7 +22,8 @@ import {
 
 type EventType =
   | "GUILD_LEAGUE"
-  | "EMPERIUM_OVERRUN";
+  | "EMPERIUM_OVERRUN"
+  | "RO3_CUSTOM";
 
 // =============================================================
 // DATE NORMALIZATION
