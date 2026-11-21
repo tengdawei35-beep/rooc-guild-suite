@@ -34,7 +34,18 @@ export async function GET() {
     where: { guildId: auth.guild.id },
     orderBy: [{ active: "desc" }, { name: "asc" }],
   });
-  return NextResponse.json({ eventTypes, timeZone: auth.guild.timeZone ?? null });
+  const activeSeason = await prisma.ro3Season.findFirst({
+    where: { guildId: auth.guild.id, status: "ACTIVE" },
+    select: { id: true },
+  });
+  const resourceEventTypes = activeSeason
+    ? await prisma.ro3EventType.findMany({
+        where: { guildId: auth.guild.id, seasonId: activeSeason.id, active: true, guildEventTypeId: { not: null } },
+        select: { id: true, name: true, guildEventTypeId: true },
+        orderBy: { name: "asc" },
+      })
+    : [];
+  return NextResponse.json({ eventTypes, resourceEventTypes, timeZone: auth.guild.timeZone ?? null });
 }
 
 export async function POST(request: Request) {
