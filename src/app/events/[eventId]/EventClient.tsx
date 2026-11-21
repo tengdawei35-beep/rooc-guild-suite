@@ -140,6 +140,7 @@ export default function EventClient({
 
   const [generatingRoster, setGeneratingRoster] =
     useState(false);
+  const [creatingManualRoster, setCreatingManualRoster] = useState(false);
 
   const [savingPreferred, setSavingPreferred] =
     useState(false);
@@ -281,6 +282,21 @@ export default function EventClient({
   // ==========================================================
   // GENERATE ROSTER
   // ==========================================================
+
+async function createManualRoster() {
+  if (!data) return;
+  const name = window.prompt("Name this roster", "Main Roster");
+  if (!name || !name.trim()) return;
+  setCreatingManualRoster(true);
+  setError(null);
+  try {
+    const response = await fetch("/api/events/rosters", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ eventId, name: name.trim(), generationMode: "MANUAL" }) });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || "Failed to create manual roster.");
+    await loadEvent();
+  } catch (err) { setError(err instanceof Error ? err.message : "Failed to create manual roster."); }
+  finally { setCreatingManualRoster(false); }
+}
 
 async function generateRoster() {
   setGeneratingRoster(true);
@@ -1339,12 +1355,18 @@ async function loadPreferredRoster() {
               </h2>
 
               <p className="mt-1 text-sm text-zinc-500">
-                Generate and manually adjust event rosters.
+                {data.event.type === "RO3_CUSTOM" ? "Create a manual roster using the configured battlefield and party capacity, then assign members." : "Generate and manually adjust event rosters."}
               </p>
             </div>
 
             {canEditRosters && (
               <div className="flex flex-wrap gap-3">
+                {data.event.type === "RO3_CUSTOM" ? (
+                  <button type="button" onClick={createManualRoster} disabled={creatingManualRoster} className="rounded-lg bg-white px-5 py-2.5 text-sm font-medium text-black transition hover:bg-zinc-200 disabled:cursor-wait disabled:opacity-50">
+                    {creatingManualRoster ? "Creating..." : "Create Manual Roster"}
+                  </button>
+                ) : (
+                <>
                 <button
                   type="button"
                   onClick={saveRosterAsPreferred}
@@ -1388,6 +1410,8 @@ async function loadPreferredRoster() {
                     ? "Generating..."
                     : "Generate Roster"}
                 </button>
+                </>
+                )}
               </div>
             )}
           </div>
@@ -1401,7 +1425,7 @@ async function loadPreferredRoster() {
                 </p>
 
                 <p className="mt-2 text-sm text-zinc-600">
-                  Generate an automatic roster from the available members.
+                  {data.event.type === "RO3_CUSTOM" ? "Create a manual roster to start assigning members." : "Generate an automatic roster from the available members."}
                 </p>
               </div>
             ) : (
