@@ -45,6 +45,8 @@ The Prisma schema includes guild memberships, guild members, events, attendance,
 | PEOPLE-03 | Medium | Member directory field configuration | The directory supports a very broad set of ROOC/RO3 fields and persisted display-field selection. This is powerful but creates a large configuration surface. | Users may need to understand many game-specific metrics before finding the few fields needed for routine roster management. | Progressive disclosure; Hick's Law | Provide role/task-oriented presets (e.g. roster, combat, profile) while retaining custom columns. Validate discoverability and persistence. | Medium | Faster scanning with advanced control retained. |
 | EVENTS-01 | Medium | Event creation | Event creation uses a minimal date plus event-type selection, while event types/timezone configuration is loaded asynchronously. If configuration fetch fails, the catch intentionally suppresses the error. | Users may see an incomplete event-type choice without understanding why configuration is missing. | Visibility of system status; error diagnosis | Expose a non-blocking configuration warning/retry state and prevent invalid creation when required configuration is unavailable. | Low–Medium | Fewer silent configuration failures. |
 | PLATFORM-01 | Low | Platform admin navigation | The sidebar exposes only Platform admin and Subscriptions directly; guild/user/impersonation management appears to be reached through the admin landing page. | Additional navigation step for frequent platform operations. | Flexibility and efficiency | Consider contextual admin shortcuts or a compact admin submenu, based on observed frequency and role needs. | Low | Faster platform operations without cluttering guild users' navigation. |
+| NOTIFY-01 | Medium | Guild notification settings | The form initially allowed Save before the asynchronous settings fetch completed; a user could submit a partially initialized form while existing channel configuration was still loading. | Accidental clearing or overwriting risk, and unclear loading status. | Visibility of system status; error prevention | Show loading state, disable Save until settings load, and provide a retry path if loading fails. | Low | Prevents premature submission and improves recovery. |
+| RECRUIT-01 | Medium | Recruitment queue | Applicant search and status filtering are present, but decision actions rely on generic browser confirmation and the queue has no explicit per-applicant pending state; one shared busy flag disables all actions while any action runs. | Users receive limited context during decisions and cannot distinguish which record is processing. | Visibility of system status; user control | Add per-record processing feedback and clearer decision confirmation context while retaining a final confirmation for irreversible decisions. | Medium | More precise feedback and fewer accidental repeated actions. |
 
 ## Potential improvements requiring runtime validation
 
@@ -111,5 +113,17 @@ The following source-level changes have been committed to the audit branch only:
 | PEOPLE-01 | Leave application resolves the authenticated member by either linked user ID or Discord ID, matching the member directory and API authorization logic; inactive profiles are excluded. | Implemented; workflow test pending |
 | INSIGHT-01 | Guild Statistics now applies page-level authentication and `members.view` permission checks, matching Rankings. The API handlers were separately inspected and already enforce guild-scoped authentication and permission checks. | Implemented; role test pending |
 | EVENTS-01 | Event type configuration now has explicit loading/error feedback and retry. Event creation remains disabled while configuration is loading or unavailable, preventing an incorrect default event type from being submitted. | Implemented; failure-state test pending |
+
+
+
+### Phase A — additional workflow corrections
+
+| Finding | Change | Status |
+|---|---|---|
+| HOME-01 | Management dashboard “today” calculations now use the guild's configured timezone, with Asia/Bangkok retained only as the fallback when no timezone is configured. Midnight boundaries are calculated independently for the start and next day to account for daylight-saving transitions. | Implemented in source; timezone-specific test/build pending |
+| PEOPLE-03 | Added task-oriented member directory column presets: Overview, Roster and Combat. Existing individual field selection and per-user local persistence remain available. | Implemented in source; game-type/persistence checks pending |
+| NOTIFY-01 | Notification settings now show an initial loading state, disable Save until settings have loaded, announce success/error feedback and offer retry when loading fails. | Implemented in source; failure-state test pending |
+
+Recruitment queue observations are recorded as a follow-up improvement, not yet implemented.
 
 These changes are not merged or deployed. The remaining audit and validation phases are still required.
