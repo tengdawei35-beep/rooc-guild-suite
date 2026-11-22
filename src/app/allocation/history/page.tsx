@@ -19,8 +19,8 @@ export default async function AllocationHistoryPage() {
     ))
   ) {
     return (
-      <main className="min-h-screen bg-zinc-950 text-white">
-        <div className="mx-auto max-w-7xl px-6 py-10">
+      <main className="hmdl-management hmdl-history-workspace min-h-screen bg-zinc-950 text-white">
+        <div className="hmdl-page mx-auto max-w-7xl px-6 py-10">
           <Link
             href="/"
             className="text-sm text-zinc-500 hover:text-white"
@@ -56,8 +56,8 @@ export default async function AllocationHistoryPage() {
 
   if (!guild) {
     return (
-      <main className="min-h-screen bg-zinc-950 text-white">
-        <div className="mx-auto max-w-7xl px-6 py-10">
+      <main className="hmdl-management hmdl-history-workspace min-h-screen bg-zinc-950 text-white">
+        <div className="hmdl-page mx-auto max-w-7xl px-6 py-10">
           <Link
             href="/"
             className="text-sm text-zinc-500 hover:text-white"
@@ -137,8 +137,8 @@ export default async function AllocationHistoryPage() {
     });
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white">
-      <div className="mx-auto max-w-7xl px-6 py-10">
+    <main className="hmdl-management hmdl-history-workspace min-h-screen bg-zinc-950 text-white">
+      <div className="hmdl-page mx-auto max-w-7xl px-6 py-10">
         {/* BACK NAVIGATION */}
 
         <Link
