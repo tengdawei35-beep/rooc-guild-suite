@@ -1971,3 +1971,25 @@ body,
   letter-spacing: -0.035em;
   line-height: 1.2;
 }
+
+
+/* Phase 47 — one consistent guild identity masthead across authenticated pages.
+   Page titles remain page-specific and sit below this shared guild context. */
+.hmdl-page-guild-identity {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--hmdl-page-max-wide, 100rem);
+  margin-inline: auto;
+  padding: 1.125rem var(--hmdl-page-gutter, clamp(1rem, 2.2vw, 2rem)) 0;
+  color: var(--hmdl-text-secondary, #a4afbd);
+  font-family: var(--hmdl-font-ui, var(--font-geist-sans), Arial, sans-serif);
+  font-size: 0.875rem;
+  font-weight: 650;
+  letter-spacing: -0.012em;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.hmdl-page-guild-identity > span {
+  display: inline-block;
+  min-width: 0;
+}
