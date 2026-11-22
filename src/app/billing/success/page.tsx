@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function BillingSuccessPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-zinc-950 px-4 text-white">
+    <main className="hmdl-billing-workspace flex min-h-screen items-center justify-center bg-zinc-950 px-4 text-white">
       <section className="w-full max-w-lg rounded-2xl border border-zinc-800 bg-zinc-900 p-8 text-center">
         <p className="text-sm font-medium uppercase tracking-widest text-zinc-500">ROO Guild Suite</p>
         <h1 className="mt-3 text-2xl font-semibold">Payment received</h1>
