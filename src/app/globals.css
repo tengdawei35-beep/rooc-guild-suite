@@ -916,3 +916,18 @@ body {
 .hmdl-allocation-workspace th { color:var(--hmdl-text-muted); font-size:.67rem; font-weight:680; text-transform:uppercase; letter-spacing:.05em; }
 .hmdl-allocation-workspace td { color:var(--hmdl-text-secondary); font-size:.76rem; }
 @media(max-width:700px) { .hmdl-allocation-workspace > .hmdl-page { padding:1rem; } }
+
+
+/* Phase 14 — reservations and allocation/resource history */
+.hmdl-reservations-workspace,.hmdl-history-workspace { min-height:100vh; background:var(--hmdl-bg); color:var(--hmdl-text); }
+.hmdl-reservations-workspace > .hmdl-page,.hmdl-history-workspace > .hmdl-page { width:100%; max-width:96rem; }
+.hmdl-reservations-workspace h1,.hmdl-history-workspace h1 { color:var(--hmdl-text); font-size:clamp(1.6rem,2.5vw,2.1rem); font-weight:690; letter-spacing:-.04em; }
+.hmdl-reservations-workspace h2,.hmdl-history-workspace h2 { color:var(--hmdl-text); font-weight:680; }
+.hmdl-reservations-workspace p,.hmdl-history-workspace p { color:var(--hmdl-text-muted); }
+.hmdl-reservations-workspace .rounded-2xl.border,.hmdl-history-workspace .rounded-2xl.border { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); }
+.hmdl-reservations-workspace input,.hmdl-reservations-workspace select { border-color:var(--hmdl-border-strong); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); color:var(--hmdl-text); }
+.hmdl-reservations-workspace button,.hmdl-history-workspace button { border-radius:var(--hmdl-radius-md); font-size:.76rem; font-weight:620; }
+.hmdl-history-workspace table { border-collapse:collapse; }
+.hmdl-history-workspace th { color:var(--hmdl-text-muted); font-size:.67rem; font-weight:680; text-transform:uppercase; letter-spacing:.05em; }
+.hmdl-history-workspace td { color:var(--hmdl-text-secondary); font-size:.76rem; }
+@media(max-width:700px) { .hmdl-reservations-workspace > .hmdl-page,.hmdl-history-workspace > .hmdl-page { padding:1rem; } }
