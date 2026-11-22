@@ -53,7 +53,7 @@ export default function AffiliatesClient() {
 
   const input = "mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-white outline-none focus:border-zinc-400";
 
-  return <main className="min-h-screen bg-zinc-950 text-white"><div className="mx-auto max-w-6xl px-6 py-10">
+  return <main className="hmdl-affiliate-workspace min-h-screen bg-zinc-950 text-white"><div className="mx-auto max-w-6xl px-6 py-10">
     <Link href="/admin" className="text-sm text-zinc-500 hover:text-white">← Platform Administration</Link>
     <p className="mt-7 text-sm font-medium uppercase tracking-widest text-zinc-500">Referral Program</p><h1 className="mt-1 text-3xl font-bold tracking-tight">Affiliates</h1><p className="mt-2 text-sm text-zinc-400">Manage influencer referral codes, recurring customer discounts and affiliate commissions.</p>
     <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{[["Affiliates", summary.total], ["Active", summary.active], ["Referrals", summary.referrals], ["Commission", money(summary.commissions)]].map(([label, value]) => <div key={String(label)} className="rounded-2xl border border-zinc-800 bg-zinc-900 px-5 py-4"><p className="text-xs uppercase tracking-wider text-zinc-600">{label}</p><p className="mt-1 text-2xl font-semibold">{value}</p></div>)}</div>
