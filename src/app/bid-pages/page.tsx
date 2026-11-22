@@ -14,7 +14,7 @@ export default async function BidPagesPage() {
 
   if (!(await hasGuildModule(auth.guild.id, RESOURCE_SUITE_MODULE))) {
     return (
-      <main className="min-h-screen bg-zinc-950 text-white">
+      <main className="hmdl-member-bid-pages min-h-screen bg-zinc-950 text-white">
         <div className="mx-auto max-w-7xl px-6 py-10">
           <Link href="/" className="text-sm text-zinc-500 hover:text-white">
             ← Dashboard
