@@ -128,7 +128,14 @@ export default async function Home() {
     </main>;
   }
 
-  const dashboardTimeZone = guild?.timeZone || SERVER_TIME_ZONE;
+  const configuredTimeZone = guild?.timeZone || SERVER_TIME_ZONE;
+  let dashboardTimeZone = SERVER_TIME_ZONE;
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: configuredTimeZone });
+    dashboardTimeZone = configuredTimeZone;
+  } catch {
+    // Keep the dashboard available if a legacy or manually edited timezone is invalid.
+  }
   const { start: todayStart, end: tomorrowStart } = getTodayBounds(dashboardTimeZone);
   const activeMemberCount = guild?._count.members ?? 0;
   const membersOnLeaveToday = guild ? await prisma.memberLeave.count({ where: { member: { guildId: guild.id, active: true }, date: { gte: todayStart, lt: tomorrowStart } } }) : 0;
