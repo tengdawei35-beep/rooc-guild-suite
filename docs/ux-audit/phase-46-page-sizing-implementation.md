@@ -49,3 +49,12 @@ The same geometry contract also covers platform administration, allocation and b
 - Source checks confirmed Applicants has one page owner and Call To Arms no longer introduces its own max-width container.
 - Browser visual QA, responsive viewport screenshots, and CI/build checks are pending PR validation.
 - Required browser matrix before production: 1920px, 1440px, 900px, 768px, and 390px across all routes, including loading/empty/error/populated states.
+
+## Follow-up UX pass — event results and roster workflows
+
+- Event Results archive now exposes loading and error states to assistive technology, provides a retry action, and aborts an in-flight request when the view unmounts or retries.
+- Results groups now have explicit accessible headings; screenshot links have descriptive new-tab labels, visible keyboard focus, and lazy-loaded previews.
+- Removed a redundant max-width constraint from the archive route so the shared page geometry remains the single width owner.
+- Event screenshot upload progress now uses native progressbar semantics with accessible min/max/current values.
+- Existing upload, storage, OCR, event association and permission behavior remains unchanged.
+- Browser interaction checks remain a manual preview task; automated CI and Vercel preview checks are tracked on the PR.
