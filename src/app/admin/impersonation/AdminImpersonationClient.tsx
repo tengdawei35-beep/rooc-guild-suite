@@ -2,7 +2,7 @@
 import { useState } from "react";
 
 type Guild = { id: string; name: string; gameType: string; ownerName: string | null };
-type User = { id: string; username: string; discordId: string };
+type User = { id: string; username: string; discordId: string; guildIds: string[] };
 type Session = { id: string; mode: string; role: string; guildName: string; adminName: string; targetName: string; startedAt: string; expiresAt: string; endedAt: string | null; endedReason: string | null };
 
 const control = "w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-100 outline-none focus:border-orange-500";
@@ -32,7 +32,7 @@ export default function AdminImpersonationClient({ guilds, users, sessions, init
   }
 
   const selectedGuild = guilds.find((guild) => guild.id === guildId);
-  const selectableUsers = users.filter((user) => user.id && userId !== user.id ? true : true);
+  const selectableUsers = users.filter((user) => user.guildIds.includes(guildId));
 
   return <div className="space-y-6">
     <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5 sm:p-6">
@@ -44,7 +44,7 @@ export default function AdminImpersonationClient({ guilds, users, sessions, init
           : <label className="text-sm text-zinc-300 md:col-span-2">Existing guild user<select className={control+" mt-2"} value={userId} onChange={(event) => setUserId(event.target.value)}><option value="">Select a user…</option>{selectableUsers.map((user) => <option key={user.id} value={user.id}>{user.username} · {user.discordId}</option>)}</select><span className="mt-1 block text-xs text-zinc-500">Only users with a membership in the selected guild can be impersonated.</span></label>}
       </div>
       {error && <p role="alert" className="mt-4 rounded-lg border border-red-900 bg-red-950/40 px-3 py-2 text-sm text-red-300">{error}</p>}
-      <div className="mt-5 flex flex-wrap items-center gap-3"><button type="button" disabled={busy || !guildId || (mode === "USER" && !userId) || (mode === "ROLE" && role === "ADMIN" && !selectedGuild?.ownerName)} onClick={start} className="rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-50">{busy ? "Starting…" : "Start impersonation"}</button><span className="text-xs text-zinc-500">Read and write permissions match the selected role. Sensitive platform administration and billing controls remain unavailable.</span></div>
+      <div className="mt-5 flex flex-wrap items-center gap-3"><button type="button" disabled={busy || !guildId || (mode === "USER" && (!userId || !selectableUsers.some((user) => user.id === userId))) || (mode === "ROLE" && role === "ADMIN" && !selectedGuild?.ownerName)} onClick={start} className="rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-50">{busy ? "Starting…" : "Start impersonation"}</button><span className="text-xs text-zinc-500">Read and write permissions match the selected role. Sensitive platform administration and billing controls remain unavailable.</span></div>
     </section>
 
     <section className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900">
