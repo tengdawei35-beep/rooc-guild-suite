@@ -1726,3 +1726,61 @@ body,
 .hmdl-member-profile-workspace .hmdl-profile-trend-chart svg {
   display:block;
 }
+
+
+/* Rankings — use the same HMDL pale-blue accent and dark control palette */
+.hmdl-rankings-workspace .hmdl-rankings-tabs,
+.hmdl-rankings-workspace .hmdl-rankings-table-head {
+  background:var(--hmdl-surface) !important;
+  border-color:var(--hmdl-border) !important;
+}
+.hmdl-rankings-workspace .hmdl-rankings-tab {
+  color:var(--hmdl-text-muted);
+  background:transparent;
+  box-shadow:none;
+}
+.hmdl-rankings-workspace .hmdl-rankings-tab:hover {
+  color:var(--hmdl-text);
+  background:var(--hmdl-surface-raised);
+}
+.hmdl-rankings-workspace .hmdl-rankings-tab.is-active {
+  color:var(--hmdl-text) !important;
+  background:var(--hmdl-accent) !important;
+  box-shadow:none !important;
+}
+.hmdl-rankings-workspace .hmdl-rankings-filters {
+  background:var(--hmdl-surface-muted) !important;
+  border-color:var(--hmdl-border) !important;
+}
+.hmdl-rankings-workspace .hmdl-rankings-control {
+  color-scheme:dark;
+  color:var(--hmdl-text) !important;
+  background:var(--hmdl-surface) !important;
+  border-color:var(--hmdl-border-strong) !important;
+}
+.hmdl-rankings-workspace .hmdl-rankings-control::placeholder {
+  color:var(--hmdl-text-muted) !important;
+}
+.hmdl-rankings-workspace .hmdl-rankings-control:focus-visible {
+  border-color:var(--hmdl-accent) !important;
+  outline:2px solid var(--hmdl-accent-soft);
+  outline-offset:1px;
+}
+.hmdl-rankings-workspace .hmdl-rankings-control option {
+  color:var(--hmdl-text);
+  background:var(--hmdl-surface);
+}
+.hmdl-rankings-workspace .hmdl-rankings-summary,
+.hmdl-rankings-workspace .hmdl-rankings-panel {
+  background:var(--hmdl-surface) !important;
+  border-color:var(--hmdl-border) !important;
+}
+.hmdl-rankings-workspace .hmdl-rankings-panel thead tr {
+  background:var(--hmdl-surface-muted) !important;
+}
+.hmdl-rankings-workspace .hmdl-rankings-panel tbody tr:hover {
+  background:var(--hmdl-surface-raised) !important;
+}
+.hmdl-rankings-workspace .hmdl-rankings-panel tbody tr {
+  border-color:var(--hmdl-border) !important;
+}
