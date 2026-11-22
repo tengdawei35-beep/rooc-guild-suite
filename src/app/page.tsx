@@ -9,6 +9,50 @@ import { getPlatformAdmin } from "@/lib/platform-admin";
 const DISCORD_URL = "https://discord.gg/NrT2RKnh8M";
 const SERVER_TIME_ZONE = "Asia/Bangkok";
 
+function getZonedMidnightUtc(year: number, month: number, day: number, timeZone: string) {
+  const formatter = new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  });
+  const targetUtc = Date.UTC(year, month - 1, day);
+  let guess = targetUtc;
+  // Reconcile the desired local midnight with its UTC representation. Repeating
+  // handles timezone offsets and daylight-saving transitions without a dependency.
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const parts = Object.fromEntries(formatter.formatToParts(new Date(guess)).map(part => [part.type, part.value]));
+    const representedUtc = Date.UTC(
+      Number(parts.year), Number(parts.month) - 1, Number(parts.day),
+      Number(parts.hour), Number(parts.minute), Number(parts.second),
+    );
+    guess += targetUtc - representedUtc;
+  }
+  return new Date(guess);
+}
+
+function getTodayBounds(timeZone: string, now = new Date()) {
+  const formatter = new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const parts = Object.fromEntries(formatter.formatToParts(now).map(part => [part.type, part.value]));
+  const year = Number(parts.year);
+  const month = Number(parts.month);
+  const day = Number(parts.day);
+  const tomorrow = new Date(Date.UTC(year, month - 1, day + 1));
+  return {
+    start: getZonedMidnightUtc(year, month, day, timeZone),
+    end: getZonedMidnightUtc(tomorrow.getUTCFullYear(), tomorrow.getUTCMonth() + 1, tomorrow.getUTCDate(), timeZone),
+  };
+}
+
 export default async function Home() {
   const auth = await getCurrentAuth();
   if (!auth) return <PublicLanding />;
@@ -84,9 +128,8 @@ export default async function Home() {
     </main>;
   }
 
-  const serverToday = new Intl.DateTimeFormat("en-CA", { timeZone: SERVER_TIME_ZONE, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
-  const todayStart = new Date(`${serverToday}T00:00:00+07:00`);
-  const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+  const dashboardTimeZone = guild?.timeZone || SERVER_TIME_ZONE;
+  const { start: todayStart, end: tomorrowStart } = getTodayBounds(dashboardTimeZone);
   const activeMemberCount = guild?._count.members ?? 0;
   const membersOnLeaveToday = guild ? await prisma.memberLeave.count({ where: { member: { guildId: guild.id, active: true }, date: { gte: todayStart, lt: tomorrowStart } } }) : 0;
   const availableToday = Math.max(0, activeMemberCount - membersOnLeaveToday);
