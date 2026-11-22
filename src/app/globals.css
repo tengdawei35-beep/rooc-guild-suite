@@ -1585,3 +1585,15 @@ body,
   .hmdl-user-access-workspace > .hmdl-page,
   .hmdl-calls-workspace > .hmdl-page { padding:1rem; }
 }
+
+
+/* Phase 37 — landing page hierarchy and public conversion cards */
+.hmdl-landing-page > .hmdl-page { max-width:76rem; }
+.hmdl-landing-page header { padding-bottom:1.25rem; border-bottom:1px solid var(--hmdl-border-subtle); }
+.hmdl-landing-page header > div:first-child p:first-child { color:var(--hmdl-text); letter-spacing:-.04em; }
+.hmdl-landing-page section { padding-top:clamp(4rem,9vh,7rem); padding-bottom:clamp(4rem,9vh,7rem); }
+.hmdl-landing-page section > div > p:first-child { color:var(--hmdl-accent); letter-spacing:.22em; }
+.hmdl-landing-page .grid > a { display:flex; min-height:15rem; flex-direction:column; align-items:flex-start; }
+.hmdl-landing-page .grid > a > span { margin-top:auto; color:var(--hmdl-accent); }
+.hmdl-landing-page .grid > a:focus-visible { outline:2px solid var(--hmdl-accent); outline-offset:4px; }
+.hmdl-landing-page footer { border-color:var(--hmdl-border-subtle); }
