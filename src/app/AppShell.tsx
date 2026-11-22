@@ -193,7 +193,12 @@ export default function AppShell({
           </button>
         </header>
         {mobileOpen && <div className="hmdl-mobile-navigation" id="hmdl-mobile-navigation">{navigation}</div>}
-        <main className="hmdl-shell-content">{children}</main>
+        <main className="hmdl-shell-content">
+          <div className="hmdl-page-guild-identity" aria-label={`Current guild: ${guild.name}`}>
+            <span>{guild.name}</span>
+          </div>
+          {children}
+        </main>
       </div>
     </div>
   );
