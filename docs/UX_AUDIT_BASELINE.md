@@ -291,3 +291,12 @@ The API-side permission checks remain authoritative; this change improves the af
 |---|---|---|
 | RESERVE-PERM-01 | Reservation page previously exposed Add, Bulk Add/Edit, Edit and Delete controls to users with view-only allocation permission, although mutation APIs correctly returned 403. The page now passes the role-derived `allocation.run` capability to the client; mutation controls and forms are hidden/disabled for view-only users while read access remains available. | Implemented in source; role-matrix runtime validation pending |
 | RESERVE-DELETE-01 | Reservation deletion previously had no in-flight guard or per-row progress state, allowing repeated destructive requests and giving no feedback while waiting. Deletion is now serialized with a row-specific “Deleting…” state and disabled competing edit/delete actions. | Implemented in source; runtime validation pending |
+
+
+### Phase B — reservation stock integrity
+
+| Finding | Change | Status |
+|---|---|---|
+| RESERVE-STOCK-01 | Reservation endpoints validated each individual quantity against resource stock, but did not validate the sum of all reservations for that resource. Multiple individually valid reservations could exceed stock and cause allocation preview generation to fail. Create/update now aggregate existing reservations inside a serializable transaction, serialize writes per guild/resource with a PostgreSQL transaction advisory lock, and reject requests that would exceed total stock. Duplicate member/resource checks remain enforced, and serialization conflicts return a retryable 409. | Implemented in source; CI and concurrent-request runtime validation pending |
+
+This is a server-side integrity safeguard; it does not change the allocation formula or existing reservation quantities.
