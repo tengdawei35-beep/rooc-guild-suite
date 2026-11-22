@@ -2,40 +2,54 @@
 
 **Branch:** `feature/comprehensive-ux-audit`  
 **Review type:** Source-level workflow and scalability review  
-**Status:** Findings verified in source; implementation and browser validation pending
+**Status:** Findings implemented in the current branch; automated CI and browser validation must complete before merge.
 
 ## Scope
 
-This pass follows the first implementation tranche and reviews the allocation preview/run flow, bid-page navigation, allocation history, member management and platform user administration. Findings below are limited to behavior directly visible in the current branch source. They are not claims of browser-tested usability.
+This pass reviewed allocation preview/run, bid-page navigation, allocation history, member management and platform user administration. Findings were checked against the source rather than inferred from screenshots alone.
 
-## Verified findings
+## Findings and implementation status
 
-| ID | Severity | Area | Evidence in source | User impact | Recommendation |
-|---|---|---|---|---|---|
-| HISTORY-02 | High | Allocation history | `src/app/allocation/history/page.tsx` calls `allocationRun.findMany` for the guild without `take`, `skip` or a cursor. Each run includes resource results, every member allocation result, member/resource relations and bid-page metadata. The page then builds cumulative member totals in the client by iterating all returned runs and allocation rows. | History payload, server query work, client memory and render cost grow with every allocation run and every allocation row. This is especially material because the page is a long-lived historical ledger. | Introduce stable cursor pagination for run details and calculate cumulative member totals independently with database aggregation across the full guild history. Preserve exact all-time totals; do not calculate them from only the visible page. Add explicit total/continuation context and a clear empty state. |
-| ADMIN-UX-01 | Medium | Platform user directory on narrow screens | `src/app/admin/users/AdminUsersClient.tsx` renders a table with `min-w-[1050px]` inside an `overflow-x-auto` wrapper. The directory does not provide a mobile card/list alternative in this component. | On phones and narrow tablets, users must horizontally pan a wide table to compare account and guild information; important actions/details may be off-screen. | Keep the full comparison table on desktop, but provide a compact responsive user-card/list presentation at narrow breakpoints. Retain the same affiliation counts, account details and View as this user action, with a clear Details disclosure. |
-| MEMBER-UX-01 | Medium | Member directory configuration | `src/app/guild/members/MembersClient.tsx` exposes a large set of displayable fields spanning identity, combat, target/equipment and RO3 statistics. The defaults are identity/guild fields, but the available configuration remains a long flat field inventory. | Managers configuring a routine roster view must scan many game-specific metrics even when they only need a task-specific subset. | Group the field chooser into collapsible categories and provide named presets for routine roster, combat review and profile/stat review. Preserve custom selection and persisted preferences. |
+| ID | Severity | Area | Finding | Implementation |
+|---|---|---|---|---|
+| HISTORY-02 | High | Allocation history | Historical run details were loaded without a bound, and cumulative totals were calculated in the page from all returned run records. | **Implemented:** run details are limited to 10 runs per page with stable ordering and previous/next navigation. All-time totals are calculated independently using a database `groupBy` over member/resource pairs, then resolved to guild-scoped member/resource names. Totals therefore remain all-time, not page-scoped. |
+| ADMIN-UX-01 | Medium | Platform user directory | The desktop comparison table required horizontal scrolling on narrow screens. | **Implemented:** narrow screens use responsive account cards with guild affiliations, character counts, dates and an accessible Details disclosure. The wide comparison table remains available at the desktop breakpoint. |
+| MEMBER-UX-01 | Low | Member directory configuration | The chooser had a broad field inventory. Existing source already included task presets (Overview, Roster, Combat), grouped field categories and per-user local persistence, but categories were all expanded. | **Implemented:** field groups are now collapsible using native disclosure elements. Existing presets, custom selections and local persistence are preserved. |
 
-## Areas reviewed with no new source finding in this pass
+## Reviewed areas with no additional source finding
 
-- **Bid-page type selector and pagination:** the current component exposes `aria-pressed` on Feather/Card selectors and `aria-current="page"` plus explicit accessible names on page controls. Search results identify the member, resource, type, page and slot.
-- **Allocation preview/run:** required event and explicit non-reserved member count validation are present; view-only users receive a disabled run action with explanatory copy; the run action confirms the permanent operation and reports pending/success/error states.
-- **Reservation controls:** view-only mutation controls are hidden; deletes are serialized with row-specific progress feedback; bulk reservation partial successes are retained for safe retry.
-- **Platform user data:** the directory uses server-provided pagination and aggregate counts; account details are disclosed on demand rather than expanded for every user.
+- **Bid-page type selector and pagination:** Feather/Card selectors expose `aria-pressed`; page controls expose accessible names and `aria-current`. Search results identify member, resource, type, page and slot.
+- **Allocation preview/run:** event and member-count validation, role-aware run permission, confirmation before permanent execution, and pending/success/error feedback are present.
+- **Reservation controls:** view-only mutation controls are hidden; deletion is serialized with row-specific progress feedback; bulk reservation partial successes are retained for safe retry.
+- **Platform user data:** server-side pagination and aggregate counts are present; account details are disclosed on demand.
+- **Member field preferences:** Overview, Roster and Combat presets are already present, and custom field selection is persisted per user/device.
 
-## Recommended implementation order
+## Implementation details and safeguards
 
-1. **HISTORY-02:** bound allocation-history detail queries while preserving all-time cumulative totals through a separate database aggregate.
-2. **ADMIN-UX-01:** add a narrow-screen presentation for the platform user directory without reducing desktop comparison capability.
-3. **MEMBER-UX-01:** add categorized, task-oriented field presets while preserving custom columns and existing local preferences.
+### Allocation history
+- Page size is fixed at 10 runs to bound detail payloads.
+- Ordering uses `createdAt DESC, id DESC` for deterministic pagination when timestamps match.
+- The cumulative aggregation is scoped through the allocation run's guild relation.
+- Member and resource lookups are separately scoped to the authenticated guild.
+- Empty history and empty cumulative results retain explicit empty states.
+
+### Platform users
+- Desktop retains the full comparison table.
+- Mobile cards expose the same account identity and key affiliation/activity context without requiring horizontal panning.
+- The existing shared Details panel remains the source of expanded guild/character information and impersonation navigation.
+
+### Member field chooser
+- Native `details/summary` disclosures provide keyboard-operable category expansion.
+- Existing task presets and preference persistence remain unchanged.
 
 ## Validation required before merge or production
 
-- TypeScript, lint, production build and the existing CI workflow.
-- Verify allocation history page boundaries, stable ordering, no duplicate/missing runs, and cumulative totals against the unpaginated baseline for a test guild.
-- Verify member/resource names and totals when a member or resource has historical records across many runs.
-- Test platform user directory at phone, tablet and desktop widths, including users with zero, one and many guild affiliations.
-- Test member field presets, custom selections, persistence, game-type differences and role-based stat redaction.
+- TypeScript, lint, production build and GitHub Actions CI on the final head commit.
+- Verify allocation history page boundaries, stable ordering, no duplicate/missing runs, and cumulative totals against a test fixture containing multiple runs, repeated member/resource pairs and timestamp ties.
+- Verify cumulative totals are identical when navigating between history pages.
+- Verify platform user directory at phone, tablet and desktop widths, including accounts with zero, one and many guild affiliations; test Details and View as this user.
+- Verify member presets, collapsible groups, custom selections, persistence, ROOC/RO3 differences and role-based stat redaction.
 - Keyboard and screen-reader checks for disclosures, pagination and responsive table/card alternatives.
+- Benchmark the aggregate query with representative production-sized data and inspect its query plan.
 
-No production merge or deployment is authorized by this audit pass.
+CI passing is necessary but does not replace browser-based workflow, responsive, accessibility or production-data performance validation. No production merge or deployment should occur unless the final head checks pass and the repository reports the PR as mergeable.
