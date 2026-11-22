@@ -52,7 +52,7 @@ export default async function AllocationHistoryPage() {
   if (!guild) {
     return (
       <main className="hmdl-management hmdl-history-workspace min-h-screen bg-zinc-950 text-white">
-        <div className="hmdl-page mx-auto max-w-7xl px-6 py-10">
+        <div className="hmdl-page">
 
           <div className="mt-8 rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/50 p-10 text-center">
             <h1 className="text-xl font-semibold">
@@ -127,7 +127,7 @@ export default async function AllocationHistoryPage() {
 
   return (
     <main className="hmdl-management hmdl-history-workspace min-h-screen bg-zinc-950 text-white">
-      <div className="hmdl-page mx-auto max-w-7xl px-6 py-10">
+      <div className="hmdl-page">
         {/* HEADER */}
 
         <ManagementPageHeader eyebrow="RESOURCE ALLOCATION" title="Allocation History" description="Review previous allocation runs and their results." breadcrumb={{ label: "Allocation", href: "/allocation" }} />
