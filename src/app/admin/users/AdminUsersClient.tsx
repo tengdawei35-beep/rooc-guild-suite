@@ -1,5 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
+import Link from "next/link";
 
 type UserRow = {
   id: string; discordId: string; username: string; avatarUrl: string | null;
@@ -101,7 +102,7 @@ export default function AdminUsersClient({ users }: { users: UserRow[] }) {
               <div className="flex flex-wrap items-center justify-between gap-2"><h4 className="font-medium text-zinc-100">{guild.name}</h4><span className="text-xs text-zinc-500">{guild.gameType === "RO3" ? "RO3" : "ROO Classic"}</span></div>
               <p className="mt-1 font-mono text-xs text-zinc-600">Discord guild ID: {guild.discordGuildId}</p>
               <div className="mt-3 flex flex-wrap gap-1.5">{guild.isOwner && <span className="rounded border border-amber-900/70 bg-amber-950/30 px-2 py-1 text-xs text-amber-300">Guild owner</span>}{guild.roles.map((role) => <span key={role} className="rounded border border-zinc-700 px-2 py-1 text-xs text-zinc-300">{role}</span>)}{guild.roles.length === 0 && !guild.isOwner && <span className="text-xs text-zinc-500">Roster-linked only</span>}</div>
-              <div className="mt-3 text-xs text-zinc-500">{guild.activeMemberRecords} active / {guild.memberRecords} roster records</div>
+              <div className="mt-3 text-xs text-zinc-500">{guild.activeMemberRecords} active / {guild.memberRecords} roster records</div><Link href={`/admin/impersonation?guildId=${guild.id}&userId=${user.id}`} className="mt-3 inline-flex rounded-md border border-orange-900/70 px-2.5 py-1.5 text-xs font-medium text-orange-300 hover:bg-orange-950/50">View as this user</Link>
               {guild.characters.length > 0 && <div className="mt-3 space-y-2 border-t border-zinc-800 pt-3">{guild.characters.map((character, index) => <div key={character.name + "-" + index} className="flex items-center justify-between gap-3 text-sm"><span className="text-zinc-300">{character.name}<span className="ml-2 text-xs text-zinc-500">{character.job ?? "Class not set"}</span></span><span className={character.active ? "text-xs text-emerald-400" : "text-xs text-zinc-600"}>{character.active ? "Active" : "Inactive"}</span></div>)}</div>}
             </div>)}
           </div>}
