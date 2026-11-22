@@ -23,7 +23,6 @@ export default async function AdminGuildsPage() {
       _count: {
         select: {
           members: true,
-          memberships: true,
           events: true,
         },
       },
