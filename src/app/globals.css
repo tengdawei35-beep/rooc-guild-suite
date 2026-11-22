@@ -817,3 +817,43 @@ body {
  .hmdl-event-detail > .mx-auto > section.grid > div { padding:.75rem; }
  .hmdl-event-detail > .mx-auto > section.grid > div p:last-child { font-size:1.3rem; }
 }
+
+
+/* Phase 11 — event results archive and screenshot gallery */
+.hmdl-results-archive { min-height:100vh; background:var(--hmdl-bg); color:var(--hmdl-text); }
+.hmdl-results-archive .hmdl-page { max-width:96rem; }
+.hmdl-results-archive > .hmdl-page > a { display:inline-flex; color:var(--hmdl-text-muted); font-size:.78rem; text-decoration:none; }
+.hmdl-results-archive > .hmdl-page > a:hover { color:var(--hmdl-text); }
+.hmdl-results-archive > .hmdl-page > p:not(.hmdl-empty) { color:var(--hmdl-text-muted); font-size:.82rem; }
+.hmdl-results-group { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); padding:1.15rem; }
+.hmdl-results-group > div:first-child { display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+.hmdl-results-group h2 { color:var(--hmdl-text); font-size:.98rem; font-weight:680; }
+.hmdl-results-group p { color:var(--hmdl-text-muted); font-size:.74rem; }
+.hmdl-results-open { display:inline-flex; min-height:2.25rem; align-items:center; border:1px solid var(--hmdl-border-strong); border-radius:var(--hmdl-radius-md); padding:.45rem .75rem; color:var(--hmdl-text-secondary); text-decoration:none; }
+.hmdl-results-open:hover { border-color:var(--hmdl-accent); color:var(--hmdl-text); }
+.hmdl-results-grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:.85rem; }
+.hmdl-result-image { display:block; min-width:0; overflow:hidden; border:1px solid var(--hmdl-border); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); text-decoration:none; transition:border-color 130ms ease,transform 130ms ease; }
+.hmdl-result-image:hover { border-color:var(--hmdl-border-strong); transform:translateY(-1px); }
+.hmdl-result-preview { display:block; width:100%; height:13rem; background:#080b10; object-fit:contain; }
+.hmdl-result-image > div { border-top:1px solid var(--hmdl-border); padding:.7rem .8rem; }
+.hmdl-result-image > div p:first-child { color:var(--hmdl-text-secondary); font-size:.75rem; font-weight:600; }
+.hmdl-result-image > div p:last-child { color:var(--hmdl-text-muted); font-size:.67rem; }
+.hmdl-results-loading,.hmdl-results-error { border-radius:var(--hmdl-radius-md); padding:.9rem 1rem; }
+.hmdl-results-error { border:1px solid rgb(240 120 120 / .25); background:rgb(240 120 120 / .07); color:var(--hmdl-danger); }
+.hmdl-empty { border-color:var(--hmdl-border); border-style:dashed; background:var(--hmdl-surface); color:var(--hmdl-text-muted); }
+.hmdl-event-detail .hmdl-event-results-panel { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); padding:1.15rem; }
+.hmdl-event-detail .hmdl-event-results-panel h2 { font-size:.98rem; }
+.hmdl-event-detail .hmdl-event-results-panel input[type="file"] { max-width:100%; color:var(--hmdl-text-secondary); font-size:.75rem; }
+.hmdl-event-detail .hmdl-event-results-panel input[type="file"]::file-selector-button { min-height:2.25rem; margin-right:.65rem; border:1px solid var(--hmdl-border-strong); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-raised); padding:.4rem .7rem; color:var(--hmdl-text); }
+.hmdl-event-detail .hmdl-event-results-panel button { min-height:2.35rem; border-radius:var(--hmdl-radius-md); background:var(--hmdl-accent); color:var(--hmdl-accent-contrast); font-size:.76rem; font-weight:680; }
+.hmdl-event-detail .hmdl-event-results-panel button:hover:not(:disabled) { background:var(--hmdl-accent-strong); }
+@media(max-width:850px) {
+ .hmdl-results-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media(max-width:560px) {
+ .hmdl-results-group > div:first-child { align-items:flex-start; flex-direction:column; }
+ .hmdl-results-grid { grid-template-columns:1fr; }
+ .hmdl-result-preview { height:14rem; }
+ .hmdl-results-group { padding:.9rem; }
+ .hmdl-event-detail .hmdl-event-results-panel { padding:1rem; }
+}
