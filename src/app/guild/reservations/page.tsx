@@ -41,6 +41,8 @@ export default async function ReservationsPage() {
     );
   }
 
+  const canEdit = hasPermission(auth.role, "allocation.run");
+
   const guild =
     await prisma.guild.findUnique(
       {
@@ -205,6 +207,7 @@ export default async function ReservationsPage() {
           initialReservations={
             reservations
           }
+          canEdit={canEdit}
         />
       </div>
     </main>
