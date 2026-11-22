@@ -2030,3 +2030,117 @@ body,
     padding-top: 0.875rem;
   }
 }
+
+
+/* Phase 49 — enforce one page-header contract across every authenticated route.
+   This intentionally targets the page-level H1, not section/card headings. */
+.hmdl-shell-content {
+  --hmdl-header-title-size: clamp(1.5rem, 1.8vw, 1.875rem);
+  --hmdl-header-title-line: 1.2;
+  --hmdl-header-title-weight: 680;
+  --hmdl-header-description-size: 0.875rem;
+  --hmdl-header-gap: 0.5rem;
+}
+.hmdl-shell-content h1 {
+  margin-block: 0;
+  color: var(--hmdl-text) !important;
+  font-family: var(--hmdl-font-ui, var(--font-geist-sans), Arial, sans-serif) !important;
+  font-size: var(--hmdl-header-title-size) !important;
+  font-weight: var(--hmdl-header-title-weight) !important;
+  letter-spacing: -0.035em !important;
+  line-height: var(--hmdl-header-title-line) !important;
+}
+.hmdl-shell-content h1 + p {
+  margin-block: var(--hmdl-header-gap) 0;
+  color: var(--hmdl-text-secondary) !important;
+  font-size: var(--hmdl-header-description-size) !important;
+  font-weight: 400;
+  line-height: 1.55 !important;
+}
+.hmdl-shell-content :is(header > .hmdl-eyebrow, header > div > .hmdl-eyebrow) {
+  margin: 0 0 var(--hmdl-header-gap);
+  color: var(--hmdl-text-muted) !important;
+  font-family: var(--hmdl-font-ui, var(--font-geist-sans), Arial, sans-serif);
+  font-size: 0.6875rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  line-height: 1.35 !important;
+}
+.hmdl-shell-content :is(header > a:first-child, header > div > a:first-child) {
+  color: var(--hmdl-text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+.hmdl-shell-content :is(header > a:first-child, header > div > a:first-child):hover {
+  color: var(--hmdl-accent);
+}
+.hmdl-shell-content :is(.hmdl-page, .hmdl-page > main, .hmdl-page > section) > header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  margin-block: 0 1.5rem;
+}
+.hmdl-shell-content :is(.hmdl-page, .hmdl-page > main, .hmdl-page > section) > header > :is(.flex, .inline-flex) {
+  align-self: stretch;
+}
+.hmdl-shell-content :is(.hmdl-page, .hmdl-page > main, .hmdl-page > section) > header > :is(div.flex, div.inline-flex) {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.625rem;
+}
+.hmdl-shell-content :is(.hmdl-page, .hmdl-page > main, .hmdl-page > section) > header > h1 {
+  margin-block: 0;
+}
+.hmdl-shell-content :is(.hmdl-page, .hmdl-page > main, .hmdl-page > section) > header > p + h1 {
+  margin-top: 0;
+}
+.hmdl-shell-content :is(.hmdl-page, .hmdl-page > main, .hmdl-page > section) > header > :is(p, div):has(+ h1) {
+  margin-bottom: var(--hmdl-header-gap);
+}
+.hmdl-shell-content :is(.hmdl-page, .hmdl-page > main, .hmdl-page > section) > header > :is(p, div):has(+ h1) + h1 {
+  margin-top: 0;
+}
+.hmdl-shell-content :is(.hmdl-page, .hmdl-page > main, .hmdl-page > section) > header > p:has(+ div) {
+  margin-bottom: 0.75rem;
+}
+.hmdl-shell-content :is(.hmdl-page, .hmdl-page > main, .hmdl-page > section) > header > div:has(> a, > button) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.625rem;
+}
+.hmdl-shell-content :is(.hmdl-page, .hmdl-page > main, .hmdl-page > section) > header > div:has(> a, > button) > :is(a, button) {
+  max-width: 100%;
+}
+.hmdl-shell-content .hmdl-page-title {
+  margin: 0;
+  color: var(--hmdl-text);
+  font-family: var(--hmdl-font-ui, var(--font-geist-sans), Arial, sans-serif);
+  font-size: var(--hmdl-header-title-size);
+  font-weight: var(--hmdl-header-title-weight);
+  letter-spacing: -0.035em;
+  line-height: var(--hmdl-header-title-line);
+}
+
+/* Standalone account/application flows use the same title scale without
+   inheriting the authenticated guild masthead. */
+:is(.hmdl-auth-card, .hmdl-access-card, .hmdl-page) > header > h1,
+:is(.hmdl-auth-card, .hmdl-access-card, .hmdl-page) > h1 {
+  color: var(--hmdl-text);
+  font-family: var(--hmdl-font-ui, var(--font-geist-sans), Arial, sans-serif);
+  font-size: clamp(1.5rem, 1.8vw, 1.875rem);
+  font-weight: 680;
+  letter-spacing: -0.035em;
+  line-height: 1.2;
+}
+@media (max-width: 700px) {
+  .hmdl-shell-content {
+    --hmdl-header-title-size: 1.5rem;
+    --hmdl-header-gap: 0.4375rem;
+  }
+  .hmdl-shell-content :is(.hmdl-page, .hmdl-page > main, .hmdl-page > section) > header {
+    margin-bottom: 1.25rem;
+  }
+}
