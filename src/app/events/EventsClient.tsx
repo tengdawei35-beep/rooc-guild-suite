@@ -3,6 +3,7 @@
 import Link from "next/link";
 import ManagementPageHeader from "@/app/ManagementPageHeader";
 import {
+  useCallback,
   useEffect,
   useMemo,
   useState,
@@ -142,7 +143,7 @@ export default function EventsClient({
     loadEvents();
   }, []);
 
-  async function loadConfiguredEventTypes() {
+  const loadConfiguredEventTypes = useCallback(async () => {
     setEventTypesLoading(true);
     setEventTypesError(null);
     try {
@@ -157,11 +158,11 @@ export default function EventsClient({
     } finally {
       setEventTypesLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
     void loadConfiguredEventTypes();
-  }, []);
+  }, [loadConfiguredEventTypes]);
 
   // ==========================================================
   // CREATE EVENT
