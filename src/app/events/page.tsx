@@ -34,7 +34,7 @@ export default async function EventsPage({
     <>
       <EventsClient initialView={view} />
       {canManageRo3EventTypes && (
-        <div className="mx-auto max-w-7xl px-6 pb-10">
+        <div className="hmdl-management"><div className="hmdl-page pt-0 pb-10">
           <details className="group rounded-2xl border border-zinc-800 bg-zinc-900/60">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-5 [&::-webkit-details-marker]:hidden">
               <div>
@@ -49,7 +49,7 @@ export default async function EventsPage({
               <EventTypesManager />
             </div>
           </details>
-        </div>
+        </div></div>
       )}
     </>
   );
