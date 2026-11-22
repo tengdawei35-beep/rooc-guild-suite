@@ -594,6 +594,7 @@ model Plan {
   active Boolean @default(true)
   modules PlanModule[]
   subscriptions GuildSubscription[]
+  discordSubscriptionRoleMapping DiscordSubscriptionRoleMapping?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -1014,4 +1015,17 @@ model AdminImpersonationAuditLog {
   session AdminImpersonationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   @@index([sessionId, createdAt])
   @@index([actorUserId, createdAt])
+}
+
+
+model DiscordSubscriptionRoleMapping {
+  id String @id @default(cuid())
+  planId String @unique
+  discordRoleId String @unique
+  discordRoleName String
+  enabled Boolean @default(true)
+  plan Plan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([enabled])
 }
