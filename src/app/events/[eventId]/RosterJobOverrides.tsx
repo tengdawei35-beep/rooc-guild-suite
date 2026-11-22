@@ -77,7 +77,8 @@ export default function RosterJobOverrides({
     <div className="flex min-w-0 flex-col items-start gap-1">
       <div className="flex min-w-0 items-center gap-1.5">
       <select
-        aria-label={`Roster job for ${submittedJob ?? "this member"}`}\n        value={overrideJob ?? submittedJob ?? ""}
+        aria-label={`Roster job for ${submittedJob ?? "this member"}`}
+        value={overrideJob ?? submittedJob ?? ""}
         disabled={saving}
         onChange={(event) => updateJob(event.target.value)}
         title={
@@ -115,6 +116,8 @@ export default function RosterJobOverrides({
           override
         </span>
       )}
+      </div>
+      {error && <span role="alert" className="text-[11px] text-red-400">{error}</span>}
     </div>
   );
 }
