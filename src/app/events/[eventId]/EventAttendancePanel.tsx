@@ -44,7 +44,7 @@ export default function EventAttendancePanel({ eventId }: { eventId: string }) {
         .then(async response => {
           const data = await response.json();
           if (!response.ok) throw new Error(data.error || "Unable to load attendance.");
-          if (!active) return;
+          if (!active || busyRef.current) return;
           setRows(data.attendance ?? []);
           setOwnStatus(data.ownStatus ?? null);
           setCounts(data.counts ?? { available: 0, unavailable: 0, afkBusy: 0, noResponse: 0 });
