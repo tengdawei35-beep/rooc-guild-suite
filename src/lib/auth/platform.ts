@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { createHmac, timingSafeEqual } from "crypto";
 
 import { prisma } from "@/lib/prisma";
+import { getActiveImpersonation } from "@/lib/impersonation";
 
 const PLATFORM_SESSION_COOKIE = "rooc_platform_session";
 const PLATFORM_SESSION_MAX_AGE = 60 * 60 * 24 * 30;
@@ -66,6 +67,7 @@ export async function setPlatformUserSession(userId: string) {
 }
 
 export async function getCurrentPlatformUser() {
+  if (await getActiveImpersonation()) return null;
   const cookieStore = await cookies();
   const token = cookieStore.get(PLATFORM_SESSION_COOKIE)?.value;
   if (!token) return null;

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { getActiveImpersonation } from "@/lib/impersonation";
 
 function getConfiguredAdminDiscordIds() {
   const configured =
@@ -15,7 +16,7 @@ function getConfiguredAdminDiscordIds() {
   );
 }
 
-export async function getPlatformAdmin() {
+export async function getOriginalPlatformAdmin() {
   const session = await getSession();
 
   if (!session) {
@@ -31,6 +32,11 @@ export async function getPlatformAdmin() {
   }
 
   return user;
+}
+
+export async function getPlatformAdmin() {
+  if (await getActiveImpersonation()) return null;
+  return getOriginalPlatformAdmin();
 }
 
 export async function requirePlatformAdmin() {

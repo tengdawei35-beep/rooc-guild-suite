@@ -7,6 +7,7 @@ const cards = [
   { href: "/admin/affiliates", title: "Affiliates", description: "Manage influencer referral codes, referrals, and commission activity.", label: "Referral program" },
   { href: "/admin/guilds", title: "Guilds", description: "View and manage guilds across the ROO Guild Suite platform.", label: "Platform" },
   { href: "/admin/users", title: "Users", description: "Review platform users and their guild relationships.", label: "Platform" },
+  { href: "/admin/impersonation", title: "Impersonation", description: "Preview the product as a guild owner, manager, officer, member or registered user. Review session history.", label: "Support & testing" },
   { href: "/admin/subscriptions", title: "Subscriptions", description: "Review platform-wide subscription and billing activity.", label: "Billing" },
   { href: "/admin/settings", title: "System Settings", description: "Platform-level configuration and administrative controls.", label: "Configuration" },
 ];

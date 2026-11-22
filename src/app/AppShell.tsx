@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import type { Permission, UserRole } from "@/lib/permissions";
 
@@ -15,6 +15,7 @@ type Props = {
   hasResourceSuite: boolean;
   ownMemberId: string | null;
   permissions: Permission[];
+  impersonation: { mode: "USER" | "ROLE"; role: UserRole; targetUsername: string; guildName: string; adminUsername: string; expiresAt: string } | null;
 };
 
 type NavItem = { label: string; href: string; icon: string };
@@ -36,12 +37,14 @@ export default function AppShell({
   hasResourceSuite,
   ownMemberId,
   permissions,
+  impersonation,
 }: Props) {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const isMemberPortal = role === "MEMBER";
 
-  if (PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`))) {
+  if (!impersonation && PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`))) {
     return <>{children}</>;
   }
 
@@ -114,7 +117,7 @@ export default function AppShell({
         ? [
             { label: "Guild settings", href: "/guild", icon: "⚙" },
             { label: "Discord notifications", href: "/guild/notifications", icon: "◉" },
-            { label: "Subscription", href: "/billing/new", icon: "▤" },
+            ...(!impersonation ? [{ label: "Subscription", href: "/billing/new", icon: "▤" }] : []),
           ]
         : [],
     },
@@ -199,6 +202,10 @@ export default function AppShell({
         </header>
         {mobileOpen && <div className="hmdl-mobile-navigation" id="hmdl-mobile-navigation">{navigation}</div>}
         <main className="hmdl-shell-content">
+          {impersonation && <div role="status" className="mb-5 flex flex-col gap-3 rounded-xl border border-orange-500/50 bg-orange-950/80 px-4 py-3 text-orange-100 shadow-lg sm:flex-row sm:items-center sm:justify-between">
+            <div><p className="text-xs font-bold uppercase tracking-widest text-orange-300">Impersonation mode · temporary access</p><p className="mt-1 text-sm font-semibold">Viewing {impersonation.guildName} as {impersonation.mode === "ROLE" && impersonation.role === "ADMIN" ? "Guild Owner" : impersonation.role.charAt(0) + impersonation.role.slice(1).toLowerCase()} · {impersonation.targetUsername}</p><p className="mt-1 text-xs text-orange-200/80">Original administrator: {impersonation.adminUsername} · Expires {new Date(impersonation.expiresAt).toLocaleTimeString()}</p></div>
+            <button type="button" onClick={async () => { const response = await fetch("/api/admin/impersonation", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "stop" }) }); if (response.ok) { router.replace("/admin/impersonation"); router.refresh(); } }} className="shrink-0 rounded-lg border border-orange-300/50 bg-orange-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-orange-400">Exit impersonation</button>
+          </div>}
           <div className="hmdl-page-guild-identity" aria-label={`Current guild: ${guild.name}`}>
             <span>{guild.name}</span>
           </div>
