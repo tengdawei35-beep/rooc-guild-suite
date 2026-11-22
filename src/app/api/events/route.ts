@@ -246,20 +246,28 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const cursor = url.searchParams.get("cursor");
     const pageSize = 30;
-    if (cursor && canViewEvents) {
-      const cursorEvent = await prisma.event.findFirst({
-        where: { id: cursor, guildId: auth.guild.id },
-        select: { id: true },
-      });
-      if (!cursorEvent) {
-        return NextResponse.json({ error: "The event list changed. Refresh the page and try again." }, { status: 400 });
-      }
+    const cursorEvent = cursor && canViewEvents
+      ? await prisma.event.findFirst({
+          where: { id: cursor, guildId: auth.guild.id },
+          select: { id: true, date: true, createdAt: true },
+        })
+      : null;
+    if (cursor && canViewEvents && !cursorEvent) {
+      return NextResponse.json({ error: "The event list changed. Refresh the page and try again." }, { status: 400 });
     }
 
     const eventRows = canViewEvents
       ? await prisma.event.findMany({
-          where: { guildId: auth.guild.id },
-          ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+          where: {
+            guildId: auth.guild.id,
+            ...(cursorEvent ? {
+              OR: [
+                { date: { lt: cursorEvent.date } },
+                { date: cursorEvent.date, createdAt: { lt: cursorEvent.createdAt } },
+                { date: cursorEvent.date, createdAt: cursorEvent.createdAt, id: { lt: cursorEvent.id } },
+              ],
+            } : {}),
+          },
           take: pageSize + 1,
           orderBy: [
             { date: "desc" },
