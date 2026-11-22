@@ -198,7 +198,7 @@ export default function ResourcesClient({
         <button
           type="button"
           onClick={openCreate}
-          className="rounded-lg bg-white px-5 py-3 font-medium text-black transition hover:bg-zinc-200"
+          className="rounded-lg hmdl-btn hmdl-btn-primary px-5 py-3 font-medium transition"
         >
           + Add Resource
         </button>
@@ -241,7 +241,7 @@ export default function ResourcesClient({
           <button
             type="button"
             onClick={openCreate}
-            className="mt-6 rounded-lg bg-white px-5 py-3 font-medium text-black hover:bg-zinc-200"
+            className="mt-6 rounded-lg hmdl-btn hmdl-btn-primary px-5 py-3 font-medium"
           >
             Add Resource
           </button>
@@ -677,7 +677,7 @@ function ResourceForm({
               !hardCap ||
               !quantitiesValid
             }
-            className="rounded-lg bg-white px-5 py-3 font-medium text-black hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg hmdl-btn hmdl-btn-primary px-5 py-3 font-medium disabled:cursor-not-allowed disabled:opacity-50"
           >
             {saving
               ? "Saving..."
