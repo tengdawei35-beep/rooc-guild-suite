@@ -517,6 +517,7 @@ function TypeButton({
     <button
       type="button"
       onClick={onClick}
+      aria-pressed={active}
       className={`border-b-2 px-4 py-3 text-sm font-medium transition ${
         active
           ? "border-white text-white"
@@ -563,6 +564,8 @@ function PageSelector({
             onClick={() =>
               onChange(page)
             }
+            aria-label={`Go to page ${page}`}
+            aria-current={page === currentPage ? "page" : undefined}
             className={`h-9 min-w-9 rounded-lg px-2 text-sm transition ${
               page === currentPage
                 ? "bg-white font-semibold text-black"
