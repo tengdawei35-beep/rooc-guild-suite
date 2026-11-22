@@ -336,8 +336,8 @@ export default function EventsClient({
   // ==========================================================
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white">
-      <div className="mx-auto max-w-7xl px-6 py-10">
+    <main className="hmdl-management hmdl-events-workspace min-h-screen bg-zinc-950 text-white">
+      <div className="hmdl-page mx-auto max-w-7xl px-6 py-10">
         {/* ====================================================
             HEADER
         ==================================================== */}
@@ -355,7 +355,7 @@ export default function EventsClient({
               ROO Guild Suite
             </p>
 
-            <h1 className="mt-1 text-3xl font-bold tracking-tight">
+            <h1 className="hmdl-page-title mt-1">
               {pageTitle}
             </h1>
 
@@ -370,7 +370,7 @@ export default function EventsClient({
             NAVIGATION
         ==================================================== */}
 
-        <div className="mt-6 flex flex-wrap gap-2">
+        <nav aria-label="Event operations" className="hmdl-event-tabs mt-6 flex flex-wrap gap-2">
           <Link
             href="/events"
             className={`rounded-lg border px-4 py-2 text-sm font-medium transition ${
@@ -415,7 +415,7 @@ export default function EventsClient({
                 CREATE EVENT
             ================================================== */}
 
-            <section className="mt-8 rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+            <section className="hmdl-event-create mt-8 rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
               <div>
                 <h2 className="text-lg font-semibold">
                   Create Event
