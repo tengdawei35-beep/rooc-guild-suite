@@ -247,6 +247,26 @@ export async function buildAllocation(input: AllocationInput): Promise<Allocatio
 }
 
 export function applyAllocationOverrides(preview: AllocationPreviewResult, overrides: AllocationOverride[]): AllocationPreviewResult {
+  if (!Array.isArray(overrides)) throw new Error("Allocation edits must be provided as a list.");
+
+  const knownResourceIds = new Set(preview.resources.map((resource) => resource.resourceId));
+  const seenResourceIds = new Set<string>();
+  for (const override of overrides) {
+    if (!override || typeof override.resourceId !== "string" || !override.resourceId.trim()) {
+      throw new Error("Each allocation edit must identify a resource.");
+    }
+    if (!knownResourceIds.has(override.resourceId)) {
+      throw new Error("An allocation edit references a resource that is not part of this preview.");
+    }
+    if (seenResourceIds.has(override.resourceId)) {
+      throw new Error("A resource can only appear once in the allocation edits.");
+    }
+    if (!Array.isArray(override.assignments)) {
+      throw new Error("Each resource edit must contain an assignment list.");
+    }
+    seenResourceIds.add(override.resourceId);
+  }
+
   const overrideMap = new Map(overrides.map((override) => [override.resourceId, override]));
   const resources = preview.resources.map((resource) => {
     const override = overrideMap.get(resource.resourceId);
@@ -259,6 +279,9 @@ export function applyAllocationOverrides(preview: AllocationPreviewResult, overr
     const overriddenMembers = new Set<string>();
 
     for (const item of override.assignments) {
+      if (!item || typeof item.memberId !== "string" || !item.memberId.trim()) {
+        throw new Error("Each allocation assignment must identify a member.");
+      }
       if (!Number.isInteger(item.assignedQuantity) || item.assignedQuantity < 0) throw new Error(`Invalid allocation amount for ${item.memberId}.`);
       if (overriddenMembers.has(item.memberId)) throw new Error(`A member cannot be assigned more than once to ${resource.resourceName}.`);
       overriddenMembers.add(item.memberId);
