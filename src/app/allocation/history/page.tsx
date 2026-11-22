@@ -130,7 +130,7 @@ export default async function AllocationHistoryPage() {
       <div className="hmdl-page">
         {/* HEADER */}
 
-        <ManagementPageHeader eyebrow="RESOURCE ALLOCATION" title="Allocation History" description="Review previous allocation runs and their results." breadcrumb={{ label: "Allocation", href: "/allocation" }} />
+        <ManagementPageHeader eyebrow="RESOURCE ALLOCATION" title="Allocation History" description="Review previous allocation runs and their results." />
 
         {/* NO RUNS */}
 
