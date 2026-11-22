@@ -125,8 +125,8 @@ export default function RankingsClient() {
   }, [data, search, jobFilter, statusFilter, category]);
 
   return (
-    <main className="hmdl-management hmdl-rankings-workspace min-h-screen bg-[#0b0b0b] px-4 py-6 text-gray-100 md:px-6">
-      <div className="mx-auto max-w-7xl">
+    <main className="hmdl-management hmdl-rankings-workspace min-h-screen bg-[#0b0b0b] text-gray-100">
+      <div className="hmdl-page">
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-white md:text-3xl">
