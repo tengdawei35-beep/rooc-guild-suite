@@ -283,3 +283,11 @@ These changes reduce avoidable duplicate requests and prevent a periodic attenda
 | ALLOC-PERM-01 | The allocation preview API already distinguished `allocation.view` from `allocation.run`, and the run API independently enforced `allocation.run`. The preview UI nevertheless left the Run Allocation button enabled for view-only users, inviting a predictable 403. The button is now disabled without run permission and the page explains that the preview is view-only. Event and member-count controls also have explicit accessible names. | Implemented in source; role-matrix runtime validation pending |
 
 The API-side permission checks remain authoritative; this change improves the affordance and avoids inviting an action the current role cannot perform.
+
+
+### Phase B — reservation permission and destructive-action feedback
+
+| Finding | Change | Status |
+|---|---|---|
+| RESERVE-PERM-01 | Reservation page previously exposed Add, Bulk Add/Edit, Edit and Delete controls to users with view-only allocation permission, although mutation APIs correctly returned 403. The page now passes the role-derived `allocation.run` capability to the client; mutation controls and forms are hidden/disabled for view-only users while read access remains available. | Implemented in source; role-matrix runtime validation pending |
+| RESERVE-DELETE-01 | Reservation deletion previously had no in-flight guard or per-row progress state, allowing repeated destructive requests and giving no feedback while waiting. Deletion is now serialized with a row-specific “Deleting…” state and disabled competing edit/delete actions. | Implemented in source; runtime validation pending |
