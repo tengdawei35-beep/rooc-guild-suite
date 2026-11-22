@@ -1680,3 +1680,49 @@ body,
 .hmdl-management .hmdl-job-composition-bar { background:var(--hmdl-accent) !important; }
 .hmdl-management .hmdl-job-composition-row .group-hover\\:text-white { color:var(--hmdl-text) !important; }
 .hmdl-management .hmdl-job-composition-row .text-gray-600 { color:var(--hmdl-text-muted) !important; }
+
+
+/* Phase 44 — member directory filter and member profile visual consistency */
+.hmdl-member-directory-workspace .hmdl-member-filter-control {
+  color-scheme:dark;
+  background:var(--hmdl-surface-muted) !important;
+  border-color:var(--hmdl-border-strong) !important;
+  color:var(--hmdl-text) !important;
+}
+.hmdl-member-directory-workspace .hmdl-member-filter-control:focus-visible {
+  border-color:var(--hmdl-accent) !important;
+  outline:2px solid var(--hmdl-accent-soft);
+  outline-offset:1px;
+}
+.hmdl-member-directory-workspace .hmdl-member-filter-control option {
+  background:var(--hmdl-surface);
+  color:var(--hmdl-text);
+}
+.hmdl-member-profile-workspace .hmdl-profile-trend-chart,
+.hmdl-member-profile-workspace .hmdl-profile-snapshot {
+  background:var(--hmdl-surface) !important;
+  border-color:var(--hmdl-border) !important;
+}
+.hmdl-member-profile-workspace .hmdl-profile-trend-line {
+  stroke:var(--hmdl-accent);
+  color:var(--hmdl-accent);
+}
+.hmdl-member-profile-workspace .hmdl-profile-trend-point {
+  fill:var(--hmdl-accent);
+}
+.hmdl-member-profile-workspace .hmdl-profile-info-grid {
+  background:var(--hmdl-border) !important;
+  border-color:var(--hmdl-border) !important;
+}
+.hmdl-member-profile-workspace .hmdl-profile-info-grid > div {
+  background:var(--hmdl-surface) !important;
+}
+.hmdl-member-profile-workspace .hmdl-profile-info-grid > div > div:first-child {
+  color:var(--hmdl-text-muted);
+}
+.hmdl-member-profile-workspace .hmdl-profile-info-grid > div > div:last-child {
+  color:var(--hmdl-text-secondary);
+}
+.hmdl-member-profile-workspace .hmdl-profile-trend-chart svg {
+  display:block;
+}
