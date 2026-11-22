@@ -286,30 +286,30 @@ export default async function AllocationHistoryPage() {
                     </h3>
 
                     <div className="mt-3 overflow-x-auto">
-                      <table className="w-full text-left text-sm">
+                      <table aria-label="Resource results for this allocation" className="w-full text-left text-sm">
                         <thead>
                           <tr className="border-b border-zinc-800 text-zinc-500">
-                            <th className="px-3 py-3 font-medium">
+                            <th scope="col" className="px-3 py-3 font-medium">
                               Resource
                             </th>
 
-                            <th className="px-3 py-3 font-medium">
+                            <th scope="col" className="px-3 py-3 font-medium">
                               Type
                             </th>
 
-                            <th className="px-3 py-3 font-medium">
+                            <th scope="col" className="px-3 py-3 font-medium">
                               Total
                             </th>
 
-                            <th className="px-3 py-3 font-medium">
+                            <th scope="col" className="px-3 py-3 font-medium">
                               Reserved
                             </th>
 
-                            <th className="px-3 py-3 font-medium">
+                            <th scope="col" className="px-3 py-3 font-medium">
                               Allocated
                             </th>
 
-                            <th className="px-3 py-3 font-medium">
+                            <th scope="col" className="px-3 py-3 font-medium">
                               Overflow
                             </th>
                           </tr>
@@ -396,26 +396,26 @@ export default async function AllocationHistoryPage() {
                       </p>
                     ) : (
                       <div className="mt-3 overflow-x-auto">
-                        <table className="w-full text-left text-sm">
+                        <table aria-label="Member allocations for this run" className="w-full text-left text-sm">
                           <thead>
                             <tr className="border-b border-zinc-800 text-zinc-500">
-                              <th className="px-3 py-3 font-medium">
+                              <th scope="col" className="px-3 py-3 font-medium">
                                 Member
                               </th>
 
-                              <th className="px-3 py-3 font-medium">
+                              <th scope="col" className="px-3 py-3 font-medium">
                                 Resource
                               </th>
 
-                              <th className="px-3 py-3 font-medium">
+                              <th scope="col" className="px-3 py-3 font-medium">
                                 Reserved
                               </th>
 
-                              <th className="px-3 py-3 font-medium">
+                              <th scope="col" className="px-3 py-3 font-medium">
                                 Additional
                               </th>
 
-                              <th className="px-3 py-3 font-medium">
+                              <th scope="col" className="px-3 py-3 font-medium">
                                 Total
                               </th>
                             </tr>
@@ -558,8 +558,8 @@ export default async function AllocationHistoryPage() {
               const resourceNames = Array.from(new Set(runs.flatMap((run) => run.resourceResults.map((result) => result.resource.name)))).sort((a, b) => a.localeCompare(b));
               return rows.length === 0 ? <p className="mt-4 text-sm text-zinc-600">No member allocations were recorded.</p> : (
                 <div className="mt-4 overflow-x-auto">
-                  <table className="w-full text-left text-sm">
-                    <thead><tr className="border-b border-zinc-800 text-zinc-500"><th className="px-3 py-3 font-medium">Member</th>{resourceNames.map((name) => <th key={name} className="px-3 py-3 font-medium">{name}</th>)}<th className="px-3 py-3 font-medium">Total</th></tr></thead>
+                  <table aria-label="Allocation totals by member and resource" className="w-full text-left text-sm">
+                    <thead><tr className="border-b border-zinc-800 text-zinc-500"><th scope="col" className="px-3 py-3 font-medium">Member</th>{resourceNames.map((name) => <th key={name} scope="col" className="px-3 py-3 font-medium">{name}</th>)}<th scope="col" className="px-3 py-3 font-medium">Total</th></tr></thead>
                     <tbody>{rows.map((row) => <tr key={row.name} className="border-b border-zinc-900 last:border-0"><td className="px-3 py-3 font-medium text-white">{row.name}</td>{resourceNames.map((name) => <td key={name} className="px-3 py-3 text-zinc-400">{row.resources.get(name) ?? 0}</td>)}<td className="px-3 py-3 font-semibold">{row.total}</td></tr>)}</tbody>
                   </table>
                 </div>
