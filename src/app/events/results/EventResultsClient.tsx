@@ -16,6 +16,10 @@ export default function EventResultsClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [loadMoreError, setLoadMoreError] = useState("");
 
   useEffect(() => {
     const controller = new AbortController();
@@ -27,6 +31,8 @@ export default function EventResultsClient() {
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Unable to load event results.");
         setGroups(data.results ?? []);
+        setNextCursor(data.nextCursor ?? null);
+        setHasMore(Boolean(data.hasMore));
       } catch (e) {
         if (controller.signal.aborted) return;
         setError(e instanceof Error ? e.message : "Unable to load event results.");
@@ -37,6 +43,24 @@ export default function EventResultsClient() {
     void load();
     return () => controller.abort();
   }, [reloadKey]);
+
+  async function loadMore() {
+    if (!nextCursor || loadingMore) return;
+    setLoadingMore(true);
+    setLoadMoreError("");
+    try {
+      const response = await fetch("/api/events/results?cursor=" + encodeURIComponent(nextCursor), { cache: "no-store" });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Unable to load more event results.");
+      setGroups((current) => [...current, ...(data.results ?? [])]);
+      setNextCursor(data.nextCursor ?? null);
+      setHasMore(Boolean(data.hasMore));
+    } catch (e) {
+      setLoadMoreError(e instanceof Error ? e.message : "Unable to load more event results.");
+    } finally {
+      setLoadingMore(false);
+    }
+  }
 
   if (loading) return <p className="hmdl-results-loading mt-8 text-sm text-zinc-500" role="status" aria-live="polite">Loading event results…</p>;
   if (error) return (
@@ -88,6 +112,12 @@ export default function EventResultsClient() {
           </section>
         );
       })}
+      {hasMore && <div className="flex flex-col items-center gap-2 pt-2">
+        {loadMoreError && <p role="alert" className="text-sm text-red-300">{loadMoreError}</p>}
+        <button type="button" onClick={loadMore} disabled={loadingMore} className="hmdl-btn rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-200 transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50">
+          {loadingMore ? "Loading more events…" : loadMoreError ? "Retry loading events" : "Load more events"}
+        </button>
+      </div>}
     </div>
   );
 }
