@@ -108,7 +108,7 @@ export default async function PricingPage() {
                   <div className="flex items-start justify-between gap-5">
                     <div>
                       <h2 className="text-2xl font-semibold">{plan.name}</h2>
-                      {total && <span className="mt-2 inline-flex rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-black">Everything included</span>}
+                      {total && <span className="mt-2 inline-flex rounded-full hmdl-btn hmdl-btn-primary px-2.5 py-1 text-xs font-semibold">Everything included</span>}
                     </div>
                     <div className="text-right">
                       <p className="text-2xl font-bold">{formatPrice(monthlyPrice, plan.currency)}</p>
