@@ -1897,3 +1897,53 @@ body,
 ) .hmdl-page {
   max-width: var(--hmdl-page-max-wide);
 }
+
+
+/* Phase 46 — route families that still use legacy direct max-width wrappers. */
+.hmdl-platform-admin-workspace .hmdl-page,
+.hmdl-affiliate-workspace > .mx-auto {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--hmdl-page-max-standard);
+  margin-inline: auto;
+  padding: var(--hmdl-page-space-block) var(--hmdl-page-gutter);
+}
+.hmdl-management.hmdl-management:is(.hmdl-guild-settings-workspace,.hmdl-guild-config-workspace,.hmdl-member-profile-workspace) .hmdl-page {
+  max-width: var(--hmdl-page-max-narrow);
+}
+.hmdl-management.hmdl-management:is(.hmdl-rankings-workspace,.hmdl-insights-workspace,.hmdl-resources-workspace) > .mx-auto,
+.hmdl-management.hmdl-management .hmdl-insights-workspace > .mx-auto,
+.hmdl-management.hmdl-management .hmdl-resources-workspace > .mx-auto {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--hmdl-page-max-wide);
+  margin-inline: auto;
+  padding: var(--hmdl-page-space-block) var(--hmdl-page-gutter);
+}
+.hmdl-member-profile-workspace > .mx-auto {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--hmdl-page-max-narrow);
+  margin-inline: auto;
+  padding: var(--hmdl-page-space-block) var(--hmdl-page-gutter);
+}
+.hmdl-bid-pages-workspace > .mx-auto,
+.hmdl-member-bid-pages > .mx-auto {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--hmdl-page-max-wide);
+  margin-inline: auto;
+  padding: var(--hmdl-page-space-block) var(--hmdl-page-gutter);
+}
+.hmdl-affiliate-workspace > .mx-auto {
+  max-width: var(--hmdl-page-max-standard);
+}
+@media (max-width: 700px) {
+  .hmdl-platform-admin-workspace .hmdl-page,
+  .hmdl-affiliate-workspace > .mx-auto,
+  .hmdl-member-profile-workspace > .mx-auto,
+  .hmdl-bid-pages-workspace > .mx-auto,
+  .hmdl-member-bid-pages > .mx-auto {
+    padding: 1.25rem 1rem;
+  }
+}
