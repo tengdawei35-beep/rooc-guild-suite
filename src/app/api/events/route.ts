@@ -195,7 +195,7 @@ function validateEventDate(
 // GET EVENTS + PREFERRED ROSTERS
 // =============================================================
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const auth =
       await getCurrentAuth();
@@ -243,46 +243,43 @@ export async function GET() {
     // EVENTS
     // ---------------------------------------------------------
 
-    const events =
-      canViewEvents
-        ? await prisma.event.findMany(
-            {
-              where: {
-                guildId:
-                  auth.guild.id,
+    const url = new URL(request.url);
+    const cursor = url.searchParams.get("cursor");
+    const pageSize = 30;
+    if (cursor && canViewEvents) {
+      const cursorEvent = await prisma.event.findFirst({
+        where: { id: cursor, guildId: auth.guild.id },
+        select: { id: true },
+      });
+      if (!cursorEvent) {
+        return NextResponse.json({ error: "The event list changed. Refresh the page and try again." }, { status: 400 });
+      }
+    }
+
+    const eventRows = canViewEvents
+      ? await prisma.event.findMany({
+          where: { guildId: auth.guild.id },
+          ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+          take: pageSize + 1,
+          orderBy: [
+            { date: "desc" },
+            { createdAt: "desc" },
+            { id: "desc" },
+          ],
+          include: {
+            _count: {
+              select: {
+                participations: true,
+                rosters: true,
+                allocationRuns: true,
               },
-
-              orderBy: [
-                {
-                  date: "desc",
-                },
-                {
-                  createdAt:
-                    "desc",
-                },
-              ],
-
-              include: {
-                _count: {
-                  select: {
-                    participations:
-                      true,
-
-                    rosters:
-                      true,
-
-                    allocationRuns:
-                      true,
-                  },
-                },
-              },
-            }
-          )
-        : [];
-
-    // ---------------------------------------------------------
-    // PREFERRED ROSTERS
-    // ---------------------------------------------------------
+            },
+          },
+        })
+      : [];
+    const hasMoreEvents = eventRows.length > pageSize;
+    const events = eventRows.slice(0, pageSize);
+    const nextCursor = hasMoreEvents ? events[events.length - 1]?.id ?? null : null;
 
     const preferredRosters =
       canViewRosters
@@ -315,6 +312,7 @@ export async function GET() {
         : [];
 
     return NextResponse.json({
+      nextCursor,
       events:
         events.map(
           (event) => ({
