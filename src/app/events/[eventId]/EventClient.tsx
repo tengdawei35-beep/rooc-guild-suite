@@ -1296,7 +1296,7 @@ async function loadPreferredRoster() {
             {canEditRosters && (
               <div className="flex flex-wrap gap-3">
                 {data.event.type === "RO3_CUSTOM" ? (
-                  <button type="button" onClick={createManualRoster} disabled={creatingManualRoster} className="rounded-lg bg-white px-5 py-2.5 text-sm font-medium text-black transition hover:bg-zinc-200 disabled:cursor-wait disabled:opacity-50">
+                  <button type="button" onClick={createManualRoster} disabled={creatingManualRoster} className="hmdl-btn hmdl-btn-primary rounded-lg px-5 py-2.5 text-sm font-medium transition disabled:cursor-wait disabled:opacity-50">
                     {creatingManualRoster ? "Creating..." : "Create Manual Roster"}
                   </button>
                 ) : (
@@ -1338,7 +1338,7 @@ async function loadPreferredRoster() {
                     generatingRoster ||
                     loadingPreferred
                   }
-                  className="rounded-lg bg-white px-5 py-2.5 text-sm font-medium text-black transition hover:bg-zinc-200 disabled:cursor-wait disabled:opacity-50"
+                  className="hmdl-btn hmdl-btn-primary rounded-lg px-5 py-2.5 text-sm font-medium transition disabled:cursor-wait disabled:opacity-50"
                 >
                   {generatingRoster
                     ? "Generating..."
