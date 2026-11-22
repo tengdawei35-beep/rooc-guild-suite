@@ -262,7 +262,7 @@ export async function GET(request: Request) {
       prisma.guildMember.count({ where }),
       prisma.guildMember.findMany({
         where,
-        include: { leaveDates: { orderBy: { date: "asc" } } },
+        
         orderBy: [orderBy, { characterName: "asc" }, { id: "asc" }],
         skip: (page - 1) * pageSize,
         take: pageSize,
