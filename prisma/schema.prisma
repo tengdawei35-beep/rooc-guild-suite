@@ -947,3 +947,13 @@ model EventResultImage {
   @@index([guildId, createdAt])
   @@index([eventId])
 }
+
+
+model GuildOnboardingProgress {
+  id String @id @default(cuid())
+  guildId String @unique
+  dismissedAt DateTime?
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
