@@ -31,7 +31,7 @@ export default async function Home() {
     });
 
     return <main className="hmdl-member-home">
-      <div className="hmdl-member-page">
+      <div className="hmdl-member-page">\n        <RoleOnboarding />
         <header className="hmdl-member-welcome">
           <div>
             <p className="hmdl-eyebrow">MEMBER PORTAL</p>
