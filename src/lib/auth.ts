@@ -52,6 +52,7 @@ async function getCurrentMembership() {
   if (!session) return null;
 
   if (impersonation) {
+    if (session.userId !== impersonation.adminUserId) return null;
     if (impersonation.mode === "USER") {
       return prisma.guildMembership.findUnique({
         where: { userId_guildId: { userId: impersonation.targetUserId, guildId: impersonation.guildId } },
