@@ -429,14 +429,14 @@ export default function EventsClient({
                 <div className="grid gap-5 lg:grid-cols-3">
                   {/* EVENT TYPE */}
                   <div>
-                    <label htmlFor="eventType" className="block text-sm font-medium text-zinc-300">Event Type</label>
+                    <label htmlFor="eventType" className="hmdl-label">Event Type</label>
                     {isRo3 ? (
-                      <select id="eventType" value={selectedGuildEventTypeId} onChange={event => { setSelectedGuildEventTypeId(event.target.value); setSelectedRo3EventTypeId(""); setError(null); }} disabled={creating} className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-zinc-400 disabled:opacity-50">
+                      <select id="eventType" value={selectedGuildEventTypeId} onChange={event => { setSelectedGuildEventTypeId(event.target.value); setSelectedRo3EventTypeId(""); setError(null); }} disabled={creating} className="hmdl-field mt-2">
                         <option value="">Select configured event type</option>
                         {customEventTypes.map(item => <option key={item.id} value={item.id}>{item.name} · {item.startTime}</option>)}
                       </select>
                     ) : (
-                      <select id="eventType" value={form.type} onChange={event => { setForm({ ...form, type: event.target.value as EventType }); setError(null); setSuccess(null); }} disabled={creating} className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-zinc-400 disabled:opacity-50">
+                      <select id="eventType" value={form.type} onChange={event => { setForm({ ...form, type: event.target.value as EventType }); setError(null); setSuccess(null); }} disabled={creating} className="hmdl-field mt-2">
                         <option value="GUILD_LEAGUE">Guild League</option>
                         <option value="EMPERIUM_OVERRUN">Emperium Overrun</option>
                       </select>
@@ -445,7 +445,7 @@ export default function EventsClient({
                   {isRo3 && selectedGuildEventTypeId && resourceEventTypes.some(item => item.guildEventTypeId === selectedGuildEventTypeId) && (
                     <div>
                       <label htmlFor="ro3EventType" className="block text-sm font-medium text-zinc-300">Resource Reward Configuration</label>
-                      <select id="ro3EventType" value={selectedRo3EventTypeId} onChange={event => setSelectedRo3EventTypeId(event.target.value)} disabled={creating} className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none focus:border-zinc-400 disabled:opacity-50">
+                      <select id="ro3EventType" value={selectedRo3EventTypeId} onChange={event => setSelectedRo3EventTypeId(event.target.value)} disabled={creating} className="hmdl-field mt-2">
                         <option value="">Not linked to Resources</option>
                         {resourceEventTypes.filter(item => item.guildEventTypeId === selectedGuildEventTypeId).map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
                       </select>
@@ -457,7 +457,7 @@ export default function EventsClient({
                   <div>
                     <label
                       htmlFor="eventDate"
-                      className="block text-sm font-medium text-zinc-300"
+                      className="hmdl-label"
                     >
                       Date
                     </label>
@@ -478,7 +478,7 @@ export default function EventsClient({
                         setSuccess(null);
                       }}
                       disabled={creating}
-                      className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-zinc-400 disabled:opacity-50"
+                      className="hmdl-field mt-2"
                     />
 
                     {!isRo3 && <p className="mt-2 text-xs text-zinc-600">{getScheduleDescription(form.type)}</p>}
@@ -494,7 +494,7 @@ export default function EventsClient({
                         !form.date ||
                         (isRo3 && !selectedGuildEventTypeId)
                       }
-                      className="w-full hmdl-btn hmdl-btn-primary rounded-lg px-5 py-3 font-medium transition disabled:cursor-not-allowed disabled:opacity-50"
+                      className="hmdl-btn hmdl-btn-primary w-full disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {creating
                         ? "Creating..."

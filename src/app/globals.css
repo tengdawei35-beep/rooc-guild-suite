@@ -1784,3 +1784,31 @@ body,
 .hmdl-rankings-workspace .hmdl-rankings-panel tbody tr {
   border-color:var(--hmdl-border) !important;
 }
+
+
+/* Phase 44 — consistent reservation controls and narrow-screen bulk editing */
+.hmdl-reservations-workspace .hmdl-reservation-bulk-header,
+.hmdl-reservations-workspace .hmdl-reservation-bulk-row {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 8.75rem 6rem;
+  align-items:center;
+  gap:.75rem;
+}
+.hmdl-reservations-workspace .hmdl-reservation-bulk-row:last-child { border-bottom:0; }
+.hmdl-reservations-workspace .hmdl-reservation-quantity { min-width:0; }
+.hmdl-reservations-workspace .hmdl-table-wrap { margin-top:.25rem; }
+@media(max-width:640px) {
+  .hmdl-reservations-workspace .hmdl-reservation-bulk-header { display:none; }
+  .hmdl-reservations-workspace .hmdl-reservation-bulk-row {
+    grid-template-columns:minmax(0,1fr) 7rem;
+    gap:.45rem .75rem;
+    padding:.75rem;
+  }
+  .hmdl-reservations-workspace .hmdl-reservation-bulk-row > div { overflow-wrap:anywhere; }
+  .hmdl-reservations-workspace .hmdl-reservation-bulk-status {
+    grid-column:1 / -1;
+    text-align:left;
+    min-height:.9rem;
+  }
+  .hmdl-reservations-workspace .hmdl-reservation-bulk-list { max-height:60vh; }
+}
