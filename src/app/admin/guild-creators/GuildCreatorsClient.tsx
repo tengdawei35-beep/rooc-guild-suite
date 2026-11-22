@@ -125,7 +125,7 @@ export default function GuildCreatorsClient({
           <input value={discordUsername} onChange={(event) => setDiscordUsername(event.target.value)} placeholder="Discord username" className={inputClass} required />
           <label className="text-xs text-zinc-400">Max guilds<input value={maxGuilds} onChange={(event) => setMaxGuilds(event.target.value)} type="number" min="1" className={`mt-1 w-full ${inputClass}`} required /></label>
           <label className="text-xs text-zinc-400">Free duration (months)<input value={freeMonths} onChange={(event) => setFreeMonths(event.target.value)} type="number" min="1" className={`mt-1 w-full ${inputClass}`} required /></label>
-          <button disabled={saving} className="rounded-lg bg-white px-5 py-2 text-sm font-medium text-black disabled:opacity-50">{saving ? "Adding…" : "Add"}</button>
+          <button disabled={saving} className="rounded-lg hmdl-btn hmdl-btn-primary px-5 py-2 text-sm font-medium disabled:opacity-50">{saving ? "Adding…" : "Add"}</button>
         </div>
         <p className="mt-3 text-xs text-zinc-500">The duration applies when this creator provisions a complimentary guild subscription.</p>
         {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
@@ -144,7 +144,7 @@ export default function GuildCreatorsClient({
           {guilds.length === 0 ? <p className="px-5 py-8 text-center text-sm text-zinc-500">No guilds configured.</p> : guilds.map((guild) => (
             <div key={guild.id} className="flex flex-col gap-4 px-5 py-4 md:flex-row md:items-center md:justify-between">
               <div><p className="font-medium">{guild.name}</p><p className="mt-1 text-xs text-zinc-500">{guild.discordGuildId} • {accessLabel(guild)}</p></div>
-              <button disabled={grantingGuildId === guild.id || !selectedPlan} onClick={() => void grantAccess(guild)} className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black disabled:cursor-not-allowed disabled:opacity-50">{grantingGuildId === guild.id ? "Applying…" : guild.provider === "complimentary" ? "Grant / Extend" : "Grant complimentary"}</button>
+              <button disabled={grantingGuildId === guild.id || !selectedPlan} onClick={() => void grantAccess(guild)} className="rounded-lg hmdl-btn hmdl-btn-primary px-4 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50">{grantingGuildId === guild.id ? "Applying…" : guild.provider === "complimentary" ? "Grant / Extend" : "Grant complimentary"}</button>
             </div>
           ))}
         </div>
