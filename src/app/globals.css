@@ -931,3 +931,15 @@ body {
 .hmdl-history-workspace th { color:var(--hmdl-text-muted); font-size:.67rem; font-weight:680; text-transform:uppercase; letter-spacing:.05em; }
 .hmdl-history-workspace td { color:var(--hmdl-text-secondary); font-size:.76rem; }
 @media(max-width:700px) { .hmdl-reservations-workspace > .hmdl-page,.hmdl-history-workspace > .hmdl-page { padding:1rem; } }
+
+/* Phase 15 — guild insights and performance reporting */
+.hmdl-insights-workspace { min-height:100vh; background:var(--hmdl-bg); color:var(--hmdl-text); }
+.hmdl-insights-workspace > .hmdl-page { width:100%; max-width:96rem; }
+.hmdl-insights-workspace h1 { color:var(--hmdl-text); font-size:clamp(1.6rem,2.5vw,2.1rem); font-weight:690; letter-spacing:-.04em; }
+.hmdl-insights-workspace h2 { color:var(--hmdl-text); font-weight:680; }
+.hmdl-insights-workspace p { color:var(--hmdl-text-muted); }
+.hmdl-insights-workspace .rounded-2xl.border,.hmdl-insights-workspace .rounded-xl.border { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); }
+.hmdl-insights-workspace button,.hmdl-insights-workspace select { border-radius:var(--hmdl-radius-md); }
+.hmdl-insights-workspace table { border-collapse:collapse; }
+.hmdl-insights-workspace th { color:var(--hmdl-text-muted); font-size:.67rem; font-weight:680; text-transform:uppercase; letter-spacing:.05em; }
+.hmdl-insights-workspace td { color:var(--hmdl-text-secondary); font-size:.76rem; }
