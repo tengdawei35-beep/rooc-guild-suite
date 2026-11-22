@@ -29,6 +29,7 @@ enum UserRole {
 enum ResourceType {
   FEATHER
   CARD
+  ASTROCORE
 }
 
 enum AllocationRunStatus {
@@ -40,6 +41,7 @@ enum AllocationRunStatus {
 enum BidPageType {
   FEATHER
   CARD
+  ASTROCORE
 }
 
 enum EventType {

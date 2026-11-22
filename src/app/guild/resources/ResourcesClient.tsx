@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-type ResourceType = "FEATHER" | "CARD";
+type ResourceType = "FEATHER" | "CARD" | "ASTROCORE";
 
 type Resource = {
   id: string;
@@ -17,6 +17,7 @@ type Resource = {
 const RESOURCE_TYPES: ResourceType[] = [
   "FEATHER",
   "CARD",
+  "ASTROCORE",
 ];
 
 const RESOURCE_TYPE_LABELS: Record<
@@ -25,6 +26,7 @@ const RESOURCE_TYPE_LABELS: Record<
 > = {
   FEATHER: "Feather",
   CARD: "Card",
+  ASTROCORE: "Astrocore",
 };
 
 export default function ResourcesClient({

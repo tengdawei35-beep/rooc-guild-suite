@@ -221,6 +221,8 @@ export default async function AllocationHistoryPage({ searchParams }: { searchPa
                     page.type === "CARD"
                 ).length;
 
+              const astrocorePages = run.bidPages.filter((page) => page.type === "ASTROCORE").length;
+
               const hasBidPages =
                 run.bidPages.length > 0;
 
@@ -549,6 +551,9 @@ export default async function AllocationHistoryPage({ searchParams }: { searchPa
                               1
                                 ? "Page"
                                 : "Pages"}
+                            </span>
+                            <span className="rounded-full border border-zinc-700 bg-zinc-950 px-3 py-1 text-xs text-zinc-400">
+                              {astrocorePages} Astrocore {astrocorePages === 1 ? "Page" : "Pages"}
                             </span>
                           </div>
                         ) : (

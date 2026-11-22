@@ -7,7 +7,7 @@ export type AllocationPreviewReservation = {
 export type AllocationPreviewResource = {
   resourceId: string;
   resourceName: string;
-  type: "FEATHER" | "CARD";
+  type: "FEATHER" | "CARD" | "ASTROCORE";
   total: number;
   reserved: number;
   available: number;
