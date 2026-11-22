@@ -216,7 +216,6 @@ export default function MembersClient({ initialMembers, gameType }: { initialMem
   const [leaveDate, setLeaveDate] = useState("");
   const [leaveReason, setLeaveReason] = useState("");
   const [leaveSaving, setLeaveSaving] = useState(false);
-  const canViewMembers = userRole !== null && hasPermission(userRole, "members.view");
   const canManageMembers = userRole !== null && hasPermission(userRole, "members.edit");
   const canImportMembers = userRole !== null && hasPermission(userRole, "members.import");
   const canDeleteMembers = userRole !== null && hasPermission(userRole, "members.delete");
