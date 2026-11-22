@@ -1069,7 +1069,7 @@ body {
 
 
 /* Phase 26 — affiliate program administration */
-.hmdl-platform-admin-workspace .hmdl-affiliate-workspace { width:100%; max-width:88rem; margin-inline:auto; padding:2.5rem 1.5rem; }
+.hmdl-platform-admin-workspace .hmdl-affiliate-workspace { width:auto; max-width:none; margin:0; padding:0; }
 .hmdl-platform-admin-workspace .hmdl-affiliate-workspace h1 { color:var(--hmdl-text); font-size:clamp(1.6rem,2.5vw,2.1rem); font-weight:700; letter-spacing:-.045em; }
 .hmdl-platform-admin-workspace .hmdl-affiliate-workspace h2,.hmdl-platform-admin-workspace .hmdl-affiliate-workspace h3 { color:var(--hmdl-text); font-weight:680; }
 .hmdl-platform-admin-workspace .hmdl-affiliate-workspace p { color:var(--hmdl-text-muted); }
