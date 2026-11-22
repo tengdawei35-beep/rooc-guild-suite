@@ -65,7 +65,24 @@ export default function NotificationsForm() {
     } catch (err) { setError(err instanceof Error ? err.message : "Test failed."); }
   }
 
-  return <div className="space-y-6">
+  return <div className="space-y-6">\n    <details className="rounded-xl border border-indigo-900/60 bg-indigo-950/20 p-5">
+      <summary className="cursor-pointer list-none font-semibold text-indigo-100"><span className="mr-2 text-indigo-300">＋</span>How to create a Discord webhook — step-by-step guide</summary>
+      <div className="mt-4 space-y-5 text-sm leading-6 text-zinc-300">
+        <p>A webhook lets Heimdall post updates into a Discord channel without requiring the HMDL bot for these notification types. Create one webhook for each destination channel you want to use.</p>
+        <ol className="list-decimal space-y-3 pl-5">
+          <li><strong className="text-zinc-100">Open your Discord server.</strong> Choose the server and channel where you want a notification to appear.</li>
+          <li><strong className="text-zinc-100">Open Server Settings.</strong> Select the server name at the top of the channel list, then choose Server Settings.</li>
+          <li><strong className="text-zinc-100">Open Integrations → Webhooks.</strong> You need the <strong>Manage Webhooks</strong> permission. If Webhooks is unavailable, ask a server administrator to grant access or create the webhook for you.</li>
+          <li><strong className="text-zinc-100">Create the webhook.</strong> Select New Webhook / Create Webhook, give it a recognisable name such as “Heimdall Notifications”, and choose the destination channel.</li>
+          <li><strong className="text-zinc-100">Copy the webhook URL.</strong> Use Copy Webhook URL, then return to this Heimdall page.</li>
+          <li><strong className="text-zinc-100">Paste it into the matching notification field</strong> below and select Save Discord Notifications.</li>
+          <li><strong className="text-zinc-100">Send a test.</strong> Once saved, use the Test button beside that notification. Check the selected Discord channel for the test message.</li>
+        </ol>
+        <div className="rounded-lg border border-amber-900/60 bg-amber-950/20 p-3 text-xs text-amber-200/90"><strong>Keep the webhook URL private.</strong> Anyone with the URL may be able to post messages to its channel. Heimdall stores it server-side and does not display the saved URL again. If it is exposed, regenerate it in Discord and replace it here.</div>
+        <p className="text-xs text-zinc-500">Discord may move or rename menu items as its interface changes. If you cannot create a webhook, ask a server administrator to do it or grant you Manage Webhooks.</p>
+      </div>
+    </details>
+
     {channels.map(channel => <div key={channel.key} className="rounded-xl border border-zinc-800 bg-zinc-950 p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><h2 className="font-semibold">{channel.label}</h2><p className="mt-1 text-sm text-zinc-500">{channel.description}</p></div><span className={`rounded-full px-2.5 py-1 text-xs ${configured[channel.key] ? "bg-emerald-950 text-emerald-400" : "bg-zinc-900 text-zinc-600"}`}>{configured[channel.key] ? "Configured" : "Not configured"}</span></div>
       <div className="mt-4 flex flex-col gap-3 sm:flex-row"><input type="url" value={values[channel.key]} onChange={e => setValues(current => ({ ...current, [channel.key]: e.target.value }))} placeholder={configured[channel.key] ? "Paste a new webhook URL to replace it" : "https://discord.com/api/webhooks/..."} disabled={clear[channel.key]} className="min-w-0 flex-1 rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-700 focus:border-zinc-500 disabled:opacity-40" /><button type="button" onClick={() => test(channel.key)} disabled={!configured[channel.key]} className="rounded-lg border border-zinc-700 px-4 py-3 text-sm text-zinc-300 hover:border-zinc-500 disabled:cursor-not-allowed disabled:opacity-30">Test</button></div>
