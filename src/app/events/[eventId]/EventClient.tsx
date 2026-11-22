@@ -1715,7 +1715,7 @@ function RosterCard({
 
       {editing && (
         <div className="mt-4 rounded-lg border border-blue-900/50 bg-blue-950/20 px-4 py-3 text-xs text-blue-400">
-          Drag members between slots to move or swap them. Click an empty slot to add an unassigned member. Use Remove member to take someone out of the roster. Manual changes override the automatic composition.
+          Drag members between slots, or use each member’s Move to selector to move or swap them without dragging. Click an empty slot to add an unassigned member. Use Remove member to take someone out of the roster. Manual changes override the automatic composition.
         </div>
       )}
 
@@ -1840,7 +1840,7 @@ function PartyCard({
                     onDragStart(assignment.id);
                   }}
                   onDragEnd={onDragEnd}
-                  className={`flex items-center gap-3 ${editing ? "cursor-grab active:cursor-grabbing" : ""}`}
+                  className={`flex flex-wrap items-center gap-2 sm:gap-3 ${editing ? "cursor-grab active:cursor-grabbing" : ""}`}
                 >
                   <span className="w-4 shrink-0 text-xs text-zinc-700">{slotNumber}</span>
                   <div className="min-w-0 flex-1">
