@@ -52,6 +52,7 @@ export default function ApplicantsClient({ canManage }: { canManage: boolean }) 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [processingApplicantId, setProcessingApplicantId] = useState<string | null>(null);
   const [expandedApplicantId, setExpandedApplicantId] = useState<string | null>(null);
 
   async function load() {
@@ -86,12 +87,27 @@ export default function ApplicantsClient({ canManage }: { canManage: boolean }) 
   }
 
   async function decide(id: string, decision: "ACCEPTED" | "DENIED") {
-    const label = decision === "ACCEPTED" ? "accept" : "deny";
-    if (!window.confirm(`Are you sure you want to ${label} this applicant?`)) return;
-    setBusy(true); setError("");
-    try { const response = await fetch("/api/guild/applicants", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, decision }) }); const data = await response.json(); if (!response.ok) throw new Error(data.error ?? `Failed to ${label} applicant.`); await load(); }
-    catch (err) { setError(err instanceof Error ? err.message : `Failed to ${label} applicant.`); }
-    finally { setBusy(false); }
+    const applicant = applicants.find(item => item.id === id);
+    const action = decision === "ACCEPTED" ? "accept" : "deny";
+    const name = applicant?.characterName || applicant?.discordUsername || "this applicant";
+    const confirmation = decision === "ACCEPTED"
+      ? `Accept ${name} into the guild? This will create or update their guild member record.`
+      : `Deny ${name}'s application? The application will remain in the recruitment history.`;
+    if (!window.confirm(confirmation)) return;
+    setBusy(true);
+    setProcessingApplicantId(id);
+    setError("");
+    try {
+      const response = await fetch("/api/guild/applicants", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, decision }) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? `Failed to ${action} applicant.`);
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : `Failed to ${action} applicant.`);
+    } finally {
+      setBusy(false);
+      setProcessingApplicantId(null);
+    }
   }
 
   const pendingCount = applicants.filter((applicant) => applicant.status === "PENDING").length;
@@ -119,6 +135,7 @@ export default function ApplicantsClient({ canManage }: { canManage: boolean }) 
       </header>
 
       {error && <p role="alert" className="hmdl-recruitment-error">{error}</p>}
+      {processingApplicantId && <p role="status" aria-live="polite" className="sr-only">Updating applicant decision…</p>}
 
       <section className="hmdl-recruitment-metrics" aria-label="Application summary">
         <div><span>Total applications</span><strong>{applicants.length}</strong></div>
@@ -154,7 +171,7 @@ export default function ApplicantsClient({ canManage }: { canManage: boolean }) 
                 <span className={`hmdl-badge ${applicant.status === "PENDING" ? "hmdl-badge-warning" : applicant.status === "ACCEPTED" ? "hmdl-badge-success" : "hmdl-badge-danger"}`}>{applicant.status}</span>
                 <span className="hmdl-applicant-expand">{expandedApplicantId === applicant.id ? "Hide details ↑" : "View details ↓"}</span>
               </button>
-              {canManage && applicant.status === "PENDING" && <div className="hmdl-applicant-actions"><button onClick={() => decide(applicant.id, "ACCEPTED")} disabled={busy} className="hmdl-btn hmdl-btn-primary">Accept</button><button onClick={() => decide(applicant.id, "DENIED")} disabled={busy} className="hmdl-btn hmdl-btn-danger">Deny</button></div>}
+              {canManage && applicant.status === "PENDING" && <div className="hmdl-applicant-actions"><button type="button" onClick={() => decide(applicant.id, "ACCEPTED")} disabled={busy} className="hmdl-btn hmdl-btn-primary">{processingApplicantId === applicant.id ? "Processing…" : "Accept"}</button><button type="button" onClick={() => decide(applicant.id, "DENIED")} disabled={busy} className="hmdl-btn hmdl-btn-danger">{processingApplicantId === applicant.id ? "Processing…" : "Deny"}</button></div>}
             </div>
             {expandedApplicantId === applicant.id && <div className="hmdl-applicant-details">
               {gameType === "ROOC" && applicant.comparison && <div className="grid gap-4 lg:grid-cols-[1fr_1fr]"><ScorePanel title="Projected guild standing" scores={applicant.comparison.scores} /><div className="rounded-xl border border-zinc-800 bg-zinc-950 p-5"><h3 className="font-semibold">Closest current member</h3>{applicant.comparison.closest ? <><p className="mt-3 text-lg font-medium">{applicant.comparison.closest.characterName ?? "Unnamed"}</p><p className="text-xs text-zinc-500">{applicant.comparison.closest.job ?? "Job not specified"}</p><div className="mt-4 grid grid-cols-3 gap-3 text-center"><Metric label="PvP" value={applicant.comparison.closest.pvpScore} /><Metric label="DPS" value={applicant.comparison.closest.dpsScore} /><Metric label="Tank" value={applicant.comparison.closest.tankScore} /></div></> : <p className="mt-3 text-sm text-zinc-500">No active guild members available for comparison.</p>}</div></div>}
