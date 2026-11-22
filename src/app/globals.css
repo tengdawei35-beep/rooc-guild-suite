@@ -2144,3 +2144,91 @@ body,
     margin-bottom: 1.25rem;
   }
 }
+
+
+/* Phase 50 — route-level header and content-width corrections.
+   These routes were still opting into legacy/narrow wrappers or custom
+   client headings, so align them with the authenticated management contract. */
+.hmdl-management.hmdl-management:is(
+  .hmdl-leave-history-workspace,
+  .hmdl-events-workspace,
+  .hmdl-resources-workspace,
+  .hmdl-reservations-workspace,
+  .hmdl-calls-workspace,
+  .hmdl-guild-settings-workspace,
+  .hmdl-guild-config-workspace
+) .hmdl-page {
+  width: 100%;
+  max-width: var(--hmdl-page-max-standard);
+  margin-inline: auto;
+  padding-inline: var(--hmdl-page-gutter);
+}
+
+/* Guild settings and Discord configuration are standard management pages,
+   not narrow utility pages. Keep their content aligned with adjacent routes. */
+.hmdl-management.hmdl-management:is(
+  .hmdl-guild-settings-workspace,
+  .hmdl-guild-config-workspace
+) .hmdl-page {
+  max-width: var(--hmdl-page-max-standard);
+}
+
+/* Consistent page title treatment for legacy headers that do not use the
+   shared .hmdl-page-title class or a direct header > h1 structure. */
+.hmdl-shell-content :is(
+  .hmdl-leave-history-workspace,
+  .hmdl-events-workspace,
+  .hmdl-resources-workspace,
+  .hmdl-reservations-workspace,
+  .hmdl-calls-workspace,
+  .hmdl-guild-settings-workspace,
+  .hmdl-guild-config-workspace
+) h1 {
+  margin-block: 0;
+  color: var(--hmdl-text) !important;
+  font-family: var(--hmdl-font-ui, var(--font-geist-sans), Arial, sans-serif) !important;
+  font-size: var(--hmdl-header-title-size, clamp(1.5rem, 1.8vw, 1.875rem)) !important;
+  font-weight: 680 !important;
+  letter-spacing: -0.035em !important;
+  line-height: 1.2 !important;
+}
+
+/* Call To Arms uses a div-based title row rather than a semantic header. */
+.hmdl-shell-content .hmdl-calls-workspace .hmdl-calls-content > div:first-child {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.hmdl-shell-content .hmdl-calls-workspace .hmdl-calls-content > div:first-child > div:first-child {
+  min-width: 0;
+}
+.hmdl-shell-content .hmdl-calls-workspace .hmdl-calls-content > div:first-child h1 {
+  margin: 0.5rem 0 0 !important;
+}
+.hmdl-shell-content .hmdl-calls-workspace .hmdl-calls-content > div:first-child p:last-child {
+  margin: 0.5rem 0 0;
+  color: var(--hmdl-text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+.hmdl-shell-content .hmdl-calls-workspace .hmdl-calls-content > div:first-child > div:last-child {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+}
+@media (max-width: 700px) {
+  .hmdl-management.hmdl-management:is(
+    .hmdl-leave-history-workspace,
+    .hmdl-events-workspace,
+    .hmdl-resources-workspace,
+    .hmdl-reservations-workspace,
+    .hmdl-calls-workspace,
+    .hmdl-guild-settings-workspace,
+    .hmdl-guild-config-workspace
+  ) .hmdl-page {
+    padding: 1.25rem 1rem;
+  }
+}
