@@ -155,7 +155,7 @@ export default function BidsClient({
   }
 
   return (
-    <div className="mt-8">
+    <div className="hmdl-bid-page-client mt-8">
       {/* SEARCH */}
 
       <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
