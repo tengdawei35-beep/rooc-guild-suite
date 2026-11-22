@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { requirePageAuth, hasPermission } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import ApplicantsClient from "./ApplicantsClient";
@@ -10,7 +9,7 @@ export default async function ApplicantsPage() {
     <main className="hmdl-management min-h-screen text-white">
       <div className="hmdl-page">
 
-        <div className="mt-4">
+        <div>
           <ApplicantsClient
             canManage={hasPermission(auth.role, "applicants.manage")}
           />
