@@ -72,7 +72,13 @@ export async function buildAllocation(input: AllocationInput): Promise<Allocatio
     throw new Error("A valid event date is required.");
   }
 
-  const dateParts = new Intl.DateTimeFormat("en-CA", { timeZone: input.timeZone || "UTC", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(input.eventDate);
+  let eventTimeZone = input.timeZone || "UTC";
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: eventTimeZone });
+  } catch {
+    eventTimeZone = "UTC";
+  }
+  const dateParts = new Intl.DateTimeFormat("en-CA", { timeZone: eventTimeZone, year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(input.eventDate);
   const part = (type: string) => dateParts.find((item) => item.type === type)?.value ?? "";
   const eventDateStart = new Date(`${part("year")}-${part("month")}-${part("day")}T00:00:00.000Z`);
   const eventDateEnd = new Date(eventDateStart.getTime() + 24 * 60 * 60 * 1000);
