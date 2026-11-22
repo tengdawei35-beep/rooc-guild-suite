@@ -64,7 +64,7 @@ export default async function LeaveHistoryPage({ searchParams }: { searchParams:
   const to = validDate(params.to);
   const fromLabel = from ? params.from! : "";
   const toLabel = to ? params.to! : "";
-  const rowsCte = prisma.$queryRaw<LeavePerson[]>`
+  const fetchPeople = () => prisma.$queryRaw<LeavePerson[]>`
     WITH leave_rows AS (
       SELECT
         CASE WHEN gm."discordUserId" IS NOT NULL THEN 'discord:' || gm."discordUserId"
@@ -160,7 +160,7 @@ export default async function LeaveHistoryPage({ searchParams }: { searchParams:
   const totalPages = Math.max(1, Math.ceil(totalPeople / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const safeOffset = (currentPage - 1) * PAGE_SIZE;
-  const people = await rowsCte;
+  const people = await fetchPeople();
 
   // Fetch only the six most recent dates for the 25 people on this page.
   const pageKeys = people.map((person) => person.key);
