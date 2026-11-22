@@ -8,7 +8,7 @@ export default async function GuildNotificationsPage() {
     return (
       <main className="hmdl-management hmdl-guild-config-workspace min-h-screen bg-zinc-950 text-white">
         <div className="hmdl-page mx-auto max-w-4xl px-6 py-10">
-          <div className="mt-8 rounded-2xl border border-red-900 bg-zinc-900 p-8">
+          <div className="rounded-2xl border border-red-900 bg-zinc-900 p-8">
             <h1 className="text-xl font-semibold">Access Denied</h1>
             <p className="mt-2 text-sm text-zinc-400">You do not have permission to manage guild settings.</p>
           </div>
