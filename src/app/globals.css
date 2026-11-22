@@ -1534,3 +1534,54 @@ body,
     .hmdl-management
   ) :where(button,a) { transition:none; }
 }
+
+
+/* Phase 33 — complete workspace coverage for remaining member and guild operations. */
+.hmdl-member-profile-workspace,
+.hmdl-member-directory-workspace,
+.hmdl-user-access-workspace,
+.hmdl-calls-workspace {
+  min-height:100vh;
+  background:var(--hmdl-bg);
+  color:var(--hmdl-text);
+  font-family:var(--hmdl-font-ui);
+}
+.hmdl-member-profile-workspace h1,
+.hmdl-member-directory-workspace h1,
+.hmdl-user-access-workspace h1,
+.hmdl-calls-workspace h1 {
+  color:var(--hmdl-text);
+  font-family:var(--hmdl-font-ui);
+  font-weight:680;
+  letter-spacing:-.04em;
+}
+.hmdl-member-profile-workspace :where(.rounded-2xl.border,.rounded-xl.border),
+.hmdl-member-directory-workspace :where(.rounded-2xl.border,.rounded-xl.border),
+.hmdl-user-access-workspace :where(.rounded-2xl.border,.rounded-xl.border),
+.hmdl-calls-workspace :where(.rounded-2xl.border,.rounded-xl.border) {
+  border-color:var(--hmdl-border);
+  border-radius:var(--hmdl-radius-lg);
+}
+.hmdl-member-profile-workspace :where(input,select,textarea),
+.hmdl-member-directory-workspace :where(input,select,textarea),
+.hmdl-user-access-workspace :where(input,select,textarea),
+.hmdl-calls-workspace :where(input,select,textarea) {
+  border-radius:var(--hmdl-control-radius,var(--hmdl-radius-md));
+  border-color:var(--hmdl-border-strong);
+  font-family:var(--hmdl-font-ui);
+}
+.hmdl-calls-workspace :where(button,a)[class*="bg-white"] {
+  border-color:var(--hmdl-accent-border);
+  background:var(--hmdl-accent);
+  color:var(--hmdl-accent-contrast);
+  font-weight:650;
+}
+.hmdl-calls-workspace :where(button,a)[class*="bg-white"]:hover:not(:disabled) {
+  background:var(--hmdl-accent-strong);
+}
+@media(max-width:700px) {
+  .hmdl-member-profile-workspace > .hmdl-page,
+  .hmdl-member-directory-workspace > .hmdl-page,
+  .hmdl-user-access-workspace > .hmdl-page,
+  .hmdl-calls-workspace > .hmdl-page { padding:1rem; }
+}
