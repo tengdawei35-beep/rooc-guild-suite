@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import ManagementPageHeader from "@/app/ManagementPageHeader";
 import { useEffect, useMemo, useState } from "react";
 
 type Player = {
@@ -96,14 +97,12 @@ export default function GuildStatisticsClient() {
 
   return (
     <div className="min-w-0 text-gray-100">
-      <div className="mx-auto max-w-7xl">
-        <div className="mb-6 flex items-end justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-white md:text-3xl">Guild Statistics</h1>
-            <p className="mt-1 text-sm text-gray-400">A snapshot of your guild's members and activity.</p>
-          </div>
-          <button onClick={load} disabled={loading} className="rounded-lg border border-gray-700 bg-[#151515] px-4 py-2 text-sm hover:bg-[#1c1c1c] disabled:opacity-50">{loading ? "Refreshing..." : "Refresh"}</button>
-        </div>
+      <ManagementPageHeader
+        eyebrow="INSIGHTS"
+        title="Guild Statistics"
+        description="A snapshot of your guild's members and activity."
+        actions={<button onClick={load} disabled={loading} className="hmdl-btn hmdl-btn-secondary">{loading ? "Refreshing..." : "Refresh"}</button>}
+      />
 
         {error && <div className="mb-6 rounded-lg border border-red-900 bg-red-950/40 p-4 text-sm text-red-300">{error}</div>}
         {loading && !stats ? <div className="rounded-xl border border-gray-800 bg-[#111] p-12 text-center text-gray-500">Loading statistics...</div> : stats && (
@@ -141,8 +140,7 @@ export default function GuildStatisticsClient() {
             </section>
           </>
         )}
-      </div>
-
+ 
       {selectedJob && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-3 md:p-6" role="dialog" aria-modal="true" aria-labelledby="job-players-title" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelectedJob(null); }}>
           <div className="max-h-[90vh] w-full max-w-5xl overflow-hidden rounded-xl border border-gray-700 bg-[#111] shadow-2xl">
