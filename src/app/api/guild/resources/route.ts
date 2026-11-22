@@ -21,6 +21,7 @@ import {
 const VALID_TYPES = [
   "FEATHER",
   "CARD",
+  "ASTROCORE",
 ] as const;
 
 type ResourceType =
