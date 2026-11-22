@@ -9,7 +9,7 @@ export default function BillingSuccessPage() {
         <p className="mt-3 text-sm leading-6 text-zinc-400">
           Your payment has been received. Stripe is confirming the subscription and your guild will be provisioned automatically.
         </p>
-        <Link href="/" className="mt-6 inline-flex rounded-lg bg-white px-5 py-3 font-medium text-black transition hover:bg-zinc-200">
+        <Link href="/" className="mt-6 inline-flex rounded-lg hmdl-btn hmdl-btn-primary px-5 py-3 font-medium transition">
           Continue to dashboard
         </Link>
       </section>
