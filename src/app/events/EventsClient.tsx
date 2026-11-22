@@ -72,6 +72,8 @@ export default function EventsClient({
     useState(EMPTY_FORM);
 
   const [isRo3, setIsRo3] = useState(false);
+  const [eventTypesLoading, setEventTypesLoading] = useState(true);
+  const [eventTypesError, setEventTypesError] = useState<string | null>(null);
   const [customEventTypes, setCustomEventTypes] = useState<{ id: string; name: string; weekdays: number[]; startTime: string; timeZone: string; battlefieldCount: number; partiesPerBattlefield: number }[]>([]);
   const [resourceEventTypes, setResourceEventTypes] = useState<{ id: string; name: string; guildEventTypeId: string | null }[]>([]);
   const [selectedGuildEventTypeId, setSelectedGuildEventTypeId] = useState("");
@@ -140,23 +142,25 @@ export default function EventsClient({
     loadEvents();
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-    async function loadConfiguredEventTypes() {
-      try {
-        const response = await fetch("/api/events/types", { cache: "no-store" });
-        if (!response.ok) return;
-        const result = await response.json();
-        if (cancelled) return;
-        setIsRo3(Boolean(result.isRo3));
-        setCustomEventTypes(Array.isArray(result.eventTypes) ? result.eventTypes.filter((item: { active: boolean; weekdays: number[]; startTime: string }) => item.active && item.weekdays.length > 0 && Boolean(item.startTime)) : []);
-        setResourceEventTypes(Array.isArray(result.resourceEventTypes) ? result.resourceEventTypes : []);
-      } catch {
-        // Configured event types load when the API responds.
-      }
+  async function loadConfiguredEventTypes() {
+    setEventTypesLoading(true);
+    setEventTypesError(null);
+    try {
+      const response = await fetch("/api/events/types", { cache: "no-store" });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error ?? "Could not load event configuration.");
+      setIsRo3(Boolean(result.isRo3));
+      setCustomEventTypes(Array.isArray(result.eventTypes) ? result.eventTypes.filter((item: { active: boolean; weekdays: number[]; startTime: string }) => item.active && item.weekdays.length > 0 && Boolean(item.startTime)) : []);
+      setResourceEventTypes(Array.isArray(result.resourceEventTypes) ? result.resourceEventTypes : []);
+    } catch (err) {
+      setEventTypesError(err instanceof Error ? err.message : "Could not load event configuration.");
+    } finally {
+      setEventTypesLoading(false);
     }
+  }
+
+  useEffect(() => {
     void loadConfiguredEventTypes();
-    return () => { cancelled = true; };
   }, []);
 
   // ==========================================================
@@ -481,6 +485,8 @@ export default function EventsClient({
                       type="submit"
                       disabled={
                         creating ||
+                        eventTypesLoading ||
+                        Boolean(eventTypesError) ||
                         !form.date ||
                         (isRo3 && !selectedGuildEventTypeId)
                       }
@@ -500,8 +506,17 @@ export default function EventsClient({
                 {isRo3 && customEventTypes.length === 0 && <p className="mt-6 text-sm text-amber-300">Configure an active event type with at least one weekday and a start time before creating RO3 events.</p>}
               </form>
 
+              {eventTypesLoading && (
+                <p role="status" className="mt-4 text-sm text-zinc-400">Loading your guild's event configuration…</p>
+              )}
+              {eventTypesError && (
+                <div role="alert" className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-800 bg-amber-950/30 px-4 py-3 text-sm text-amber-200">
+                  <span>Event configuration could not be loaded: {eventTypesError} Event creation is paused to avoid using incorrect defaults.</span>
+                  <button type="button" onClick={() => void loadConfiguredEventTypes()} disabled={eventTypesLoading} className="hmdl-btn hmdl-btn-secondary">Retry</button>
+                </div>
+              )}
               {error && (
-                <div className="mt-5 rounded-lg border border-red-900 bg-red-950/40 px-4 py-3 text-sm text-red-400">
+                <div role="alert" className="mt-5 rounded-lg border border-red-900 bg-red-950/40 px-4 py-3 text-sm text-red-400">
                   {error}
                 </div>
               )}
