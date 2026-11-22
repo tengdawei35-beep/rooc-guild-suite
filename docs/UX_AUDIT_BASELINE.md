@@ -198,3 +198,12 @@ The source review also confirmed that the event list currently retrieves all gui
 - Subsequent notification and event-type UX commits require their own CI result before this tranche can be called build-validated.
 - Vercel deployment/build status for the newest branch head has not yet been confirmed.
 - No authenticated browser, visual, responsive, keyboard or screen-reader test has been performed through the available environment.
+
+
+### Phase B — roster administration feedback
+
+| Finding | Change | Status |
+|---|---|---|
+| ROSTER-DELETE-01 | Roster deletion now prevents overlapping delete requests, shows a per-roster “Deleting…” state, and reports failures through the event page's accessible alert instead of a browser alert. | Implemented in source; destructive-action and keyboard validation pending |
+
+The event detail page also refreshes event/roster data every 10 seconds while visible so attendance changes made through Discord or HMDL are reflected. This behavior is source-verified; network/polling performance and concurrent editing behavior still need runtime testing.
