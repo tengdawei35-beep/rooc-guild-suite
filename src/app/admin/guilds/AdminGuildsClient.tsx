@@ -85,7 +85,7 @@ export default function AdminGuildsClient({
             <h2 className="font-semibold text-white">Guild portfolio</h2>
             <p className="mt-1 text-sm text-zinc-500">Every guild registered on HMDL, including complimentary and unsubscribed guilds.</p>
           </div>
-          <span className="text-xs text-zinc-500">{filtered.length} of {guilds.length} guilds</span>
+          <span role="status" aria-live="polite" className="text-xs text-zinc-500">{filtered.length} of {guilds.length} guilds</span>
         </div>
         <div className="grid gap-3 border-b border-zinc-800 p-4 lg:grid-cols-[minmax(220px,1fr)_150px_170px_170px]">
           <label className="sr-only" htmlFor="guild-search">Search guilds</label>
@@ -105,7 +105,7 @@ export default function AdminGuildsClient({
           <div className="px-5 py-14 text-center">
             <p className="font-medium text-zinc-200">No matching guilds</p>
             <p className="mt-1 text-sm text-zinc-500">Try changing or clearing the filters.</p>
-            <button onClick={() => { setQuery(""); setGameFilter("ALL"); setStatusFilter("ALL"); setPlanFilter("ALL"); }} className="mt-4 text-sm text-zinc-300 underline underline-offset-4">Clear filters</button>
+            <button type="button" onClick={() => { setQuery(""); setGameFilter("ALL"); setStatusFilter("ALL"); setPlanFilter("ALL"); }} className="mt-4 text-sm text-zinc-300 underline underline-offset-4">Clear filters</button>
           </div>
         ) : (
           <div className="overflow-x-auto">
