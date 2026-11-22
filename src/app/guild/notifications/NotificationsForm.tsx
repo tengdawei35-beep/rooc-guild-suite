@@ -17,6 +17,7 @@ export default function NotificationsForm() {
   const [hasEventChannel, setHasEventChannel] = useState(false);
   const [clearEventChannel, setClearEventChannel] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [testingChannel, setTestingChannel] = useState<Channel | null>(null);
   const [loading, setLoading] = useState(true);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [message, setMessage] = useState("");
@@ -61,12 +62,19 @@ export default function NotificationsForm() {
       setValues({ roster: "", bid: "", stats: "", calls: "" });
       setClear({ roster: false, bid: false, stats: false, calls: false });
       setEventChannelId(""); setClearEventChannel(false);
-      await load(); setMessage("Discord notification settings saved.");
+      setMessage("Discord notification settings saved.");
+      try {
+        await load();
+      } catch {
+        setError("Your settings were saved, but the refreshed configuration could not be loaded. Retry loading to confirm the latest status.");
+      }
     } catch (err) { setError(err instanceof Error ? err.message : "Failed to save notification settings."); }
     finally { setSaving(false); }
   }
 
   async function test(type: Channel) {
+    if (testingChannel || saving || loading) return;
+    setTestingChannel(type);
     setMessage(""); setError("");
     try {
       const response = await fetch("/api/guild/notifications", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type }) });
@@ -74,6 +82,7 @@ export default function NotificationsForm() {
       if (!response.ok) throw new Error(result.error ?? "Test failed.");
       setMessage(`${channels.find(c => c.key === type)?.label} test sent.`);
     } catch (err) { setError(err instanceof Error ? err.message : "Test failed."); }
+    finally { setTestingChannel(null); }
   }
 
   return <div className="space-y-6">\n    <details className="rounded-xl border border-indigo-900/60 bg-indigo-950/20 p-5">
@@ -97,12 +106,12 @@ export default function NotificationsForm() {
     {loading && <p role="status" className="text-sm text-zinc-400">Loading saved notification settings…</p>}
     {channels.map(channel => <div key={channel.key} className="rounded-xl border border-zinc-800 bg-zinc-950 p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><h2 className="font-semibold">{channel.label}</h2><p className="mt-1 text-sm text-zinc-500">{channel.description}</p></div><span className={`rounded-full px-2.5 py-1 text-xs ${configured[channel.key] ? "bg-emerald-950 text-emerald-400" : "bg-zinc-900 text-zinc-600"}`}>{configured[channel.key] ? "Configured" : "Not configured"}</span></div>
-      <div className="mt-4 flex flex-col gap-3 sm:flex-row"><input type="url" value={values[channel.key]} onChange={e => setValues(current => ({ ...current, [channel.key]: e.target.value }))} placeholder={configured[channel.key] ? "Paste a new webhook URL to replace it" : "https://discord.com/api/webhooks/..."} disabled={clear[channel.key]} className="min-w-0 flex-1 rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-700 focus:border-zinc-500 disabled:opacity-40" /><button type="button" onClick={() => test(channel.key)} disabled={!configured[channel.key]} className="rounded-lg border border-zinc-700 px-4 py-3 text-sm text-zinc-300 hover:border-zinc-500 disabled:cursor-not-allowed disabled:opacity-30">Test</button></div>
+      <div className="mt-4 flex flex-col gap-3 sm:flex-row"><input type="url" aria-label={`${channel.label} webhook URL`} value={values[channel.key]} onChange={e => setValues(current => ({ ...current, [channel.key]: e.target.value }))} placeholder={configured[channel.key] ? "Paste a new webhook URL to replace it" : "https://discord.com/api/webhooks/..."} disabled={clear[channel.key]} className="min-w-0 flex-1 rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-700 focus:border-zinc-500 disabled:opacity-40" /><button type="button" onClick={() => test(channel.key)} disabled={!configured[channel.key] || Boolean(testingChannel) || saving || loading} className="rounded-lg border border-zinc-700 px-4 py-3 text-sm text-zinc-300 hover:border-zinc-500 disabled:cursor-not-allowed disabled:opacity-30">{testingChannel === channel.key ? "Testing…" : "Test"}</button></div>
       <label className="mt-3 flex items-center gap-2 text-xs text-zinc-500"><input type="checkbox" checked={clear[channel.key]} onChange={e => setClear(current => ({ ...current, [channel.key]: e.target.checked }))} />Disable this notification channel</label>
     </div>)}
     <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-5">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"><div><h2 className="font-semibold">Event attendance channel</h2><p className="mt-1 text-sm text-zinc-500">HMDL posts event attendance messages and 48-hour reminders here. The HMDL Discord bot must be added to your server with permission to send messages.</p></div><span className={`rounded-full px-2.5 py-1 text-xs ${hasEventChannel ? "bg-emerald-950 text-emerald-400" : "bg-zinc-900 text-zinc-600"}`}>{hasEventChannel ? "Configured" : "Not configured"}</span></div>
-      <input value={eventChannelId} onChange={e => setEventChannelId(e.target.value)} placeholder="Discord channel ID" disabled={clearEventChannel} className="mt-4 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-700 focus:border-zinc-500 disabled:opacity-40" />
+      <label htmlFor="event-channel-id" className="sr-only">Discord event attendance channel ID</label><input id="event-channel-id" value={eventChannelId} onChange={e => setEventChannelId(e.target.value)} placeholder="Discord channel ID" disabled={clearEventChannel} className="mt-4 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-700 focus:border-zinc-500 disabled:opacity-40" />
       <label className="mt-3 flex items-center gap-2 text-xs text-zinc-500"><input type="checkbox" checked={clearEventChannel} onChange={e => setClearEventChannel(e.target.checked)} />Clear event notification channel</label>
     </div>
     {error && <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-900 bg-red-950/40 px-4 py-3 text-sm text-red-300"><span>{error}</span><button type="button" onClick={() => void load().catch(err => setError(err instanceof Error ? err.message : "Failed to load notification settings."))} disabled={loading} className="underline underline-offset-4 disabled:opacity-50">Retry loading</button></div>}
