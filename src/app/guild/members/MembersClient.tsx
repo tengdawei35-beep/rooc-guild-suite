@@ -192,6 +192,7 @@ export default function MembersClient({ initialMembers, gameType }: { initialMem
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [currentDiscordId, setCurrentDiscordId] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [showMemberForm, setShowMemberForm] = useState(false);
@@ -234,10 +235,10 @@ export default function MembersClient({ initialMembers, gameType }: { initialMem
   }
   function handleSort(field: MemberDisplayField) { if (!canFilterMembers) return; if (sortField === field) setSortDirection(current => current === "asc" ? "desc" : "asc"); else { setSortField(field); setSortDirection("asc"); } }
   function getSortIndicator(field: MemberDisplayField) { if (!canFilterMembers || sortField !== field) return ""; return sortDirection === "asc" ? " ↑" : " ↓"; }
-  function isOwnMember(member: Member) { return currentUserId !== null && member.userId !== null && member.userId === currentUserId; }
+  function isOwnMember(member: Member) { return (currentUserId !== null && member.userId === currentUserId) || (currentDiscordId !== null && member.discordUserId === currentDiscordId); }
   function canEditMember(member: Member) { return canManageMembers || (canManageOwnProfile && isOwnMember(member)); }
   function canManageLeave(member: Member) { return canManageAnyLeave || (userRole !== null && hasPermission(userRole, "leave.manageOwn") && isOwnMember(member)); }
-  async function loadAuth() { try { const response = await fetch("/api/auth/me", { cache: "no-store" }); const data = await response.json(); if (!response.ok) { setCurrentUserId(null); setUserRole(null); return; } setCurrentUserId(data.user?.id ?? null); setUserRole(data.role ?? null); } catch { setCurrentUserId(null); setUserRole(null); } }
+  async function loadAuth() { try { const response = await fetch("/api/auth/me", { cache: "no-store" }); const data = await response.json(); if (!response.ok) { setCurrentUserId(null); setCurrentDiscordId(null); setUserRole(null); return; } setCurrentUserId(data.user?.id ?? null); setCurrentDiscordId(data.user?.discordId ?? null); setUserRole(data.role ?? null); } catch { setCurrentUserId(null); setCurrentDiscordId(null); setUserRole(null); } }
   async function loadMembers() { try { setLoading(true); setError(null); const response = await fetch("/api/guild/members", { cache: "no-store" }); const data = await response.json(); if (!response.ok) throw new Error(data.error ?? "Failed to load members."); setMembers(data.members ?? []); } catch (err) { setError(err instanceof Error ? err.message : "Failed to load members."); } finally { setLoading(false); } }
   useEffect(() => { async function initialize() { await loadAuth(); await loadMembers(); } initialize(); }, []);
   useEffect(() => { if (!currentUserId) return; try { const stored = window.localStorage.getItem(`${MEMBER_DISPLAY_FIELDS_STORAGE_KEY}:${currentUserId}`); if (!stored) return; const parsed: unknown = JSON.parse(stored); if (!Array.isArray(parsed)) return; const validFields = parsed.filter((field): field is MemberDisplayField => typeof field === "string" && MEMBER_DISPLAY_FIELDS.some(definition => definition.key === field) && (gameType === "RO3" ? String(field).startsWith("ro3_") || ["characterName", "discordUsername", "job", "priority", "status", "eligible", "updatedAt"].includes(field) : !String(field).startsWith("ro3_"))); setDisplayFields(validFields); } catch {} }, [currentUserId]);
