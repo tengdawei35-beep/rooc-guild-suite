@@ -174,6 +174,10 @@ export default function EventsClient({
     try {
       const response = await fetch(`/api/events?cursor=${encodeURIComponent(nextCursor)}`, { cache: "no-store" });
       const data = await response.json();
+      if (response.status === 400) {
+        await loadEvents();
+        return;
+      }
       if (!response.ok) throw new Error(data.error ?? "Failed to load more events.");
       const incoming = Array.isArray(data.events) ? data.events as EventItem[] : [];
       setEvents(current => {
