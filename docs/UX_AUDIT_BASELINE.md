@@ -220,3 +220,25 @@ The event detail page also refreshes event/roster data every 10 seconds while vi
 | ATTEND-01 | Event attendance response controls expose their selected state with `aria-pressed`, and attendance loading errors are announced as alerts. | Implemented in source; keyboard and screen-reader validation pending |
 
 The event detail page and attendance panel both poll at 10-second intervals while the page is visible. This can produce overlapping requests under slow network conditions; request cancellation/deduplication and concurrent-edit behavior remain runtime review items.
+
+
+### Phase C — platform directories and resource configuration
+
+| Finding | Change | Status |
+|---|---|---|
+| ADMIN-USERS-UX-01 | Platform user directory now announces the filtered/total result count to assistive technology; the empty-state clear-filter action is explicitly a button. | Implemented in source; screen-reader validation pending |
+| ADMIN-GUILDS-UX-01 | Platform guild directory now announces the filtered/total result count; the clear-filter action is explicitly a button. | Implemented in source; screen-reader validation pending |
+| RESOURCE-UX-01 | RO3 resource pool creation, pool selection, item creation and category controls have explicit accessible names. Resource mutation errors are announced as alerts and cap-save feedback is exposed as a polite status. | Implemented in source; form and assistive-technology validation pending |
+
+#### Platform directory scalability — confirmed source-level design risk
+
+- `/admin/users` currently loads every User and all selected guild membership, guild member and owned-guild relations, then constructs a complete client-side directory and summary in memory.
+- `/admin/guilds` currently loads every Guild, latest subscription, all active member IDs and aggregate counts before rendering the complete client-side directory.
+- Search and filters are client-side only. This is acceptable for a small installation but work and payload scale linearly with the platform population and associated relationships. Actual performance impact has not been measured.
+- A future scalable implementation should use server-side query filters, stable cursor pagination, database aggregates for summary cards, and an explicit definition of whether summary totals reflect all records or only filtered records. This is intentionally not approximated with arbitrary client-side truncation because it would make platform totals and filters incorrect.
+
+### Validation update
+
+- Vercel and GitHub Actions CI both passed for commit `a4f8826a161fefa4e12da7e003e1149c0db7dbfe`.
+- Subsequent platform-directory and RO3 resource UX commits require a fresh build/CI result.
+- No manual browser, responsive, keyboard, screen-reader or production-data performance testing has been performed.
