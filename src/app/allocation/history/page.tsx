@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ManagementPageHeader from "@/app/ManagementPageHeader";
 
 import { prisma } from "@/lib/prisma";
 import { requirePageAuth } from "@/lib/auth";
@@ -20,7 +21,7 @@ export default async function AllocationHistoryPage() {
   ) {
     return (
       <main className="hmdl-management hmdl-history-workspace min-h-screen bg-zinc-950 text-white">
-        <div className="hmdl-page mx-auto max-w-7xl px-6 py-10">
+        <div className="hmdl-page">
 
           <section className="rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/50 p-10 text-center">
             <h1 className="text-xl font-semibold">
@@ -129,19 +130,7 @@ export default async function AllocationHistoryPage() {
       <div className="hmdl-page mx-auto max-w-7xl px-6 py-10">
         {/* HEADER */}
 
-        <header className="mb-8">
-          <p className="text-sm font-medium uppercase tracking-widest text-zinc-500">
-            {guild.name}
-          </p>
-
-          <h1 className="mt-1 text-3xl font-bold tracking-tight">
-            Allocation History
-          </h1>
-
-          <p className="mt-2 text-zinc-400">
-            Review previous allocation runs and their results.
-          </p>
-        </header>
+        <ManagementPageHeader eyebrow="RESOURCE ALLOCATION" title="Allocation History" description="Review previous allocation runs and their results." breadcrumb={{ label: "Allocation", href: "/allocation" }} />
 
         {/* NO RUNS */}
 
