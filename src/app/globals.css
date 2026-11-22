@@ -1881,3 +1881,19 @@ body,
     max-width: 100%;
   }
 }
+
+/* Explicit wide workspaces share one outer width and gutter with standard pages. */
+.hmdl-management.hmdl-management:is(
+  .hmdl-member-directory-workspace,
+  .hmdl-insights-workspace,
+  .hmdl-events-workspace,
+  .hmdl-results-archive,
+  .hmdl-resources-workspace,
+  .hmdl-reservations-workspace,
+  .hmdl-allocation-workspace,
+  .hmdl-history-workspace,
+  .hmdl-bid-pages-workspace,
+  .hmdl-calls-workspace
+) .hmdl-page {
+  max-width: var(--hmdl-page-max-wide);
+}
