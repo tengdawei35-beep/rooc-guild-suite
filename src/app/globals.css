@@ -1947,3 +1947,14 @@ body,
     padding: 1.25rem 1rem;
   }
 }
+
+
+/* Client workspaces rendered inside a route-owned page must not add a second inset. */
+.hmdl-management .hmdl-page > main > .mx-auto,
+.hmdl-platform-admin-workspace .hmdl-page > main > .mx-auto {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
