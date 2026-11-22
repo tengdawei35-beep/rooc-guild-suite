@@ -325,3 +325,12 @@ The fallback is defensive only; valid configured timezones continue to drive loc
 
 The preview is now calculated after the guild lock is acquired, using the same Prisma transaction client that holds the lock. This ensures the committed allocation reads the latest rotation and reservation state after any earlier allocation completes, without opening a second database connection for the preview. This lock coordinates the inspected allocation, reservation and reset paths; resource-total edits and other future mutation paths still need to adopt the same lock before they can be considered fully serialized.
 
+### Phase B — platform directory scalability
+
+| Finding | Change | Status |
+|---|---|---|
+| ADMIN-01 | The platform users directory now performs server-side search across account identifiers, Discord username, guild name and linked character name. Results are stably ordered and paginated at 25 users per page; only the current page's user/guild/character details are sent to the client. Platform-wide totals, affiliated/multi-guild/unaffiliated counts and linked-character totals are computed by database aggregates rather than by loading every user and relationship into application memory. | Implemented in source; CI and large-dataset/runtime validation pending |
+| ADMIN-02 | The platform guild directory now performs server-side search and filters for game type, latest subscription status and latest plan. Results are stably ordered and paginated at 25 guilds per page. Member totals, active member totals and linked-user totals are fetched as grouped database aggregates for the current page; portfolio-wide subscription, game-type, complimentary-access and active-member metrics are computed in database aggregate queries. The plan-mix chart is based on each guild's latest subscription record. | Implemented in source; CI and large-dataset/runtime validation pending |
+
+Both directories retain their full-platform summary semantics while bounding the detailed records and relationships returned for an individual page. Pagination uses deterministic secondary ID sorting to avoid unstable ordering when creation timestamps match. The user directory still uses offset pagination, so very deep page numbers can become more expensive; cursor pagination remains a follow-up if platform volume justifies it. Guild directory query uses a stable limit/offset window for straightforward page navigation. Search and filter behavior still needs browser validation against representative multi-guild accounts and subscription history edge cases.
+
