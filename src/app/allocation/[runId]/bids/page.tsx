@@ -24,8 +24,8 @@ export default async function BidsPage({ params }: Props) {
     return (
       <main className="hmdl-bid-pages-workspace min-h-screen bg-zinc-950 text-white">
         <div className="mx-auto max-w-7xl px-6 py-10">
-          <Link href="/" className="text-sm text-zinc-500 hover:text-white">
-            ← Dashboard
+          <Link href="/allocation" className="text-sm text-zinc-500 hover:text-white">
+            ← Back to Allocation
           </Link>
           <section className="mt-8 rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/50 p-10 text-center">
             <h1 className="text-xl font-semibold">Resource Suite required</h1>
@@ -73,8 +73,8 @@ export default async function BidsPage({ params }: Props) {
     <main className="min-h-screen bg-zinc-950 text-white">
       <div className="hmdl-page mx-auto max-w-7xl px-6 py-8">
         <div className="flex flex-wrap items-center gap-4">
-          <Link href="/" className="text-sm text-zinc-500 hover:text-white">
-            ← Dashboard
+          <Link href="/allocation/history" className="text-sm text-zinc-500 hover:text-white">
+            ← Back to Allocation History
           </Link>
         </div>
 
