@@ -1051,3 +1051,17 @@ body {
 .hmdl-auth-card { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-xl); background:var(--hmdl-surface); box-shadow:0 24px 80px rgb(0 0 0 / .24); }
 .hmdl-auth-card h1 { color:var(--hmdl-text); font-size:1.7rem; font-weight:760; letter-spacing:-.045em; }
 .hmdl-auth-card a[href^="/api/auth/"] { border-radius:var(--hmdl-radius-md); }
+
+
+/* Phase 25 — bid pages, applicant portal, and guild access selection */
+.hmdl-bid-pages-workspace,.hmdl-applicant-portal,.hmdl-guild-access-workspace { min-height:100vh; background:var(--hmdl-bg); color:var(--hmdl-text); }
+.hmdl-bid-pages-workspace > .hmdl-page,.hmdl-applicant-portal > .hmdl-page { width:100%; max-width:88rem; }
+.hmdl-bid-pages-workspace h1,.hmdl-applicant-portal h1,.hmdl-guild-access-workspace h1 { color:var(--hmdl-text); font-size:clamp(1.55rem,2.4vw,2rem); font-weight:700; letter-spacing:-.04em; }
+.hmdl-bid-pages-workspace h2,.hmdl-applicant-portal h2,.hmdl-guild-access-workspace h2 { color:var(--hmdl-text); font-weight:680; }
+.hmdl-bid-pages-workspace p,.hmdl-applicant-portal p,.hmdl-guild-access-workspace p { color:var(--hmdl-text-muted); }
+.hmdl-bid-pages-workspace .rounded-2xl.border,.hmdl-bid-pages-workspace .rounded-xl.border,.hmdl-applicant-portal .rounded-2xl.border,.hmdl-applicant-portal .rounded-xl.border { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); }
+.hmdl-bid-pages-workspace button,.hmdl-applicant-portal button,.hmdl-guild-access-workspace button { border-radius:var(--hmdl-radius-md); font-weight:620; }
+.hmdl-bid-pages-workspace a:focus-visible,.hmdl-bid-pages-workspace button:focus-visible,.hmdl-applicant-portal a:focus-visible,.hmdl-applicant-portal button:focus-visible,.hmdl-guild-access-workspace a:focus-visible,.hmdl-guild-access-workspace button:focus-visible { outline:2px solid var(--hmdl-accent); outline-offset:2px; }
+.hmdl-access-card { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-xl); background:var(--hmdl-surface); box-shadow:0 24px 80px rgb(0 0 0 / .2); }
+.hmdl-access-card form button { border-color:var(--hmdl-border); background:var(--hmdl-surface-muted); }
+.hmdl-access-card form button:hover:not(:disabled) { border-color:var(--hmdl-border-strong); background:var(--hmdl-surface-raised); }
