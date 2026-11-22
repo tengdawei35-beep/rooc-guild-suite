@@ -7,11 +7,11 @@ export default async function ApplicantsPage() {
   const auth = await requirePageAuth();
   if (!hasPermission(auth.role, "applicants.view")) redirect("/");
   return (
-    <main className="min-h-screen bg-zinc-950 text-white">
-      <div className="mx-auto max-w-7xl px-6 py-10">
+    <main className="hmdl-management min-h-screen text-white">
+      <div className="hmdl-page">
         <Link
           href="/"
-          className="text-sm text-zinc-500 hover:text-white"
+          className="text-sm text-zinc-400 hover:text-white"
         >
           ← Dashboard
         </Link>
