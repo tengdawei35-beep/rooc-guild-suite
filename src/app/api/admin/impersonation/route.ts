@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 import { getOriginalPlatformAdmin } from "@/lib/platform-admin";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { isImpersonationRole, startImpersonation, stopImpersonation } from "@/lib/impersonation";
+import { getActiveImpersonation, isImpersonationRole, startImpersonation, stopImpersonation } from "@/lib/impersonation";
 
 function validOrigin(request: Request) {
   const origin = request.headers.get("origin");
-  return !origin || origin === new URL(request.url).origin;
+  return Boolean(origin && origin === new URL(request.url).origin);
 }
 export async function POST(request: Request) {
   if (!validOrigin(request)) return NextResponse.json({ error: "Invalid request origin." }, { status: 403 });
@@ -15,6 +15,8 @@ export async function POST(request: Request) {
     if (body.action === "stop") {
       const admin = await getOriginalPlatformAdmin();
       if (!admin) return NextResponse.json({ error: "Platform administrator access required." }, { status: 403 });
+      const active = await getActiveImpersonation();
+      if (active && active.adminUserId !== admin.id) return NextResponse.json({ error: "This impersonation session belongs to another administrator." }, { status: 403 });
       await stopImpersonation();
       return NextResponse.json({ ok: true, redirectTo: "/admin/impersonation" });
     }
