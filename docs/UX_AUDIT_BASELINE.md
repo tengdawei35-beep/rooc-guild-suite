@@ -379,3 +379,20 @@ This corrects local-day classification for guilds whose event timezone differs f
 | EVENTS-02 | The event list API now returns at most 30 events plus one look-ahead record to determine whether another page exists. A stable cursor uses event date descending, creation time descending and ID descending; cursor ownership is verified against the authenticated guild. Events and Rosters views can progressively load older event groups without replacing the already displayed events. A stale/deleted cursor triggers a first-page refresh instead of leaving the user stuck on an unusable retry. Preferred-roster configuration remains included in the response. | Implemented in source; CI and cursor/pagination runtime validation pending |
 
 The API bounds the event metadata and aggregate counts returned per request. Event detail/roster pages remain separate and are not altered by this archive pagination change.
+
+
+### Phase H — query-supporting database indexes
+
+| Finding | Change | Status |
+|---|---|---|
+| DB-INDEX-01 | The member directory consistently scopes reads to one guild, commonly filters by active status or job, and uses character name as its stable secondary sort. Added composite indexes for guild + character name + ID, guild + active + character name + ID, guild + job + character name + ID, and guild + active + eligible. These support the observed list/count query shapes without adding an index for every optional sort column. | Schema and migration added; CI/migration validation pending; query-plan and production latency measurement outstanding |
+| DB-INDEX-02 | Event list and results archive reads are guild-scoped and ordered by event date, with the main event list also ordering by creation time and ID. Added composite indexes for both observed sort orders. | Schema and migration added; CI/migration validation pending; query-plan and production latency measurement outstanding |
+| DB-INDEX-03 | Result archive fetches images for selected events ordered by creation time and ID. Added an event-scoped composite index for that ordered lookup. | Schema and migration added; CI/migration validation pending; query-plan and production latency measurement outstanding |
+| DB-INDEX-04 | The platform guild dashboard repeatedly finds each guild's latest subscription using DISTINCT ON (guildId) ordered by createdAt DESC and ID DESC. Added the matching composite index. | Schema and migration added; CI/migration validation pending; query-plan and production latency measurement outstanding |
+
+Indexes are created with PostgreSQL `CREATE INDEX CONCURRENTLY IF NOT EXISTS` to avoid taking the normal write-blocking lock associated with a regular index build. The Prisma schema declarations and migration use matching index names. The migration is additive and does not rewrite application records.
+
+These indexes are based on query shapes verified in source, not measured query plans. No production database EXPLAIN (ANALYZE, BUFFERS), row-count distribution or latency baseline was available in this audit, so performance gains are expected rather than claimed as benchmarked. After migration, inspect representative plans and index usage before adding more indexes or removing existing single-column indexes.
+
+The member directory's substring search uses case-insensitive contains/ILIKE patterns. Ordinary B-tree indexes do not accelerate leading-wildcard substring matching; a pg_trgm extension and GIN indexes may help, but are deliberately deferred until production query plans, search volume and extension availability are confirmed. Likewise, optional member sorts such as Discord username, priority and updated time are not each given a dedicated index to avoid unnecessary write amplification and storage cost.
+
