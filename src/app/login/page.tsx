@@ -57,7 +57,7 @@ export default async function LoginPage({
 
         <a
           href="/api/auth/discord"
-          className="mt-8 flex w-full items-center justify-center rounded-lg bg-white px-4 py-3 text-sm font-semibold text-black transition hover:bg-zinc-200"
+          className="mt-8 flex w-full items-center justify-center rounded-lg hmdl-btn hmdl-btn-primary px-4 py-3 text-sm font-semibold transition"
         >
           Continue with Discord
         </a>
