@@ -31,6 +31,8 @@ export async function POST() {
     }
 
     const resetCount = await prisma.$transaction(async (tx) => {
+      const lockKey = `guild-allocation:${auth.guild.id}`;
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${lockKey}, 0))`;
       const resources = await tx.resource.findMany({
         where: { guildId: auth.guild.id },
         select: { id: true },
