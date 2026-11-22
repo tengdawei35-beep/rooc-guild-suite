@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import RaidManagement from "./RaidManagement";
 import RosterJobOverrides from "./RosterJobOverrides";
 import EventAttendancePanel from "./EventAttendancePanel";
@@ -232,17 +232,29 @@ export default function EventClient({
   // Keep roster assignments in sync with attendance changes made in HMDL
   // or Discord. The server removes assignments immediately; this refresh
   // makes those removals visible without requiring a manual page reload.
+  const refreshInFlight = useRef(false);
+
   useEffect(() => {
     let cancelled = false;
+    let controller: AbortController | null = null;
     const refreshEvent = async () => {
-      if (document.visibilityState !== "visible") return;
+      if (cancelled || document.visibilityState !== "visible" || refreshInFlight.current) return;
+      refreshInFlight.current = true;
+      controller = new AbortController();
       try {
-        const response = await fetch(`/api/events/${eventId}`, { cache: "no-store" });
+        const response = await fetch(`/api/events/${eventId}`, {
+          cache: "no-store",
+          signal: controller.signal,
+        });
         if (!response.ok) return;
         const result = await response.json();
         if (!cancelled) setData(result);
       } catch (error) {
-        console.error("[EVENT CLIENT] Failed to refresh event roster:", error);
+        if (!(error instanceof DOMException && error.name === "AbortError")) {
+          console.error("[EVENT CLIENT] Failed to refresh event roster:", error);
+        }
+      } finally {
+        refreshInFlight.current = false;
       }
     };
     const timer = window.setInterval(refreshEvent, 10000);
@@ -251,6 +263,8 @@ export default function EventClient({
       cancelled = true;
       window.clearInterval(timer);
       document.removeEventListener("visibilitychange", refreshEvent);
+      controller?.abort();
+      refreshInFlight.current = false;
     };
   }, [eventId]);
 
