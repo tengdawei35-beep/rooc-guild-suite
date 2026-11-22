@@ -77,8 +77,8 @@ export default async function PricingPage() {
   );
 
   return (
-    <main className="min-h-screen bg-zinc-950 px-6 py-10 text-white sm:px-10">
-      <div className="mx-auto max-w-6xl">
+    <main className="hmdl-pricing-workspace min-h-screen bg-zinc-950 px-6 py-10 text-white sm:px-10">
+      <div className="hmdl-page mx-auto max-w-6xl">
         <header className="flex items-center justify-between">
           <Link href="/" className="text-2xl font-bold tracking-tight">HMDL</Link>
           <div className="flex items-center gap-5 text-sm">
