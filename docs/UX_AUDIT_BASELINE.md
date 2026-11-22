@@ -274,3 +274,12 @@ These changes reduce avoidable duplicate requests and prevent a periodic attenda
 - The later event polling commits and settings/onboarding changes are newer and have not yet been validated by a completed CI/build run.
 - At the time of the latest check, GitHub Actions CI run `45025022720` was **in progress** and Vercel was **pending** for the previously checked commit. Recheck the branch head before treating any check as current.
 - No authenticated browser, responsive, keyboard, screen-reader or production-data performance testing has been performed.
+
+
+### Phase B — allocation permission affordance
+
+| Finding | Change | Status |
+|---|---|---|
+| ALLOC-PERM-01 | The allocation preview API already distinguished `allocation.view` from `allocation.run`, and the run API independently enforced `allocation.run`. The preview UI nevertheless left the Run Allocation button enabled for view-only users, inviting a predictable 403. The button is now disabled without run permission and the page explains that the preview is view-only. Event and member-count controls also have explicit accessible names. | Implemented in source; role-matrix runtime validation pending |
+
+The API-side permission checks remain authoritative; this change improves the affordance and avoids inviting an action the current role cannot perform.
