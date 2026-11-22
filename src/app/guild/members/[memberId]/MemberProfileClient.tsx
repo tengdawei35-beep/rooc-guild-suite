@@ -96,15 +96,15 @@ export default function MemberProfileClient({ memberId, rawPdef, rawMdef }: { me
     return () => { cancelled = true; };
   }, [memberId]);
 
-  if (loading) return <main className="hmdl-management min-h-screen bg-zinc-950 text-white"><div className="hmdl-page mx-auto max-w-7xl p-6"><div className="text-sm text-zinc-500">Loading member profile...</div></div></main>;
+  if (loading) return <main className="hmdl-management hmdl-member-profile-workspace min-h-screen bg-zinc-950 text-white"><div className="hmdl-page mx-auto max-w-7xl p-6"><div className="text-sm text-zinc-500">Loading member profile...</div></div></main>;
 
-  if (error) return <main className="hmdl-management min-h-screen bg-zinc-950 text-white"><div className="hmdl-page mx-auto max-w-7xl p-6"><div className="rounded-lg border border-red-900 bg-red-950/40 p-4 text-sm text-red-400">{error}</div><Link href="/guild/members" className="mt-4 inline-block text-sm text-zinc-500 transition hover:text-white">← Back to members</Link></div></main>;
+  if (error) return <main className="hmdl-management hmdl-member-profile-workspace min-h-screen bg-zinc-950 text-white"><div className="hmdl-page mx-auto max-w-7xl p-6"><div className="rounded-lg border border-red-900 bg-red-950/40 p-4 text-sm text-red-400">{error}</div><Link href="/guild/members" className="mt-4 inline-block text-sm text-zinc-500 transition hover:text-white">← Back to members</Link></div></main>;
   if (!data) return null;
 
   const { member, current, history, gameType } = data;
 
   return (
-    <main className="hmdl-management min-h-screen bg-zinc-950 text-white">
+    <main className="hmdl-management hmdl-member-profile-workspace min-h-screen bg-zinc-950 text-white">
       <div className="hmdl-page mx-auto max-w-7xl p-6">
         <div className="mb-8">
           <Link href="/guild/members" className="text-sm text-zinc-500 transition hover:text-white">← Guild Members</Link>
