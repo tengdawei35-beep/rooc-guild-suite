@@ -69,6 +69,7 @@ export default async function BidsPage({ params }: Props) {
   const feathers = run.bidPages.filter((page) => page.type === "FEATHER");
   const cards = run.bidPages.filter((page) => page.type === "CARD");
   const astrocores = run.bidPages.filter((page) => page.type === "ASTROCORE");
+  const astrocores = run.bidPages.filter((page) => page.type === "ASTROCORE");
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
@@ -92,6 +93,9 @@ export default async function BidsPage({ params }: Props) {
             </span>
             <span className="rounded-full border border-zinc-800 bg-zinc-900 px-3 py-1 text-xs text-zinc-400">
               {cards.length} Card {cards.length === 1 ? "Page" : "Pages"}
+            </span>
+            <span className="rounded-full border border-zinc-800 bg-zinc-900 px-3 py-1 text-xs text-zinc-400">
+              {astrocores.length} Astrocore {astrocores.length === 1 ? "Page" : "Pages"}
             </span>
             <span className="rounded-full border border-zinc-800 bg-zinc-900 px-3 py-1 text-xs text-zinc-400">
               {astrocores.length} Astrocore {astrocores.length === 1 ? "Page" : "Pages"}
