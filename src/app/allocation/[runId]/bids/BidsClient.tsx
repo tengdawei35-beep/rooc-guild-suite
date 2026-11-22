@@ -10,7 +10,7 @@ type Member = {
 type Resource = {
   id: string;
   name: string;
-  type: "FEATHER" | "CARD";
+  type: "FEATHER" | "CARD" | "ASTROCORE";
 };
 
 type Slot = {
@@ -21,7 +21,7 @@ type Slot = {
 
 type BidPage = {
   id: string;
-  type: "FEATHER" | "CARD";
+  type: "FEATHER" | "CARD" | "ASTROCORE";
   pageNumber: number;
   slots: Slot[];
 };
@@ -29,10 +29,11 @@ type BidPage = {
 type Props = {
   feathers: BidPage[];
   cards: BidPage[];
+  astrocores: BidPage[];
 };
 
 type SearchResult = {
-  type: "FEATHER" | "CARD";
+  type: "FEATHER" | "CARD" | "ASTROCORE";
   pageNumber: number;
   slotNumber: number;
   memberName: string;
@@ -44,13 +45,10 @@ const EMPTY_SLOTS = 4;
 export default function BidsClient({
   feathers,
   cards,
+  astrocores,
 }: Props) {
   const [type, setType] =
-    useState<"FEATHER" | "CARD">(
-      feathers.length > 0
-        ? "FEATHER"
-        : "CARD"
-    );
+    useState<"FEATHER" | "CARD" | "ASTROCORE">(feathers.length > 0 ? "FEATHER" : cards.length > 0 ? "CARD" : "ASTROCORE");
 
   const [pageNumber, setPageNumber] =
     useState(1);
@@ -61,7 +59,7 @@ export default function BidsClient({
   const pages =
     type === "FEATHER"
       ? feathers
-      : cards;
+      : type === "CARD" ? cards : astrocores;
 
   const currentPage =
     pages.find(
@@ -84,6 +82,7 @@ export default function BidsClient({
       for (const page of [
         ...feathers,
         ...cards,
+        ...astrocores,
       ]) {
         for (const slot of page.slots) {
           if (
@@ -111,10 +110,11 @@ export default function BidsClient({
       normalizedSearch,
       feathers,
       cards,
+      astrocores,
     ]);
 
   function changeType(
-    newType: "FEATHER" | "CARD"
+    newType: "FEATHER" | "CARD" | "ASTROCORE"
   ) {
     setType(newType);
     setPageNumber(1);
@@ -244,7 +244,7 @@ export default function BidsClient({
                             {result.type ===
                             "FEATHER"
                               ? "Feather"
-                              : "Card"}
+                              : result.type === "CARD" ? "Card" : "Astrocore"}
                           </span>
 
                           <span className="text-sm font-medium">
@@ -287,9 +287,13 @@ export default function BidsClient({
           active={type === "CARD"}
           label="Cards"
           count={cards.length}
-          onClick={() =>
-            changeType("CARD")
-          }
+          onClick={() => changeType("CARD")}
+        />
+        <TypeButton
+          active={type === "ASTROCORE"}
+          label="Astrocores"
+          count={astrocores.length}
+          onClick={() => changeType("ASTROCORE")}
         />
       </div>
 
@@ -301,7 +305,7 @@ export default function BidsClient({
             No{" "}
             {type === "FEATHER"
               ? "Feather"
-              : "Card"}{" "}
+              : type === "CARD" ? "Card" : "Astrocore"}{" "}
             allocations
           </h2>
 
@@ -322,7 +326,7 @@ export default function BidsClient({
               <p className="text-sm uppercase tracking-widest text-zinc-600">
                 {type === "FEATHER"
                   ? "Feathers"
-                  : "Cards"}
+                  : type === "CARD" ? "Cards" : "Astrocores"}
               </p>
 
               <h2 className="mt-1 text-2xl font-bold">
@@ -358,7 +362,7 @@ export default function BidsClient({
                   <p className="text-xs uppercase tracking-widest text-zinc-600">
                     {type === "FEATHER"
                       ? "Feather"
-                      : "Card"}{" "}
+                      : type === "CARD" ? "Card" : "Astrocore"}{" "}
                     Bidding
                   </p>
 
