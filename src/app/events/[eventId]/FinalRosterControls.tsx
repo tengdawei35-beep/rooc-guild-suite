@@ -189,7 +189,7 @@ export default function FinalRosterControls({
         type="button"
         onClick={finalize}
         disabled={saving || !selectedRosterId || rosters.length === 0}
-        className="rounded-lg bg-white px-3 py-2 text-xs font-medium text-black transition hover:bg-zinc-200 disabled:opacity-40"
+        className="hmdl-btn hmdl-btn-primary rounded-lg px-3 py-2 text-xs font-medium transition disabled:opacity-40"
       >
         {saving ? "Saving..." : finalRosterId === selectedRosterId ? "Published" : "Set Final"}
       </button>
