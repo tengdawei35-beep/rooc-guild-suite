@@ -1812,3 +1812,72 @@ body,
   }
   .hmdl-reservations-workspace .hmdl-reservation-bulk-list { max-height:60vh; }
 }
+
+
+/* Phase 46 — application-wide authenticated page geometry contract.
+   The route/workspace owns the outer page container. Nested client components
+   must not introduce a second page width or horizontal gutter. */
+:root {
+  --hmdl-page-max-standard: 96rem;
+  --hmdl-page-max-wide: 100rem;
+  --hmdl-page-max-narrow: 64rem;
+  --hmdl-page-gutter: clamp(1rem, 2.2vw, 2rem);
+  --hmdl-page-space-block: clamp(1.5rem, 2.4vw, 2.5rem);
+}
+
+.hmdl-management.hmdl-management .hmdl-page {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--hmdl-page-max-standard);
+  min-width: 0;
+  margin-inline: auto;
+  padding: var(--hmdl-page-space-block) var(--hmdl-page-gutter);
+}
+
+/* Semantic width variants are opt-in; standard is the safe default. */
+.hmdl-management.hmdl-page-wide .hmdl-page {
+  max-width: var(--hmdl-page-max-wide);
+}
+.hmdl-management.hmdl-page-narrow .hmdl-page {
+  max-width: var(--hmdl-page-max-narrow);
+}
+
+/* A nested page primitive is content, not another layout container. */
+.hmdl-management.hmdl-management .hmdl-page .hmdl-page {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Normalize page-level heading hierarchy without changing section headings. */
+.hmdl-management .hmdl-page > header > h1,
+.hmdl-management .hmdl-page > header > div > h1,
+.hmdl-management .hmdl-page > header .hmdl-page-title {
+  color: var(--hmdl-text);
+  font-family: var(--hmdl-font-ui);
+  font-size: clamp(1.5rem, 1.8vw, 1.875rem);
+  font-weight: 680;
+  letter-spacing: -0.035em;
+  line-height: 1.2;
+}
+.hmdl-management .hmdl-page > header > p:not(.hmdl-eyebrow),
+.hmdl-management .hmdl-page > header > div > p:not(.hmdl-eyebrow) {
+  line-height: 1.5;
+}
+
+/* Consistent narrow-screen page gutters and action wrapping. */
+@media (max-width: 700px) {
+  .hmdl-management.hmdl-management .hmdl-page {
+    padding: 1.25rem 1rem;
+  }
+  .hmdl-management .hmdl-page > header {
+    gap: 1rem;
+  }
+  .hmdl-management .hmdl-page > header > div {
+    min-width: 0;
+  }
+  .hmdl-management .hmdl-page > header :is(button, a) {
+    max-width: 100%;
+  }
+}
