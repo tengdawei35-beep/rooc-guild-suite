@@ -207,3 +207,16 @@ The source review also confirmed that the event list currently retrieves all gui
 | ROSTER-DELETE-01 | Roster deletion now prevents overlapping delete requests, shows a per-roster “Deleting…” state, and reports failures through the event page's accessible alert instead of a browser alert. | Implemented in source; destructive-action and keyboard validation pending |
 
 The event detail page also refreshes event/roster data every 10 seconds while visible so attendance changes made through Discord or HMDL are reflected. This behavior is source-verified; network/polling performance and concurrent editing behavior still need runtime testing.
+
+
+### Phase B — Call To Arms and attendance accessibility
+
+| Finding | Change | Status |
+|---|---|---|
+| CALLS-01 | Call To Arms creation and Discord settings overlays now expose dialog semantics, initial focus, Escape dismissal, focus trapping and focus restoration. Close controls have accessible names. | Implemented in source; keyboard/screen-reader runtime validation pending |
+| CALLS-02 | Call date, hour, minute, requirement and quantity controls now have explicit accessible names; requirement removal has a contextual accessible name. Modal errors are announced. | Implemented in source; form workflow and assistive-technology validation pending |
+| CALLS-03 | Discord settings failures are shown inline as an accessible alert rather than a browser alert; the webhook field is explicitly labelled. | Implemented in source; failure/retry validation pending |
+| CALLS-04 | Call To Arms page now uses the standard page-authentication guard and redirects users without `events.view` permission rather than rendering a blank page for unauthenticated access. | Implemented in source; permission matrix validation pending |
+| ATTEND-01 | Event attendance response controls expose their selected state with `aria-pressed`, and attendance loading errors are announced as alerts. | Implemented in source; keyboard and screen-reader validation pending |
+
+The event detail page and attendance panel both poll at 10-second intervals while the page is visible. This can produce overlapping requests under slow network conditions; request cancellation/deduplication and concurrent-edit behavior remain runtime review items.
