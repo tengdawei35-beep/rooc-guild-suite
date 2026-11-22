@@ -31,7 +31,10 @@ function isActive(pathname: string, href: string, searchParams: URLSearchParams)
     const expected = new URLSearchParams(targetQuery);
     return [...expected.entries()].every(([key, value]) => searchParams.get(key) === value);
   }
-  if (targetPath === "/events") return !["rosters", "preferred"].includes(searchParams.get("view") ?? "");
+  if (targetPath === "/events") {
+    if (pathname === "/events") return !["rosters", "preferred"].includes(searchParams.get("view") ?? "");
+    return pathname.startsWith("/events/") && pathname !== "/events/results";
+  }
   return true;
 }
 
