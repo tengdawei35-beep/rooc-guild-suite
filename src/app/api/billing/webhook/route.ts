@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
 import { stripePaymentProvider } from "@/lib/payments/stripe";
+import { syncGuildSubscriptionDiscordRoles } from "@/lib/discord/subscription-roles";
 export const runtime = "nodejs";
 function subscriptionStatus(status: Stripe.Subscription.Status) { switch (status) { case "active": return "ACTIVE" as const; case "trialing": return "TRIALING" as const; case "past_due": case "unpaid": return "PAST_DUE" as const; case "canceled": return "CANCELED" as const; default: return "INCOMPLETE" as const; } }
 function subscriptionIsEntitled(status: Stripe.Subscription.Status) { return status === "active" || status === "trialing"; }
@@ -44,8 +45,14 @@ export async function POST(request: Request) {
         const existingGuild = await tx.guild.findUnique({ where: { discordGuildId: discordGuildId! } }); if (existingGuild) throw new Error("DISCORD_GUILD_ALREADY_REGISTERED"); const guild = await tx.guild.create({ data: { name: guildName!, discordGuildId: discordGuildId!, ownerUserId: user.id, gameType } }); createdGuildId = guild.id; await tx.guildMembership.create({ data: { guildId: guild.id, userId: user.id, role: "ADMIN" } }); await tx.guildSubscription.create({ data: { guildId: guild.id, planId: plan.id, status: "ACTIVE", provider: "stripe", providerCustomerId: customerId, providerSubscriptionId: subscriptionId } }); await tx.guildModuleEntitlement.createMany({ data: plan.modules.map((module) => ({ guildId: guild.id, module: module.module, enabled: true })) });
       });
       if (affiliateId && createdGuildId) await recordAffiliateReferral(createdGuildId, subscriptionId, affiliateId);
+      if (createdGuildId) await syncGuildSubscriptionDiscordRoles(createdGuildId);
     }
-    if (event.type === "customer.subscription.created" || event.type === "customer.subscription.updated" || event.type === "customer.subscription.deleted") await prisma.$transaction((tx) => syncSubscription(tx, event.data.object as Stripe.Subscription));
+    if (event.type === "customer.subscription.created" || event.type === "customer.subscription.updated" || event.type === "customer.subscription.deleted") {
+      const subscription = event.data.object as Stripe.Subscription;
+      const existing = await prisma.guildSubscription.findUnique({ where: { providerSubscriptionId: subscription.id }, select: { guildId: true } });
+      await prisma.$transaction((tx) => syncSubscription(tx, subscription));
+      if (existing) await syncGuildSubscriptionDiscordRoles(existing.guildId);
+    }
     if (event.type === "invoice.paid") await recordAffiliateCommission(event.data.object as Stripe.Invoice);
     return NextResponse.json({ received: true });
   } catch (error) { console.error("[STRIPE WEBHOOK] Processing failed", event.id, error); return NextResponse.json({ error: "WEBHOOK_PROCESSING_FAILED" }, { status: 500 }); }
