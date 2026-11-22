@@ -22,7 +22,7 @@ export default async function MembersPage() {
   if (!guild) {
     return (
       <main className="hmdl-management hmdl-member-directory-workspace min-h-screen text-white">
-        <div className="hmdl-page mx-auto max-w-7xl">
+        <div className="hmdl-page">
           <div className="hmdl-empty">
             <h1 className="text-xl font-semibold text-zinc-200">No guild configured</h1>
             <p className="mt-2 text-sm">Configure your guild before managing members.</p>
