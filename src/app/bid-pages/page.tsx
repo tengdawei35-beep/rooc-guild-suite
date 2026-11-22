@@ -50,7 +50,7 @@ export default async function BidPagesPage() {
               Configure your guild before viewing bid pages.
             </p>
             {canManageAllocation && (
-              <Link href="/guild" className="mt-6 inline-flex rounded-lg bg-white px-5 py-3 font-medium text-black hover:bg-zinc-200">
+              <Link href="/guild" className="mt-6 inline-flex rounded-lg hmdl-btn hmdl-btn-primary px-5 py-3 font-medium">
                 Configure Guild
               </Link>
             )}
@@ -87,7 +87,7 @@ export default async function BidPagesPage() {
           </p>
           {canManageAllocation && (
             <div className="mt-6 flex justify-center gap-3">
-              <Link href="/allocation" className="rounded-lg bg-white px-5 py-3 font-medium text-black hover:bg-zinc-200">
+              <Link href="/allocation" className="rounded-lg hmdl-btn hmdl-btn-primary px-5 py-3 font-medium">
                 Create Allocation
               </Link>
               <Link href="/allocation/history" className="rounded-lg border border-zinc-700 bg-zinc-900 px-5 py-3 font-medium text-white hover:bg-zinc-800">
