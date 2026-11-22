@@ -289,7 +289,6 @@ export async function GET(request: Request) {
       ? members
       : await prisma.guildMember.findMany({
           where,
-          include: { leaveDates: { orderBy: { date: "asc" } } },
           orderBy: [orderBy, { characterName: "asc" }, { id: "asc" }],
           skip: (currentPage - 1) * pageSize,
           take: pageSize,
