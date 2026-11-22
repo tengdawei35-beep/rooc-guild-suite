@@ -1,5 +1,6 @@
 import Link from "next/link";
 import GettingStarted from "@/app/GettingStarted";
+import RoleOnboarding from "@/app/RoleOnboarding";
 import { prisma } from "@/lib/prisma";
 import { getCurrentAuth, hasPermission } from "@/lib/auth";
 import { hasGuildModule, RESOURCE_SUITE_MODULE } from "@/lib/auth/modules";
@@ -134,7 +135,7 @@ export default async function Home() {
   const recentMemberActivity = memberActivity.sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 5);
   const recentLeaveActivity = leaveItems.slice(0, 5);
   const recentApplicantActivity = applicantActivity.sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 5);
-  return <main className="hmdl-management-dashboard"><div className="hmdl-dashboard-page"><GettingStarted />
+  return <main className="hmdl-management-dashboard"><div className="hmdl-dashboard-page">{auth.role === "OFFICER" ? <RoleOnboarding /> : <GettingStarted />}
     <header className="hmdl-dashboard-heading"><div><p className="hmdl-eyebrow">MANAGEMENT WORKSPACE</p><h1>Guild overview</h1><p>Monitor guild activity and keep daily operations moving.</p></div><div className="flex items-center gap-3"><span className="max-w-40 truncate text-sm text-zinc-300">{auth.user.username}</span>{accessibleGuildCount > 1 && <Link href="/guild/switch" className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-300 transition hover:border-zinc-500 hover:bg-zinc-800 hover:text-white">Switch Guild</Link>}{isPlatformAdmin && <Link href="/admin" className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-300 transition hover:border-zinc-500 hover:bg-zinc-800 hover:text-white">Admin</Link>}<form action="/api/auth/logout" method="POST"><button type="submit" className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-300 transition hover:border-zinc-500 hover:bg-zinc-800 hover:text-white">Log out</button></form></div></header>
       {!guild ? <section className="rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/50 p-10 text-center"><h2 className="text-xl font-semibold">No guild configured</h2><p className="mt-2 text-sm text-zinc-400">Your ROO Guild Suite database is connected, but no guild has been created yet.</p><Link href="/guild" className="mt-6 inline-flex rounded-lg hmdl-btn hmdl-btn-primary px-5 py-3 font-medium">Configure Guild</Link></section> : <>
       <section className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"><CharacterCard ownMember={ownMember} /><StatCard label="Available today (not on leave)" value={availableToday} /><StatCard label="Num of Applicants" value={applicantCount} /><StatCard label="Events today" value={eventsToday} /></section>
