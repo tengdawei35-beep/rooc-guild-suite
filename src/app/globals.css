@@ -953,3 +953,14 @@ body {
 .hmdl-guild-config-workspace .rounded-2xl.border,.hmdl-guild-config-workspace .rounded-xl.border { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); }
 .hmdl-guild-config-workspace input,.hmdl-guild-config-workspace select { border-color:var(--hmdl-border-strong); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); color:var(--hmdl-text); }
 .hmdl-guild-config-workspace button { border-radius:var(--hmdl-radius-md); font-size:.76rem; font-weight:620; }
+
+/* Phase 17 — member resource opt-in experience */
+.hmdl-member-optins-workspace { min-height:100vh; background:var(--hmdl-bg); color:var(--hmdl-text); }
+.hmdl-member-optins-workspace > .hmdl-page { width:100%; max-width:76rem; }
+.hmdl-member-optins-workspace h1 { color:var(--hmdl-text); font-size:clamp(1.55rem,2.4vw,2rem); font-weight:690; letter-spacing:-.04em; }
+.hmdl-member-optins-workspace h2 { color:var(--hmdl-text); font-weight:680; }
+.hmdl-member-optins-workspace p { color:var(--hmdl-text-muted); }
+.hmdl-member-optins-workspace .rounded-2xl.border,.hmdl-member-optins-workspace .rounded-xl.border { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); }
+.hmdl-member-optins-workspace input,.hmdl-member-optins-workspace select { border-color:var(--hmdl-border-strong); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); color:var(--hmdl-text); }
+.hmdl-member-optins-workspace button { border-radius:var(--hmdl-radius-md); font-size:.76rem; font-weight:620; }
+.hmdl-member-optins-workspace button:focus-visible,.hmdl-member-optins-workspace a:focus-visible { outline:2px solid var(--hmdl-accent); outline-offset:2px; }
