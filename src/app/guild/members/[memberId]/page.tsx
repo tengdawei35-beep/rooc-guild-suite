@@ -46,7 +46,7 @@ export default async function MemberProfilePage({ params }: PageProps) {
 
   if (!canViewCharacterStats) {
     return (
-      <main className="min-h-screen bg-zinc-950 text-white">
+      <main className="hmdl-management hmdl-member-profile-workspace min-h-screen bg-zinc-950 text-white">
         <div className="mx-auto max-w-4xl p-6">
           <Link href="/guild/members" className="text-sm text-zinc-500 transition hover:text-white">← Guild Members</Link>
           <div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
