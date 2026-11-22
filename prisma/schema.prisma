@@ -975,3 +975,33 @@ model GuildRoleOnboardingProgress {
   @@unique([userId, guildId])
   @@index([guildId])
 }
+
+
+model AdminImpersonationSession {
+  id String @id @default(cuid())
+  adminUserId String
+  targetUserId String
+  guildId String
+  role UserRole
+  mode String
+  startedAt DateTime @default(now())
+  expiresAt DateTime
+  endedAt DateTime?
+  endedReason String?
+  auditLogs AdminImpersonationAuditLog[]
+  @@index([adminUserId, startedAt])
+  @@index([guildId, startedAt])
+  @@index([expiresAt, endedAt])
+}
+
+model AdminImpersonationAuditLog {
+  id String @id @default(cuid())
+  sessionId String
+  actorUserId String
+  action String
+  metadata Json?
+  createdAt DateTime @default(now())
+  session AdminImpersonationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  @@index([sessionId, createdAt])
+  @@index([actorUserId, createdAt])
+}
