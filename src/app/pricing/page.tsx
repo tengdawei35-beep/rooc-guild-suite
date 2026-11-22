@@ -168,7 +168,7 @@ export default async function PricingPage() {
                     )}
                   </div>
 
-                  <Link href="/login" className={`mt-8 flex w-full items-center justify-center rounded-lg px-5 py-3 text-sm font-semibold ${total ? "bg-white text-black hover:bg-zinc-200" : "border border-zinc-700 text-white hover:bg-zinc-800"}`}>
+                  <Link href="/login" className={`mt-8 flex w-full items-center justify-center px-5 py-3 text-sm font-semibold ${total ? "hmdl-btn hmdl-btn-primary" : "rounded-lg border border-zinc-700 text-white hover:bg-zinc-800"}`}>
                     Get started with {plan.name}
                   </Link>
                 </article>
