@@ -84,8 +84,6 @@ export default async function MembersPage() {
   });
 
   return (
-    <main className="hmdl-management hmdl-member-directory-workspace min-h-screen text-white">
-      <MembersClient initialMembers={members} gameType={guild.gameType} />
-    </main>
+    <MembersClient initialMembers={members} gameType={guild.gameType} />
   );
 }
