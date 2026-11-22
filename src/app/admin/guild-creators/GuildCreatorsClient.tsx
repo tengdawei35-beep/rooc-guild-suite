@@ -117,7 +117,7 @@ export default function GuildCreatorsClient({
   }
 
   return (
-    <div className="space-y-8">
+    <div className="hmdl-creator-admin-client space-y-8">
       <form onSubmit={addCreator} className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
         <h2 className="text-lg font-semibold">Add Guild Creator</h2>
         <div className="mt-5 grid gap-4 md:grid-cols-[1fr_1fr_140px_140px_auto]">
