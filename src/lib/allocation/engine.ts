@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import type { Prisma } from "@/generated/prisma/client";
 
 export type AllocationInput = { guildId: string; nonReservedMemberCount: number; eventDate: Date; eventId?: string; timeZone?: string | null };
 export type AllocationAssignment = {
@@ -37,6 +36,8 @@ export type AllocationOverride = {
   assignments: { memberId: string; assignedQuantity: number }[];
 };
 
+type AllocationDb = Pick<typeof prisma, "guild" | "$queryRaw">;
+
 type PendingRecovery = { id: string; memberId: string; resourceId: string; quantity: number };
 
 type AssignmentParts = {
@@ -48,7 +49,7 @@ type AssignmentParts = {
   normalQuantity: number;
 };
 
-async function getPendingRecoveries(guildId: string, db: Prisma.TransactionClient | typeof prisma): Promise<PendingRecovery[]> {
+async function getPendingRecoveries(guildId: string, db: AllocationDb): Promise<PendingRecovery[]> {
   return db.$queryRaw<PendingRecovery[]>`
     SELECT "id", "memberId", "resourceId", "quantity"
     FROM "RotationRecovery"
@@ -64,7 +65,7 @@ function assertStockInvariant(resourceName: string, total: number, reserved: num
   }
 }
 
-export async function buildAllocation(input: AllocationInput, db: Prisma.TransactionClient | typeof prisma = prisma): Promise<AllocationPreviewResult> {
+export async function buildAllocation(input: AllocationInput, db: AllocationDb = prisma): Promise<AllocationPreviewResult> {
   if (!input.guildId) throw new Error("Guild ID is required.");
   if (!Number.isInteger(input.nonReservedMemberCount) || input.nonReservedMemberCount < 0) {
     throw new Error("Number of members per allocation must be a non-negative integer.");
