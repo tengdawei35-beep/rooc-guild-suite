@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
 import { getPlatformAdmin } from "@/lib/platform-admin";
+import ManagementPageHeader from "@/app/ManagementPageHeader";
 import GuildCreatorsClient from "./GuildCreatorsClient";
 
 async function ensureAdminPlans() {
@@ -92,14 +92,9 @@ export default async function GuildCreatorsAdminPage() {
 
   return (
     <main className="hmdl-platform-admin-workspace min-h-screen bg-zinc-950 text-white">
-      <div className="hmdl-page mx-auto max-w-6xl px-6 py-10">
-        <Link href="/" className="text-sm text-zinc-500 hover:text-white">← Dashboard</Link>
-        <div className="mt-8">
-          <p className="text-sm font-medium uppercase tracking-widest text-zinc-500">Platform Administration</p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight">Guild Creators</h1>
-          <p className="mt-2 text-sm text-zinc-400">Control which Discord accounts can create guilds, how many guilds each account may own, and complimentary access for existing guilds.</p>
-        </div>
-        <div className="mt-8">
+      <div className="hmdl-page">
+        <ManagementPageHeader eyebrow="PLATFORM · CREATOR ACCESS" title="Guild Creators" description="Control which Discord accounts can create guilds, how many guilds each account may own, and complimentary access for existing guilds." />
+        <div className="mt-6">
           <GuildCreatorsClient
             initialCreators={creatorsWithCounts}
             plans={plans}
