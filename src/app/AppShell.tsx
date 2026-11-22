@@ -114,6 +114,7 @@ export default function AppShell({
         ? [
             { label: "Guild settings", href: "/guild", icon: "⚙" },
             { label: "Discord notifications", href: "/guild/notifications", icon: "◉" },
+            { label: "Subscription", href: "/billing/new", icon: "▤" },
           ]
         : [],
     },
