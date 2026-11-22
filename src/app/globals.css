@@ -2342,3 +2342,16 @@ body,
     padding: 1rem;
   }
 }
+
+
+/* Phase 54 — the affected management routes use one shared 96rem content grid.
+   This higher-specificity route contract overrides legacy wide-workspace rules. */
+.hmdl-shell-content > .hmdl-management:is(
+  .hmdl-results-archive,
+  .hmdl-history-workspace,
+  .hmdl-allocation-workspace,
+  .hmdl-insights-workspace,
+  .hmdl-rankings-workspace
+) > .hmdl-page {
+  max-width: var(--hmdl-page-max-standard, 96rem);
+}
