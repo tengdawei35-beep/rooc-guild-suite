@@ -2355,3 +2355,51 @@ body,
 ) > .hmdl-page {
   max-width: var(--hmdl-page-max-standard, 96rem);
 }
+
+/* Guild Pulse activity cards */
+.hmdl-management-dashboard .hmdl-dashboard-activity-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  align-items: stretch;
+}
+.hmdl-management-dashboard .hmdl-activity-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--hmdl-border);
+  border-radius: var(--hmdl-radius-lg);
+  background: var(--hmdl-surface);
+}
+.hmdl-activity-card-header {
+  display: flex;
+  min-height: 3.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid var(--hmdl-border);
+  padding: 0.8rem 1rem;
+}
+.hmdl-activity-card-heading { display: flex; min-width: 0; align-items: center; gap: 0.65rem; }
+.hmdl-activity-card-heading h3 { margin: 0; color: var(--hmdl-text); font-size: 0.82rem; font-weight: 650; letter-spacing: -0.01em; }
+.hmdl-activity-card-indicator { width: 0.55rem; height: 0.55rem; flex: 0 0 0.55rem; border-radius: 999px; background: var(--hmdl-accent); box-shadow: 0 0 0 3px var(--hmdl-accent-soft); }
+.hmdl-activity-card--amber .hmdl-activity-card-indicator { background: #eab308; box-shadow: 0 0 0 3px rgb(234 179 8 / 12%); }
+.hmdl-activity-card--violet .hmdl-activity-card-indicator { background: #a78bfa; box-shadow: 0 0 0 3px rgb(167 139 250 / 13%); }
+.hmdl-activity-card--teal .hmdl-activity-card-indicator { background: #2dd4bf; box-shadow: 0 0 0 3px rgb(45 212 191 / 13%); }
+.hmdl-activity-card-count { display: inline-flex; min-width: 1.55rem; height: 1.55rem; align-items: center; justify-content: center; border: 1px solid var(--hmdl-border); border-radius: 999px; background: var(--hmdl-surface-muted); padding: 0 0.35rem; color: var(--hmdl-text-secondary); font-size: 0.68rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.hmdl-activity-list { margin: 0; padding: 0; list-style: none; }
+.hmdl-activity-list li + li { border-top: 1px solid var(--hmdl-border); }
+.hmdl-activity-row { display: flex; min-height: 4.15rem; align-items: center; gap: 0.8rem; padding: 0.8rem 1rem; color: inherit; text-decoration: none; transition: background 140ms ease; }
+.hmdl-activity-row:hover { background: var(--hmdl-surface-raised); }
+.hmdl-activity-row-copy { min-width: 0; flex: 1; }
+.hmdl-activity-row-copy p { overflow: hidden; margin: 0; color: var(--hmdl-text); font-size: 0.78rem; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.hmdl-activity-row-copy span { display: block; overflow: hidden; margin-top: 0.25rem; color: var(--hmdl-text-muted); font-size: 0.68rem; line-height: 1.4; text-overflow: ellipsis; white-space: nowrap; }
+.hmdl-activity-row time { flex: 0 0 auto; color: var(--hmdl-text-muted); font-size: 0.65rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.hmdl-activity-row-arrow { color: var(--hmdl-text-muted); font-size: 0.8rem; opacity: 0; transform: translateX(-3px); transition: opacity 140ms ease, transform 140ms ease; }
+.hmdl-activity-row:hover .hmdl-activity-row-arrow, .hmdl-activity-row:focus-visible .hmdl-activity-row-arrow { opacity: 1; transform: translateX(0); }
+.hmdl-activity-empty { margin: 0; padding: 1.25rem 1rem; color: var(--hmdl-text-muted); font-size: 0.75rem; }
+@media (max-width: 760px) {
+  .hmdl-management-dashboard .hmdl-dashboard-activity-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hmdl-activity-row, .hmdl-activity-row-arrow { transition: none; }
+}
