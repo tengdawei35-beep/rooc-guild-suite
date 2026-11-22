@@ -317,3 +317,11 @@ This hardens the API-facing allocation calculation against malformed or ambiguou
 
 The fallback is defensive only; valid configured timezones continue to drive local calendar-day calculations.
 
+### Phase B — allocation concurrency and rotation integrity
+
+| Finding | Change | Status |
+|---|---|---|
+| ALLOC-CONCURRENCY-01 | Allocation runs previously acquired an advisory lock scoped to a single event, although rotation state is shared across the guild. Two different events could therefore calculate from the same rotation index and race their updates, undermining fairness. The run now acquires a guild-scoped transaction lock before rebuilding its preview and holds it through persistence. Reservation create/update/delete and rotation reset use the same lock, preventing those operations from interleaving with an allocation snapshot/commit. | Implemented in source; CI and concurrent-request runtime validation pending |
+
+The preview is now calculated after the guild lock is acquired, not before it. This ensures the committed allocation uses the latest rotation state after any earlier allocation completes. This lock coordinates the inspected allocation, reservation and reset paths; resource-total edits and other future mutation paths still need to adopt the same lock before they can be considered fully serialized.
+
