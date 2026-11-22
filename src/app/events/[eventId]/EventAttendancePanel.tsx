@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Status = "AVAILABLE" | "UNAVAILABLE" | "AFK_BUSY";
 type Row = { memberId: string; characterName: string; job: string | null; status: Status | null; respondedAt: string | null; discordUsername: string | null };
@@ -19,6 +19,8 @@ export default function EventAttendancePanel({ eventId }: { eventId: string }) {
   const [canManage, setCanManage] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const refreshInFlight = useRef(false);
+  const busyRef = useRef(false);
 
   async function load() {
     const response = await fetch(`/api/events/${eventId}/attendance`, { cache: "no-store" });
@@ -33,22 +35,45 @@ export default function EventAttendancePanel({ eventId }: { eventId: string }) {
 
   useEffect(() => {
     let active = true;
+    let controller: AbortController | null = null;
     const refresh = () => {
-      if (document.visibilityState !== "visible") return;
-      load().catch(e => {
-        if (active) setError(e instanceof Error ? e.message : "Unable to load attendance.");
-      });
+      if (!active || document.visibilityState !== "visible" || busyRef.current || refreshInFlight.current) return;
+      refreshInFlight.current = true;
+      controller = new AbortController();
+      fetch(`/api/events/${eventId}/attendance`, { cache: "no-store", signal: controller.signal })
+        .then(async response => {
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error || "Unable to load attendance.");
+          if (!active) return;
+          setRows(data.attendance ?? []);
+          setOwnStatus(data.ownStatus ?? null);
+          setCounts(data.counts ?? { available: 0, unavailable: 0, afkBusy: 0, noResponse: 0 });
+          setLocked(Boolean(data.locked));
+          setCanManage(Boolean(data.canManage));
+          setError("");
+        })
+        .catch(e => {
+          if (active && !(e instanceof DOMException && e.name === "AbortError")) {
+            setError(e instanceof Error ? e.message : "Unable to load attendance.");
+          }
+        })
+        .finally(() => { refreshInFlight.current = false; });
     };
     refresh();
     // Keep the HMDL panel in sync with responses submitted through Discord.
     const interval = window.setInterval(refresh, 10_000);
+    document.addEventListener("visibilitychange", refresh);
     return () => {
       active = false;
       window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", refresh);
+      controller?.abort();
+      refreshInFlight.current = false;
     };
   }, [eventId]);
 
   async function respond(status: Status) {
+    busyRef.current = true;
     setBusy(true); setError("");
     try {
       const response = await fetch(`/api/events/${eventId}/attendance`, {
@@ -61,7 +86,7 @@ export default function EventAttendancePanel({ eventId }: { eventId: string }) {
       setOwnStatus(status);
       await load();
     } catch (e) { setError(e instanceof Error ? e.message : "Unable to save attendance."); }
-    finally { setBusy(false); }
+    finally { busyRef.current = false; setBusy(false); }
   }
 
   return <section className="mt-8 rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
