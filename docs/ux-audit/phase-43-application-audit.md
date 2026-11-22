@@ -82,6 +82,9 @@ The count includes the root layout file. There are **36 `page.tsx` routes**.
 - `/admin/affiliates`
 - `/admin/guild-creators`
 
+**Applicant access**
+- `/apply/[token]`
+
 **Billing and public pages**
 - `/billing/new`
 - `/billing/success`
