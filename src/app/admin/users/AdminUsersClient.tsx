@@ -39,6 +39,7 @@ export default function AdminUsersClient({ users, total, page, pageSize, query }
       {users.length === 0 ? (
         <div className="px-5 py-14 text-center"><p className="font-medium text-zinc-200">No matching users</p><p className="mt-1 text-sm text-zinc-500">Try changing or clearing the filters.</p><button type="button" onClick={() => { window.location.href = "/admin/users"; }} className="mt-4 text-sm text-zinc-300 underline underline-offset-4">Clear filters</button></div>
       ) : (
+        <>
         <div className="space-y-3 p-3 md:hidden" aria-label="User directory cards">
           {users.map(user => {
             const expanded = expandedUserId === user.id;
@@ -98,6 +99,7 @@ export default function AdminUsersClient({ users, total, page, pageSize, query }
             })}</tbody>
           </table>
         </div>
+        </>
       )}
       {expandedUserId && users.some((user) => user.id === expandedUserId) && <div id={`admin-user-details-${expandedUserId}`} className="hidden border-t border-zinc-800 bg-zinc-950/50 p-5 md:block">
         {users.filter((user) => user.id === expandedUserId).map((user) => <div key={user.id} className="space-y-4">
