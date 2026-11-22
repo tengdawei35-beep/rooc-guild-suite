@@ -37,7 +37,7 @@ export default function AdminUsersClient({ users, total, page, pageSize, query }
         {query && <Link href="/admin/users" className="rounded-lg border border-zinc-700 px-4 py-2 text-center text-sm text-zinc-300">Clear</Link>}
       </form>
       {users.length === 0 ? (
-        <div className="px-5 py-14 text-center"><p className="font-medium text-zinc-200">No matching users</p><p className="mt-1 text-sm text-zinc-500">Try changing or clearing the filters.</p><button type="button" onClick={clearFilters} className="mt-4 text-sm text-zinc-300 underline underline-offset-4">Clear filters</button></div>
+        <div className="px-5 py-14 text-center"><p className="font-medium text-zinc-200">No matching users</p><p className="mt-1 text-sm text-zinc-500">Try changing or clearing the filters.</p><button type="button" onClick={() => { window.location.href = "/admin/users"; }} className="mt-4 text-sm text-zinc-300 underline underline-offset-4">Clear filters</button></div>
       ) : (
         <div className="overflow-x-auto">
           <table className="hmdl-table w-full min-w-[1050px]">
@@ -63,7 +63,7 @@ export default function AdminUsersClient({ users, total, page, pageSize, query }
           </table>
         </div>
       )}
-      {expandedUserId && filtered.some((user) => user.id === expandedUserId) && <div className="border-t border-zinc-800 bg-zinc-950/50 p-5">
+      {expandedUserId && users.some((user) => user.id === expandedUserId) && <div className="border-t border-zinc-800 bg-zinc-950/50 p-5">
         {users.filter((user) => user.id === expandedUserId).map((user) => <div key={user.id} className="space-y-4">
           <div className="flex flex-wrap items-start justify-between gap-3"><div><h3 className="font-semibold text-white">{user.username}</h3><p className="mt-1 font-mono text-xs text-zinc-500">HMDL user ID: {user.id}</p></div><div className="text-xs text-zinc-500">{user.membershipCount} guild membership record{user.membershipCount === 1 ? "" : "s"}</div></div>
           {user.guilds.length === 0 ? <p className="text-sm text-zinc-500">This account is not currently linked to a guild.</p> : <div className="grid gap-3 md:grid-cols-2">
