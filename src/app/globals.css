@@ -1597,3 +1597,86 @@ body,
 .hmdl-landing-page .grid > a > span { margin-top:auto; color:var(--hmdl-accent); }
 .hmdl-landing-page .grid > a:focus-visible { outline:2px solid var(--hmdl-accent); outline-offset:4px; }
 .hmdl-landing-page footer { border-color:var(--hmdl-border-subtle); }
+
+
+/* Phase 42 — screenshot-led visual regression corrections */
+.hmdl-landing-page header a,
+.hmdl-landing-page .grid > a h2,
+.hmdl-landing-page .grid > a > span,
+.hmdl-landing-page .grid > a > p:last-child { color:var(--hmdl-text) !important; }
+.hmdl-landing-page header a:hover,
+.hmdl-landing-page .grid > a:hover > span { color:var(--hmdl-text) !important; }
+.hmdl-landing-page p { color:var(--hmdl-text-muted) !important; }
+.hmdl-landing-page .grid > a { background:var(--hmdl-surface) !important; border-color:var(--hmdl-border) !important; }
+.hmdl-landing-page .grid > a:hover { background:var(--hmdl-surface-raised) !important; border-color:var(--hmdl-border-strong) !important; }
+
+.hmdl-management-dashboard .hmdl-dashboard-group,
+.hmdl-management-dashboard .hmdl-dashboard-activity-panel,
+.hmdl-management-dashboard .hmdl-dashboard-stat {
+  background:var(--hmdl-surface) !important;
+  border-color:var(--hmdl-border) !important;
+}
+.hmdl-management-dashboard .hmdl-dashboard-link {
+  background:var(--hmdl-surface-muted) !important;
+  border-color:var(--hmdl-border) !important;
+}
+.hmdl-management-dashboard .hmdl-dashboard-link:hover {
+  background:var(--hmdl-surface-raised) !important;
+  border-color:var(--hmdl-border-strong) !important;
+}
+.hmdl-management-dashboard .hmdl-dashboard-activity-panel > div:first-child {
+  border-color:var(--hmdl-border) !important;
+}
+.hmdl-management-dashboard .hmdl-dashboard-activity-panel a:hover {
+  background:var(--hmdl-surface-raised) !important;
+}
+.hmdl-management-dashboard .hmdl-dashboard-page > section.mt-10 > div.rounded-2xl {
+  background:var(--hmdl-surface) !important;
+  border-color:var(--hmdl-border) !important;
+}
+
+.hmdl-member-filter-toolbar {
+  background:var(--hmdl-surface) !important;
+  border-color:var(--hmdl-border) !important;
+}
+.hmdl-member-filter-control {
+  min-width:0;
+  background:var(--hmdl-surface-muted) !important;
+  border-color:var(--hmdl-border-strong) !important;
+  color:var(--hmdl-text) !important;
+}
+.hmdl-member-filter-control::placeholder { color:var(--hmdl-text-muted) !important; }
+.hmdl-member-filter-control:focus-visible {
+  border-color:var(--hmdl-accent) !important;
+  outline:2px solid var(--hmdl-accent-soft);
+  outline-offset:1px;
+}
+
+.hmdl-events-workspace .hmdl-event-card {
+  background:var(--hmdl-surface) !important;
+  border-color:var(--hmdl-border) !important;
+}
+.hmdl-events-workspace .hmdl-event-card:hover {
+  background:var(--hmdl-surface-raised) !important;
+  border-color:var(--hmdl-border-strong) !important;
+}
+.hmdl-events-workspace .hmdl-event-card h3 { color:var(--hmdl-text) !important; }
+.hmdl-events-workspace .hmdl-event-card > div:last-child { color:var(--hmdl-text-muted) !important; }
+.hmdl-events-workspace .hmdl-event-card > div:last-child { border-color:var(--hmdl-border) !important; }
+
+.hmdl-management .hmdl-job-composition-row {
+  background:transparent !important;
+  color:var(--hmdl-text-secondary) !important;
+  box-shadow:none !important;
+}
+.hmdl-management .hmdl-job-composition-row:hover {
+  background:var(--hmdl-surface-raised) !important;
+}
+.hmdl-management .hmdl-job-composition-row:focus-visible {
+  outline:2px solid var(--hmdl-accent) !important;
+  outline-offset:2px;
+}
+.hmdl-management .hmdl-job-composition-track { background:var(--hmdl-surface-muted) !important; }
+.hmdl-management .hmdl-job-composition-bar { background:var(--hmdl-accent) !important; }
+.hmdl-management .hmdl-job-composition-row .group-hover\\:text-white { color:var(--hmdl-text) !important; }
+.hmdl-management .hmdl-job-composition-row .text-gray-600 { color:var(--hmdl-text-muted) !important; }
