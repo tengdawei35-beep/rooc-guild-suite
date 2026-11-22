@@ -120,9 +120,9 @@ export default function GuildStatisticsClient() {
               <Panel title="Member Composition">
                 <div className="space-y-3">
                   {stats.jobs.length === 0 ? <div className="text-sm text-gray-500">No job data available.</div> : stats.jobs.map((item) => (
-                    <button key={item.job} type="button" onClick={() => openJob(item.job)} className="group block w-full rounded-lg p-2 text-left transition hover:bg-white/[0.04] focus:outline-none focus:ring-1 focus:ring-gray-500">
+                    <button key={item.job} type="button" onClick={() => openJob(item.job)} className="hmdl-job-composition-row group block w-full rounded-lg p-2 text-left transition hover:bg-white/[0.04] focus:outline-none focus:ring-1 focus:ring-gray-500">
                       <div className="mb-1 flex justify-between text-xs"><span className="font-medium text-gray-300 group-hover:text-white">{item.job} <span className="ml-1 text-gray-600">↗ View players</span></span><span className="text-gray-500">{item.count}</span></div>
-                      <div className="h-2 overflow-hidden rounded-full bg-gray-800"><div className="h-full rounded-full bg-gray-500 transition-colors group-hover:bg-gray-300" style={{ width: `${(item.count / maxJobCount) * 100}%` }} /></div>
+                      <div className="hmdl-job-composition-track h-2 overflow-hidden rounded-full bg-gray-800"><div className="hmdl-job-composition-bar h-full rounded-full bg-gray-500 transition-colors group-hover:bg-gray-300" style={{ width: `${(item.count / maxJobCount) * 100}%` }} /></div>
                     </button>
                   ))}
                 </div>
@@ -170,7 +170,7 @@ export default function GuildStatisticsClient() {
                       {sortedPlayers.map((player, index) => (
                         <tr key={player.id} className="hover:bg-white/[0.03]">
                           <td className="px-5 py-3 text-gray-600">{index + 1}</td>
-                          <td className="px-5 py-3 font-medium"><Link href={`/guild/members/${player.id}`} className="text-white underline-offset-4 hover:text-sky-300 hover:underline focus:outline-none focus:ring-1 focus:ring-sky-400 rounded-sm">{player.characterName ?? "Unnamed"}</Link></td>
+                          <td className="px-5 py-3 font-medium"><Link href={`/guild/members/${player.id}`} className="text-white underline-offset-4 hover:underline focus:outline-none rounded-sm">{player.characterName ?? "Unnamed"}</Link></td>
                           <td className="px-5 py-3 tabular-nums">{formatScore(player.pvpScore)}</td>
                           <td className="px-5 py-3 tabular-nums">{formatScore(player.dpsScore)}</td>
                           <td className="px-5 py-3 tabular-nums">{formatScore(player.tankScore)}</td>
