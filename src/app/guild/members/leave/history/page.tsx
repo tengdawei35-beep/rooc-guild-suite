@@ -124,7 +124,6 @@ export default async function LeaveHistoryPage() {
           eyebrow="PEOPLE"
           title="Leave History"
           description="Review leave frequency across current and former guild members."
-          breadcrumb={{ label: "Guild Members", href: "/guild/members" }}
         />
 
         <section className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
