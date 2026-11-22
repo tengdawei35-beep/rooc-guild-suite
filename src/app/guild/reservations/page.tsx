@@ -25,8 +25,8 @@ export default async function ReservationsPage() {
     )
   ) {
     return (
-      <main className="min-h-screen bg-zinc-950 text-white">
-        <div className="mx-auto max-w-7xl px-6 py-10">
+      <main className="hmdl-management hmdl-reservations-workspace min-h-screen bg-zinc-950 text-white">
+        <div className="hmdl-page mx-auto max-w-7xl px-6 py-10">
           <Link
             href="/"
             className="text-sm text-zinc-500 hover:text-white"
@@ -106,8 +106,8 @@ export default async function ReservationsPage() {
 
   if (!guild) {
     return (
-      <main className="min-h-screen bg-zinc-950 text-white">
-        <div className="mx-auto max-w-7xl px-6 py-10">
+      <main className="hmdl-management hmdl-reservations-workspace min-h-screen bg-zinc-950 text-white">
+        <div className="hmdl-page mx-auto max-w-7xl px-6 py-10">
           <Link
             href="/"
             className="text-sm text-zinc-500 hover:text-white"
@@ -200,8 +200,8 @@ export default async function ReservationsPage() {
     );
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white">
-      <div className="mx-auto max-w-7xl px-6 py-10">
+    <main className="hmdl-management hmdl-reservations-workspace min-h-screen bg-zinc-950 text-white">
+      <div className="hmdl-page mx-auto max-w-7xl px-6 py-10">
         <header className="mb-8">
           <Link
             href="/"
