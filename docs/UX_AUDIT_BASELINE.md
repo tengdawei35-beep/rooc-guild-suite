@@ -47,6 +47,8 @@ The Prisma schema includes guild memberships, guild members, events, attendance,
 | PLATFORM-01 | Low | Platform admin navigation | The sidebar exposes only Platform admin and Subscriptions directly; guild/user/impersonation management appears to be reached through the admin landing page. | Additional navigation step for frequent platform operations. | Flexibility and efficiency | Consider contextual admin shortcuts or a compact admin submenu, based on observed frequency and role needs. | Low | Faster platform operations without cluttering guild users' navigation. |
 | NOTIFY-01 | Medium | Guild notification settings | The form initially allowed Save before the asynchronous settings fetch completed; a user could submit a partially initialized form while existing channel configuration was still loading. | Accidental clearing or overwriting risk, and unclear loading status. | Visibility of system status; error prevention | Show loading state, disable Save until settings load, and provide a retry path if loading fails. | Low | Prevents premature submission and improves recovery. |
 | RECRUIT-01 | Medium | Recruitment queue | Applicant search and status filtering are present, but decision actions rely on generic browser confirmation and the queue has no explicit per-applicant pending state; one shared busy flag disables all actions while any action runs. | Users receive limited context during decisions and cannot distinguish which record is processing. | Visibility of system status; user control | Add per-record processing feedback and clearer decision confirmation context while retaining a final confirmation for irreversible decisions. | Medium | More precise feedback and fewer accidental repeated actions. |
+| RESULTS-01 | Medium | Event results archive API | The archive endpoint retrieves every result image for the guild and groups the full result set in memory without pagination or a bounded window. | As event history grows, archive response size, server memory use and page rendering work grow without a practical limit. | Efficiency; scalability; progressive disclosure | Add event-level pagination or date filtering with a clear total/continuation pattern; retain guild scoping and stable ordering. | Medium | Keeps archive browsing responsive for long-lived guilds. |
+| LEAVE-01 | Medium | Leave history page | The page loads every current leave row and every archived LeaveHistory row, then groups and sorts all records in application memory. | Historical leave data grows indefinitely and can increase server query time and memory use. | Efficiency; scalability | Introduce date range/search and paginated member summaries, or aggregate counts in the database; preserve the current/former member distinction. | Medium–High | Predictable performance as the guild's history grows. |
 
 ## Potential improvements requiring runtime validation
 
@@ -128,3 +130,12 @@ The following source-level changes have been committed to the audit branch only:
 Recruitment decision confirmation now names the applicant and explains the consequence of acceptance or denial. The affected applicant receives a processing label and an accessible status announcement while the request is running. This is implemented in source; decision workflow testing remains pending.
 
 These changes are not merged or deployed. The remaining audit and validation phases are still required.
+
+
+### Phase B — event result workflow review
+
+| Finding | Change | Status |
+|---|---|---|
+| RESULTS-UPLOAD-01 | Upload selection now validates the 12-file batch limit, accepted MIME types and 4 MB per-file limit before submission. If a batch partially fails, successfully uploaded files are removed from the retry selection so retrying does not duplicate them; remaining files stay selected and progress/error feedback explains the partial result. | Implemented in source; failure/retry workflow and build validation pending |
+
+The event results archive and leave history are confirmed unbounded at the query level (RESULTS-01 and LEAVE-01). These are documented as scalability risks; pagination/aggregation is not being added until the appropriate archive interaction and summary semantics are designed.
