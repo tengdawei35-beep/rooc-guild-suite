@@ -3,6 +3,7 @@ import { createHmac, timingSafeEqual } from "crypto";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { hasPermission } from "@/lib/permissions";
+import { getActiveImpersonation } from "@/lib/impersonation";
 import type { Permission, UserRole } from "@/lib/permissions";
 
 const SESSION_COOKIE = "rooc_session";
@@ -46,8 +47,28 @@ export async function getSession() {
 }
 
 async function getCurrentMembership() {
+  const impersonation = await getActiveImpersonation();
   const session = await getSession();
   if (!session) return null;
+
+  if (impersonation) {
+    if (impersonation.mode === "USER") {
+      return prisma.guildMembership.findUnique({
+        where: { userId_guildId: { userId: impersonation.targetUserId, guildId: impersonation.guildId } },
+        include: { user: true, guild: true },
+      });
+    }
+    const [user, guild] = await Promise.all([
+      prisma.user.findUnique({ where: { id: impersonation.targetUserId } }),
+      prisma.guild.findUnique({ where: { id: impersonation.guildId } }),
+    ]);
+    if (!user || !guild) return null;
+    return {
+      id: `impersonated-${impersonation.id}`, userId: user.id, guildId: guild.id,
+      role: impersonation.role, user, guild, createdAt: impersonation.startedAt, updatedAt: impersonation.startedAt,
+    };
+  }
+
   return prisma.guildMembership.findUnique({
     where: { userId_guildId: { userId: session.userId, guildId: session.guildId } },
     include: { user: true, guild: true },
