@@ -52,7 +52,8 @@ async function saveReservation(guildId: string, body: ReservationRequest, reserv
   if ("error" in data) return { error: data.error, status: 400 as const };
 
   return prisma.$transaction(async (tx) => {
-    const lockKey = `reservation-capacity:${guildId}:${data.resource.id}`;
+    // Coordinate reservation changes with allocation runs and rotation resets.
+    const lockKey = `guild-allocation:${guildId}`;
     await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${lockKey}, 0))`;
 
     const existing = reservationId
@@ -166,9 +167,15 @@ export async function DELETE(request: Request) {
 
     const id = new URL(request.url).searchParams.get("id");
     if (!id) return NextResponse.json({ error: "Reservation ID is required." }, { status: 400 });
-    const existing = await prisma.reservedAllocation.findFirst({ where: { id, guildId: auth.guild.id } });
-    if (!existing) return NextResponse.json({ error: "Reservation not found." }, { status: 404 });
-    await prisma.reservedAllocation.delete({ where: { id } });
+    const deleted = await prisma.$transaction(async (tx) => {
+      const lockKey = `guild-allocation:${auth.guild.id}`;
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${lockKey}, 0))`;
+      const existing = await tx.reservedAllocation.findFirst({ where: { id, guildId: auth.guild.id }, select: { id: true } });
+      if (!existing) return false;
+      await tx.reservedAllocation.delete({ where: { id: existing.id } });
+      return true;
+    });
+    if (!deleted) return NextResponse.json({ error: "Reservation not found." }, { status: 404 });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("[RESERVATIONS] Failed to delete reservation:", error);
