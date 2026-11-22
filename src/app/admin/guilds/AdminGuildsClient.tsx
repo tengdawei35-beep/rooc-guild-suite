@@ -108,9 +108,9 @@ export default function AdminGuildsClient({
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="hmdl-table w-full min-w-[1120px]">
+            <table className="hmdl-table w-full min-w-[1240px]">
               <thead><tr>
-                <th scope="col">Guild</th><th scope="col">Owner</th><th scope="col">Members</th><th scope="col">Subscription</th><th scope="col">Provider</th><th scope="col">Events</th><th scope="col">Renewal / expiry</th><th scope="col">Created</th>
+                <th scope="col">Guild</th><th scope="col">Owner</th><th scope="col">Members</th><th scope="col">Subscription</th><th scope="col">Provider</th><th scope="col">Events</th><th scope="col">Renewal / expiry</th><th scope="col">Created</th><th scope="col">Last updated</th>
               </tr></thead>
               <tbody>
                 {filtered.map((guild) => {
@@ -133,7 +133,7 @@ export default function AdminGuildsClient({
                     <td className="capitalize text-zinc-400">{guild.provider === "complimentary" ? "Complimentary" : guild.provider ?? "—"}</td>
                     <td className="tabular-nums text-zinc-300">{guild.eventCount.toLocaleString()}</td>
                     <td className="text-zinc-400">{formatDate(guild.periodEnd)}</td>
-                    <td className="text-zinc-400">{formatDate(guild.createdAt)}</td>
+                    <td className="text-zinc-400">{formatDate(guild.createdAt)}</td><td className="text-zinc-400">{formatDate(guild.updatedAt)}</td>
                   </tr>;
                 })}
               </tbody>
@@ -160,7 +160,7 @@ export default function AdminGuildsClient({
             <li><span className="text-zinc-200">Game type</span> reflects the guild’s configured HMDL game module (ROO Classic or RO3).</li>
             <li><span className="text-zinc-200">Subscription</span> shows the most recently created subscription record for each guild. A guild with no record is shown as unsubscribed.</li>
             <li><span className="text-zinc-200">Complimentary access</span> is identified by its provider and is not treated as paid revenue.</li>
-            <li><span className="text-zinc-200">Updated</span> timestamps and event totals are available in the underlying records; this overview is read-only.</li>
+            <li><span className="text-zinc-200">Last updated</span> reflects the most recent guild record update; event totals are all-time counts. This overview is read-only.</li>
           </ul>
         </div>
       </section>
