@@ -14,8 +14,8 @@ export default async function SwitchGuildPage() {
   });
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-zinc-950 px-4 py-12">
-      <div className="w-full max-w-lg rounded-2xl border border-zinc-800 bg-zinc-900 p-8">
+    <main className="hmdl-guild-access-workspace flex min-h-screen items-center justify-center bg-zinc-950 px-4 py-12">
+      <div className="hmdl-access-card w-full max-w-lg rounded-2xl border border-zinc-800 bg-zinc-900 p-8">
         <Link href="/" className="text-sm text-zinc-500 hover:text-white">← Back to dashboard</Link>
         <h1 className="mt-6 text-2xl font-semibold text-white">Switch Guild</h1>
         <p className="mt-2 text-sm text-zinc-400">Choose which guild you want to manage. Your account and access to each guild will remain unchanged.</p>

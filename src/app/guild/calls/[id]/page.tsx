@@ -7,5 +7,5 @@ export default async function CallDetailPage({ params }: { params: Promise<{ id:
   if (!auth) return null;
   if (!hasPermission(auth.role, "events.view")) return <main className="min-h-screen bg-zinc-950 p-8 text-white">You do not have permission to view this call.</main>;
   const { id } = await params;
-  return <CallDetailClient id={id} />;
+  return <main className="hmdl-management hmdl-calls-workspace"><div className="hmdl-page"><CallDetailClient id={id} /></div></main>;
 }

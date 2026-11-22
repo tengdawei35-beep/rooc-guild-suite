@@ -336,8 +336,8 @@ export default function EventsClient({
   // ==========================================================
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white">
-      <div className="mx-auto max-w-7xl px-6 py-10">
+    <main className="hmdl-management hmdl-events-workspace min-h-screen bg-zinc-950 text-white">
+      <div className="hmdl-page mx-auto max-w-7xl px-6 py-10">
         {/* ====================================================
             HEADER
         ==================================================== */}
@@ -355,14 +355,14 @@ export default function EventsClient({
               ROO Guild Suite
             </p>
 
-            <h1 className="mt-1 text-3xl font-bold tracking-tight">
+            <h1 className="hmdl-page-title mt-1">
               {pageTitle}
             </h1>
 
             <p className="mt-2 text-zinc-400">
               {pageDescription}
             </p>
-            <Link href="/events/results" className="mt-3 inline-flex rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 transition hover:border-zinc-500 hover:text-white">Event Results →</Link>
+            <Link href="/events/results" className="hmdl-btn hmdl-btn-secondary mt-3 inline-flex px-3 py-2 text-sm">Event Results →</Link>
           </div>
         </div>
 
@@ -370,7 +370,7 @@ export default function EventsClient({
             NAVIGATION
         ==================================================== */}
 
-        <div className="mt-6 flex flex-wrap gap-2">
+        <nav aria-label="Event operations" className="hmdl-event-tabs mt-6 flex flex-wrap gap-2">
           <Link
             href="/events"
             className={`rounded-lg border px-4 py-2 text-sm font-medium transition ${
@@ -403,7 +403,7 @@ export default function EventsClient({
           >
             Preferred Rosters
           </Link>
-        </div>
+        </nav>
 
         {/* ====================================================
             EVENTS VIEW
@@ -415,7 +415,7 @@ export default function EventsClient({
                 CREATE EVENT
             ================================================== */}
 
-            <section className="mt-8 rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+            <section className="hmdl-event-create mt-8 rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
               <div>
                 <h2 className="text-lg font-semibold">
                   Create Event
@@ -500,7 +500,7 @@ export default function EventsClient({
                         !form.date ||
                         (isRo3 && !selectedGuildEventTypeId)
                       }
-                      className="w-full rounded-lg bg-white px-5 py-3 font-medium text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="w-full hmdl-btn hmdl-btn-primary rounded-lg px-5 py-3 font-medium transition disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {creating
                         ? "Creating..."
@@ -824,7 +824,7 @@ function EventCard({
   return (
     <Link
       href={`/events/${event.id}`}
-      className="group block rounded-2xl border border-zinc-800 bg-zinc-900 p-6 transition hover:border-zinc-600 hover:bg-zinc-900/80"
+      className="hmdl-event-card group block rounded-2xl border border-zinc-800 bg-zinc-900 p-6 transition hover:border-zinc-600 hover:bg-zinc-900/80"
     >
       <div className="flex items-start justify-between gap-4">
         <div>

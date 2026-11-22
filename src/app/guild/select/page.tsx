@@ -64,8 +64,8 @@ export default async function GuildSelectionPage() {
   );
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-zinc-950 px-4">
-      <div className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 p-8 shadow-xl">
+    <main className="hmdl-guild-access-workspace flex min-h-screen items-center justify-center bg-zinc-950 px-4">
+      <div className="hmdl-access-card w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 p-8 shadow-xl">
         <div className="text-center">
           <h1 className="text-2xl font-semibold text-white">Select Guild</h1>
           <p className="mt-2 text-sm text-zinc-500">
@@ -94,7 +94,7 @@ export default async function GuildSelectionPage() {
           <div className="mt-6 border-t border-zinc-800 pt-6">
             <Link
               href="/billing/new"
-              className="flex w-full items-center justify-center rounded-lg bg-white px-4 py-3 text-sm font-semibold text-black transition hover:bg-zinc-200"
+              className="flex w-full items-center justify-center rounded-lg hmdl-btn hmdl-btn-primary px-4 py-3 text-sm font-semibold transition"
             >
               Create another guild
             </Link>

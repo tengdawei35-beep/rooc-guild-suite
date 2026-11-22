@@ -77,8 +77,8 @@ export default async function PricingPage() {
   );
 
   return (
-    <main className="min-h-screen bg-zinc-950 px-6 py-10 text-white sm:px-10">
-      <div className="mx-auto max-w-6xl">
+    <main className="hmdl-pricing-workspace min-h-screen bg-zinc-950 px-6 py-10 text-white sm:px-10">
+      <div className="hmdl-page mx-auto max-w-6xl">
         <header className="flex items-center justify-between">
           <Link href="/" className="text-2xl font-bold tracking-tight">HMDL</Link>
           <div className="flex items-center gap-5 text-sm">
@@ -108,7 +108,7 @@ export default async function PricingPage() {
                   <div className="flex items-start justify-between gap-5">
                     <div>
                       <h2 className="text-2xl font-semibold">{plan.name}</h2>
-                      {total && <span className="mt-2 inline-flex rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-black">Everything included</span>}
+                      {total && <span className="mt-2 inline-flex rounded-full hmdl-btn hmdl-btn-primary px-2.5 py-1 text-xs font-semibold">Everything included</span>}
                     </div>
                     <div className="text-right">
                       <p className="text-2xl font-bold">{formatPrice(monthlyPrice, plan.currency)}</p>
@@ -168,7 +168,7 @@ export default async function PricingPage() {
                     )}
                   </div>
 
-                  <Link href="/login" className={`mt-8 flex w-full items-center justify-center rounded-lg px-5 py-3 text-sm font-semibold ${total ? "bg-white text-black hover:bg-zinc-200" : "border border-zinc-700 text-white hover:bg-zinc-800"}`}>
+                  <Link href="/login" className={`mt-8 flex w-full items-center justify-center px-5 py-3 text-sm font-semibold ${total ? "hmdl-btn hmdl-btn-primary" : "rounded-lg border border-zinc-700 text-white hover:bg-zinc-800"}`}>
                     Get started with {plan.name}
                   </Link>
                 </article>

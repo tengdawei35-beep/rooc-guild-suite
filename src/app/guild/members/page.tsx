@@ -1,24 +1,18 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import MembersClient from "./MembersClient";
-import { requirePageAuth, hasPermission } from "@/lib/auth";
+import { requirePageAuth } from "@/lib/auth";
 
 export default async function MembersPage() {
   const auth = await requirePageAuth();
   const guild = await prisma.guild.findUnique({
-    where: {
-      id: auth.guild.id,
-    },
+    where: { id: auth.guild.id },
     include: {
       members: {
-        orderBy: {
-          characterName: "asc",
-        },
+        orderBy: { characterName: "asc" },
         include: {
           leaveDates: {
-            orderBy: {
-              date: "asc",
-            },
+            orderBy: { date: "asc" },
           },
         },
       },
@@ -27,13 +21,12 @@ export default async function MembersPage() {
 
   if (!guild) {
     return (
-      <main className="min-h-screen bg-zinc-950 text-white">
-        <div className="mx-auto max-w-7xl px-6 py-10">
-          <Link href="/" className="text-sm text-zinc-500 hover:text-white">← Dashboard</Link>
-          <div className="mt-8 rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/50 p-10 text-center">
-            <h1 className="text-xl font-semibold">No guild configured</h1>
-            <p className="mt-2 text-sm text-zinc-400">Configure your guild before managing members.</p>
-            <Link href="/guild" className="mt-6 inline-flex rounded-lg bg-white px-5 py-3 font-medium text-black hover:bg-zinc-200">Configure Guild</Link>
+      <main className="hmdl-management hmdl-member-directory-workspace min-h-screen text-white">
+        <div className="hmdl-page mx-auto max-w-7xl">
+          <div className="hmdl-empty">
+            <h1 className="text-xl font-semibold text-zinc-200">No guild configured</h1>
+            <p className="mt-2 text-sm">Configure your guild before managing members.</p>
+            <Link href="/guild" className="hmdl-btn hmdl-btn-primary mt-5">Configure Guild</Link>
           </div>
         </div>
       </main>
@@ -41,7 +34,6 @@ export default async function MembersPage() {
   }
 
   const canViewOtherStats = auth.role !== "MEMBER";
-
   const members = guild.members.map((member) => {
     const isOwnMember = member.userId === auth.user.id || member.discordUserId === auth.user.discordId;
     const canViewCharacterStats = canViewOtherStats || isOwnMember;
@@ -54,7 +46,6 @@ export default async function MembersPage() {
       discordUsername: member.discordUsername,
       characterName: member.characterName,
       job: member.job,
-
       pdef: canViewCharacterStats ? member.pdef : null,
       mdef: canViewCharacterStats ? member.mdef : null,
       pvpDamageBonus: canViewCharacterStats ? member.pvpDamageBonus : null,
@@ -80,7 +71,6 @@ export default async function MembersPage() {
       matk: canViewCharacterStats ? member.matk : null,
       hp: canViewCharacterStats ? member.hp : null,
       ro3Stats: canViewCharacterStats ? member.ro3Stats as Record<string, number | null> | null : null,
-
       active: member.active,
       eligible: member.eligible,
       priority: member.priority,
@@ -94,25 +84,8 @@ export default async function MembersPage() {
   });
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white">
-      <div className="mx-auto max-w-7xl px-6 py-10">
-        <header className="mb-8">
-          <Link href="/" className="text-sm text-zinc-500 hover:text-white">← Dashboard</Link>
-          <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-sm font-medium uppercase tracking-widest text-zinc-500">{guild.name}</p>
-              <h1 className="mt-1 text-3xl font-bold tracking-tight">Guild Members</h1>
-              <p className="mt-2 text-zinc-400">Manage member profiles, jobs, combat statistics, eligibility and activity.</p>
-            </div>
-            {hasPermission(auth.role, "leave.manageAny") && (
-              <Link href="/guild/members/leave/history" className="inline-flex shrink-0 items-center justify-center rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-200 hover:border-zinc-500 hover:bg-zinc-800">
-                Leave History →
-              </Link>
-            )}
-          </div>
-        </header>
-        <MembersClient initialMembers={members} gameType={guild.gameType} />
-      </div>
+    <main className="hmdl-management hmdl-member-directory-workspace min-h-screen text-white">
+      <MembersClient initialMembers={members} gameType={guild.gameType} />
     </main>
   );
 }

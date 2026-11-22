@@ -32,8 +32,8 @@ export default async function ResourcesPage() {
     ))
   ) {
     return (
-      <main className="min-h-screen bg-zinc-950 text-white">
-        <div className="mx-auto max-w-7xl px-6 py-10">
+      <main className="hmdl-management hmdl-resources-workspace min-h-screen bg-zinc-950 text-white">
+        <div className="hmdl-page mx-auto max-w-7xl px-6 py-10">
           <Link
             href="/"
             className="text-sm text-zinc-500 hover:text-white"
@@ -62,8 +62,8 @@ export default async function ResourcesPage() {
     )
   ) {
     return (
-      <main className="min-h-screen bg-zinc-950 text-white">
-        <div className="mx-auto max-w-7xl px-6 py-10">
+      <main className="hmdl-management hmdl-resources-workspace min-h-screen bg-zinc-950 text-white">
+        <div className="hmdl-page mx-auto max-w-7xl px-6 py-10">
           <Link
             href="/"
             className="text-sm text-zinc-500 hover:text-white"
@@ -104,8 +104,8 @@ export default async function ResourcesPage() {
     });
 
     return (
-      <main className="min-h-screen bg-zinc-950 text-white">
-        <div className="mx-auto max-w-7xl px-6 py-10">
+      <main className="hmdl-management hmdl-resources-workspace min-h-screen bg-zinc-950 text-white">
+        <div className="hmdl-page mx-auto max-w-7xl px-6 py-10">
           <Link href="/" className="text-sm text-zinc-500 hover:text-white">← Dashboard</Link>
           <div className="mt-8">
             <h1 className="text-3xl font-bold tracking-tight">Guild Resources</h1>
@@ -146,8 +146,8 @@ export default async function ResourcesPage() {
 
   if (!guild) {
     return (
-      <main className="min-h-screen bg-zinc-950 text-white">
-        <div className="mx-auto max-w-7xl px-6 py-10">
+      <main className="hmdl-management hmdl-resources-workspace min-h-screen bg-zinc-950 text-white">
+        <div className="hmdl-page mx-auto max-w-7xl px-6 py-10">
           <Link
             href="/"
             className="text-sm text-zinc-500 hover:text-white"
@@ -196,8 +196,8 @@ export default async function ResourcesPage() {
     );
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white">
-      <div className="mx-auto max-w-7xl px-6 py-10">
+    <main className="hmdl-management hmdl-resources-workspace min-h-screen bg-zinc-950 text-white">
+      <div className="hmdl-page mx-auto max-w-7xl px-6 py-10">
         <Link
           href="/"
           className="text-sm text-zinc-500 hover:text-white"

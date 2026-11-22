@@ -22,7 +22,7 @@ export default async function BidsPage({ params }: Props) {
 
   if (!(await hasGuildModule(auth.guild.id, RESOURCE_SUITE_MODULE))) {
     return (
-      <main className="min-h-screen bg-zinc-950 text-white">
+      <main className="hmdl-bid-pages-workspace min-h-screen bg-zinc-950 text-white">
         <div className="mx-auto max-w-7xl px-6 py-10">
           <Link href="/" className="text-sm text-zinc-500 hover:text-white">
             ← Dashboard
@@ -71,7 +71,7 @@ export default async function BidsPage({ params }: Props) {
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
-      <div className="mx-auto max-w-7xl px-6 py-8">
+      <div className="hmdl-page mx-auto max-w-7xl px-6 py-8">
         <div className="flex flex-wrap items-center gap-4">
           <Link href="/" className="text-sm text-zinc-500 hover:text-white">
             ← Dashboard

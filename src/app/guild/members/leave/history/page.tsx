@@ -118,8 +118,8 @@ export default async function LeaveHistoryPage() {
   const formatDate = (date: Date) => date.toLocaleDateString("en-MY", { day: "2-digit", month: "short", year: "numeric", timeZone: "Asia/Kuala_Lumpur" });
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white">
-      <div className="mx-auto max-w-7xl px-6 py-10">
+    <main className="hmdl-management hmdl-leave-history-workspace min-h-screen bg-zinc-950 text-white">
+      <div className="hmdl-page mx-auto max-w-7xl px-6 py-10">
         <Link href="/guild/members" className="text-sm text-zinc-500 hover:text-white">← Guild Members</Link>
 
         <header className="mt-6 mb-8">

@@ -36,8 +36,8 @@ export default async function LoginPage({
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-zinc-950 px-4">
-      <div className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 p-8 shadow-xl">
+    <main className="hmdl-auth-workspace flex min-h-screen items-center justify-center bg-zinc-950 px-4">
+      <div className="hmdl-auth-card w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 p-8 shadow-xl">
         <div className="text-center">
           <h1 className="text-2xl font-semibold text-white">
             HMDL
@@ -57,7 +57,7 @@ export default async function LoginPage({
 
         <a
           href="/api/auth/discord"
-          className="mt-8 flex w-full items-center justify-center rounded-lg bg-white px-4 py-3 text-sm font-semibold text-black transition hover:bg-zinc-200"
+          className="mt-8 flex w-full items-center justify-center rounded-lg hmdl-btn hmdl-btn-primary px-4 py-3 text-sm font-semibold transition"
         >
           Continue with Discord
         </a>

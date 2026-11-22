@@ -1,8 +1,36 @@
 @import "tailwindcss";
 
+/*
+ * Heimdall design foundation
+ * Semantic tokens are intentionally independent of page-specific styling so
+ * modules can migrate incrementally without changing application behavior.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
+  --hmdl-bg: #090b0f;
+  --hmdl-surface: #10141b;
+  --hmdl-surface-raised: #151b24;
+  --hmdl-surface-muted: #0c1016;
+  --hmdl-border: #252d38;
+  --hmdl-border-strong: #394454;
+  --hmdl-text: #eef2f7;
+  --hmdl-text-secondary: #a4afbd;
+  --hmdl-text-muted: #748092;
+  --hmdl-accent: #a9c7f5;
+  --hmdl-accent-strong: #c4d9fb;
+  --hmdl-accent-contrast: #101a2a;
+  --hmdl-success: #43c58a;
+  --hmdl-warning: #e9b85f;
+  --hmdl-danger: #f07878;
+  --hmdl-info: #7eb6ed;
+  --hmdl-radius-sm: 6px;
+  --hmdl-radius-md: 9px;
+  --hmdl-radius-lg: 12px;
+  --hmdl-radius-xl: 16px;
+  --hmdl-shadow-popover: 0 16px 48px rgb(0 0 0 / 0.42);
+  --hmdl-focus-ring: 0 0 0 2px var(--hmdl-bg), 0 0 0 4px var(--hmdl-accent);
+  --background: var(--hmdl-bg);
+  --foreground: var(--hmdl-text);
 }
 
 @theme inline {
@@ -12,46 +40,1689 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  min-height: 100%;
+  background: var(--hmdl-bg);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100%;
+  background: var(--hmdl-bg);
+  color: var(--hmdl-text);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  text-rendering: optimizeLegibility;
 }
 
-/* Keep dashboard activity columns visually consistent with the unboxed activity list. */
-.grid.gap-4.lg\:grid-cols-4 > .overflow-hidden.rounded-2xl.border,
-.grid.gap-4.lg\:grid-cols-3 > .overflow-hidden.rounded-2xl.border {
+::selection {
+  background: rgb(169 199 245 / 0.28);
+  color: var(--hmdl-text);
+}
+
+:where(button, a, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--hmdl-accent);
+  outline-offset: 2px;
+}
+
+:where(button, input, select, textarea):disabled {
+  cursor: not-allowed;
+}
+
+:where(input, select, textarea) {
+  accent-color: var(--hmdl-accent);
+}
+
+.hmdl-surface {
+  border: 1px solid var(--hmdl-border);
+  border-radius: var(--hmdl-radius-lg);
+  background: var(--hmdl-surface);
+}
+
+.hmdl-surface-raised {
+  border: 1px solid var(--hmdl-border);
+  border-radius: var(--hmdl-radius-lg);
+  background: var(--hmdl-surface-raised);
+}
+
+.hmdl-label {
+  display: block;
+  color: var(--hmdl-text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 550;
+  line-height: 1.35;
+}
+
+.hmdl-field {
+  width: 100%;
+  min-height: 2.5rem;
+  border: 1px solid var(--hmdl-border-strong);
+  border-radius: var(--hmdl-radius-md);
+  background: var(--hmdl-surface-muted);
+  padding: 0.55rem 0.75rem;
+  color: var(--hmdl-text);
+  font: inherit;
+  font-size: 0.875rem;
+  transition: border-color 140ms ease, background-color 140ms ease;
+}
+
+.hmdl-field::placeholder {
+  color: var(--hmdl-text-muted);
+}
+
+.hmdl-field:focus {
+  border-color: var(--hmdl-accent);
+  outline: none;
+}
+
+.hmdl-btn {
+  display: inline-flex;
+  min-height: 2.375rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid transparent;
+  border-radius: var(--hmdl-radius-md);
+  padding: 0.5rem 0.875rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+.hmdl-btn-primary {
+  background: var(--hmdl-accent);
+  color: var(--hmdl-accent-contrast);
+}
+
+.hmdl-btn-primary:hover:not(:disabled) {
+  background: var(--hmdl-accent-strong);
+}
+
+.hmdl-btn-secondary {
+  border-color: var(--hmdl-border-strong);
+  background: var(--hmdl-surface-raised);
+  color: var(--hmdl-text);
+}
+
+.hmdl-btn-secondary:hover:not(:disabled) {
+  border-color: var(--hmdl-text-muted);
+  background: #1a222d;
+}
+
+.hmdl-btn-quiet {
+  background: transparent;
+  color: var(--hmdl-text-secondary);
+}
+
+.hmdl-btn-quiet:hover:not(:disabled) {
+  background: var(--hmdl-surface-raised);
+  color: var(--hmdl-text);
+}
+
+.hmdl-btn-danger {
+  border-color: rgb(240 120 120 / 0.32);
+  background: rgb(240 120 120 / 0.1);
+  color: var(--hmdl-danger);
+}
+
+.hmdl-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border: 1px solid var(--hmdl-border);
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  color: var(--hmdl-text-secondary);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1rem;
+  white-space: nowrap;
+}
+
+.hmdl-badge-success {
+  border-color: rgb(67 197 138 / 0.28);
+  background: rgb(67 197 138 / 0.08);
+  color: var(--hmdl-success);
+}
+
+.hmdl-badge-warning {
+  border-color: rgb(233 184 95 / 0.28);
+  background: rgb(233 184 95 / 0.08);
+  color: var(--hmdl-warning);
+}
+
+.hmdl-badge-danger {
+  border-color: rgb(240 120 120 / 0.28);
+  background: rgb(240 120 120 / 0.08);
+  color: var(--hmdl-danger);
+}
+
+.hmdl-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--hmdl-border);
+  border-radius: var(--hmdl-radius-lg);
+  background: var(--hmdl-surface);
+  overscroll-behavior-inline: contain;
+}
+
+.hmdl-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: left;
+  font-size: 0.8125rem;
+}
+
+.hmdl-table thead {
+  background: var(--hmdl-surface-raised);
+  color: var(--hmdl-text-secondary);
+}
+
+.hmdl-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 0.75rem 0.875rem;
+  font-size: 0.6875rem;
+  font-weight: 650;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.hmdl-table td {
+  border-top: 1px solid var(--hmdl-border);
+  padding: 0.75rem 0.875rem;
+  color: var(--hmdl-text);
+}
+
+.hmdl-table tbody tr:hover {
+  background: rgb(255 255 255 / 0.025);
+}
+
+.hmdl-empty {
+  border: 1px dashed var(--hmdl-border-strong);
+  border-radius: var(--hmdl-radius-lg);
+  padding: 2.5rem 1.25rem;
+  color: var(--hmdl-text-muted);
+  text-align: center;
+}
+
+.hmdl-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  background: rgb(0 0 0 / 0.72);
+  padding: 1rem;
+}
+
+.hmdl-dialog {
+  width: min(100%, 48rem);
+  max-height: min(90dvh, 56rem);
+  overflow: auto;
+  border: 1px solid var(--hmdl-border-strong);
+  border-radius: var(--hmdl-radius-lg);
+  background: var(--hmdl-surface);
+  box-shadow: var(--hmdl-shadow-popover);
+}
+
+@media (max-width: 640px) {
+  .hmdl-table-wrap[data-mobile="cards"] {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+
+  .hmdl-table-wrap[data-mobile="cards"] .hmdl-table,
+  .hmdl-table-wrap[data-mobile="cards"] .hmdl-table tbody {
+    display: block;
+    min-width: 0;
+  }
+
+  .hmdl-table-wrap[data-mobile="cards"] .hmdl-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+
+  .hmdl-table-wrap[data-mobile="cards"] .hmdl-table tr {
+    display: block;
+    margin-bottom: 0.625rem;
+    overflow: hidden;
+    border: 1px solid var(--hmdl-border);
+    border-radius: var(--hmdl-radius-md);
+    background: var(--hmdl-surface);
+  }
+
+  .hmdl-table-wrap[data-mobile="cards"] .hmdl-table td {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    border-top: 1px solid var(--hmdl-border);
+    padding: 0.625rem 0.75rem;
+  }
+
+  .hmdl-table-wrap[data-mobile="cards"] .hmdl-table td:first-child {
+    border-top: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Legacy dashboard activity selectors retained until that module is migrated. */
+.grid.gap-4.lg\\:grid-cols-4 > .overflow-hidden.rounded-2xl.border,
+.grid.gap-4.lg\\:grid-cols-3 > .overflow-hidden.rounded-2xl.border {
   border: 0;
   border-radius: 0;
   background: transparent;
 }
 
-.grid.gap-4.lg\:grid-cols-4 > .overflow-hidden.rounded-2xl.border > div:first-child,
-.grid.gap-4.lg\:grid-cols-3 > .overflow-hidden.rounded-2xl.border > div:first-child {
+.grid.gap-4.lg\\:grid-cols-4 > .overflow-hidden.rounded-2xl.border > div:first-child,
+.grid.gap-4.lg\\:grid-cols-3 > .overflow-hidden.rounded-2xl.border > div:first-child {
   padding: 0 0 0.75rem;
 }
 
-.grid.gap-4.lg\:grid-cols-4 > .overflow-hidden.rounded-2xl.border > .divide-y > a,
-.grid.gap-4.lg\:grid-cols-3 > .overflow-hidden.rounded-2xl.border > .divide-y > a {
+.grid.gap-4.lg\\:grid-cols-4 > .overflow-hidden.rounded-2xl.border > .divide-y > a,
+.grid.gap-4.lg\\:grid-cols-3 > .overflow-hidden.rounded-2xl.border > .divide-y > a {
   padding-left: 0;
   padding-right: 0;
   transition: background-color 150ms ease;
 }
 
-.grid.gap-4.lg\:grid-cols-4 > .overflow-hidden.rounded-2xl.border > .divide-y > a:hover,
-.grid.gap-4.lg\:grid-cols-3 > .overflow-hidden.rounded-2xl.border > .divide-y > a:hover {
+.grid.gap-4.lg\\:grid-cols-4 > .overflow-hidden.rounded-2xl.border > .divide-y > a:hover,
+.grid.gap-4.lg\\:grid-cols-3 > .overflow-hidden.rounded-2xl.border > .divide-y > a:hover {
   background: rgb(24 24 27 / 0.4);
 }
 
-.grid.gap-4.lg\:grid-cols-4 > .overflow-hidden.rounded-2xl.border > div:last-child:not(.divide-y),
-.grid.gap-4.lg\:grid-cols-3 > .overflow-hidden.rounded-2xl.border > div:last-child:not(.divide-y) {
+.grid.gap-4.lg\\:grid-cols-4 > .overflow-hidden.rounded-2xl.border > div:last-child:not(.divide-y),
+.grid.gap-4.lg\\:grid-cols-3 > .overflow-hidden.rounded-2xl.border > div:last-child:not(.divide-y) {
   padding-left: 0;
   padding-right: 0;
+}
+
+/* Audience-specific density and layout tokens. These are presentation-only. */
+:root {
+  --hmdl-space-page: 1.5rem;
+  --hmdl-space-section: 1.25rem;
+  --hmdl-control-height: 2.375rem;
+  --hmdl-table-row-height: 2.75rem;
+  --hmdl-management-sidebar: 15.5rem;
+  --hmdl-member-content: 52rem;
+}
+
+.hmdl-management {
+  --hmdl-content-density: compact;
+  --hmdl-control-height: 2.25rem;
+  --hmdl-table-row-height: 2.5rem;
+}
+
+.hmdl-member-portal {
+  --hmdl-content-density: comfortable;
+  --hmdl-control-height: 2.875rem;
+  --hmdl-table-row-height: 3rem;
+}
+
+.hmdl-page {
+  width: 100%;
+  min-width: 0;
+  margin-inline: auto;
+  padding: clamp(1rem, 2.4vw, var(--hmdl-space-page));
+}
+
+.hmdl-management .hmdl-page {
+  max-width: 96rem;
+}
+
+.hmdl-member-portal .hmdl-page {
+  max-width: var(--hmdl-member-content);
+}
+
+.hmdl-page-title {
+  color: var(--hmdl-text);
+  font-size: clamp(1.5rem, 2vw, 1.875rem);
+  font-weight: 650;
+  letter-spacing: -0.035em;
+  line-height: 1.2;
+}
+
+.hmdl-section-title {
+  color: var(--hmdl-text);
+  font-size: 0.9375rem;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.hmdl-management .hmdl-table td {
+  padding-block: 0.625rem;
+}
+
+.hmdl-member-portal .hmdl-surface,
+.hmdl-member-portal .hmdl-surface-raised {
+  border-radius: 1rem;
+}
+
+@media (max-width: 640px) {
+  :root {
+    --hmdl-space-page: 1rem;
+    --hmdl-space-section: 1rem;
+  }
+
+  .hmdl-page {
+    padding: 1rem;
+  }
+}
+
+
+/* Phase 2 — shared responsive application shell */
+.hmdl-app-shell {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  background: var(--hmdl-bg);
+  color: var(--hmdl-text);
+}
+.hmdl-sidebar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  width: 15.5rem;
+  height: 100vh;
+  flex: 0 0 15.5rem;
+  flex-direction: column;
+  border-right: 1px solid var(--hmdl-border);
+  background: #0d1118;
+  padding: 1.25rem 0.875rem 0.875rem;
+}
+.hmdl-brand {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0 0.5rem;
+  color: var(--hmdl-text);
+  text-decoration: none;
+}
+.hmdl-brand-mark {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 2.25rem;
+  place-items: center;
+  border: 1px solid #42536c;
+  border-radius: 0.65rem;
+  background: #172235;
+  color: #c4d9fb;
+  font-size: 1.05rem;
+  font-weight: 750;
+}
+.hmdl-brand-copy { display: flex; min-width: 0; flex-direction: column; gap: 0.12rem; }
+.hmdl-brand-copy strong { font-size: 0.78rem; font-weight: 750; letter-spacing: 0.12em; }
+.hmdl-brand-copy small { overflow: hidden; color: var(--hmdl-text-muted); font-size: 0.58rem; font-weight: 600; letter-spacing: 0.11em; text-overflow: ellipsis; white-space: nowrap; }
+.hmdl-sidebar-context {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 1.5rem 0 1rem;
+  border: 1px solid var(--hmdl-border);
+  border-radius: 0.65rem;
+  background: rgb(255 255 255 / 0.02);
+  padding: 0.75rem;
+}
+.hmdl-context-label, .hmdl-nav-group-label { color: var(--hmdl-text-muted); font-size: 0.59rem; font-weight: 700; letter-spacing: 0.12em; }
+.hmdl-context-name { overflow: hidden; color: var(--hmdl-text); font-size: 0.84rem; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+.hmdl-context-role { color: var(--hmdl-text-muted); font-size: 0.68rem; }
+.hmdl-shell-nav { display: flex; min-height: 0; flex: 1; flex-direction: column; gap: 1.15rem; overflow-y: auto; padding: 0.3rem 0; }
+.hmdl-nav-group { display: flex; flex-direction: column; gap: 0.35rem; }
+.hmdl-nav-group-label { padding: 0 0.65rem; }
+.hmdl-nav-items { display: flex; flex-direction: column; gap: 0.15rem; }
+.hmdl-nav-link {
+  display: flex;
+  min-height: 2.25rem;
+  align-items: center;
+  gap: 0.7rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.65rem;
+  color: var(--hmdl-text-secondary);
+  font-size: 0.79rem;
+  font-weight: 520;
+  text-decoration: none;
+  transition: background-color 130ms ease, color 130ms ease, border-color 130ms ease;
+}
+.hmdl-nav-link:hover { background: rgb(255 255 255 / 0.045); color: var(--hmdl-text); }
+.hmdl-nav-link.is-active { border-color: rgb(169 199 245 / 0.16); background: rgb(169 199 245 / 0.1); color: #d6e5fb; font-weight: 650; }
+.hmdl-nav-icon { display: inline-grid; width: 1.15rem; flex: 0 0 1.15rem; place-items: center; color: var(--hmdl-text-muted); font-size: 1rem; }
+.hmdl-nav-link.is-active .hmdl-nav-icon { color: var(--hmdl-accent); }
+.hmdl-sidebar-footer { display: flex; align-items: center; gap: 0.6rem; border-top: 1px solid var(--hmdl-border); margin-top: 0.75rem; padding: 0.9rem 0.15rem 0.1rem; }
+.hmdl-user-avatar { display: grid; width: 2rem; height: 2rem; flex: 0 0 2rem; place-items: center; border-radius: 50%; background: #263448; color: #d5e3f8; font-size: 0.75rem; font-weight: 700; }
+.hmdl-user-details { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 0.1rem; }
+.hmdl-user-details strong { overflow: hidden; color: var(--hmdl-text); font-size: 0.72rem; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.hmdl-user-details span { color: var(--hmdl-text-muted); font-size: 0.65rem; }
+.hmdl-switch-link, .hmdl-logout { display: grid; width: 1.9rem; height: 1.9rem; place-items: center; border: 1px solid transparent; border-radius: 0.4rem; color: var(--hmdl-text-muted); font-size: 0.9rem; text-decoration: none; }
+.hmdl-switch-link:hover, .hmdl-logout:hover { border-color: var(--hmdl-border); background: var(--hmdl-surface-raised); color: var(--hmdl-text); }
+.hmdl-logout { cursor: pointer; }
+.hmdl-shell-main { min-width: 0; flex: 1; }
+.hmdl-shell-content { min-height: 100vh; min-width: 0; }
+.hmdl-mobile-header, .hmdl-mobile-navigation { display: none; }
+@media (max-width: 900px) {
+  .hmdl-sidebar { width: 13.5rem; flex-basis: 13.5rem; }
+}
+@media (max-width: 700px) {
+  .hmdl-app-shell { display: block; }
+  .hmdl-sidebar { display: none; }
+  .hmdl-mobile-header { position: sticky; top: 0; z-index: 40; display: flex; min-height: 3.8rem; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--hmdl-border); background: rgb(13 17 24 / 0.96); padding: 0.55rem 1rem; backdrop-filter: blur(14px); }
+  .hmdl-mobile-header .hmdl-brand-copy small { max-width: 12rem; }
+  .hmdl-mobile-menu-button { min-height: 2.25rem; border: 1px solid var(--hmdl-border-strong); border-radius: 0.5rem; background: var(--hmdl-surface-raised); padding: 0.35rem 0.75rem; color: var(--hmdl-text); font-size: 0.75rem; font-weight: 600; }
+  .hmdl-mobile-navigation { position: absolute; z-index: 39; display: block; width: 100%; max-height: calc(100vh - 3.8rem); overflow-y: auto; border-bottom: 1px solid var(--hmdl-border); background: #0d1118; padding: 1rem; box-shadow: var(--hmdl-shadow-popover); }
+  .hmdl-mobile-navigation .hmdl-shell-nav { gap: 1rem; overflow: visible; }
+  .hmdl-shell-content { min-height: calc(100vh - 3.8rem); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hmdl-nav-link { transition: none; }
+}
+
+
+/* Member portal home */
+.hmdl-member-home { min-height: 100vh; background: var(--hmdl-bg); color: var(--hmdl-text); }
+.hmdl-member-page { width: min(100%, 1120px); margin: 0 auto; padding: clamp(1.25rem, 3vw, 2.75rem); }
+.hmdl-member-welcome { display: flex; align-items: flex-end; justify-content: space-between; gap: 1.5rem; padding: 0.75rem 0 2rem; }
+.hmdl-eyebrow { margin: 0 0 0.55rem; color: var(--hmdl-text-muted); font-size: 0.67rem; font-weight: 700; letter-spacing: 0.13em; }
+.hmdl-member-welcome h1 { margin: 0; color: var(--hmdl-text); font-size: clamp(1.8rem, 4vw, 2.5rem); font-weight: 650; letter-spacing: -0.045em; line-height: 1.12; }
+.hmdl-member-welcome p:not(.hmdl-eyebrow) { margin: 0.65rem 0 0; color: var(--hmdl-text-secondary); font-size: 0.9rem; }
+.hmdl-primary-action { display: inline-flex; min-height: 2.65rem; align-items: center; gap: 0.7rem; border: 1px solid var(--hmdl-accent); border-radius: var(--hmdl-radius-md); background: var(--hmdl-accent); padding: 0.65rem 0.95rem; color: var(--hmdl-accent-contrast); font-size: 0.78rem; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.hmdl-primary-action:hover { background: var(--hmdl-accent-strong); }
+.hmdl-member-summary { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; border: 1px solid var(--hmdl-border); border-radius: var(--hmdl-radius-lg); background: var(--hmdl-surface); padding: 1.25rem 1.4rem; }
+.hmdl-member-identity { display: flex; min-width: 0; align-items: center; gap: 1rem; }
+.hmdl-member-avatar { display: grid; width: 3rem; height: 3rem; flex: 0 0 3rem; place-items: center; border: 1px solid var(--hmdl-border-strong); border-radius: 50%; background: var(--hmdl-surface-raised); color: var(--hmdl-accent); font-size: 1.1rem; font-weight: 700; }
+.hmdl-member-identity div { display: flex; min-width: 0; flex-direction: column; gap: 0.2rem; }
+.hmdl-summary-label { color: var(--hmdl-text-muted); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; }
+.hmdl-member-identity strong { overflow: hidden; color: var(--hmdl-text); font-size: 1rem; text-overflow: ellipsis; white-space: nowrap; }
+.hmdl-member-identity div > span:last-child { color: var(--hmdl-text-muted); font-size: 0.73rem; }
+.hmdl-member-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.55rem; }
+.hmdl-member-actions a, .hmdl-text-link { color: var(--hmdl-accent); font-size: 0.75rem; font-weight: 650; text-decoration: none; }
+.hmdl-member-actions a { border: 1px solid var(--hmdl-border-strong); border-radius: var(--hmdl-radius-md); padding: 0.55rem 0.7rem; }
+.hmdl-member-actions a:hover { border-color: var(--hmdl-accent); background: var(--hmdl-surface-raised); }
+.hmdl-member-section { margin-top: 2.5rem; }
+.hmdl-section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+.hmdl-section-heading h2 { margin: 0; color: var(--hmdl-text); font-size: 1.25rem; font-weight: 650; letter-spacing: -0.025em; }
+.hmdl-section-heading p:not(.hmdl-eyebrow) { margin: 0.35rem 0 0; color: var(--hmdl-text-muted); font-size: 0.78rem; }
+.hmdl-text-link { white-space: nowrap; }
+.hmdl-upcoming-list { overflow: hidden; border: 1px solid var(--hmdl-border); border-radius: var(--hmdl-radius-lg); background: var(--hmdl-surface); }
+.hmdl-upcoming-event { display: flex; min-height: 5.1rem; align-items: center; gap: 1rem; border-bottom: 1px solid var(--hmdl-border); padding: 0.8rem 1rem; color: inherit; text-decoration: none; transition: background 120ms ease; }
+.hmdl-upcoming-event:last-child { border-bottom: 0; }
+.hmdl-upcoming-event:hover { background: var(--hmdl-surface-raised); }
+.hmdl-event-date { display: flex; width: 2.8rem; flex: 0 0 2.8rem; flex-direction: column; align-items: center; justify-content: center; border-right: 1px solid var(--hmdl-border); padding-right: 0.85rem; }
+.hmdl-event-date strong { font-size: 1.15rem; line-height: 1.2; }
+.hmdl-event-date span { color: var(--hmdl-text-muted); font-size: 0.65rem; text-transform: uppercase; }
+.hmdl-event-copy { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 0.3rem; }
+.hmdl-event-copy strong { overflow: hidden; font-size: 0.84rem; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+.hmdl-event-copy span { color: var(--hmdl-text-muted); font-size: 0.72rem; }
+.hmdl-attendance-status { border: 1px solid var(--hmdl-border-strong); border-radius: 999px; padding: 0.32rem 0.6rem; color: var(--hmdl-text-secondary); font-size: 0.64rem; font-weight: 650; white-space: nowrap; }
+.hmdl-attendance-status.has-response { border-color: rgb(67 197 138 / 0.35); background: rgb(67 197 138 / 0.08); color: var(--hmdl-success); }
+.hmdl-event-arrow { color: var(--hmdl-text-muted); }
+.hmdl-member-empty { display: flex; min-height: 7rem; flex-direction: column; justify-content: center; gap: 0.35rem; border: 1px dashed var(--hmdl-border-strong); border-radius: var(--hmdl-radius-lg); padding: 1.5rem; }
+.hmdl-member-empty strong { font-size: 0.85rem; }
+.hmdl-member-empty span { color: var(--hmdl-text-muted); font-size: 0.75rem; }
+.hmdl-member-shortcuts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.85rem; margin-top: 1.1rem; }
+.hmdl-shortcut-card { position: relative; display: flex; min-height: 8rem; flex-direction: column; align-items: flex-start; gap: 0.4rem; border: 1px solid var(--hmdl-border); border-radius: var(--hmdl-radius-lg); background: var(--hmdl-surface); padding: 1rem; color: inherit; text-decoration: none; transition: border-color 120ms ease, background 120ms ease; }
+.hmdl-shortcut-card:hover { border-color: var(--hmdl-border-strong); background: var(--hmdl-surface-raised); }
+.hmdl-shortcut-icon { color: var(--hmdl-accent); font-size: 1.1rem; }
+.hmdl-shortcut-card strong { font-size: 0.82rem; }
+.hmdl-shortcut-card > span:nth-last-child(2) { color: var(--hmdl-text-muted); font-size: 0.7rem; }
+.hmdl-shortcut-arrow { position: absolute; top: 1rem; right: 1rem; color: var(--hmdl-text-muted); }
+@media (max-width: 700px) {
+  .hmdl-member-welcome { align-items: flex-start; flex-direction: column; }
+  .hmdl-member-summary { align-items: flex-start; flex-direction: column; }
+  .hmdl-member-actions { justify-content: flex-start; }
+  .hmdl-member-shortcuts { grid-template-columns: 1fr; }
+  .hmdl-upcoming-event { gap: 0.7rem; padding: 0.8rem; }
+  .hmdl-attendance-status { max-width: 7rem; overflow: hidden; text-overflow: ellipsis; }
+  .hmdl-event-copy span { font-size: 0.66rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hmdl-upcoming-event, .hmdl-shortcut-card { transition: none; }
+}
+
+
+/* Management workspace overview */
+.hmdl-management-dashboard { min-height: 100vh; background: var(--hmdl-bg); color: var(--hmdl-text); }
+.hmdl-dashboard-page { width: min(100%, 1440px); margin: 0 auto; padding: clamp(1.25rem, 2.8vw, 2.6rem); }
+.hmdl-dashboard-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 1.5rem; margin-bottom: 2rem; }
+.hmdl-dashboard-heading h1 { margin: 0; color: var(--hmdl-text); font-size: clamp(1.8rem, 3vw, 2.35rem); font-weight: 660; letter-spacing: -0.045em; line-height: 1.1; }
+.hmdl-dashboard-heading p:not(.hmdl-eyebrow) { margin: 0.6rem 0 0; color: var(--hmdl-text-secondary); font-size: 0.86rem; }
+.hmdl-dashboard-heading > div:last-child { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.hmdl-dashboard-heading > div:last-child > span { max-width: 10rem; overflow: hidden; color: var(--hmdl-text-secondary); font-size: 0.75rem; text-overflow: ellipsis; white-space: nowrap; }
+.hmdl-dashboard-heading > div:last-child a, .hmdl-dashboard-heading > div:last-child button { display: inline-flex; min-height: 2.15rem; align-items: center; border: 1px solid var(--hmdl-border-strong); border-radius: var(--hmdl-radius-md); background: var(--hmdl-surface); padding: 0.4rem 0.7rem; color: var(--hmdl-text-secondary); font-size: 0.7rem; text-decoration: none; }
+.hmdl-dashboard-heading > div:last-child a:hover, .hmdl-dashboard-heading > div:last-child button:hover { border-color: var(--hmdl-accent); color: var(--hmdl-text); }
+.hmdl-management-dashboard .hmdl-dashboard-page > main, .hmdl-management-dashboard .hmdl-dashboard-page > section { min-width: 0; }
+.hmdl-management-dashboard .hmdl-dashboard-page > section:first-of-type { gap: 0.75rem; }
+.hmdl-management-dashboard .hmdl-dashboard-page > section:first-of-type > div { min-width: 0; border: 1px solid var(--hmdl-border); border-radius: var(--hmdl-radius-lg); background: var(--hmdl-surface); padding: 1.1rem 1.2rem; }
+.hmdl-management-dashboard .hmdl-dashboard-page > section:first-of-type > div p:first-child { color: var(--hmdl-text-muted); font-size: 0.7rem; }
+.hmdl-management-dashboard .hmdl-dashboard-page > section:first-of-type > div p:last-child { color: var(--hmdl-text); font-size: 1.8rem; font-weight: 650; letter-spacing: -0.04em; }
+.hmdl-management-section { margin-top: 2.4rem; }
+.hmdl-management-section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+.hmdl-management-section-heading h2 { margin: 0; color: var(--hmdl-text); font-size: 1.15rem; font-weight: 650; letter-spacing: -0.025em; }
+.hmdl-management-section-heading p:not(.hmdl-eyebrow) { margin: 0.35rem 0 0; color: var(--hmdl-text-muted); font-size: 0.75rem; }
+.hmdl-management-events { overflow: hidden; border: 1px solid var(--hmdl-border); border-radius: var(--hmdl-radius-lg); background: var(--hmdl-surface); }
+.hmdl-management-event { display: flex; min-height: 4.65rem; align-items: center; gap: 1rem; border-bottom: 1px solid var(--hmdl-border); padding: 0.75rem 1rem; color: inherit; text-decoration: none; transition: background 120ms ease; }
+.hmdl-management-event:last-child { border-bottom: 0; }
+.hmdl-management-event:hover { background: var(--hmdl-surface-raised); }
+.hmdl-management-event-date { display: flex; width: 2.7rem; flex: 0 0 2.7rem; flex-direction: column; align-items: center; border-right: 1px solid var(--hmdl-border); padding-right: 0.75rem; }
+.hmdl-management-event-date strong { font-size: 1.1rem; line-height: 1.2; }
+.hmdl-management-event-date span { color: var(--hmdl-text-muted); font-size: 0.63rem; text-transform: uppercase; }
+.hmdl-management-event-copy { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 0.25rem; }
+.hmdl-management-event-copy strong { overflow: hidden; font-size: 0.8rem; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+.hmdl-management-event-copy span, .hmdl-management-event-meta { color: var(--hmdl-text-muted); font-size: 0.68rem; }
+.hmdl-management-event-meta { display: flex; min-width: 10rem; flex-direction: column; gap: 0.2rem; text-align: right; }
+.hmdl-management-section .hmdl-management-events + .hmdl-member-empty { margin-top: 0.5rem; }
+.hmdl-management-dashboard .hmdl-management-section .hmdl-member-empty a { margin-top: 0.4rem; }
+@media (max-width: 760px) {
+  .hmdl-dashboard-heading { align-items: flex-start; flex-direction: column; }
+  .hmdl-management-event { gap: 0.65rem; padding: 0.75rem; }
+  .hmdl-management-event-meta { min-width: auto; font-size: 0.6rem; }
+}
+@media (max-width: 520px) {
+  .hmdl-management-event-meta { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hmdl-management-event { transition: none; }
+}
+
+
+/* Phase 7 — recruitment and applicant review workspace */
+.hmdl-recruitment-page { min-height: 100vh; background: var(--hmdl-bg); color: var(--hmdl-text); }
+.hmdl-recruitment-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:1.5rem; margin-bottom:1.6rem; }
+.hmdl-recruitment-heading h1 { margin:0; }
+.hmdl-recruitment-heading p:not(.hmdl-eyebrow) { margin:.55rem 0 0; color:var(--hmdl-text-secondary); font-size:.84rem; }
+.hmdl-recruitment-metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.75rem; margin-bottom:1.25rem; }
+.hmdl-recruitment-metrics > div { display:flex; min-width:0; flex-direction:column; gap:.45rem; border:1px solid var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); padding:1rem 1.1rem; }
+.hmdl-recruitment-metrics span { color:var(--hmdl-text-muted); font-size:.7rem; font-weight:600; }
+.hmdl-recruitment-metrics strong { color:var(--hmdl-text); font-size:1.65rem; font-weight:680; letter-spacing:-.04em; }
+.hmdl-recruitment-panel { margin-top:1.25rem; border:1px solid var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); padding:1.15rem; }
+.hmdl-recruitment-panel-heading { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:1rem; }
+.hmdl-recruitment-panel-heading h2 { margin:0; font-size:.95rem; font-weight:680; }
+.hmdl-recruitment-panel-heading p { margin:.3rem 0 0; color:var(--hmdl-text-muted); font-size:.72rem; }
+.hmdl-invite-list { display:grid; gap:.55rem; }
+.hmdl-invite-row { display:flex; align-items:center; justify-content:space-between; gap:1rem; border:1px solid var(--hmdl-border); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); padding:.75rem; }
+.hmdl-invite-copy { display:flex; min-width:0; flex-direction:column; gap:.3rem; }
+.hmdl-invite-copy span { color:var(--hmdl-success); font-size:.58rem; font-weight:750; letter-spacing:.1em; }
+.hmdl-invite-copy code { overflow-wrap:anywhere; color:var(--hmdl-text-secondary); font-size:.75rem; }
+.hmdl-recruitment-empty-inline { margin:0; color:var(--hmdl-text-muted); font-size:.78rem; }
+.hmdl-recruitment-error { margin:1rem 0; border:1px solid rgb(240 120 120 / .3); border-radius:var(--hmdl-radius-md); background:rgb(240 120 120 / .08); padding:.75rem 1rem; color:var(--hmdl-danger); font-size:.8rem; }
+.hmdl-applicant-toolbar { display:grid; grid-template-columns:minmax(0,1fr) 12rem; gap:.65rem; margin-bottom:.85rem; }
+.hmdl-applicant-list { display:grid; gap:.55rem; }
+.hmdl-applicant-card { overflow:hidden; border:1px solid var(--hmdl-border); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); }
+.hmdl-applicant-card.is-expanded { border-color:var(--hmdl-border-strong); }
+.hmdl-applicant-summary { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.85rem; }
+.hmdl-applicant-toggle { display:flex; min-width:0; flex:1; align-items:center; gap:1rem; border:0; background:transparent; padding:0; color:inherit; text-align:left; cursor:pointer; }
+.hmdl-applicant-identity { display:flex; min-width:0; flex:1; flex-direction:column; gap:.2rem; }
+.hmdl-applicant-identity strong { color:var(--hmdl-text); font-size:.84rem; font-weight:680; }
+.hmdl-applicant-identity span { overflow:hidden; color:var(--hmdl-text-muted); font-size:.68rem; text-overflow:ellipsis; white-space:nowrap; }
+.hmdl-applicant-identity time { color:var(--hmdl-text-muted); font-size:.63rem; }
+.hmdl-applicant-expand { color:var(--hmdl-text-muted); font-size:.68rem; white-space:nowrap; }
+.hmdl-applicant-actions { display:flex; gap:.4rem; }
+.hmdl-applicant-details { display:grid; gap:1rem; border-top:1px solid var(--hmdl-border); padding:1rem; }
+.hmdl-recruitment-empty { display:flex; min-height:8rem; flex-direction:column; align-items:center; justify-content:center; gap:.35rem; border:1px dashed var(--hmdl-border-strong); border-radius:var(--hmdl-radius-md); color:var(--hmdl-text-muted); text-align:center; font-size:.78rem; }
+.hmdl-recruitment-empty strong { color:var(--hmdl-text); font-size:.84rem; }
+@media(max-width:760px) {
+ .hmdl-recruitment-heading { align-items:flex-start; flex-direction:column; }
+ .hmdl-recruitment-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .hmdl-applicant-summary { align-items:flex-start; flex-wrap:wrap; }
+ .hmdl-applicant-toggle { flex-wrap:wrap; }
+ .hmdl-applicant-expand { margin-left:auto; }
+}
+@media(max-width:520px) {
+ .hmdl-applicant-toolbar { grid-template-columns:1fr; }
+ .hmdl-invite-row { align-items:flex-start; flex-direction:column; }
+ .hmdl-applicant-identity span { white-space:normal; }
+}
+
+
+/* Phase 8 — guild user access workspace */
+.hmdl-users-page { background:var(--hmdl-bg); color:var(--hmdl-text); }
+.hmdl-users-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:1.5rem; margin-bottom:1.5rem; }
+.hmdl-users-heading h1 { margin:0; }
+.hmdl-users-heading p:not(.hmdl-eyebrow) { margin:.55rem 0 0; color:var(--hmdl-text-secondary); font-size:.84rem; }
+.hmdl-users-panel { margin-top:1.15rem; border:1px solid var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); padding:1.15rem; }
+.hmdl-users-panel-heading { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:1rem; }
+.hmdl-users-panel-heading h2 { margin:0; font-size:.95rem; font-weight:680; }
+.hmdl-users-panel-heading p { margin:.3rem 0 0; color:var(--hmdl-text-muted); font-size:.72rem; }
+.hmdl-users-error { margin:1rem 0; border:1px solid rgb(240 120 120 / .3); border-radius:var(--hmdl-radius-md); background:rgb(240 120 120 / .08); padding:.75rem 1rem; color:var(--hmdl-danger); font-size:.8rem; }
+.hmdl-users-add-form { display:grid; grid-template-columns:minmax(0,1fr) 14rem auto; align-items:end; gap:.8rem; }
+.hmdl-user-role-summary { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.7rem; margin-top:1.15rem; }
+.hmdl-user-role-summary > div { display:flex; flex-direction:column; gap:.45rem; border:1px solid var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); padding:.9rem 1rem; }
+.hmdl-user-role-summary span { color:var(--hmdl-text-muted); font-size:.68rem; font-weight:650; text-transform:uppercase; letter-spacing:.07em; }
+.hmdl-user-role-summary strong { font-size:1.55rem; font-weight:680; letter-spacing:-.04em; }
+.hmdl-users-toolbar { display:grid; grid-template-columns:minmax(0,1fr) 13rem; gap:.65rem; margin-bottom:.8rem; }
+.hmdl-user-list { display:grid; gap:.5rem; }
+.hmdl-user-row { display:flex; align-items:center; justify-content:space-between; gap:1rem; border:1px solid var(--hmdl-border); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); padding:.8rem; }
+.hmdl-user-identity { display:flex; min-width:0; align-items:center; gap:.8rem; }
+.hmdl-user-photo { width:2.65rem; height:2.65rem; flex:0 0 2.65rem; border-radius:50%; object-fit:cover; }
+.hmdl-user-photo-fallback { display:grid; place-items:center; background:var(--hmdl-surface-raised); color:var(--hmdl-accent); font-weight:700; }
+.hmdl-user-copy { display:flex; min-width:0; flex-direction:column; gap:.22rem; }
+.hmdl-user-copy > div > strong { color:var(--hmdl-text); font-size:.82rem; font-weight:680; }
+.hmdl-user-copy > span { overflow-wrap:anywhere; color:var(--hmdl-text-muted); font-size:.67rem; }
+.hmdl-user-copy > span strong { color:var(--hmdl-text-secondary); font-weight:600; }
+.hmdl-user-controls { display:flex; flex:0 0 auto; align-items:center; gap:.5rem; }
+.hmdl-role-select { width:9rem; }
+.hmdl-user-note { color:var(--hmdl-text-muted); font-size:.7rem; }
+.hmdl-users-empty { display:flex; min-height:7rem; flex-direction:column; align-items:center; justify-content:center; gap:.3rem; color:var(--hmdl-text-muted); font-size:.76rem; text-align:center; }
+.hmdl-users-empty strong { color:var(--hmdl-text); font-size:.84rem; }
+.hmdl-role-reference-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.65rem; }
+.hmdl-role-reference-grid > div { border:1px solid var(--hmdl-border); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); padding:.85rem; }
+.hmdl-role-reference-grid > div > div > strong { color:var(--hmdl-text-secondary); font-size:.72rem; }
+.hmdl-role-reference-grid p { margin:.5rem 0 0; color:var(--hmdl-text-muted); font-size:.72rem; line-height:1.5; }
+.hmdl-role-hierarchy-note { margin:1rem 0 0; border-left:2px solid var(--hmdl-accent); padding:.2rem 0 .2rem .7rem; color:var(--hmdl-text-muted); font-size:.7rem; }
+@media(max-width:760px) {
+ .hmdl-users-heading { align-items:flex-start; flex-direction:column; }
+ .hmdl-users-add-form { grid-template-columns:1fr; }
+ .hmdl-user-role-summary { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .hmdl-user-row { align-items:flex-start; flex-direction:column; }
+ .hmdl-user-controls { width:100%; flex-wrap:wrap; padding-left:3.45rem; }
+}
+@media(max-width:520px) {
+ .hmdl-users-toolbar { grid-template-columns:1fr; }
+ .hmdl-role-reference-grid { grid-template-columns:1fr; }
+}
+
+
+/* Phase 9 — event operations workspace */
+.hmdl-events-workspace { background:var(--hmdl-bg); color:var(--hmdl-text); }
+.hmdl-events-workspace > .hmdl-page { max-width:96rem; }
+.hmdl-events-workspace .hmdl-page-title { margin-top:.25rem; }
+.hmdl-event-tabs { display:flex; gap:.4rem; border-bottom:1px solid var(--hmdl-border); padding-bottom:.8rem; }
+.hmdl-event-tabs a { display:inline-flex; min-height:2.4rem; align-items:center; border:1px solid var(--hmdl-border); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface); padding:.55rem .85rem; color:var(--hmdl-text-secondary); font-size:.76rem; font-weight:600; text-decoration:none; transition:background 130ms ease,border-color 130ms ease,color 130ms ease; }
+.hmdl-event-tabs a:hover { border-color:var(--hmdl-border-strong); color:var(--hmdl-text); }
+.hmdl-events-workspace .hmdl-event-create { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); padding:1.25rem; }
+.hmdl-events-workspace .hmdl-event-create h2 { color:var(--hmdl-text); font-size:1rem; font-weight:680; }
+.hmdl-events-workspace .hmdl-event-create p { color:var(--hmdl-text-muted); }
+.hmdl-events-workspace .hmdl-event-create label { color:var(--hmdl-text-secondary); font-size:.78rem; font-weight:600; }
+.hmdl-events-workspace .hmdl-event-create input,
+.hmdl-events-workspace .hmdl-event-create select { min-height:2.65rem; border-color:var(--hmdl-border-strong); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); padding:.6rem .75rem; font-size:.82rem; }
+.hmdl-events-workspace .hmdl-event-create button[type="submit"] { min-height:2.65rem; border-radius:var(--hmdl-radius-md); background:var(--hmdl-accent); color:var(--hmdl-accent-contrast); font-size:.8rem; font-weight:700; }
+.hmdl-events-workspace .hmdl-event-create button[type="submit"]:hover:not(:disabled) { background:var(--hmdl-accent-strong); }
+.hmdl-events-workspace section.mt-10 > div.mb-4 h2,
+.hmdl-events-workspace section.mt-12 > div.mb-4 h2 { color:var(--hmdl-text); font-size:1.1rem; font-weight:680; letter-spacing:-.02em; }
+.hmdl-events-workspace section.mt-10 > div.mb-4 p,
+.hmdl-events-workspace section.mt-12 > div.mb-4 p { color:var(--hmdl-text-muted); font-size:.75rem; }
+.hmdl-events-workspace article,
+.hmdl-events-workspace .rounded-2xl.border.border-zinc-800.bg-zinc-900 { border-color:var(--hmdl-border); }
+.hmdl-events-workspace a:focus-visible,
+.hmdl-events-workspace button:focus-visible { outline-color:var(--hmdl-accent); }
+@media(max-width:640px) {
+ .hmdl-event-tabs { overflow-x:auto; flex-wrap:nowrap; }
+ .hmdl-event-tabs a { flex:0 0 auto; }
+ .hmdl-events-workspace .hmdl-event-create { padding:1rem; }
+}
+
+
+/* Phase 10 — event detail and roster management workspace */
+.hmdl-event-detail { color:var(--hmdl-text); }
+.hmdl-event-detail > .mx-auto { width:100%; max-width:96rem; padding:clamp(1rem,2.4vw,var(--hmdl-space-page)); }
+.hmdl-event-detail header { border-bottom:1px solid var(--hmdl-border); padding-bottom:1.4rem; }
+.hmdl-event-detail header h1 { color:var(--hmdl-text); font-size:clamp(1.65rem,2.5vw,2.15rem); font-weight:680; letter-spacing:-.04em; line-height:1.15; }
+.hmdl-event-detail header p { color:var(--hmdl-text-muted); font-size:.82rem; }
+.hmdl-event-detail header a,
+.hmdl-event-detail header button { min-height:2.4rem; border-color:var(--hmdl-border-strong); border-radius:var(--hmdl-radius-md); font-size:.76rem; font-weight:620; }
+.hmdl-event-detail header button:hover,
+.hmdl-event-detail header a:hover { border-color:var(--hmdl-accent); }
+.hmdl-event-detail > .mx-auto > section { min-width:0; }
+.hmdl-event-detail > .mx-auto > section.rounded-2xl { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); padding:1.15rem; }
+.hmdl-event-detail > .mx-auto > section h2 { color:var(--hmdl-text); font-size:.98rem; font-weight:680; letter-spacing:-.015em; }
+.hmdl-event-detail > .mx-auto > section p { line-height:1.55; }
+.hmdl-event-detail > .mx-auto > section.grid > div { min-width:0; border:1px solid var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); padding:.95rem 1rem; }
+.hmdl-event-detail > .mx-auto > section.grid > div p:first-child { color:var(--hmdl-text-muted); font-size:.68rem; font-weight:650; letter-spacing:.06em; text-transform:uppercase; }
+.hmdl-event-detail > .mx-auto > section.grid > div p:last-child { color:var(--hmdl-text); font-size:1.55rem; font-weight:700; letter-spacing:-.04em; }
+.hmdl-event-detail button,
+.hmdl-event-detail select,
+.hmdl-event-detail input { border-radius:var(--hmdl-radius-md); }
+.hmdl-event-detail button:focus-visible,
+.hmdl-event-detail a:focus-visible,
+.hmdl-event-detail select:focus-visible,
+.hmdl-event-detail input:focus-visible { outline:2px solid var(--hmdl-accent); outline-offset:2px; }
+.hmdl-event-detail section button { font-size:.76rem; font-weight:620; }
+.hmdl-event-detail section button:not(:disabled) { transition:background-color 130ms ease,border-color 130ms ease,color 130ms ease; }
+.hmdl-event-detail section button:disabled { cursor:not-allowed; }
+.hmdl-event-detail .rounded-xl.border,
+.hmdl-event-detail .rounded-2xl.border { border-color:var(--hmdl-border); }
+.hmdl-event-detail [data-final-roster-controls] { min-width:0; }
+.hmdl-event-detail [data-final-roster-controls] > div { border-color:var(--hmdl-border); }
+.hmdl-event-detail [data-final-roster-controls] select { min-height:2.35rem; border-color:var(--hmdl-border-strong); background:var(--hmdl-surface-muted); color:var(--hmdl-text); font-size:.76rem; }
+.hmdl-event-detail [data-final-roster-controls] button { min-height:2.35rem; }
+.hmdl-event-detail .hmdl-dialog { max-width:54rem; }
+@media(max-width:700px) {
+ .hmdl-event-detail > .mx-auto { padding:1rem; }
+ .hmdl-event-detail header > div { align-items:flex-start; }
+ .hmdl-event-detail header > div > div:last-child { width:100%; }
+ .hmdl-event-detail header > div > div:last-child > * { flex:1 1 auto; justify-content:center; }
+ .hmdl-event-detail > .mx-auto > section.rounded-2xl { padding:1rem; }
+ .hmdl-event-detail > .mx-auto > section.grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media(max-width:420px) {
+ .hmdl-event-detail > .mx-auto > section.grid { gap:.55rem; }
+ .hmdl-event-detail > .mx-auto > section.grid > div { padding:.75rem; }
+ .hmdl-event-detail > .mx-auto > section.grid > div p:last-child { font-size:1.3rem; }
+}
+
+
+/* Phase 11 — event results archive and screenshot gallery */
+.hmdl-results-archive { min-height:100vh; background:var(--hmdl-bg); color:var(--hmdl-text); }
+.hmdl-results-archive .hmdl-page { max-width:96rem; }
+.hmdl-results-archive > .hmdl-page > a { display:inline-flex; color:var(--hmdl-text-muted); font-size:.78rem; text-decoration:none; }
+.hmdl-results-archive > .hmdl-page > a:hover { color:var(--hmdl-text); }
+.hmdl-results-archive > .hmdl-page > p:not(.hmdl-empty) { color:var(--hmdl-text-muted); font-size:.82rem; }
+.hmdl-results-group { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); padding:1.15rem; }
+.hmdl-results-group > div:first-child { display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+.hmdl-results-group h2 { color:var(--hmdl-text); font-size:.98rem; font-weight:680; }
+.hmdl-results-group p { color:var(--hmdl-text-muted); font-size:.74rem; }
+.hmdl-results-open { display:inline-flex; min-height:2.25rem; align-items:center; border:1px solid var(--hmdl-border-strong); border-radius:var(--hmdl-radius-md); padding:.45rem .75rem; color:var(--hmdl-text-secondary); text-decoration:none; }
+.hmdl-results-open:hover { border-color:var(--hmdl-accent); color:var(--hmdl-text); }
+.hmdl-results-grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:.85rem; }
+.hmdl-result-image { display:block; min-width:0; overflow:hidden; border:1px solid var(--hmdl-border); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); text-decoration:none; transition:border-color 130ms ease,transform 130ms ease; }
+.hmdl-result-image:hover { border-color:var(--hmdl-border-strong); transform:translateY(-1px); }
+.hmdl-result-preview { display:block; width:100%; height:13rem; background:#080b10; object-fit:contain; }
+.hmdl-result-image > div { border-top:1px solid var(--hmdl-border); padding:.7rem .8rem; }
+.hmdl-result-image > div p:first-child { color:var(--hmdl-text-secondary); font-size:.75rem; font-weight:600; }
+.hmdl-result-image > div p:last-child { color:var(--hmdl-text-muted); font-size:.67rem; }
+.hmdl-results-loading,.hmdl-results-error { border-radius:var(--hmdl-radius-md); padding:.9rem 1rem; }
+.hmdl-results-error { border:1px solid rgb(240 120 120 / .25); background:rgb(240 120 120 / .07); color:var(--hmdl-danger); }
+.hmdl-empty { border-color:var(--hmdl-border); border-style:dashed; background:var(--hmdl-surface); color:var(--hmdl-text-muted); }
+.hmdl-event-detail .hmdl-event-results-panel { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); padding:1.15rem; }
+.hmdl-event-detail .hmdl-event-results-panel h2 { font-size:.98rem; }
+.hmdl-event-detail .hmdl-event-results-panel input[type="file"] { max-width:100%; color:var(--hmdl-text-secondary); font-size:.75rem; }
+.hmdl-event-detail .hmdl-event-results-panel input[type="file"]::file-selector-button { min-height:2.25rem; margin-right:.65rem; border:1px solid var(--hmdl-border-strong); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-raised); padding:.4rem .7rem; color:var(--hmdl-text); }
+.hmdl-event-detail .hmdl-event-results-panel button { min-height:2.35rem; border-radius:var(--hmdl-radius-md); background:var(--hmdl-accent); color:var(--hmdl-accent-contrast); font-size:.76rem; font-weight:680; }
+.hmdl-event-detail .hmdl-event-results-panel button:hover:not(:disabled) { background:var(--hmdl-accent-strong); }
+@media(max-width:850px) {
+ .hmdl-results-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media(max-width:560px) {
+ .hmdl-results-group > div:first-child { align-items:flex-start; flex-direction:column; }
+ .hmdl-results-grid { grid-template-columns:1fr; }
+ .hmdl-result-preview { height:14rem; }
+ .hmdl-results-group { padding:.9rem; }
+ .hmdl-event-detail .hmdl-event-results-panel { padding:1rem; }
+}
+
+
+/* Phase 12 — resource management workspace (ROOC + RO3) */
+.hmdl-resources-workspace { min-height:100vh; background:var(--hmdl-bg); color:var(--hmdl-text); }
+.hmdl-resources-workspace > .hmdl-page { width:100%; max-width:96rem; }
+.hmdl-resources-workspace > .hmdl-page > a { color:var(--hmdl-text-muted); font-size:.78rem; text-decoration:none; }
+.hmdl-resources-workspace > .hmdl-page > a:hover { color:var(--hmdl-text); }
+.hmdl-resources-workspace h1 { color:var(--hmdl-text); font-size:clamp(1.65rem,2.5vw,2.1rem); font-weight:690; letter-spacing:-.04em; }
+.hmdl-resources-workspace h2 { color:var(--hmdl-text); font-size:1rem; font-weight:680; letter-spacing:-.02em; }
+.hmdl-resources-workspace h3 { color:var(--hmdl-text-secondary); font-size:.8rem; font-weight:650; }
+.hmdl-resources-workspace p { color:var(--hmdl-text-muted); }
+.hmdl-resources-workspace .rounded-2xl.border,
+.hmdl-resources-workspace .rounded-xl.border { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); }
+.hmdl-resources-workspace input:not([type="checkbox"]),
+.hmdl-resources-workspace select { min-height:2.45rem; border-color:var(--hmdl-border-strong); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); color:var(--hmdl-text); font-size:.78rem; }
+.hmdl-resources-workspace button { border-radius:var(--hmdl-radius-md); font-size:.76rem; font-weight:620; transition:background-color 130ms ease,border-color 130ms ease,color 130ms ease; }
+.hmdl-resources-workspace button:focus-visible,
+.hmdl-resources-workspace a:focus-visible,
+.hmdl-resources-workspace input:focus-visible,
+.hmdl-resources-workspace select:focus-visible { outline:2px solid var(--hmdl-accent); outline-offset:2px; }
+.hmdl-resources-workspace button:disabled { cursor:not-allowed; }
+.hmdl-resources-workspace button.bg-white { background:var(--hmdl-accent); color:var(--hmdl-accent-contrast); }
+.hmdl-resources-workspace button.bg-white:hover:not(:disabled) { background:var(--hmdl-accent-strong); }
+.hmdl-resources-workspace table { border-collapse:collapse; }
+.hmdl-resources-workspace thead { background:var(--hmdl-surface-muted); }
+.hmdl-resources-workspace th { color:var(--hmdl-text-muted); font-size:.67rem; font-weight:680; letter-spacing:.055em; text-transform:uppercase; }
+.hmdl-resources-workspace td { color:var(--hmdl-text-secondary); font-size:.77rem; }
+.hmdl-resources-workspace tbody tr:hover { background:var(--hmdl-surface-raised); }
+.hmdl-resources-workspace .divide-zinc-800 > :not([hidden]) ~ :not([hidden]) { border-color:var(--hmdl-border); }
+.hmdl-resources-workspace .text-emerald-400 { color:var(--hmdl-success); }
+.hmdl-resources-workspace .text-red-400 { color:var(--hmdl-danger); }
+@media(max-width:700px) {
+ .hmdl-resources-workspace > .hmdl-page { padding:1rem; }
+ .hmdl-resources-workspace .rounded-2xl.border { padding:1rem; }
+ .hmdl-resources-workspace table { min-width:46rem; }
+}
+
+
+/* Phase 13 — allocation operations and rotation audit */
+.hmdl-allocation-workspace { min-height:100vh; background:var(--hmdl-bg); color:var(--hmdl-text); }
+.hmdl-allocation-workspace > .hmdl-page { width:100%; max-width:96rem; }
+.hmdl-allocation-workspace h1 { color:var(--hmdl-text); font-size:clamp(1.6rem,2.5vw,2.1rem); font-weight:690; letter-spacing:-.04em; }
+.hmdl-allocation-workspace h2 { color:var(--hmdl-text); font-weight:680; }
+.hmdl-allocation-workspace p { color:var(--hmdl-text-muted); }
+.hmdl-allocation-workspace .rounded-xl.border,
+.hmdl-allocation-workspace .rounded-2xl.border { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); }
+.hmdl-allocation-workspace input,
+.hmdl-allocation-workspace select { min-height:2.4rem; border-color:var(--hmdl-border-strong); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); color:var(--hmdl-text); font-size:.78rem; }
+.hmdl-allocation-workspace button { border-radius:var(--hmdl-radius-md); font-size:.76rem; font-weight:620; }
+.hmdl-allocation-workspace button:focus-visible,
+.hmdl-allocation-workspace a:focus-visible,
+.hmdl-allocation-workspace input:focus-visible,
+.hmdl-allocation-workspace select:focus-visible { outline:2px solid var(--hmdl-accent); outline-offset:2px; }
+.hmdl-allocation-workspace button.bg-white { background:var(--hmdl-accent); color:var(--hmdl-accent-contrast); }
+.hmdl-allocation-workspace button.bg-white:hover:not(:disabled) { background:var(--hmdl-accent-strong); }
+.hmdl-allocation-workspace table { border-collapse:collapse; }
+.hmdl-allocation-workspace th { color:var(--hmdl-text-muted); font-size:.67rem; font-weight:680; text-transform:uppercase; letter-spacing:.05em; }
+.hmdl-allocation-workspace td { color:var(--hmdl-text-secondary); font-size:.76rem; }
+@media(max-width:700px) { .hmdl-allocation-workspace > .hmdl-page { padding:1rem; } }
+
+
+/* Phase 14 — reservations and allocation/resource history */
+.hmdl-reservations-workspace,.hmdl-history-workspace { min-height:100vh; background:var(--hmdl-bg); color:var(--hmdl-text); }
+.hmdl-reservations-workspace > .hmdl-page,.hmdl-history-workspace > .hmdl-page { width:100%; max-width:96rem; }
+.hmdl-reservations-workspace h1,.hmdl-history-workspace h1 { color:var(--hmdl-text); font-size:clamp(1.6rem,2.5vw,2.1rem); font-weight:690; letter-spacing:-.04em; }
+.hmdl-reservations-workspace h2,.hmdl-history-workspace h2 { color:var(--hmdl-text); font-weight:680; }
+.hmdl-reservations-workspace p,.hmdl-history-workspace p { color:var(--hmdl-text-muted); }
+.hmdl-reservations-workspace .rounded-2xl.border,.hmdl-history-workspace .rounded-2xl.border { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); }
+.hmdl-reservations-workspace input,.hmdl-reservations-workspace select { border-color:var(--hmdl-border-strong); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); color:var(--hmdl-text); }
+.hmdl-reservations-workspace button,.hmdl-history-workspace button { border-radius:var(--hmdl-radius-md); font-size:.76rem; font-weight:620; }
+.hmdl-history-workspace table { border-collapse:collapse; }
+.hmdl-history-workspace th { color:var(--hmdl-text-muted); font-size:.67rem; font-weight:680; text-transform:uppercase; letter-spacing:.05em; }
+.hmdl-history-workspace td { color:var(--hmdl-text-secondary); font-size:.76rem; }
+@media(max-width:700px) { .hmdl-reservations-workspace > .hmdl-page,.hmdl-history-workspace > .hmdl-page { padding:1rem; } }
+
+/* Phase 15 — guild insights and performance reporting */
+.hmdl-insights-workspace { min-height:100vh; background:var(--hmdl-bg); color:var(--hmdl-text); }
+.hmdl-insights-workspace > .hmdl-page { width:100%; max-width:96rem; }
+.hmdl-insights-workspace h1 { color:var(--hmdl-text); font-size:clamp(1.6rem,2.5vw,2.1rem); font-weight:690; letter-spacing:-.04em; }
+.hmdl-insights-workspace h2 { color:var(--hmdl-text); font-weight:680; }
+.hmdl-insights-workspace p { color:var(--hmdl-text-muted); }
+.hmdl-insights-workspace .rounded-2xl.border,.hmdl-insights-workspace .rounded-xl.border { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); }
+.hmdl-insights-workspace button,.hmdl-insights-workspace select { border-radius:var(--hmdl-radius-md); }
+.hmdl-insights-workspace table { border-collapse:collapse; }
+.hmdl-insights-workspace th { color:var(--hmdl-text-muted); font-size:.67rem; font-weight:680; text-transform:uppercase; letter-spacing:.05em; }
+.hmdl-insights-workspace td { color:var(--hmdl-text-secondary); font-size:.76rem; }
+
+/* Phase 16 — guild configuration and Discord notifications */
+.hmdl-guild-config-workspace { min-height:100vh; background:var(--hmdl-bg); color:var(--hmdl-text); }
+.hmdl-guild-config-workspace > .hmdl-page { width:100%; max-width:72rem; }
+.hmdl-guild-config-workspace h1 { color:var(--hmdl-text); font-size:clamp(1.6rem,2.5vw,2.1rem); font-weight:690; letter-spacing:-.04em; }
+.hmdl-guild-config-workspace h2 { color:var(--hmdl-text); font-weight:680; }
+.hmdl-guild-config-workspace p { color:var(--hmdl-text-muted); }
+.hmdl-guild-config-workspace .rounded-2xl.border,.hmdl-guild-config-workspace .rounded-xl.border { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); }
+.hmdl-guild-config-workspace input,.hmdl-guild-config-workspace select { border-color:var(--hmdl-border-strong); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); color:var(--hmdl-text); }
+.hmdl-guild-config-workspace button { border-radius:var(--hmdl-radius-md); font-size:.76rem; font-weight:620; }
+
+/* Phase 17 — member resource opt-in experience */
+.hmdl-member-optins-workspace { min-height:100vh; background:var(--hmdl-bg); color:var(--hmdl-text); }
+.hmdl-member-optins-workspace > .hmdl-page { width:100%; max-width:76rem; }
+.hmdl-member-optins-workspace h1 { color:var(--hmdl-text); font-size:clamp(1.55rem,2.4vw,2rem); font-weight:690; letter-spacing:-.04em; }
+.hmdl-member-optins-workspace h2 { color:var(--hmdl-text); font-weight:680; }
+.hmdl-member-optins-workspace p { color:var(--hmdl-text-muted); }
+.hmdl-member-optins-workspace .rounded-2xl.border,.hmdl-member-optins-workspace .rounded-xl.border { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); }
+.hmdl-member-optins-workspace input,.hmdl-member-optins-workspace select { border-color:var(--hmdl-border-strong); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); color:var(--hmdl-text); }
+.hmdl-member-optins-workspace button { border-radius:var(--hmdl-radius-md); font-size:.76rem; font-weight:620; }
+.hmdl-member-optins-workspace button:focus-visible,.hmdl-member-optins-workspace a:focus-visible { outline:2px solid var(--hmdl-accent); outline-offset:2px; }
+
+/* Phase 18 — leave management */
+.hmdl-leave-workspace,.hmdl-leave-history-workspace { min-height:100vh; background:var(--hmdl-bg); color:var(--hmdl-text); }
+.hmdl-leave-workspace > .hmdl-page,.hmdl-leave-history-workspace > .hmdl-page { width:100%; max-width:76rem; }
+.hmdl-leave-workspace h1,.hmdl-leave-history-workspace h1 { color:var(--hmdl-text); font-size:clamp(1.55rem,2.4vw,2rem); font-weight:690; letter-spacing:-.04em; }
+.hmdl-leave-workspace h2,.hmdl-leave-history-workspace h2 { color:var(--hmdl-text); font-weight:680; }
+.hmdl-leave-workspace p,.hmdl-leave-history-workspace p { color:var(--hmdl-text-muted); }
+.hmdl-leave-workspace .rounded-2xl.border,.hmdl-leave-history-workspace .rounded-2xl.border { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); }
+.hmdl-leave-workspace input,.hmdl-leave-workspace select,.hmdl-leave-workspace textarea { border-color:var(--hmdl-border-strong); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); color:var(--hmdl-text); }
+.hmdl-leave-workspace button,.hmdl-leave-history-workspace button { border-radius:var(--hmdl-radius-md); font-size:.76rem; font-weight:620; }
+.hmdl-leave-history-workspace table { border-collapse:collapse; }
+.hmdl-leave-history-workspace th { color:var(--hmdl-text-muted); font-size:.67rem; font-weight:680; text-transform:uppercase; letter-spacing:.05em; }
+.hmdl-leave-history-workspace td { color:var(--hmdl-text-secondary); font-size:.76rem; }
+@media(max-width:700px) { .hmdl-leave-workspace > .hmdl-page,.hmdl-leave-history-workspace > .hmdl-page { padding:1rem; } }
+
+/* Phase 19 — Call to Arms operations */
+.hmdl-calls-workspace { min-height:100vh; background:var(--hmdl-bg); color:var(--hmdl-text); }
+.hmdl-calls-workspace > .hmdl-page { width:100%; max-width:96rem; }
+.hmdl-calls-workspace h1 { color:var(--hmdl-text); font-size:clamp(1.55rem,2.4vw,2rem); font-weight:690; letter-spacing:-.04em; }
+.hmdl-calls-workspace h2 { color:var(--hmdl-text); font-weight:680; }
+.hmdl-calls-workspace p { color:var(--hmdl-text-muted); }
+.hmdl-calls-workspace .rounded-2xl.border,.hmdl-calls-workspace .rounded-xl.border { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); }
+.hmdl-calls-workspace input,.hmdl-calls-workspace select,.hmdl-calls-workspace textarea { border-color:var(--hmdl-border-strong); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); color:var(--hmdl-text); }
+.hmdl-calls-workspace button { border-radius:var(--hmdl-radius-md); font-size:.76rem; font-weight:620; }
+.hmdl-calls-workspace button:focus-visible,.hmdl-calls-workspace a:focus-visible { outline:2px solid var(--hmdl-accent); outline-offset:2px; }
+
+/* Phase 20 — guild settings and integrations */
+.hmdl-guild-settings-workspace { min-height:100vh; background:var(--hmdl-bg); color:var(--hmdl-text); }
+.hmdl-guild-settings-workspace > .hmdl-page { width:100%; max-width:76rem; }
+.hmdl-guild-settings-workspace h1 { color:var(--hmdl-text); font-size:clamp(1.6rem,2.5vw,2.1rem); font-weight:690; letter-spacing:-.04em; }
+.hmdl-guild-settings-workspace h2 { color:var(--hmdl-text); font-weight:680; }
+.hmdl-guild-settings-workspace h3 { color:var(--hmdl-text); font-weight:650; }
+.hmdl-guild-settings-workspace p { color:var(--hmdl-text-muted); }
+.hmdl-guild-settings-workspace .rounded-2xl.border,.hmdl-guild-settings-workspace .rounded-xl.border { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); }
+.hmdl-guild-settings-workspace input,.hmdl-guild-settings-workspace select { border-color:var(--hmdl-border-strong); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); color:var(--hmdl-text); }
+.hmdl-guild-settings-workspace button { border-radius:var(--hmdl-radius-md); font-size:.76rem; font-weight:620; }
+.hmdl-guild-settings-workspace a:focus-visible,.hmdl-guild-settings-workspace button:focus-visible { outline:2px solid var(--hmdl-accent); outline-offset:2px; }
+
+/* Phase 21 — member stat update and OCR workspace */
+.hmdl-member-stat-workspace { min-height:100vh; background:var(--hmdl-bg); color:var(--hmdl-text); }
+.hmdl-member-stat-workspace > .hmdl-page { width:100%; max-width:88rem; }
+.hmdl-member-stat-workspace h1 { color:var(--hmdl-text); font-size:clamp(1.55rem,2.4vw,2rem); font-weight:690; letter-spacing:-.04em; }
+.hmdl-member-stat-workspace h2 { color:var(--hmdl-text); font-weight:680; }
+.hmdl-member-stat-workspace p { color:var(--hmdl-text-muted); }
+.hmdl-member-stat-workspace .rounded-2xl.border,.hmdl-member-stat-workspace .rounded-xl.border { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); }
+.hmdl-member-stat-workspace input,.hmdl-member-stat-workspace select,.hmdl-member-stat-workspace textarea { border-color:var(--hmdl-border-strong); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); color:var(--hmdl-text); }
+.hmdl-member-stat-workspace button { border-radius:var(--hmdl-radius-md); font-size:.76rem; font-weight:620; }
+.hmdl-member-stat-workspace button:focus-visible,.hmdl-member-stat-workspace a:focus-visible { outline:2px solid var(--hmdl-accent); outline-offset:2px; }
+
+
+/* Phase 22 — platform administration */
+.hmdl-platform-admin-workspace { min-height:100vh; background:var(--hmdl-bg); color:var(--hmdl-text); }
+.hmdl-platform-admin-workspace > .hmdl-page { width:100%; max-width:88rem; }
+.hmdl-platform-admin-workspace h1 { color:var(--hmdl-text); font-size:clamp(1.6rem,2.5vw,2.1rem); font-weight:700; letter-spacing:-.045em; }
+.hmdl-platform-admin-workspace h2,.hmdl-platform-admin-workspace h3 { color:var(--hmdl-text); font-weight:680; }
+.hmdl-platform-admin-workspace p { color:var(--hmdl-text-muted); }
+.hmdl-platform-admin-workspace .rounded-2xl.border,.hmdl-platform-admin-workspace .rounded-xl.border { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); }
+.hmdl-platform-admin-workspace input,.hmdl-platform-admin-workspace select,.hmdl-platform-admin-workspace textarea { border-color:var(--hmdl-border-strong); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); color:var(--hmdl-text); }
+.hmdl-platform-admin-workspace button { border-radius:var(--hmdl-radius-md); font-size:.78rem; font-weight:620; }
+.hmdl-platform-admin-workspace a:focus-visible,.hmdl-platform-admin-workspace button:focus-visible { outline:2px solid var(--hmdl-accent); outline-offset:2px; }
+.hmdl-platform-admin-workspace .grid > a { min-height:11rem; }
+
+
+/* Phase 23 — billing and pricing experiences */
+.hmdl-billing-workspace,.hmdl-pricing-workspace { min-height:100vh; background:var(--hmdl-bg); color:var(--hmdl-text); }
+.hmdl-billing-workspace h1,.hmdl-pricing-workspace h1 { color:var(--hmdl-text); font-weight:720; letter-spacing:-.045em; }
+.hmdl-billing-workspace h2,.hmdl-billing-workspace h3,.hmdl-pricing-workspace h2,.hmdl-pricing-workspace h3 { color:var(--hmdl-text); font-weight:680; }
+.hmdl-billing-workspace p,.hmdl-pricing-workspace p { color:var(--hmdl-text-muted); }
+.hmdl-billing-workspace .rounded-2xl.border,.hmdl-billing-workspace .rounded-xl.border,.hmdl-pricing-workspace .rounded-2xl.border,.hmdl-pricing-workspace .rounded-xl.border { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); }
+.hmdl-billing-workspace input,.hmdl-billing-workspace select,.hmdl-billing-workspace textarea,.hmdl-pricing-workspace input,.hmdl-pricing-workspace select { border-color:var(--hmdl-border-strong); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); color:var(--hmdl-text); }
+.hmdl-billing-workspace button,.hmdl-pricing-workspace button { border-radius:var(--hmdl-radius-md); font-weight:620; }
+.hmdl-billing-workspace a:focus-visible,.hmdl-billing-workspace button:focus-visible,.hmdl-pricing-workspace a:focus-visible,.hmdl-pricing-workspace button:focus-visible { outline:2px solid var(--hmdl-accent); outline-offset:2px; }
+.hmdl-pricing-workspace article { box-shadow:0 1px 2px rgb(0 0 0 / .12); }
+
+
+/* Phase 24 — public entry and authentication */
+.hmdl-public-entry,.hmdl-auth-workspace { min-height:100vh; background:var(--hmdl-bg); color:var(--hmdl-text); }
+.hmdl-public-entry > .hmdl-page { width:100%; }
+.hmdl-public-entry h1 { color:var(--hmdl-text); font-weight:760; letter-spacing:-.055em; }
+.hmdl-public-entry h2 { color:var(--hmdl-text); font-weight:680; letter-spacing:-.025em; }
+.hmdl-public-entry p,.hmdl-auth-workspace p { color:var(--hmdl-text-muted); }
+.hmdl-public-entry .grid > a { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); transition:transform .18s ease,border-color .18s ease,background .18s ease; }
+.hmdl-public-entry .grid > a:hover { border-color:var(--hmdl-border-strong); background:var(--hmdl-surface-raised); }
+.hmdl-public-entry a:focus-visible,.hmdl-auth-workspace a:focus-visible { outline:2px solid var(--hmdl-accent); outline-offset:3px; }
+.hmdl-auth-card { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-xl); background:var(--hmdl-surface); box-shadow:0 24px 80px rgb(0 0 0 / .24); }
+.hmdl-auth-card h1 { color:var(--hmdl-text); font-size:1.7rem; font-weight:760; letter-spacing:-.045em; }
+.hmdl-auth-card a[href^="/api/auth/"] { border-radius:var(--hmdl-radius-md); }
+
+
+/* Phase 25 — bid pages, applicant portal, and guild access selection */
+.hmdl-bid-pages-workspace,.hmdl-applicant-portal,.hmdl-guild-access-workspace { min-height:100vh; background:var(--hmdl-bg); color:var(--hmdl-text); }
+.hmdl-bid-pages-workspace > .hmdl-page,.hmdl-applicant-portal > .hmdl-page { width:100%; max-width:88rem; }
+.hmdl-bid-pages-workspace h1,.hmdl-applicant-portal h1,.hmdl-guild-access-workspace h1 { color:var(--hmdl-text); font-size:clamp(1.55rem,2.4vw,2rem); font-weight:700; letter-spacing:-.04em; }
+.hmdl-bid-pages-workspace h2,.hmdl-applicant-portal h2,.hmdl-guild-access-workspace h2 { color:var(--hmdl-text); font-weight:680; }
+.hmdl-bid-pages-workspace p,.hmdl-applicant-portal p,.hmdl-guild-access-workspace p { color:var(--hmdl-text-muted); }
+.hmdl-bid-pages-workspace .rounded-2xl.border,.hmdl-bid-pages-workspace .rounded-xl.border,.hmdl-applicant-portal .rounded-2xl.border,.hmdl-applicant-portal .rounded-xl.border { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); }
+.hmdl-bid-pages-workspace button,.hmdl-applicant-portal button,.hmdl-guild-access-workspace button { border-radius:var(--hmdl-radius-md); font-weight:620; }
+.hmdl-bid-pages-workspace a:focus-visible,.hmdl-bid-pages-workspace button:focus-visible,.hmdl-applicant-portal a:focus-visible,.hmdl-applicant-portal button:focus-visible,.hmdl-guild-access-workspace a:focus-visible,.hmdl-guild-access-workspace button:focus-visible { outline:2px solid var(--hmdl-accent); outline-offset:2px; }
+.hmdl-access-card { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-xl); background:var(--hmdl-surface); box-shadow:0 24px 80px rgb(0 0 0 / .2); }
+.hmdl-access-card form button { border-color:var(--hmdl-border); background:var(--hmdl-surface-muted); }
+.hmdl-access-card form button:hover:not(:disabled) { border-color:var(--hmdl-border-strong); background:var(--hmdl-surface-raised); }
+
+
+/* Phase 26 — affiliate program administration */
+.hmdl-platform-admin-workspace .hmdl-affiliate-workspace { width:100%; max-width:88rem; margin-inline:auto; padding:2.5rem 1.5rem; }
+.hmdl-platform-admin-workspace .hmdl-affiliate-workspace h1 { color:var(--hmdl-text); font-size:clamp(1.6rem,2.5vw,2.1rem); font-weight:700; letter-spacing:-.045em; }
+.hmdl-platform-admin-workspace .hmdl-affiliate-workspace h2,.hmdl-platform-admin-workspace .hmdl-affiliate-workspace h3 { color:var(--hmdl-text); font-weight:680; }
+.hmdl-platform-admin-workspace .hmdl-affiliate-workspace p { color:var(--hmdl-text-muted); }
+.hmdl-platform-admin-workspace .hmdl-affiliate-workspace .rounded-2xl.border,.hmdl-platform-admin-workspace .hmdl-affiliate-workspace .rounded-xl.border { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); }
+.hmdl-platform-admin-workspace .hmdl-affiliate-workspace input,.hmdl-platform-admin-workspace .hmdl-affiliate-workspace select { border-color:var(--hmdl-border-strong); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); color:var(--hmdl-text); }
+.hmdl-platform-admin-workspace .hmdl-affiliate-workspace button { border-radius:var(--hmdl-radius-md); font-weight:620; }
+.hmdl-platform-admin-workspace .hmdl-affiliate-workspace a:focus-visible,.hmdl-platform-admin-workspace .hmdl-affiliate-workspace button:focus-visible { outline:2px solid var(--hmdl-accent); outline-offset:2px; }
+
+
+/* Phase 27 — applicant application and screenshot review */
+.hmdl-applicant-form-workspace { min-height:100vh; background:var(--hmdl-bg); color:var(--hmdl-text); }
+.hmdl-applicant-form-workspace > .hmdl-page { width:100%; max-width:88rem; }
+.hmdl-applicant-form-workspace h1 { color:var(--hmdl-text); font-size:clamp(1.65rem,2.6vw,2.15rem); font-weight:720; letter-spacing:-.045em; }
+.hmdl-applicant-form-workspace h2,.hmdl-applicant-form-workspace h3 { color:var(--hmdl-text); font-weight:680; }
+.hmdl-applicant-form-workspace p { color:var(--hmdl-text-muted); }
+.hmdl-applicant-form-workspace section,.hmdl-applicant-form-workspace .rounded-xl.border,.hmdl-applicant-form-workspace .rounded-2xl.border { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); }
+.hmdl-applicant-form-workspace input,.hmdl-applicant-form-workspace select,.hmdl-applicant-form-workspace textarea { border-color:var(--hmdl-border-strong); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); color:var(--hmdl-text); }
+.hmdl-applicant-form-workspace button { border-radius:var(--hmdl-radius-md); font-weight:620; }
+.hmdl-applicant-form-workspace a:focus-visible,.hmdl-applicant-form-workspace button:focus-visible { outline:2px solid var(--hmdl-accent); outline-offset:2px; }
+.hmdl-applicant-form-workspace input[type="file"] { max-width:100%; }
+@media (max-width:640px) { .hmdl-applicant-form-workspace > .hmdl-page { padding-top:1rem; } }
+
+
+/* Phase 28 — shared responsive and accessibility polish */
+@media (max-width: 700px) {
+  .hmdl-page { min-width:0; }
+  .hmdl-management table { min-width: 40rem; }
+  .hmdl-management :where(input,select,textarea,button) { max-width:100%; }
+  .hmdl-public-entry .grid > a { min-height:0; }
+  .hmdl-billing-workspace .hmdl-page,.hmdl-pricing-workspace .hmdl-page { padding-inline:.25rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,*::before,*::after { scroll-behavior:auto !important; animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
+}
+:where(.hmdl-management,.hmdl-member-home,.hmdl-public-entry,.hmdl-auth-workspace,.hmdl-billing-workspace,.hmdl-pricing-workspace,.hmdl-applicant-form-workspace,.hmdl-guild-access-workspace) :where(button,a,input,select,textarea):focus-visible {
+  outline:2px solid var(--hmdl-accent);
+  outline-offset:3px;
+}
+
+
+/* Phase 29 — platform guild creator administration */
+.hmdl-platform-admin-workspace .hmdl-creator-admin-client { display:grid; gap:1.5rem; }
+.hmdl-platform-admin-workspace .hmdl-creator-admin-client form,.hmdl-platform-admin-workspace .hmdl-creator-admin-client section,.hmdl-platform-admin-workspace .hmdl-creator-admin-client .rounded-2xl.border { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); }
+.hmdl-platform-admin-workspace .hmdl-creator-admin-client h2,.hmdl-platform-admin-workspace .hmdl-creator-admin-client h3 { color:var(--hmdl-text); font-weight:680; letter-spacing:-.02em; }
+.hmdl-platform-admin-workspace .hmdl-creator-admin-client p { color:var(--hmdl-text-muted); }
+.hmdl-platform-admin-workspace .hmdl-creator-admin-client input,.hmdl-platform-admin-workspace .hmdl-creator-admin-client select { min-height:2.5rem; border-color:var(--hmdl-border-strong); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); color:var(--hmdl-text); }
+.hmdl-platform-admin-workspace .hmdl-creator-admin-client button { border-radius:var(--hmdl-radius-md); font-weight:620; }
+.hmdl-platform-admin-workspace .hmdl-creator-admin-client table { width:100%; border-collapse:collapse; }
+.hmdl-platform-admin-workspace .hmdl-creator-admin-client th { color:var(--hmdl-text-muted); font-size:.7rem; font-weight:650; letter-spacing:.06em; text-align:left; text-transform:uppercase; }
+.hmdl-platform-admin-workspace .hmdl-creator-admin-client td { border-top:1px solid var(--hmdl-border); color:var(--hmdl-text-secondary); font-size:.82rem; }
+@media(max-width:700px){.hmdl-platform-admin-workspace .hmdl-creator-admin-client{overflow-x:auto}.hmdl-platform-admin-workspace .hmdl-creator-admin-client table{min-width:42rem}}
+
+
+/* Phase 30 — member-facing allocation bid pages */
+.hmdl-member-bid-pages { min-height:100vh; background:var(--hmdl-bg); color:var(--hmdl-text); }
+.hmdl-member-bid-pages > div { width:min(100%,88rem); margin-inline:auto; padding:2.5rem 1.5rem; }
+.hmdl-member-bid-pages section,.hmdl-bid-page-client section { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); }
+.hmdl-member-bid-pages h1,.hmdl-member-bid-pages h2,.hmdl-bid-page-client h1,.hmdl-bid-page-client h2 { color:var(--hmdl-text); font-weight:680; letter-spacing:-.025em; }
+.hmdl-member-bid-pages p,.hmdl-bid-page-client p { color:var(--hmdl-text-muted); }
+.hmdl-bid-page-client { display:grid; gap:1.25rem; }
+.hmdl-bid-page-client input[type="search"] { min-height:2.8rem; border-color:var(--hmdl-border-strong); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); color:var(--hmdl-text); }
+.hmdl-bid-page-client button { border-radius:var(--hmdl-radius-md); }
+.hmdl-bid-page-client button:focus-visible,.hmdl-bid-page-client a:focus-visible { outline:2px solid var(--hmdl-accent); outline-offset:3px; }
+@media(max-width:640px){.hmdl-member-bid-pages > div{padding:1.25rem .85rem}.hmdl-bid-page-client{gap:.85rem}}
+
+
+/* Phase 31 — global typography and accent normalization.
+   Semantic success, warning, danger and informational states remain distinct.
+   This layer standardizes brand accents and type without changing component behavior. */
+:root {
+  --hmdl-font-ui: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  --hmdl-font-code: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+  --hmdl-accent-soft: rgb(169 199 245 / .12);
+  --hmdl-accent-border: rgb(169 199 245 / .28);
+}
+
+body,
+.hmdl-app-shell,
+.hmdl-management,
+.hmdl-member-portal,
+.hmdl-public-entry,
+.hmdl-auth-workspace,
+.hmdl-billing-workspace,
+.hmdl-pricing-workspace,
+.hmdl-applicant-form-workspace,
+.hmdl-platform-admin-workspace,
+.hmdl-member-bid-pages {
+  font-family: var(--hmdl-font-ui);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+.hmdl-app-shell :not(code):not(pre):not(kbd):not(samp):not(.font-mono),
+.hmdl-public-entry :not(code):not(pre):not(kbd):not(samp):not(.font-mono),
+.hmdl-auth-workspace :not(code):not(pre):not(kbd):not(samp):not(.font-mono),
+.hmdl-billing-workspace :not(code):not(pre):not(kbd):not(samp):not(.font-mono),
+.hmdl-pricing-workspace :not(code):not(pre):not(kbd):not(samp):not(.font-mono),
+.hmdl-applicant-form-workspace :not(code):not(pre):not(kbd):not(samp):not(.font-mono),
+.hmdl-platform-admin-workspace :not(code):not(pre):not(kbd):not(samp):not(.font-mono),
+.hmdl-member-bid-pages :not(code):not(pre):not(kbd):not(samp):not(.font-mono) {
+  font-family: var(--hmdl-font-ui) !important;
+}
+
+/* Brand accent: unify blue, indigo, violet, purple and cyan action treatments. */
+:where(.hmdl-app-shell,.hmdl-public-entry,.hmdl-auth-workspace,.hmdl-billing-workspace,.hmdl-pricing-workspace,.hmdl-applicant-form-workspace,.hmdl-platform-admin-workspace,.hmdl-member-bid-pages)
+:is(
+  .bg-blue-500,.bg-blue-600,.bg-blue-700,
+  .bg-indigo-500,.bg-indigo-600,.bg-indigo-700,
+  .bg-violet-500,.bg-violet-600,.bg-violet-700,
+  .bg-purple-500,.bg-purple-600,.bg-purple-700,
+  .bg-cyan-500,.bg-cyan-600,.bg-cyan-700
+) {
+  border-color: var(--hmdl-accent-border) !important;
+  background-color: var(--hmdl-accent) !important;
+  color: var(--hmdl-accent-contrast) !important;
+}
+
+:where(.hmdl-app-shell,.hmdl-public-entry,.hmdl-auth-workspace,.hmdl-billing-workspace,.hmdl-pricing-workspace,.hmdl-applicant-form-workspace,.hmdl-platform-admin-workspace,.hmdl-member-bid-pages)
+:is(
+  .hover\\:bg-blue-500:hover,.hover\\:bg-blue-600:hover,.hover\\:bg-blue-700:hover,
+  .hover\\:bg-indigo-500:hover,.hover\\:bg-indigo-600:hover,.hover\\:bg-indigo-700:hover,
+  .hover\\:bg-violet-500:hover,.hover\\:bg-violet-600:hover,.hover\\:bg-violet-700:hover,
+  .hover\\:bg-purple-500:hover,.hover\\:bg-purple-600:hover,.hover\\:bg-purple-700:hover,
+  .hover\\:bg-cyan-500:hover,.hover\\:bg-cyan-600:hover,.hover\\:bg-cyan-700:hover
+) {
+  background-color: var(--hmdl-accent-strong) !important;
+  color: var(--hmdl-accent-contrast) !important;
+}
+
+:where(.hmdl-app-shell,.hmdl-public-entry,.hmdl-auth-workspace,.hmdl-billing-workspace,.hmdl-pricing-workspace,.hmdl-applicant-form-workspace,.hmdl-platform-admin-workspace,.hmdl-member-bid-pages)
+:is(
+  .text-blue-300,.text-blue-400,.text-blue-500,.text-blue-600,
+  .text-indigo-300,.text-indigo-400,.text-indigo-500,.text-indigo-600,
+  .text-violet-300,.text-violet-400,.text-violet-500,.text-violet-600,
+  .text-purple-300,.text-purple-400,.text-purple-500,.text-purple-600,
+  .text-cyan-300,.text-cyan-400,.text-cyan-500,.text-cyan-600
+) {
+  color: var(--hmdl-accent) !important;
+}
+
+:where(.hmdl-app-shell,.hmdl-public-entry,.hmdl-auth-workspace,.hmdl-billing-workspace,.hmdl-pricing-workspace,.hmdl-applicant-form-workspace,.hmdl-platform-admin-workspace,.hmdl-member-bid-pages)
+:is(
+  .border-blue-500,.border-blue-600,.border-indigo-500,.border-indigo-600,
+  .border-violet-500,.border-violet-600,.border-purple-500,.border-purple-600,
+  .border-cyan-500,.border-cyan-600
+) {
+  border-color: var(--hmdl-accent-border) !important;
+}
+
+/* Common link and selected-navigation treatments share one restrained accent. */
+.hmdl-app-shell a:not([class*="text-emerald"]):not([class*="text-red"]):not([class*="text-amber"]):not([class*="text-yellow"]):not([class*="text-orange"]):focus-visible,
+.hmdl-public-entry a:focus-visible,
+.hmdl-auth-workspace a:focus-visible,
+.hmdl-billing-workspace a:focus-visible,
+.hmdl-pricing-workspace a:focus-visible {
+  outline-color: var(--hmdl-accent);
+}
+
+.hmdl-nav-link.is-active {
+  border-color: var(--hmdl-accent-border);
+  background: var(--hmdl-accent-soft);
+  color: var(--hmdl-accent-strong);
+}
+
+.hmdl-nav-link.is-active .hmdl-nav-icon {
+  color: var(--hmdl-accent);
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --hmdl-text-secondary: #c0cad6;
+    --hmdl-text-muted: #a0adbd;
+    --hmdl-border: #465263;
+    --hmdl-border-strong: #68788d;
+  }
+}
+
+
+/* Phase 32 — shared component normalization across every HMDL surface.
+   Normalize repeated Tailwind-built controls/cards while retaining semantic
+   status treatments (success, warning, danger and informational badges). */
+:where(
+  .hmdl-app-shell,
+  .hmdl-public-entry,
+  .hmdl-auth-workspace,
+  .hmdl-billing-workspace,
+  .hmdl-pricing-workspace,
+  .hmdl-applicant-form-workspace,
+  .hmdl-platform-admin-workspace,
+  .hmdl-member-bid-pages,
+  .hmdl-member-stat-workspace,
+  .hmdl-event-detail,
+  .hmdl-results-archive,
+  .hmdl-resource-workspace,
+  .hmdl-allocation-workspace,
+  .hmdl-management
+) {
+  --hmdl-control-radius: var(--hmdl-radius-md);
+  --hmdl-card-radius: var(--hmdl-radius-lg);
+  --hmdl-control-border: var(--hmdl-border-strong);
+}
+
+/* Inputs, selects and textareas share one height, radius, surface and focus. */
+:where(
+  .hmdl-app-shell,
+  .hmdl-public-entry,
+  .hmdl-auth-workspace,
+  .hmdl-billing-workspace,
+  .hmdl-pricing-workspace,
+  .hmdl-applicant-form-workspace,
+  .hmdl-platform-admin-workspace,
+  .hmdl-member-bid-pages,
+  .hmdl-member-stat-workspace,
+  .hmdl-event-detail,
+  .hmdl-results-archive,
+  .hmdl-resource-workspace,
+  .hmdl-allocation-workspace,
+  .hmdl-management
+) :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),select,textarea) {
+  border-radius:var(--hmdl-control-radius);
+  border-color:var(--hmdl-control-border);
+  font-family:var(--hmdl-font-ui);
+}
+
+:where(
+  .hmdl-app-shell,
+  .hmdl-public-entry,
+  .hmdl-auth-workspace,
+  .hmdl-billing-workspace,
+  .hmdl-pricing-workspace,
+  .hmdl-applicant-form-workspace,
+  .hmdl-platform-admin-workspace,
+  .hmdl-member-bid-pages,
+  .hmdl-member-stat-workspace,
+  .hmdl-event-detail,
+  .hmdl-results-archive,
+  .hmdl-resource-workspace,
+  .hmdl-allocation-workspace,
+  .hmdl-management
+) :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),select) {
+  min-height:var(--hmdl-control-height);
+}
+
+:where(
+  .hmdl-app-shell,
+  .hmdl-public-entry,
+  .hmdl-auth-workspace,
+  .hmdl-billing-workspace,
+  .hmdl-pricing-workspace,
+  .hmdl-applicant-form-workspace,
+  .hmdl-platform-admin-workspace,
+  .hmdl-member-bid-pages,
+  .hmdl-member-stat-workspace,
+  .hmdl-event-detail,
+  .hmdl-results-archive,
+  .hmdl-resource-workspace,
+  .hmdl-allocation-workspace,
+  .hmdl-management
+) :where(input,select,textarea):focus {
+  border-color:var(--hmdl-accent);
+  outline:0;
+  box-shadow:0 0 0 3px var(--hmdl-accent-soft);
+}
+
+/* Primary white/light action buttons use the same HMDL brand accent. */
+:where(
+  .hmdl-app-shell,
+  .hmdl-public-entry,
+  .hmdl-auth-workspace,
+  .hmdl-billing-workspace,
+  .hmdl-pricing-workspace,
+  .hmdl-applicant-form-workspace,
+  .hmdl-platform-admin-workspace,
+  .hmdl-member-bid-pages,
+  .hmdl-member-stat-workspace,
+  .hmdl-event-detail,
+  .hmdl-results-archive,
+  .hmdl-resource-workspace,
+  .hmdl-allocation-workspace,
+  .hmdl-management
+) :where(button,a)[class*="bg-white"],
+:where(
+  .hmdl-app-shell,
+  .hmdl-public-entry,
+  .hmdl-auth-workspace,
+  .hmdl-billing-workspace,
+  .hmdl-pricing-workspace,
+  .hmdl-applicant-form-workspace,
+  .hmdl-platform-admin-workspace,
+  .hmdl-member-bid-pages,
+  .hmdl-member-stat-workspace,
+  .hmdl-event-detail,
+  .hmdl-results-archive,
+  .hmdl-resource-workspace,
+  .hmdl-allocation-workspace,
+  .hmdl-management
+) :where(button,a)[class*="bg-zinc-100"] {
+  border-color:var(--hmdl-accent-border);
+  background:var(--hmdl-accent);
+  color:var(--hmdl-accent-contrast);
+  font-weight:650;
+}
+
+:where(
+  .hmdl-app-shell,
+  .hmdl-public-entry,
+  .hmdl-auth-workspace,
+  .hmdl-billing-workspace,
+  .hmdl-pricing-workspace,
+  .hmdl-applicant-form-workspace,
+  .hmdl-platform-admin-workspace,
+  .hmdl-member-bid-pages,
+  .hmdl-member-stat-workspace,
+  .hmdl-event-detail,
+  .hmdl-results-archive,
+  .hmdl-resource-workspace,
+  .hmdl-allocation-workspace,
+  .hmdl-management
+) :where(button,a)[class*="bg-white"]:hover:not(:disabled),
+:where(
+  .hmdl-app-shell,
+  .hmdl-public-entry,
+  .hmdl-auth-workspace,
+  .hmdl-billing-workspace,
+  .hmdl-pricing-workspace,
+  .hmdl-applicant-form-workspace,
+  .hmdl-platform-admin-workspace,
+  .hmdl-member-bid-pages,
+  .hmdl-member-stat-workspace,
+  .hmdl-event-detail,
+  .hmdl-results-archive,
+  .hmdl-resource-workspace,
+  .hmdl-allocation-workspace,
+  .hmdl-management
+) :where(button,a)[class*="bg-zinc-100"]:hover:not(:disabled) {
+  background:var(--hmdl-accent-strong);
+  color:var(--hmdl-accent-contrast);
+}
+
+/* Shared dark secondary controls, without flattening destructive actions. */
+:where(
+  .hmdl-app-shell,
+  .hmdl-public-entry,
+  .hmdl-auth-workspace,
+  .hmdl-billing-workspace,
+  .hmdl-pricing-workspace,
+  .hmdl-applicant-form-workspace,
+  .hmdl-platform-admin-workspace,
+  .hmdl-member-bid-pages,
+  .hmdl-member-stat-workspace,
+  .hmdl-event-detail,
+  .hmdl-results-archive,
+  .hmdl-resource-workspace,
+  .hmdl-allocation-workspace,
+  .hmdl-management
+) :where(button,a)[class*="bg-zinc-800"]:not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]) {
+  border-color:var(--hmdl-border-strong);
+  border-radius:var(--hmdl-control-radius);
+  background:var(--hmdl-surface-raised);
+  color:var(--hmdl-text-secondary);
+}
+
+:where(
+  .hmdl-app-shell,
+  .hmdl-public-entry,
+  .hmdl-auth-workspace,
+  .hmdl-billing-workspace,
+  .hmdl-pricing-workspace,
+  .hmdl-applicant-form-workspace,
+  .hmdl-platform-admin-workspace,
+  .hmdl-member-bid-pages,
+  .hmdl-member-stat-workspace,
+  .hmdl-event-detail,
+  .hmdl-results-archive,
+  .hmdl-resource-workspace,
+  .hmdl-allocation-workspace,
+  .hmdl-management
+) :where(button,a)[class*="bg-zinc-800"]:not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):hover:not(:disabled) {
+  border-color:var(--hmdl-border-strong);
+  background:#202a37;
+  color:var(--hmdl-text);
+}
+
+/* Consistent card surface and radius; preserve explicit semantic status fills. */
+:where(
+  .hmdl-app-shell,
+  .hmdl-public-entry,
+  .hmdl-auth-workspace,
+  .hmdl-billing-workspace,
+  .hmdl-pricing-workspace,
+  .hmdl-applicant-form-workspace,
+  .hmdl-platform-admin-workspace,
+  .hmdl-member-bid-pages,
+  .hmdl-member-stat-workspace,
+  .hmdl-event-detail,
+  .hmdl-results-archive,
+  .hmdl-resource-workspace,
+  .hmdl-allocation-workspace,
+  .hmdl-management
+) :where(.rounded-2xl.border,.rounded-xl.border):not([class*="bg-emerald"]):not([class*="bg-red"]):not([class*="bg-amber"]):not([class*="bg-yellow"]) {
+  border-color:var(--hmdl-border);
+  border-radius:var(--hmdl-card-radius);
+}
+
+:where(
+  .hmdl-app-shell,
+  .hmdl-public-entry,
+  .hmdl-auth-workspace,
+  .hmdl-billing-workspace,
+  .hmdl-pricing-workspace,
+  .hmdl-applicant-form-workspace,
+  .hmdl-platform-admin-workspace,
+  .hmdl-member-bid-pages,
+  .hmdl-member-stat-workspace,
+  .hmdl-event-detail,
+  .hmdl-results-archive,
+  .hmdl-resource-workspace,
+  .hmdl-allocation-workspace,
+  .hmdl-management
+) :where(h1) {
+  font-family:var(--hmdl-font-ui);
+  font-weight:680;
+  letter-spacing:-.04em;
+}
+
+:where(
+  .hmdl-app-shell,
+  .hmdl-public-entry,
+  .hmdl-auth-workspace,
+  .hmdl-billing-workspace,
+  .hmdl-pricing-workspace,
+  .hmdl-applicant-form-workspace,
+  .hmdl-platform-admin-workspace,
+  .hmdl-member-bid-pages,
+  .hmdl-member-stat-workspace,
+  .hmdl-event-detail,
+  .hmdl-results-archive,
+  .hmdl-resource-workspace,
+  .hmdl-allocation-workspace,
+  .hmdl-management
+) :where(button,a) {
+  transition-property:background-color,border-color,color,box-shadow;
+  transition-duration:140ms;
+  transition-timing-function:ease;
+}
+
+@media (prefers-reduced-motion:reduce) {
+  :where(
+    .hmdl-app-shell,
+    .hmdl-public-entry,
+    .hmdl-auth-workspace,
+    .hmdl-billing-workspace,
+    .hmdl-pricing-workspace,
+    .hmdl-applicant-form-workspace,
+    .hmdl-platform-admin-workspace,
+    .hmdl-member-bid-pages,
+    .hmdl-member-stat-workspace,
+    .hmdl-event-detail,
+    .hmdl-results-archive,
+    .hmdl-resource-workspace,
+    .hmdl-allocation-workspace,
+    .hmdl-management
+  ) :where(button,a) { transition:none; }
+}
+
+
+/* Phase 33 — complete workspace coverage for remaining member and guild operations. */
+.hmdl-member-profile-workspace,
+.hmdl-member-directory-workspace,
+.hmdl-user-access-workspace,
+.hmdl-calls-workspace {
+  min-height:100vh;
+  background:var(--hmdl-bg);
+  color:var(--hmdl-text);
+  font-family:var(--hmdl-font-ui);
+}
+.hmdl-member-profile-workspace h1,
+.hmdl-member-directory-workspace h1,
+.hmdl-user-access-workspace h1,
+.hmdl-calls-workspace h1 {
+  color:var(--hmdl-text);
+  font-family:var(--hmdl-font-ui);
+  font-weight:680;
+  letter-spacing:-.04em;
+}
+.hmdl-member-profile-workspace :where(.rounded-2xl.border,.rounded-xl.border),
+.hmdl-member-directory-workspace :where(.rounded-2xl.border,.rounded-xl.border),
+.hmdl-user-access-workspace :where(.rounded-2xl.border,.rounded-xl.border),
+.hmdl-calls-workspace :where(.rounded-2xl.border,.rounded-xl.border) {
+  border-color:var(--hmdl-border);
+  border-radius:var(--hmdl-radius-lg);
+}
+.hmdl-member-profile-workspace :where(input,select,textarea),
+.hmdl-member-directory-workspace :where(input,select,textarea),
+.hmdl-user-access-workspace :where(input,select,textarea),
+.hmdl-calls-workspace :where(input,select,textarea) {
+  border-radius:var(--hmdl-control-radius,var(--hmdl-radius-md));
+  border-color:var(--hmdl-border-strong);
+  font-family:var(--hmdl-font-ui);
+}
+.hmdl-calls-workspace :where(button,a)[class*="bg-white"] {
+  border-color:var(--hmdl-accent-border);
+  background:var(--hmdl-accent);
+  color:var(--hmdl-accent-contrast);
+  font-weight:650;
+}
+.hmdl-calls-workspace :where(button,a)[class*="bg-white"]:hover:not(:disabled) {
+  background:var(--hmdl-accent-strong);
+}
+@media(max-width:700px) {
+  .hmdl-member-profile-workspace > .hmdl-page,
+  .hmdl-member-directory-workspace > .hmdl-page,
+  .hmdl-user-access-workspace > .hmdl-page,
+  .hmdl-calls-workspace > .hmdl-page { padding:1rem; }
+}
+
+
+/* Phase 37 — landing page hierarchy and public conversion cards */
+.hmdl-landing-page > .hmdl-page { max-width:76rem; }
+.hmdl-landing-page header { padding-bottom:1.25rem; border-bottom:1px solid var(--hmdl-border-subtle); }
+.hmdl-landing-page header > div:first-child p:first-child { color:var(--hmdl-text); letter-spacing:-.04em; }
+.hmdl-landing-page section { padding-top:clamp(4rem,9vh,7rem); padding-bottom:clamp(4rem,9vh,7rem); }
+.hmdl-landing-page section > div > p:first-child { color:var(--hmdl-accent); letter-spacing:.22em; }
+.hmdl-landing-page .grid > a { display:flex; min-height:15rem; flex-direction:column; align-items:flex-start; }
+.hmdl-landing-page .grid > a > span { margin-top:auto; color:var(--hmdl-accent); }
+.hmdl-landing-page .grid > a:focus-visible { outline:2px solid var(--hmdl-accent); outline-offset:4px; }
+.hmdl-landing-page footer { border-color:var(--hmdl-border-subtle); }
+
+
+/* Phase 42 — screenshot-led visual regression corrections */
+.hmdl-landing-page header a,
+.hmdl-landing-page .grid > a h2,
+.hmdl-landing-page .grid > a > span,
+.hmdl-landing-page .grid > a > p:last-child { color:var(--hmdl-text) !important; }
+.hmdl-landing-page header a:hover,
+.hmdl-landing-page .grid > a:hover > span { color:var(--hmdl-text) !important; }
+.hmdl-landing-page p { color:var(--hmdl-text-muted) !important; }
+.hmdl-landing-page .grid > a { background:var(--hmdl-surface) !important; border-color:var(--hmdl-border) !important; }
+.hmdl-landing-page .grid > a:hover { background:var(--hmdl-surface-raised) !important; border-color:var(--hmdl-border-strong) !important; }
+
+.hmdl-management-dashboard .hmdl-dashboard-group,
+.hmdl-management-dashboard .hmdl-dashboard-activity-panel,
+.hmdl-management-dashboard .hmdl-dashboard-stat {
+  background:var(--hmdl-surface) !important;
+  border-color:var(--hmdl-border) !important;
+}
+.hmdl-management-dashboard .hmdl-dashboard-link {
+  background:var(--hmdl-surface-muted) !important;
+  border-color:var(--hmdl-border) !important;
+}
+.hmdl-management-dashboard .hmdl-dashboard-link:hover {
+  background:var(--hmdl-surface-raised) !important;
+  border-color:var(--hmdl-border-strong) !important;
+}
+.hmdl-management-dashboard .hmdl-dashboard-activity-panel > div:first-child {
+  border-color:var(--hmdl-border) !important;
+}
+.hmdl-management-dashboard .hmdl-dashboard-activity-panel a:hover {
+  background:var(--hmdl-surface-raised) !important;
+}
+.hmdl-management-dashboard .hmdl-dashboard-page > section.mt-10 > div.rounded-2xl {
+  background:var(--hmdl-surface) !important;
+  border-color:var(--hmdl-border) !important;
+}
+
+.hmdl-member-filter-toolbar {
+  background:var(--hmdl-surface) !important;
+  border-color:var(--hmdl-border) !important;
+}
+.hmdl-member-filter-control {
+  min-width:0;
+  background:var(--hmdl-surface-muted) !important;
+  border-color:var(--hmdl-border-strong) !important;
+  color:var(--hmdl-text) !important;
+}
+.hmdl-member-filter-control::placeholder { color:var(--hmdl-text-muted) !important; }
+.hmdl-member-filter-control:focus-visible {
+  border-color:var(--hmdl-accent) !important;
+  outline:2px solid var(--hmdl-accent-soft);
+  outline-offset:1px;
+}
+
+.hmdl-events-workspace .hmdl-event-card {
+  background:var(--hmdl-surface) !important;
+  border-color:var(--hmdl-border) !important;
+}
+.hmdl-events-workspace .hmdl-event-card:hover {
+  background:var(--hmdl-surface-raised) !important;
+  border-color:var(--hmdl-border-strong) !important;
+}
+.hmdl-events-workspace .hmdl-event-card h3 { color:var(--hmdl-text) !important; }
+.hmdl-events-workspace .hmdl-event-card > div:last-child { color:var(--hmdl-text-muted) !important; }
+.hmdl-events-workspace .hmdl-event-card > div:last-child { border-color:var(--hmdl-border) !important; }
+
+.hmdl-management .hmdl-job-composition-row {
+  background:transparent !important;
+  color:var(--hmdl-text-secondary) !important;
+  box-shadow:none !important;
+}
+.hmdl-management .hmdl-job-composition-row:hover {
+  background:var(--hmdl-surface-raised) !important;
+}
+.hmdl-management .hmdl-job-composition-row:focus-visible {
+  outline:2px solid var(--hmdl-accent) !important;
+  outline-offset:2px;
+}
+.hmdl-management .hmdl-job-composition-track { background:var(--hmdl-surface-muted) !important; }
+.hmdl-management .hmdl-job-composition-bar { background:var(--hmdl-accent) !important; }
+.hmdl-management .hmdl-job-composition-row .group-hover\\:text-white { color:var(--hmdl-text) !important; }
+.hmdl-management .hmdl-job-composition-row .text-gray-600 { color:var(--hmdl-text-muted) !important; }
+
+
+/* Phase 44 — member directory filter and member profile visual consistency */
+.hmdl-member-directory-workspace .hmdl-member-filter-control {
+  color-scheme:dark;
+  background:var(--hmdl-surface-muted) !important;
+  border-color:var(--hmdl-border-strong) !important;
+  color:var(--hmdl-text) !important;
+}
+.hmdl-member-directory-workspace .hmdl-member-filter-control:focus-visible {
+  border-color:var(--hmdl-accent) !important;
+  outline:2px solid var(--hmdl-accent-soft);
+  outline-offset:1px;
+}
+.hmdl-member-directory-workspace .hmdl-member-filter-control option {
+  background:var(--hmdl-surface);
+  color:var(--hmdl-text);
+}
+.hmdl-member-profile-workspace .hmdl-profile-trend-chart,
+.hmdl-member-profile-workspace .hmdl-profile-snapshot {
+  background:var(--hmdl-surface) !important;
+  border-color:var(--hmdl-border) !important;
+}
+.hmdl-member-profile-workspace .hmdl-profile-trend-line {
+  stroke:var(--hmdl-accent);
+  color:var(--hmdl-accent);
+}
+.hmdl-member-profile-workspace .hmdl-profile-trend-point {
+  fill:var(--hmdl-accent);
+}
+.hmdl-member-profile-workspace .hmdl-profile-info-grid {
+  background:var(--hmdl-border) !important;
+  border-color:var(--hmdl-border) !important;
+}
+.hmdl-member-profile-workspace .hmdl-profile-info-grid > div {
+  background:var(--hmdl-surface) !important;
+}
+.hmdl-member-profile-workspace .hmdl-profile-info-grid > div > div:first-child {
+  color:var(--hmdl-text-muted);
+}
+.hmdl-member-profile-workspace .hmdl-profile-info-grid > div > div:last-child {
+  color:var(--hmdl-text-secondary);
+}
+.hmdl-member-profile-workspace .hmdl-profile-trend-chart svg {
+  display:block;
 }
