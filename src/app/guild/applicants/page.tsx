@@ -8,12 +8,9 @@ export default async function ApplicantsPage() {
   return (
     <main className="hmdl-management min-h-screen text-white">
       <div className="hmdl-page">
-
-        <div>
-          <ApplicantsClient
-            canManage={hasPermission(auth.role, "applicants.manage")}
-          />
-        </div>
+        <ApplicantsClient
+          canManage={hasPermission(auth.role, "applicants.manage")}
+        />
       </div>
     </main>
   );
