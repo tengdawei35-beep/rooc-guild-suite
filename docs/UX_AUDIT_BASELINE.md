@@ -309,3 +309,11 @@ This is a server-side integrity safeguard; it does not change the allocation for
 
 This hardens the API-facing allocation calculation against malformed or ambiguous edit payloads without changing the allocation policy.
 
+### Phase B — timezone configuration resilience
+
+| Finding | Change | Status |
+|---|---|---|
+| HOME-01 / ALLOC-TZ-01 | The dashboard and legacy allocation preview now validate configured timezone identifiers before using them. Invalid or legacy values fall back safely (guild dashboard: Asia/Bangkok; allocation date filtering: UTC) instead of throwing during date formatting and failing the page/API request. | Implemented in source; CI and timezone-boundary runtime validation pending |
+
+The fallback is defensive only; valid configured timezones continue to drive local calendar-day calculations.
+
