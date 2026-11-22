@@ -185,7 +185,7 @@ export default function GuildStatisticsClient() {
           </div>
         </div>
       )}
-    </main>
+    </div>
   );
 }
 
