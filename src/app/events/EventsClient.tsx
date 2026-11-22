@@ -32,6 +32,29 @@ type EventItem = {
   allocationRunCount: number;
 };
 
+function dateKeyInTimeZone(value: Date | string, timeZone: string) {
+  const date = value instanceof Date ? value : new Date(value);
+  const format = (zone: string) => {
+    const parts = Object.fromEntries(new Intl.DateTimeFormat("en-CA", {
+      timeZone: zone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).formatToParts(date).map(part => [part.type, part.value]));
+    return `${parts.year}-${parts.month}-${parts.day}`;
+  };
+  try {
+    return format(timeZone);
+  } catch {
+    return format("Asia/Bangkok");
+  }
+}
+
+function isUpcomingEvent(event: EventItem) {
+  const timeZone = event.scheduleTimeZone || "Asia/Bangkok";
+  return dateKeyInTimeZone(event.date, timeZone) >= dateKeyInTimeZone(new Date(), timeZone);
+}
+
 type PreferredRoster = {
   id: string;
   guildId: string;
@@ -237,67 +260,19 @@ export default function EventsClient({
   // DATE GROUPS
   // ==========================================================
 
-  const upcomingEvents =
-    useMemo(() => {
-      const now =
-        new Date();
+  const upcomingEvents = useMemo(
+    () => events
+      .filter(isUpcomingEvent)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()),
+    [events]
+  );
 
-      now.setHours(
-        0,
-        0,
-        0,
-        0
-      );
-
-      return events
-        .filter(
-          (event) =>
-            new Date(event.date) >=
-            now
-        )
-        .sort(
-          (a, b) =>
-            new Date(
-              a.date
-            ).getTime() -
-            new Date(
-              b.date
-            ).getTime()
-        );
-    }, [events]);
-
-  const pastEvents =
-    useMemo(() => {
-      const now =
-        new Date();
-
-      now.setHours(
-        0,
-        0,
-        0,
-        0
-      );
-
-      return events
-        .filter(
-          (event) =>
-            new Date(event.date) <
-            now
-        )
-        .sort(
-          (a, b) =>
-            new Date(
-              b.date
-            ).getTime() -
-            new Date(
-              a.date
-            ).getTime()
-        );
-    }, [events]);
-
-  // ==========================================================
-  // EVENTS WITH ROSTERS
-  // ==========================================================
+  const pastEvents = useMemo(
+    () => events
+      .filter(event => !isUpcomingEvent(event))
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+    [events]
+  );
 
   const rosterUpcomingEvents =
     useMemo(
