@@ -17,17 +17,26 @@ export default function NotificationsForm() {
   const [hasEventChannel, setHasEventChannel] = useState(false);
   const [clearEventChannel, setClearEventChannel] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
   async function load() {
-    const response = await fetch("/api/guild/notifications", { cache: "no-store" });
-    const result = await response.json();
-    if (!response.ok) throw new Error(result.error ?? "Failed to load notification settings.");
-    setConfigured(result.configured);
-    setHasEventChannel(Boolean(result.configured.eventChannelId));
+    setLoading(true);
+    setError("");
+    try {
+      const response = await fetch("/api/guild/notifications", { cache: "no-store" });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error ?? "Failed to load notification settings.");
+      setConfigured(result.configured);
+      setHasEventChannel(Boolean(result.configured.eventChannelId));
+    } finally {
+      setLoading(false);
+    }
   }
-  useEffect(() => { load().catch(err => setError(err instanceof Error ? err.message : "Failed to load notification settings.")); }, []);
+  useEffect(() => {
+    load().catch(err => setError(err instanceof Error ? err.message : "Failed to load notification settings."));
+  }, []);
 
   async function save() {
     setSaving(true); setMessage(""); setError("");
@@ -83,6 +92,7 @@ export default function NotificationsForm() {
       </div>
     </details>
 
+    {loading && <p role="status" className="text-sm text-zinc-400">Loading saved notification settings…</p>}
     {channels.map(channel => <div key={channel.key} className="rounded-xl border border-zinc-800 bg-zinc-950 p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><h2 className="font-semibold">{channel.label}</h2><p className="mt-1 text-sm text-zinc-500">{channel.description}</p></div><span className={`rounded-full px-2.5 py-1 text-xs ${configured[channel.key] ? "bg-emerald-950 text-emerald-400" : "bg-zinc-900 text-zinc-600"}`}>{configured[channel.key] ? "Configured" : "Not configured"}</span></div>
       <div className="mt-4 flex flex-col gap-3 sm:flex-row"><input type="url" value={values[channel.key]} onChange={e => setValues(current => ({ ...current, [channel.key]: e.target.value }))} placeholder={configured[channel.key] ? "Paste a new webhook URL to replace it" : "https://discord.com/api/webhooks/..."} disabled={clear[channel.key]} className="min-w-0 flex-1 rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-700 focus:border-zinc-500 disabled:opacity-40" /><button type="button" onClick={() => test(channel.key)} disabled={!configured[channel.key]} className="rounded-lg border border-zinc-700 px-4 py-3 text-sm text-zinc-300 hover:border-zinc-500 disabled:cursor-not-allowed disabled:opacity-30">Test</button></div>
@@ -93,9 +103,9 @@ export default function NotificationsForm() {
       <input value={eventChannelId} onChange={e => setEventChannelId(e.target.value)} placeholder="Discord channel ID" disabled={clearEventChannel} className="mt-4 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-700 focus:border-zinc-500 disabled:opacity-40" />
       <label className="mt-3 flex items-center gap-2 text-xs text-zinc-500"><input type="checkbox" checked={clearEventChannel} onChange={e => setClearEventChannel(e.target.checked)} />Clear event notification channel</label>
     </div>
-    {error && <div className="rounded-lg border border-red-900 bg-red-950/40 px-4 py-3 text-sm text-red-400">{error}</div>}
-    {message && <div className="rounded-lg border border-emerald-900 bg-emerald-950/40 px-4 py-3 text-sm text-emerald-400">{message}</div>}
-    <button type="button" onClick={save} disabled={saving} className="rounded-lg bg-white px-5 py-3 font-medium text-black transition hover:bg-zinc-200 disabled:cursor-wait disabled:opacity-50">{saving ? "Saving..." : "Save Discord Notifications"}</button>
+    {error && <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-900 bg-red-950/40 px-4 py-3 text-sm text-red-300"><span>{error}</span><button type="button" onClick={() => void load().catch(err => setError(err instanceof Error ? err.message : "Failed to load notification settings."))} disabled={loading} className="underline underline-offset-4 disabled:opacity-50">Retry loading</button></div>}
+    {message && <div role="status" aria-live="polite" className="rounded-lg border border-emerald-900 bg-emerald-950/40 px-4 py-3 text-sm text-emerald-400">{message}</div>}
+    <button type="button" onClick={save} disabled={saving || loading} className="rounded-lg bg-white px-5 py-3 font-medium text-black transition hover:bg-zinc-200 disabled:cursor-wait disabled:opacity-50">{saving ? "Saving..." : "Save Discord Notifications"}</button>
     <p className="text-xs leading-5 text-zinc-600">Webhook URLs are stored server-side and are never displayed back in the UI. The event channel uses the HMDL bot rather than a webhook so members can respond with buttons.</p>
   </div>;
 }
