@@ -7,7 +7,13 @@ import { buildAllocation, applyAllocationOverrides, type AllocationOverride } fr
 import { hasGuildModule, isRoocGuild, RESOURCE_SUITE_MODULE } from "@/lib/auth/modules";
 
 type RunRequest = { eventId?: string; nonReservedMemberCount?: number; overrides?: AllocationOverride[] };
-type BidSlotData = { memberId: string; resourceId: string };
+type BidSlotData = { memberId: string; resourceId: string; resourceName: string };
+const ASTROCORE_BID_ORDER = [
+  "guardian core",
+  "destroyer core",
+  "guardian stardust pack",
+  "destroyer stardust pack",
+] as const;
 const SLOTS_PER_PAGE = 4;
 
 export async function POST(request: Request) {
@@ -42,7 +48,7 @@ export async function POST(request: Request) {
       const bidSlotsByType: Record<"FEATHER" | "CARD" | "ASTROCORE", BidSlotData[]> = { FEATHER: [], CARD: [], ASTROCORE: [] };
       for (const resource of preview.resources) for (const assignment of resource.assignments) {
         const quantity = assignment.reservedQuantity + assignment.assignedQuantity;
-        for (let i = 0; i < quantity; i++) bidSlotsByType[resource.type].push({ memberId: assignment.memberId, resourceId: assignment.resourceId });
+        for (let i = 0; i < quantity; i++) bidSlotsByType[resource.type].push({ memberId: assignment.memberId, resourceId: assignment.resourceId, resourceName: resource.resourceName });
       }
 
       const existingRun = await tx.allocationRun.findFirst({
@@ -126,6 +132,19 @@ export async function POST(request: Request) {
           if (remainingRecovery > 0) throw new Error(`Unable to consume the full recovery entitlement for ${assignment.memberName ?? "a member"} on ${assignment.resourceName}.`);
         }
       }
+
+      // Astrocore bidding pages follow the game-defined resource sequence,
+      // rather than the database or allocation-preview order. Keep the
+      // assignment order stable within each resource.
+      bidSlotsByType.ASTROCORE.sort((a, b) => {
+        const aName = a.resourceName.trim().toLowerCase();
+        const bName = b.resourceName.trim().toLowerCase();
+        const aOrder = ASTROCORE_BID_ORDER.indexOf(aName as (typeof ASTROCORE_BID_ORDER)[number]);
+        const bOrder = ASTROCORE_BID_ORDER.indexOf(bName as (typeof ASTROCORE_BID_ORDER)[number]);
+        const normalizedAOrder = aOrder === -1 ? ASTROCORE_BID_ORDER.length : aOrder;
+        const normalizedBOrder = bOrder === -1 ? ASTROCORE_BID_ORDER.length : bOrder;
+        return normalizedAOrder - normalizedBOrder;
+      });
 
       for (const type of ["FEATHER", "CARD", "ASTROCORE"] as const) {
         const slots = bidSlotsByType[type];
