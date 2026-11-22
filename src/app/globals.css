@@ -1958,3 +1958,16 @@ body,
   margin: 0;
   padding: 0;
 }
+
+
+/* Page titles in legacy nested workspaces inherit the same heading scale. */
+.hmdl-management .hmdl-page > main > .mx-auto > header h1,
+.hmdl-management .hmdl-page > main > .mx-auto > div > header h1,
+.hmdl-calls-workspace .hmdl-calls-content > div:first-child h1 {
+  color: var(--hmdl-text);
+  font-family: var(--hmdl-font-ui);
+  font-size: clamp(1.5rem, 1.8vw, 1.875rem);
+  font-weight: 680;
+  letter-spacing: -0.035em;
+  line-height: 1.2;
+}
