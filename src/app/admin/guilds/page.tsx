@@ -65,12 +65,15 @@ export default async function AdminGuildsPage({ searchParams }: { searchParams: 
     }) : [],
     ids.length ? prisma.guildMember.groupBy({ by: ["guildId"], where: { guildId: { in: ids } }, _count: { _all: true } }) : Promise.resolve([]),
     ids.length ? prisma.guildMember.groupBy({ by: ["guildId"], where: { guildId: { in: ids }, active: true }, _count: { _all: true } }) : Promise.resolve([]),
-    ids.length ? prisma.guildMember.groupBy({ by: ["guildId"], where: { guildId: { in: ids }, userId: { not: null } }, _count: { _all: true } }) : Promise.resolve([]),
+    ids.length ? prisma.$queryRawUnsafe<Array<{ guildId: string; count: bigint }>>(
+      'SELECT "guildId", COUNT(DISTINCT "userId") AS count FROM "GuildMember" WHERE "guildId" IN (' + ids.map((_, index) => "$" + (index + 1)).join(",") + ') AND "userId" IS NOT NULL GROUP BY "guildId"',
+      ...ids
+    ) : Promise.resolve([]),
   ]);
   const byId = new Map(guildRecords.map((g) => [g.id, g]));
   const totals = new Map(memberTotals.map((r) => [r.guildId, r._count._all]));
   const active = new Map(activeTotals.map((r) => [r.guildId, r._count._all]));
-  const linked = new Map(linkedTotals.map((r) => [r.guildId, r._count._all]));
+  const linked = new Map(linkedTotals.map((r) => [r.guildId, Number(r.count)]));
   const rows = ids.flatMap((id) => {
     const guild = byId.get(id);
     if (!guild) return [];
