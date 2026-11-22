@@ -190,7 +190,7 @@ The platform Users and Guilds pages have since been updated with server-side sea
 | EVENT-TYPE-01 | RO3 event type weekday controls expose pressed state and are grouped in a fieldset; timezone selection has an explicit label. Configuration errors are announced and include a retry action. | Implemented in source; keyboard and screen-reader validation pending |
 | EVENT-TYPE-02 | Event type create, enable and delete operations now distinguish successful mutation from a failed list refresh, avoiding a misleading failure message after a committed change. | Implemented in source; mutation/refresh failure test pending |
 
-The source review also confirmed that the event list currently retrieves all guild events and the client sorts them into upcoming and past groups. This may become a performance concern for long-lived guilds; it is not yet scored as a verified bottleneck because actual guild data volume and response timings have not been measured. The event date API stores ROOC calendar dates at UTC+7 while RO3 events use each configured event timezone; the client-side upcoming/past grouping should receive a dedicated timezone-boundary test before any date logic is changed.
+The source review confirmed that the event list retrieves all guild events and sorts them into upcoming and past groups. This may become a performance concern for long-lived guilds; it is not yet scored as a verified bottleneck because actual guild data volume and response timings have not been measured. The event date API stores ROOC calendar dates at UTC+7 while RO3 events use each configured event timezone; upcoming/past grouping has now been changed to compare each event's local calendar date against the current date in that same timezone, with Asia/Bangkok fallback for invalid or missing zones. Runtime boundary testing remains pending.
 
 ### Latest automated validation snapshot
 
@@ -360,3 +360,12 @@ Offset pagination is retained for straightforward page navigation; the database 
 | PEOPLE-02 | The directory page no longer loads the entire member roster on the server. Its API now returns 50 members per request with server-side character/Discord/job search, job and status filters, stable sorting and page navigation. Summary cards and job filter options are computed through database counts/grouping. The response remains guild-scoped and preserves role-based combat-stat redaction. The directory read endpoint no longer recalculates guild rankings on every page fetch; ranking refreshes remain tied to member mutations. | Implemented in source; CI and browser validation of search, filters, sorting, pagination, permissions and summary totals pending |
 
 The member directory still includes leave dates for the 50 records on the current page so the existing edit workflow can display unavailable dates without an extra request. If a single member accumulates a very large number of leave dates, lazy-loading those dates when the member editor opens is a further optimization.
+
+
+### Phase F — event calendar date boundaries
+
+| Finding | Change | Status |
+|---|---|---|
+| EVENT-TZ-01 | Upcoming/past classification no longer compares stored event timestamps against the visitor's machine-local midnight. It now derives the event's calendar date in `scheduleTimeZone` (Asia/Bangkok for legacy ROOC events without a configured timezone) and compares it with today's date in that same zone. Invalid timezone identifiers fall back safely to Asia/Bangkok. Event ordering remains chronological by stored instant. | Implemented in source; CI and timezone-boundary runtime validation pending |
+
+This corrects local-day classification for guilds whose event timezone differs from the browser timezone, including events close to midnight. It does not yet paginate the guild-wide event list; that remains a separate scalability follow-up pending actual volume and response-time measurements.
