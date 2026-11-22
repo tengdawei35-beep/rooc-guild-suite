@@ -1113,7 +1113,7 @@ async function loadPreferredRoster() {
   if (loading) {
     return (
       <main className="hmdl-management hmdl-event-detail min-h-screen bg-zinc-950 text-white">
-        <div className="mx-auto max-w-7xl px-6 py-10">
+        <div className="hmdl-page">
           <Link
             href="/events"
             className="text-sm text-zinc-500 hover:text-white"
@@ -1134,7 +1134,7 @@ async function loadPreferredRoster() {
   if (error && !data) {
     return (
       <main className="hmdl-management hmdl-event-detail min-h-screen bg-zinc-950 text-white">
-        <div className="mx-auto max-w-7xl px-6 py-10">
+        <div className="hmdl-page">
           <Link
             href="/events"
             className="text-sm text-zinc-500 hover:text-white"
@@ -1156,7 +1156,7 @@ async function loadPreferredRoster() {
 
   return (
     <main className="hmdl-management hmdl-event-detail min-h-screen bg-zinc-950 text-white">
-      <div className="mx-auto max-w-7xl px-6 py-10">
+      <div className="hmdl-page">
         <Link
           href="/events"
           className="text-sm text-zinc-500 transition hover:text-white"
@@ -1177,7 +1177,7 @@ async function loadPreferredRoster() {
                 </span>
               </div>
 
-              <h1 className="mt-4 text-3xl font-bold tracking-tight">
+              <h1 className="hmdl-page-title mt-4">
                 {formatEventDate(data.event.date, data.event.type === "RO3_CUSTOM" ? data.event.scheduleTimeZone ?? "Asia/Bangkok" : "Asia/Bangkok", data.event.type === "RO3_CUSTOM")}
               </h1>
 
