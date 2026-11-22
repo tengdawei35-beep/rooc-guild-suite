@@ -61,6 +61,17 @@ export default function AdminUsersClient({ users, total, page, pageSize, query }
                 <div><p className="text-xs text-zinc-500">Created</p><p className="mt-1 text-sm text-zinc-300">{formatDate(user.createdAt)}</p></div>
                 <div><p className="text-xs text-zinc-500">Last updated</p><p className="mt-1 text-sm text-zinc-300">{formatDate(user.updatedAt)}</p></div>
               </div>
+              {expanded && <div className="mt-4 space-y-3 border-t border-zinc-800 pt-4">
+                <div><p className="font-semibold text-zinc-100">{user.username}</p><p className="mt-1 break-all font-mono text-xs text-zinc-500">HMDL user ID: {user.id}</p><p className="mt-1 text-xs text-zinc-500">{user.membershipCount} guild membership record{user.membershipCount === 1 ? "" : "s"}</p></div>
+                {user.guilds.length === 0 ? <p className="text-sm text-zinc-500">This account is not currently linked to a guild.</p> : user.guilds.map(guild => <div key={guild.id} className="rounded-lg border border-zinc-800 bg-zinc-900 p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2"><h4 className="font-medium text-zinc-100">{guild.name}</h4><span className="text-xs text-zinc-500">{guild.gameType === "RO3" ? "RO3" : "ROO Classic"}</span></div>
+                  <p className="mt-1 break-all font-mono text-xs text-zinc-600">Discord guild ID: {guild.discordGuildId}</p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">{guild.isOwner && <span className="rounded border border-amber-900/70 bg-amber-950/30 px-2 py-1 text-xs text-amber-300">Guild owner</span>}{guild.roles.map(role => <span key={role} className="rounded border border-zinc-700 px-2 py-1 text-xs text-zinc-300">{role}</span>)}{guild.roles.length === 0 && !guild.isOwner && <span className="text-xs text-zinc-500">Roster-linked only</span>}</div>
+                  <p className="mt-2 text-xs text-zinc-500">{guild.activeMemberRecords} active / {guild.memberRecords} roster records</p>
+                  <Link href={`/admin/impersonation?guildId=${guild.id}&userId=${user.id}`} className="mt-3 inline-flex min-h-10 items-center rounded-md border border-orange-900/70 px-3 text-xs font-medium text-orange-300 hover:bg-orange-950/50">View as this user</Link>
+                  {guild.characters.length > 0 && <div className="mt-3 space-y-2 border-t border-zinc-800 pt-3">{guild.characters.map((character, index) => <div key={character.name + "-" + index} className="flex items-center justify-between gap-3 text-sm"><span className="text-zinc-300">{character.name}<span className="ml-2 text-xs text-zinc-500">{character.job ?? "Class not set"}</span></span><span className={character.active ? "text-xs text-emerald-400" : "text-xs text-zinc-600"}>{character.active ? "Active" : "Inactive"}</span></div>)}</div>}
+                </div>)}
+              </div>}
             </article>;
           })}
         </div>
@@ -88,7 +99,7 @@ export default function AdminUsersClient({ users, total, page, pageSize, query }
           </table>
         </div>
       )}
-      {expandedUserId && users.some((user) => user.id === expandedUserId) && <div id={`admin-user-details-${expandedUserId}`} className="border-t border-zinc-800 bg-zinc-950/50 p-5">
+      {expandedUserId && users.some((user) => user.id === expandedUserId) && <div id={`admin-user-details-${expandedUserId}`} className="hidden border-t border-zinc-800 bg-zinc-950/50 p-5 md:block">
         {users.filter((user) => user.id === expandedUserId).map((user) => <div key={user.id} className="space-y-4">
           <div className="flex flex-wrap items-start justify-between gap-3"><div><h3 className="font-semibold text-white">{user.username}</h3><p className="mt-1 font-mono text-xs text-zinc-500">HMDL user ID: {user.id}</p></div><div className="text-xs text-zinc-500">{user.membershipCount} guild membership record{user.membershipCount === 1 ? "" : "s"}</div></div>
           {user.guilds.length === 0 ? <p className="text-sm text-zinc-500">This account is not currently linked to a guild.</p> : <div className="grid gap-3 md:grid-cols-2">
