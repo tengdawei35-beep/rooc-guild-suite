@@ -11,5 +11,5 @@ export default async function RankingsPage() {
   if (guild?.gameType === "RO3") {
     return <main className="hmdl-management hmdl-insights-workspace min-h-screen bg-zinc-950 text-white"><div className="hmdl-page mx-auto max-w-7xl px-6 py-10"><div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-8"><h1 className="text-xl font-semibold">RO3 Rankings</h1><p className="mt-2 text-sm text-zinc-400">RO3 ranking calculations are not available yet. ROOC scoring is intentionally disabled for RO3 guilds.</p><Link href="/guild/members" className="hmdl-btn hmdl-btn-primary mt-5 inline-flex px-4 py-2 text-sm font-medium">View Guild Members</Link></div></div></main>;
   }
-  return <main className="hmdl-management hmdl-insights-workspace min-h-screen bg-zinc-950 text-white"><RankingsClient /></main>;
+  return <RankingsClient />;
 }
