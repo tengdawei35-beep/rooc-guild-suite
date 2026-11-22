@@ -690,3 +690,51 @@ body {
  .hmdl-invite-row { align-items:flex-start; flex-direction:column; }
  .hmdl-applicant-identity span { white-space:normal; }
 }
+
+
+/* Phase 8 — guild user access workspace */
+.hmdl-users-page { background:var(--hmdl-bg); color:var(--hmdl-text); }
+.hmdl-users-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:1.5rem; margin-bottom:1.5rem; }
+.hmdl-users-heading h1 { margin:0; }
+.hmdl-users-heading p:not(.hmdl-eyebrow) { margin:.55rem 0 0; color:var(--hmdl-text-secondary); font-size:.84rem; }
+.hmdl-users-panel { margin-top:1.15rem; border:1px solid var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); padding:1.15rem; }
+.hmdl-users-panel-heading { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:1rem; }
+.hmdl-users-panel-heading h2 { margin:0; font-size:.95rem; font-weight:680; }
+.hmdl-users-panel-heading p { margin:.3rem 0 0; color:var(--hmdl-text-muted); font-size:.72rem; }
+.hmdl-users-error { margin:1rem 0; border:1px solid rgb(240 120 120 / .3); border-radius:var(--hmdl-radius-md); background:rgb(240 120 120 / .08); padding:.75rem 1rem; color:var(--hmdl-danger); font-size:.8rem; }
+.hmdl-users-add-form { display:grid; grid-template-columns:minmax(0,1fr) 14rem auto; align-items:end; gap:.8rem; }
+.hmdl-user-role-summary { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.7rem; margin-top:1.15rem; }
+.hmdl-user-role-summary > div { display:flex; flex-direction:column; gap:.45rem; border:1px solid var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); padding:.9rem 1rem; }
+.hmdl-user-role-summary span { color:var(--hmdl-text-muted); font-size:.68rem; font-weight:650; text-transform:uppercase; letter-spacing:.07em; }
+.hmdl-user-role-summary strong { font-size:1.55rem; font-weight:680; letter-spacing:-.04em; }
+.hmdl-users-toolbar { display:grid; grid-template-columns:minmax(0,1fr) 13rem; gap:.65rem; margin-bottom:.8rem; }
+.hmdl-user-list { display:grid; gap:.5rem; }
+.hmdl-user-row { display:flex; align-items:center; justify-content:space-between; gap:1rem; border:1px solid var(--hmdl-border); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); padding:.8rem; }
+.hmdl-user-identity { display:flex; min-width:0; align-items:center; gap:.8rem; }
+.hmdl-user-photo { width:2.65rem; height:2.65rem; flex:0 0 2.65rem; border-radius:50%; object-fit:cover; }
+.hmdl-user-photo-fallback { display:grid; place-items:center; background:var(--hmdl-surface-raised); color:var(--hmdl-accent); font-weight:700; }
+.hmdl-user-copy { display:flex; min-width:0; flex-direction:column; gap:.22rem; }
+.hmdl-user-copy > div > strong { color:var(--hmdl-text); font-size:.82rem; font-weight:680; }
+.hmdl-user-copy > span { overflow-wrap:anywhere; color:var(--hmdl-text-muted); font-size:.67rem; }
+.hmdl-user-copy > span strong { color:var(--hmdl-text-secondary); font-weight:600; }
+.hmdl-user-controls { display:flex; flex:0 0 auto; align-items:center; gap:.5rem; }
+.hmdl-role-select { width:9rem; }
+.hmdl-user-note { color:var(--hmdl-text-muted); font-size:.7rem; }
+.hmdl-users-empty { display:flex; min-height:7rem; flex-direction:column; align-items:center; justify-content:center; gap:.3rem; color:var(--hmdl-text-muted); font-size:.76rem; text-align:center; }
+.hmdl-users-empty strong { color:var(--hmdl-text); font-size:.84rem; }
+.hmdl-role-reference-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.65rem; }
+.hmdl-role-reference-grid > div { border:1px solid var(--hmdl-border); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); padding:.85rem; }
+.hmdl-role-reference-grid > div > div > strong { color:var(--hmdl-text-secondary); font-size:.72rem; }
+.hmdl-role-reference-grid p { margin:.5rem 0 0; color:var(--hmdl-text-muted); font-size:.72rem; line-height:1.5; }
+.hmdl-role-hierarchy-note { margin:1rem 0 0; border-left:2px solid var(--hmdl-accent); padding:.2rem 0 .2rem .7rem; color:var(--hmdl-text-muted); font-size:.7rem; }
+@media(max-width:760px) {
+ .hmdl-users-heading { align-items:flex-start; flex-direction:column; }
+ .hmdl-users-add-form { grid-template-columns:1fr; }
+ .hmdl-user-role-summary { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .hmdl-user-row { align-items:flex-start; flex-direction:column; }
+ .hmdl-user-controls { width:100%; flex-wrap:wrap; padding-left:3.45rem; }
+}
+@media(max-width:520px) {
+ .hmdl-users-toolbar { grid-template-columns:1fr; }
+ .hmdl-role-reference-grid { grid-template-columns:1fr; }
+}
