@@ -58,3 +58,10 @@ The same geometry contract also covers platform administration, allocation and b
 - Event screenshot upload progress now uses native progressbar semantics with accessible min/max/current values.
 - Existing upload, storage, OCR, event association and permission behavior remains unchanged.
 - Browser interaction checks remain a manual preview task; automated CI and Vercel preview checks are tracked on the PR.
+
+### Roster interaction refinement
+
+- Dragging is now initiated from a dedicated, focusable slot-number handle instead of the entire member row. This prevents the native drag target from competing with the Move to selector, job override control, or Remove action.
+- The Move to selector remains the keyboard-friendly alternative to drag-and-drop.
+- Removing a member now requires confirmation and is disabled while that member is being moved or removed.
+- Roster membership API behavior and move/swap rules are unchanged.
