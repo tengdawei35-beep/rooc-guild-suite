@@ -14,7 +14,7 @@ export type AllocationAssignment = {
 export type AllocationResourceResult = {
   resourceId: string;
   resourceName: string;
-  type: "FEATHER" | "CARD";
+  type: "FEATHER" | "CARD" | "ASTROCORE";
   total: number;
   reserved: number;
   allocated: number;
