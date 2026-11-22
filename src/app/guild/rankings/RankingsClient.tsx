@@ -147,7 +147,7 @@ export default function RankingsClient() {
         </div>
 
         {error && (
-          <div className="mb-6 rounded-lg border border-red-900/60 bg-red-950/40 p-4 text-sm text-red-300">
+          <div role="alert" className="mb-6 rounded-lg border border-red-900/60 bg-red-950/40 p-4 text-sm text-red-300">
             {error}
           </div>
         )}
@@ -173,9 +173,10 @@ export default function RankingsClient() {
 
           <div className="hmdl-rankings-filters grid gap-3 border-b border-gray-800 bg-[#0f0f0f] p-4 md:grid-cols-3">
             <input
+              aria-label="Search rankings by character or job"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search character, Discord name or job..."
+              placeholder="Search character or job..."
               className="hmdl-rankings-control h-10 rounded-lg border border-gray-700 bg-[#171717] px-3 text-sm text-white outline-none placeholder:text-gray-500"
             />
             <select
