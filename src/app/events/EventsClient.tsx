@@ -500,7 +500,7 @@ export default function EventsClient({
                         !form.date ||
                         (isRo3 && !selectedGuildEventTypeId)
                       }
-                      className="w-full rounded-lg bg-white px-5 py-3 font-medium text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="w-full hmdl-btn hmdl-btn-primary rounded-lg px-5 py-3 font-medium transition disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {creating
                         ? "Creating..."
