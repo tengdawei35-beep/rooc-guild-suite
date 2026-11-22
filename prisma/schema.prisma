@@ -253,6 +253,10 @@ model GuildMember {
   updatedAt DateTime @updatedAt
   @@unique([guildId, discordUserId])
   @@index([guildId])
+  @@index([guildId, characterName, id])
+  @@index([guildId, active, characterName, id])
+  @@index([guildId, job, characterName, id])
+  @@index([guildId, active, eligible])
   @@index([userId])
   @@index([discordUserId])
   @@index([discordUsername])
@@ -342,6 +346,7 @@ model AllocationRun {
   completedAt DateTime?
   @@index([guildId])
   @@index([guildId, createdAt])
+  @@index([eventId, createdAt, id])
   @@index([eventId])
 }
 
@@ -433,6 +438,8 @@ model Event {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@index([guildId])
+  @@index([guildId, date(sort: Desc), createdAt(sort: Desc), id(sort: Desc)])
+  @@index([guildId, date(sort: Desc), id(sort: Desc)])
   @@index([date])
   @@index([ro3EventTypeId])
   @@index([guildEventTypeId])
@@ -616,6 +623,7 @@ model GuildSubscription {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@index([guildId, status])
+  @@index([guildId, createdAt(sort: Desc), id(sort: Desc)])
   @@index([planId])
   @@index([providerCustomerId])
 }
