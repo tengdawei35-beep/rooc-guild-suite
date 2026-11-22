@@ -9,15 +9,23 @@ type Journey = { role: "OFFICER" | "MEMBER"; title: string; description: string;
 export default function RoleOnboarding() {
   const [journey, setJourney] = useState<Journey | null>(null);
   const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  async function load() {
+  async function load(): Promise<boolean> {
+    setLoading(true);
     try {
       const response = await fetch("/api/guild/onboarding/role", { cache: "no-store" });
-      if (!response.ok) return;
-      setJourney(await response.json());
-    } catch {
-      setError("The onboarding guide could not be loaded. Refresh the page to try again.");
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "The onboarding guide could not be loaded.");
+      setJourney(result);
+      setError("");
+      return true;
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "The onboarding guide could not be loaded.");
+      return false;
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -34,7 +42,8 @@ export default function RoleOnboarding() {
         body: JSON.stringify(payload),
       });
       if (!response.ok) throw new Error("Unable to save your progress. Please try again.");
-      await load();
+      const refreshed = await load();
+      if (!refreshed) setError("Your progress was saved, but the guide could not refresh. Retry loading to see the latest progress.");
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Unable to save your progress.");
     } finally {
@@ -42,7 +51,8 @@ export default function RoleOnboarding() {
     }
   }
 
-  if (!journey) return null;
+  if (loading && !journey) return <div className="mb-6 rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-3 text-sm text-zinc-400" role="status">Loading your orientation guide…</div>;
+  if (!journey) return <div className="mb-6 rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-4"><p role="alert" className="text-sm text-rose-300">{error || "The onboarding guide is unavailable."}</p><button type="button" disabled={loading} onClick={() => void load()} className="mt-3 text-sm font-medium text-indigo-300 underline underline-offset-4 disabled:opacity-50">{loading ? "Retrying…" : "Retry loading guide"}</button></div>;
   const percent = Math.round((journey.completed / journey.total) * 100);
 
   if (journey.dismissed) {
