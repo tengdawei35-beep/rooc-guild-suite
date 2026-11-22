@@ -403,7 +403,7 @@ export default function EventsClient({
           >
             Preferred Rosters
           </Link>
-        </div>
+        </nav>
 
         {/* ====================================================
             EVENTS VIEW
