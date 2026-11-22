@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 
 export type AllocationInput = { guildId: string; nonReservedMemberCount: number; eventDate: Date; eventId?: string; timeZone?: string | null };
 export type AllocationAssignment = {
@@ -47,8 +48,8 @@ type AssignmentParts = {
   normalQuantity: number;
 };
 
-async function getPendingRecoveries(guildId: string): Promise<PendingRecovery[]> {
-  return prisma.$queryRaw<PendingRecovery[]>`
+async function getPendingRecoveries(guildId: string, db: Prisma.TransactionClient | typeof prisma): Promise<PendingRecovery[]> {
+  return db.$queryRaw<PendingRecovery[]>`
     SELECT "id", "memberId", "resourceId", "quantity"
     FROM "RotationRecovery"
     WHERE "guildId" = ${guildId} AND "consumedAt" IS NULL AND "quantity" > 0
@@ -63,7 +64,7 @@ function assertStockInvariant(resourceName: string, total: number, reserved: num
   }
 }
 
-export async function buildAllocation(input: AllocationInput): Promise<AllocationPreviewResult> {
+export async function buildAllocation(input: AllocationInput, db: Prisma.TransactionClient | typeof prisma = prisma): Promise<AllocationPreviewResult> {
   if (!input.guildId) throw new Error("Guild ID is required.");
   if (!Number.isInteger(input.nonReservedMemberCount) || input.nonReservedMemberCount < 0) {
     throw new Error("Number of members per allocation must be a non-negative integer.");
@@ -82,7 +83,7 @@ export async function buildAllocation(input: AllocationInput): Promise<Allocatio
   const part = (type: string) => dateParts.find((item) => item.type === type)?.value ?? "";
   const eventDateStart = new Date(`${part("year")}-${part("month")}-${part("day")}T00:00:00.000Z`);
   const eventDateEnd = new Date(eventDateStart.getTime() + 24 * 60 * 60 * 1000);
-  const guild = await prisma.guild.findUnique({
+  const guild = await db.guild.findUnique({
     where: { id: input.guildId },
     include: {
       members: {
@@ -110,7 +111,7 @@ export async function buildAllocation(input: AllocationInput): Promise<Allocatio
   });
   if (!guild) throw new Error("Guild not found.");
 
-  const pendingRecoveries = await getPendingRecoveries(input.guildId);
+  const pendingRecoveries = await getPendingRecoveries(input.guildId, db);
   const rotationMembers = guild.members;
   const eligibleIds = new Set(rotationMembers.map((member) => member.id));
   const requestedCount = Math.min(input.nonReservedMemberCount, rotationMembers.length);
