@@ -3,10 +3,10 @@
 import { useMemo, useState, type FormEvent } from "react";
 
 type Member = { id: string; characterName: string | null; priority: string; eligible: boolean };
-type Resource = { id: string; name: string; type: "FEATHER" | "CARD"; total: number; perPlayerLimit: number };
-type Reservation = { id: string; memberId: string; resourceId: string; quantity: number; memberName: string | null; resourceName: string; resourceType: "FEATHER" | "CARD"; resourceTotal: number };
+type Resource = { id: string; name: string; type: "FEATHER" | "CARD" | "ASTROCORE"; total: number; perPlayerLimit: number };
+type Reservation = { id: string; memberId: string; resourceId: string; quantity: number; memberName: string | null; resourceName: string; resourceType: "FEATHER" | "CARD" | "ASTROCORE"; resourceTotal: number };
 
-const TYPE_LABELS = { FEATHER: "Feather", CARD: "Card" };
+const TYPE_LABELS = { FEATHER: "Feather", CARD: "Card", ASTROCORE: "Astrocore" };
 
 export default function ReservationsClient({ initialMembers, initialResources, initialReservations, canEdit }: { initialMembers: Member[]; initialResources: Resource[]; initialReservations: Reservation[]; canEdit: boolean }) {
   const [reservations, setReservations] = useState(initialReservations);
