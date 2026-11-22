@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Permission, UserRole } from "@/lib/permissions";
 
 type Props = {
@@ -23,8 +23,16 @@ type NavGroup = { label: string; items: NavItem[] };
 
 const PUBLIC_PATHS = ["/login", "/landing", "/pricing", "/apply", "/billing", "/guild/select", "/guild/switch"];
 
-function isActive(pathname: string, href: string) {
-  return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
+function isActive(pathname: string, href: string, searchParams: URLSearchParams) {
+  const [targetPath, targetQuery] = href.split("?");
+  const pathMatches = targetPath === "/" ? pathname === "/" : pathname === targetPath || pathname.startsWith(`${targetPath}/`);
+  if (!pathMatches) return false;
+  if (targetQuery) {
+    const expected = new URLSearchParams(targetQuery);
+    return [...expected.entries()].every(([key, value]) => searchParams.get(key) === value);
+  }
+  if (targetPath === "/events") return !["rosters", "preferred"].includes(searchParams.get("view") ?? "");
+  return true;
 }
 
 export default function AppShell({
@@ -40,8 +48,27 @@ export default function AppShell({
   impersonation,
 }: Props) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
+  const mobileNavigationRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setMobileOpen(false);
+        mobileMenuButtonRef.current?.focus();
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [mobileOpen]);
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname, searchParams]);
   const isMemberPortal = role === "MEMBER";
 
   if (!impersonation && PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`))) {
@@ -137,7 +164,7 @@ export default function AppShell({
           <p className="hmdl-nav-group-label">{group.label}</p>
           <div className="hmdl-nav-items">
             {group.items.map((item) => {
-              const active = isActive(pathname, item.href.split("?")[0]);
+              const active = isActive(pathname, item.href, new URLSearchParams(searchParams.toString()));
               return (
                 <Link
                   key={item.href}
@@ -196,11 +223,11 @@ export default function AppShell({
           <Link href="/" className="hmdl-brand">
             <span className="hmdl-brand-mark">H</span><span className="hmdl-brand-copy"><strong>HEIMDALL</strong><small>{guild.name}</small></span>
           </Link>
-          <button type="button" className="hmdl-mobile-menu-button" aria-expanded={mobileOpen} aria-controls="hmdl-mobile-navigation" onClick={() => setMobileOpen((open) => !open)}>
+          <button ref={mobileMenuButtonRef} type="button" className="hmdl-mobile-menu-button" aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"} aria-expanded={mobileOpen} aria-controls="hmdl-mobile-navigation" onClick={() => setMobileOpen((open) => !open)}>
             {mobileOpen ? "Close" : "Menu"}
           </button>
         </header>
-        {mobileOpen && <div className="hmdl-mobile-navigation" id="hmdl-mobile-navigation">{navigation}</div>}
+        {mobileOpen && <div ref={mobileNavigationRef} className="hmdl-mobile-navigation" id="hmdl-mobile-navigation">{navigation}</div>}
         <main className="hmdl-shell-content">
           {impersonation && <div role="status" className="mb-5 flex flex-col gap-3 rounded-xl border border-orange-500/50 bg-orange-950/80 px-4 py-3 text-orange-100 shadow-lg sm:flex-row sm:items-center sm:justify-between">
             <div><p className="text-xs font-bold uppercase tracking-widest text-orange-300">Impersonation mode · temporary access</p><p className="mt-1 text-sm font-semibold">Viewing {impersonation.guildName} as {impersonation.mode === "ROLE" && impersonation.role === "ADMIN" ? "Guild Owner" : impersonation.role.charAt(0) + impersonation.role.slice(1).toLowerCase()} · {impersonation.targetUsername}</p><p className="mt-1 text-xs text-orange-200/80">Original administrator: {impersonation.adminUsername} · Expires {new Date(impersonation.expiresAt).toLocaleTimeString()}</p></div>
