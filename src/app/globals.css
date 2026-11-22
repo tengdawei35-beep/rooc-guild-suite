@@ -2308,16 +2308,36 @@ body,
 }
 
 
-/* Phase 52 — align remaining management routes to the shared page grid. */
+/* Phase 53 — enforce one geometry contract for authenticated management pages.
+   Keep this after legacy module styles so old max-width utilities cannot win. */
+.hmdl-shell-content > .hmdl-management > .hmdl-page {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--hmdl-page-max-standard, 96rem);
+  min-width: 0;
+  margin-inline: auto;
+  padding: var(--hmdl-page-space-block, clamp(1.5rem, 2.4vw, 2.5rem))
+    var(--hmdl-page-gutter, clamp(1rem, 2.2vw, 2rem));
+}
+
+/* Client workspaces must not introduce a second, narrower content column. */
+.hmdl-shell-content > .hmdl-management > .hmdl-page > .min-w-0 > .max-w-7xl,
+.hmdl-shell-content > .hmdl-management > .hmdl-page > .max-w-7xl {
+  width: 100%;
+  max-width: none;
+}
+
+/* The management dashboard uses the same 96rem grid and page gutters. */
 .hmdl-management-dashboard .hmdl-dashboard-page {
   box-sizing: border-box;
   width: 100%;
-  max-width: var(--hmdl-page-max-wide, 100rem);
+  max-width: var(--hmdl-page-max-standard, 96rem);
   margin-inline: auto;
   padding: var(--hmdl-page-space-block, clamp(1.5rem, 2.4vw, 2.5rem))
     var(--hmdl-page-gutter, clamp(1rem, 2.2vw, 2rem));
 }
 @media (max-width: 700px) {
+  .hmdl-shell-content > .hmdl-management > .hmdl-page,
   .hmdl-management-dashboard .hmdl-dashboard-page {
     padding: 1rem;
   }
