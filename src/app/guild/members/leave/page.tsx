@@ -13,7 +13,11 @@ export default async function ApplyLeavePage() {
   const member = await prisma.guildMember.findFirst({
     where: {
       guildId: auth.guild.id,
-      userId: auth.user.id,
+      active: true,
+      OR: [
+        { userId: auth.user.id },
+        { discordUserId: auth.user.discordId },
+      ],
     },
     select: {
       id: true,
