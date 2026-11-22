@@ -242,3 +242,19 @@ The event detail page and attendance panel both poll at 10-second intervals whil
 - Vercel and GitHub Actions CI both passed for commit `a4f8826a161fefa4e12da7e003e1149c0db7dbfe`.
 - Subsequent platform-directory and RO3 resource UX commits require a fresh build/CI result.
 - No manual browser, responsive, keyboard, screen-reader or production-data performance testing has been performed.
+
+
+### Phase B — live event refresh reliability
+
+| Finding | Change | Status |
+|---|---|---|
+| EVENT-POLL-01 | Event detail polling now prevents overlapping refresh requests, aborts an in-flight request on unmount/event change, and ignores refresh results after cleanup. | Implemented in source; network/concurrent-edit runtime validation pending |
+| ATTEND-POLL-01 | Attendance polling now serializes refresh requests, pauses while a member is submitting a response, ignores late refresh results during an active response, refreshes on tab visibility, and aborts on unmount/event change. | Implemented in source; network/concurrent-edit runtime validation pending |
+
+These changes reduce avoidable duplicate requests and prevent a periodic attendance refresh from overwriting the immediate response state while a submission is in progress. They do not establish that polling is optimal for production scale; a server-push or shared event refresh strategy may be preferable if measured traffic warrants it.
+
+### Latest automated validation snapshot
+
+- Commit `74f1e236d22608ed56b5a84b3e7872a694a185fc`: Vercel status **success** and GitHub Actions CI **success**.
+- Subsequent polling reliability commits (`b8ee439`, `1024d19`, `7e34830`) have been pushed to the audit branch. Their CI/build checks must be confirmed separately before calling these changes validated.
+- No authenticated browser, responsive, keyboard, screen-reader or production-data performance testing has been performed.
