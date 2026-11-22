@@ -119,12 +119,11 @@ export default async function LeaveHistoryPage() {
 
   return (
     <main className="hmdl-management hmdl-leave-history-workspace min-h-screen bg-zinc-950 text-white">
-      <div className="hmdl-page mx-auto max-w-7xl px-6 py-10">
+      <div className="hmdl-page">
         <ManagementPageHeader
           eyebrow="PEOPLE"
           title="Leave History"
           description="Review leave frequency across current and former guild members."
-          breadcrumb={{ label: "Guild Members", href: "/guild/members" }}
         />
 
         <section className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

@@ -95,7 +95,7 @@ export default function GuildStatisticsClient() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0b0b0b] px-4 py-6 text-gray-100 md:px-6">
+    <div className="min-w-0 text-gray-100">
       <div className="mx-auto max-w-7xl">
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
@@ -185,7 +185,7 @@ export default function GuildStatisticsClient() {
           </div>
         </div>
       )}
-    </main>
+    </div>
   );
 }
 
