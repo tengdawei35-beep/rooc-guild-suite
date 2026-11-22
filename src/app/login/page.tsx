@@ -36,8 +36,8 @@ export default async function LoginPage({
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-zinc-950 px-4">
-      <div className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 p-8 shadow-xl">
+    <main className="hmdl-auth-workspace flex min-h-screen items-center justify-center bg-zinc-950 px-4">
+      <div className="hmdl-auth-card w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 p-8 shadow-xl">
         <div className="text-center">
           <h1 className="text-2xl font-semibold text-white">
             HMDL
