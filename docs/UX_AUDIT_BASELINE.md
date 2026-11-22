@@ -258,3 +258,19 @@ These changes reduce avoidable duplicate requests and prevent a periodic attenda
 - Commit `74f1e236d22608ed56b5a84b3e7872a694a185fc`: Vercel status **success** and GitHub Actions CI **success**.
 - Subsequent polling reliability commits (`b8ee439`, `1024d19`, `7e34830`) have been pushed to the audit branch. Their CI/build checks must be confirmed separately before calling these changes validated.
 - No authenticated browser, responsive, keyboard, screen-reader or production-data performance testing has been performed.
+
+
+### Phase B — settings, ownership and onboarding feedback
+
+| Finding | Change | Status |
+|---|---|---|
+| ONBOARD-01 | Role onboarding now distinguishes loading, failed initial load and a genuinely unavailable guide; a retry action is available instead of silently rendering nothing. A successful progress save followed by a failed refresh is reported accurately. | Implemented in source; runtime verification pending |
+| GUILD-SETTINGS-01 | Guild settings prevent submitting blank/whitespace-only name or Discord server ID values and expose save errors/success to assistive technology. Existing API validation and game-switch confirmation remain unchanged. | Implemented in source; runtime verification pending |
+| OWNERSHIP-UX-01 | Ownership transfer now communicates when no eligible alternate guild user exists, disables the empty selector/action, and announces success/errors accessibly. Existing ownership confirmation and API contract remain unchanged. | Implemented in source; runtime verification pending |
+
+### Latest automated validation snapshot
+
+- The earlier commit `74f1e236d22608ed56b5a84b3e7872a694a185fc` had Vercel and GitHub Actions CI success.
+- The later event polling commits and settings/onboarding changes are newer and have not yet been validated by a completed CI/build run.
+- At the time of the latest check, GitHub Actions CI run `45025022720` was **in progress** and Vercel was **pending** for the previously checked commit. Recheck the branch head before treating any check as current.
+- No authenticated browser, responsive, keyboard, screen-reader or production-data performance testing has been performed.
