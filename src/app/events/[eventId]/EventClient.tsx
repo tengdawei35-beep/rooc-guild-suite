@@ -1450,6 +1450,7 @@ async function loadPreferredRoster() {
                       onRemoveMember={
                         removeRosterMember
                       }
+                      onMoveMember={moveRosterMember}
                     />
 
                     <RaidManagement
@@ -1660,6 +1661,7 @@ function RosterCard({
   onDrop,
   onEmptySlotClick,
   onRemoveMember,
+  onMoveMember,
   rosterJobOverrides,
   onRosterJobSaved,
 }: {
@@ -1677,6 +1679,7 @@ function RosterCard({
   onDrop: (targetPartyId: string, targetSlotNumber: number) => void;
   onEmptySlotClick: (partyId: string, slotNumber: number) => void;
   onRemoveMember: (assignmentId: string) => void;
+  onMoveMember: (assignmentId: string, targetPartyId: string, targetSlotNumber: number) => void;
   rosterJobOverrides: Record<string, string | null>;
   onRosterJobSaved: (
     assignmentId: string,
@@ -1739,6 +1742,8 @@ function RosterCard({
                       onDrop={onDrop}
                       onEmptySlotClick={onEmptySlotClick}
                       onRemoveMember={onRemoveMember}
+                      onMoveMember={onMoveMember}
+                      rosterParties={parties}
                       rosterJobOverrides={rosterJobOverrides}
                       onRosterJobSaved={onRosterJobSaved}
                     />
@@ -1772,10 +1777,14 @@ function PartyCard({
   onDrop,
   onEmptySlotClick,
   onRemoveMember,
+  onMoveMember,
+  rosterParties,
   rosterJobOverrides,
   onRosterJobSaved,
 }: {
   party: RosterParty;
+  rosterParties: RosterParty[];
+  onMoveMember: (assignmentId: string, targetPartyId: string, targetSlotNumber: number) => void;
   canEdit: boolean;
   editing: boolean;
   draggedAssignmentId: string | null;
@@ -1847,6 +1856,29 @@ function PartyCard({
                       onSaved={onRosterJobSaved}
                     />
                   </div>
+                  {editing && (
+                    <select
+                      aria-label={`Move ${assignment.member.characterName} to another roster slot`}
+                      value=""
+                      disabled={movingAssignmentId === assignment.id || removingAssignmentId === assignment.id}
+                      onChange={(event) => {
+                        const [targetPartyId, targetSlot] = event.target.value.split(":");
+                        if (targetPartyId && targetSlot) onMoveMember(assignment.id, targetPartyId, Number(targetSlot));
+                      }}
+                      className="max-w-28 rounded-md border border-zinc-700 bg-zinc-950 px-2 py-1 text-[10px] text-zinc-300"
+                    >
+                      <option value="">Move to…</option>
+                      {rosterParties.flatMap((targetParty) =>
+                        Array.from({ length: 5 }, (_, index) => index + 1)
+                          .filter((targetSlot) => targetParty.id !== party.id || targetSlot !== slotNumber)
+                          .map((targetSlot) => (
+                            <option key={`${targetParty.id}:${targetSlot}`} value={`${targetParty.id}:${targetSlot}`}>
+                              P{targetParty.partyNumber} · Slot {targetSlot}
+                            </option>
+                          ))
+                      )}
+                    </select>
+                  )}
                   {editing && (
                     <button type="button" draggable={false} disabled={removingAssignmentId === assignment.id} onClick={(event) => { event.stopPropagation(); onRemoveMember(assignment.id); }} className="shrink-0 rounded-md border border-red-900/60 px-2 py-1 text-[10px] text-red-500 transition hover:border-red-700 hover:bg-red-950/50 hover:text-red-400 disabled:cursor-wait disabled:opacity-50">
                       {removingAssignmentId === assignment.id ? "Removing..." : "Remove"}
