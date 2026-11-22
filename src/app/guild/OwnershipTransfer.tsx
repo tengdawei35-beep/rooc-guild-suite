@@ -111,10 +111,10 @@ export default function OwnershipTransfer({
             id="newGuildOwner"
             value={newOwnerUserId}
             onChange={(event) => setNewOwnerUserId(event.target.value)}
-            disabled={saving}
+            disabled={saving || candidates.length === 0}
             className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-4 py-3 text-sm text-white outline-none transition focus:border-zinc-400 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <option value="">Select a guild user...</option>
+            <option value="">{candidates.length ? "Select a guild user..." : "No eligible guild users"}</option>
             {candidates.map((user) => (
               <option key={user.id} value={user.id}>
                 {user.username} ({user.role})
@@ -126,7 +126,7 @@ export default function OwnershipTransfer({
         <button
           type="button"
           onClick={transferOwnership}
-          disabled={saving || !selectedUser}
+          disabled={saving || !selectedUser || candidates.length === 0}
           className="rounded-lg border border-red-900 bg-red-950/40 px-5 py-3 text-sm font-medium text-red-300 transition hover:border-red-700 hover:bg-red-950 disabled:cursor-not-allowed disabled:opacity-40"
         >
           {saving ? "Transferring..." : "Transfer Ownership"}
@@ -134,13 +134,13 @@ export default function OwnershipTransfer({
       </div>
 
       {error && (
-        <div className="mt-4 rounded-lg border border-red-900 bg-red-950/40 p-4 text-sm text-red-400">
+        <div role="alert" className="mt-4 rounded-lg border border-red-900 bg-red-950/40 p-4 text-sm text-red-400">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="mt-4 rounded-lg border border-emerald-900 bg-emerald-950/40 p-4 text-sm text-emerald-400">
+        <div role="status" aria-live="polite" className="mt-4 rounded-lg border border-emerald-900 bg-emerald-950/40 p-4 text-sm text-emerald-400">
           {success}
         </div>
       )}
