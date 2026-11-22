@@ -964,3 +964,17 @@ body {
 .hmdl-member-optins-workspace input,.hmdl-member-optins-workspace select { border-color:var(--hmdl-border-strong); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); color:var(--hmdl-text); }
 .hmdl-member-optins-workspace button { border-radius:var(--hmdl-radius-md); font-size:.76rem; font-weight:620; }
 .hmdl-member-optins-workspace button:focus-visible,.hmdl-member-optins-workspace a:focus-visible { outline:2px solid var(--hmdl-accent); outline-offset:2px; }
+
+/* Phase 18 — leave management */
+.hmdl-leave-workspace,.hmdl-leave-history-workspace { min-height:100vh; background:var(--hmdl-bg); color:var(--hmdl-text); }
+.hmdl-leave-workspace > .hmdl-page,.hmdl-leave-history-workspace > .hmdl-page { width:100%; max-width:76rem; }
+.hmdl-leave-workspace h1,.hmdl-leave-history-workspace h1 { color:var(--hmdl-text); font-size:clamp(1.55rem,2.4vw,2rem); font-weight:690; letter-spacing:-.04em; }
+.hmdl-leave-workspace h2,.hmdl-leave-history-workspace h2 { color:var(--hmdl-text); font-weight:680; }
+.hmdl-leave-workspace p,.hmdl-leave-history-workspace p { color:var(--hmdl-text-muted); }
+.hmdl-leave-workspace .rounded-2xl.border,.hmdl-leave-history-workspace .rounded-2xl.border { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); }
+.hmdl-leave-workspace input,.hmdl-leave-workspace select,.hmdl-leave-workspace textarea { border-color:var(--hmdl-border-strong); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); color:var(--hmdl-text); }
+.hmdl-leave-workspace button,.hmdl-leave-history-workspace button { border-radius:var(--hmdl-radius-md); font-size:.76rem; font-weight:620; }
+.hmdl-leave-history-workspace table { border-collapse:collapse; }
+.hmdl-leave-history-workspace th { color:var(--hmdl-text-muted); font-size:.67rem; font-weight:680; text-transform:uppercase; letter-spacing:.05em; }
+.hmdl-leave-history-workspace td { color:var(--hmdl-text-secondary); font-size:.76rem; }
+@media(max-width:700px) { .hmdl-leave-workspace > .hmdl-page,.hmdl-leave-history-workspace > .hmdl-page { padding:1rem; } }
