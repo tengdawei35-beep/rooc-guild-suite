@@ -35,7 +35,7 @@ export async function POST(request: Request) {
       const allocationLockKey = `guild-allocation:${auth.guild.id}`;
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${allocationLockKey}, 0))`;
 
-      let preview = await buildAllocation({ guildId: auth.guild.id, nonReservedMemberCount, eventDate: event.date, eventId: event.id, timeZone: event.scheduleTimeZone });
+      let preview = await buildAllocation({ guildId: auth.guild.id, nonReservedMemberCount, eventDate: event.date, eventId: event.id, timeZone: event.scheduleTimeZone }, tx);
       if (body.overrides !== undefined) preview = applyAllocationOverrides(preview, body.overrides);
       if (preview.guildId !== auth.guild.id || preview.guildId !== event.guildId) throw new Error("Allocation does not belong to the configured guild.");
 
