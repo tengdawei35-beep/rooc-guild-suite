@@ -85,7 +85,8 @@ export default function NotificationsForm() {
     finally { setTestingChannel(null); }
   }
 
-  return <div className="space-y-6">\n    <details className="rounded-xl border border-indigo-900/60 bg-indigo-950/20 p-5">
+  return <div className="space-y-6">
+    <details className="rounded-xl border border-indigo-900/60 bg-indigo-950/20 p-5">
       <summary className="cursor-pointer list-none font-semibold text-indigo-100"><span className="mr-2 text-indigo-300">＋</span>How to create a Discord webhook — step-by-step guide</summary>
       <div className="mt-4 space-y-5 text-sm leading-6 text-zinc-300">
         <p>A webhook lets Heimdall post updates into a Discord channel without requiring the HMDL bot for these notification types. Create one webhook for each destination channel you want to use.</p>
