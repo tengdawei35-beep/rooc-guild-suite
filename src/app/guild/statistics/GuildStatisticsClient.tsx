@@ -99,7 +99,6 @@ export default function GuildStatisticsClient() {
       <div className="mx-auto max-w-7xl">
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
-            <Link href="/" className="mb-4 inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white"><span aria-hidden="true">←</span> Back to Dashboard</Link>
             <h1 className="text-2xl font-bold text-white md:text-3xl">Guild Statistics</h1>
             <p className="mt-1 text-sm text-gray-400">A snapshot of your guild's members and activity.</p>
           </div>

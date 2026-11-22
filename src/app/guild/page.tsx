@@ -22,8 +22,7 @@ export default async function GuildPage() {
     return (
       <main className="hmdl-management hmdl-guild-settings-workspace min-h-screen bg-zinc-950 text-white">
         <div className="hmdl-page mx-auto max-w-4xl px-6 py-10">
-          <Link href="/" className="text-sm text-zinc-500 hover:text-white">← Dashboard</Link>
-          <div className="mt-8 rounded-2xl border border-red-900 bg-zinc-900 p-8">
+          <div className="rounded-2xl border border-red-900 bg-zinc-900 p-8">
             <h1 className="text-xl font-semibold">Access Denied</h1>
             <p className="mt-2 text-sm text-zinc-400">You do not have permission to manage guild settings.</p>
           </div>
@@ -46,7 +45,6 @@ export default async function GuildPage() {
     return (
       <main className="hmdl-management hmdl-guild-settings-workspace min-h-screen bg-zinc-950 text-white">
         <div className="hmdl-page mx-auto max-w-4xl px-6 py-10">
-          <Link href="/" className="text-sm text-zinc-500 hover:text-white">← Dashboard</Link>
           <div className="mt-8 rounded-2xl border border-red-900 bg-zinc-900 p-8">
             <h1 className="text-xl font-semibold">Guild Not Found</h1>
             <p className="mt-2 text-sm text-zinc-400">The guild associated with your session could not be found.</p>
@@ -67,7 +65,6 @@ export default async function GuildPage() {
     <main className="hmdl-management hmdl-guild-settings-workspace min-h-screen bg-zinc-950 text-white">
       <div className="hmdl-page mx-auto max-w-4xl px-6 py-10">
         <header className="mb-8">
-          <Link href="/" className="mb-6 inline-block text-sm text-zinc-500 transition hover:text-white">← Dashboard</Link>
           <p className="mb-2 text-sm font-medium uppercase tracking-widest text-zinc-500">HMDL — Heimdall</p>
           <h1 className="text-3xl font-bold tracking-tight">Guild</h1>
           <p className="mt-2 text-zinc-400">Manage your guild configuration, members and access.</p>

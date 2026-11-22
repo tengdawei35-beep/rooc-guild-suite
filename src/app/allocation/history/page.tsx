@@ -21,14 +21,8 @@ export default async function AllocationHistoryPage() {
     return (
       <main className="hmdl-management hmdl-history-workspace min-h-screen bg-zinc-950 text-white">
         <div className="hmdl-page mx-auto max-w-7xl px-6 py-10">
-          <Link
-            href="/"
-            className="text-sm text-zinc-500 hover:text-white"
-          >
-            ← Dashboard
-          </Link>
 
-          <section className="mt-8 rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/50 p-10 text-center">
+          <section className="rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/50 p-10 text-center">
             <h1 className="text-xl font-semibold">
               Resource Suite required
             </h1>
@@ -58,12 +52,6 @@ export default async function AllocationHistoryPage() {
     return (
       <main className="hmdl-management hmdl-history-workspace min-h-screen bg-zinc-950 text-white">
         <div className="hmdl-page mx-auto max-w-7xl px-6 py-10">
-          <Link
-            href="/"
-            className="text-sm text-zinc-500 hover:text-white"
-          >
-            ← Dashboard
-          </Link>
 
           <div className="mt-8 rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/50 p-10 text-center">
             <h1 className="text-xl font-semibold">
@@ -139,18 +127,9 @@ export default async function AllocationHistoryPage() {
   return (
     <main className="hmdl-management hmdl-history-workspace min-h-screen bg-zinc-950 text-white">
       <div className="hmdl-page mx-auto max-w-7xl px-6 py-10">
-        {/* BACK NAVIGATION */}
-
-        <Link
-          href="/"
-          className="text-sm text-zinc-500 hover:text-white"
-        >
-          ← Dashboard
-        </Link>
-
         {/* HEADER */}
 
-        <header className="mt-6 mb-8">
+        <header className="mb-8">
           <p className="text-sm font-medium uppercase tracking-widest text-zinc-500">
             {guild.name}
           </p>

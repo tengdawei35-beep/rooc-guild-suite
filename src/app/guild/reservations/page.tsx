@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import {
   requirePageAuth,
 } from "@/lib/auth";
@@ -27,14 +25,8 @@ export default async function ReservationsPage() {
     return (
       <main className="hmdl-management hmdl-reservations-workspace min-h-screen bg-zinc-950 text-white">
         <div className="hmdl-page mx-auto max-w-7xl px-6 py-10">
-          <Link
-            href="/"
-            className="text-sm text-zinc-500 hover:text-white"
-          >
-            ← Dashboard
-          </Link>
 
-          <div className="mt-8 rounded-2xl border border-red-900 bg-zinc-900 p-8">
+          <div className="rounded-2xl border border-red-900 bg-zinc-900 p-8">
             <h1 className="text-xl font-semibold">
               Access Denied
             </h1>
@@ -108,14 +100,8 @@ export default async function ReservationsPage() {
     return (
       <main className="hmdl-management hmdl-reservations-workspace min-h-screen bg-zinc-950 text-white">
         <div className="hmdl-page mx-auto max-w-7xl px-6 py-10">
-          <Link
-            href="/"
-            className="text-sm text-zinc-500 hover:text-white"
-          >
-            ← Dashboard
-          </Link>
 
-          <div className="mt-8 rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/50 p-10 text-center">
+          <div className="rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/50 p-10 text-center">
             <h1 className="text-xl font-semibold">
               Guild unavailable
             </h1>
@@ -203,12 +189,6 @@ export default async function ReservationsPage() {
     <main className="hmdl-management hmdl-reservations-workspace min-h-screen bg-zinc-950 text-white">
       <div className="hmdl-page mx-auto max-w-7xl px-6 py-10">
         <header className="mb-8">
-          <Link
-            href="/"
-            className="text-sm text-zinc-500 hover:text-white"
-          >
-            ← Dashboard
-          </Link>
 
           <div className="mt-4">
             <p className="text-sm font-medium uppercase tracking-widest text-zinc-500">

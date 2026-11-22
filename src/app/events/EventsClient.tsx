@@ -344,14 +344,8 @@ export default function EventsClient({
 
         <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <Link
-              href="/"
-              className="text-sm text-zinc-500 transition hover:text-white"
-            >
-              ← Dashboard
-            </Link>
 
-            <p className="mt-6 text-sm font-medium uppercase tracking-widest text-zinc-500">
+            <p className="text-sm font-medium uppercase tracking-widest text-zinc-500">
               ROO Guild Suite
             </p>
 

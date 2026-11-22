@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import {
   useEffect,
   useMemo,
@@ -575,7 +574,7 @@ export default function UsersClient() {
 
   return (
     <main className="hmdl-management hmdl-users-page hmdl-user-access-workspace min-h-screen"><div className="hmdl-page">
-      <header className="hmdl-users-heading"><div><Link href="/guild" className="text-sm text-zinc-400 hover:text-white">← Guild Dashboard</Link><p className="hmdl-eyebrow mt-6">CONFIGURATION / ACCESS CONTROL</p><h1 className="hmdl-page-title">Guild users</h1><p>Manage who can access this guild and the level of access they hold.</p></div>{canManageUsers && <button type="button" onClick={() => setShowAdd((value) => !value)} className="hmdl-btn hmdl-btn-primary">{showAdd ? "Cancel" : "＋ Add user"}</button>}</header>
+      <header className="hmdl-users-heading"><div><p className="hmdl-eyebrow">CONFIGURATION / ACCESS CONTROL</p><h1 className="hmdl-page-title">Guild users</h1><p>Manage who can access this guild and the level of access they hold.</p></div>{canManageUsers && <button type="button" onClick={() => setShowAdd((value) => !value)} className="hmdl-btn hmdl-btn-primary">{showAdd ? "Cancel" : "＋ Add user"}</button>}</header>
       {error && <div role="alert" className="hmdl-users-error">{error}</div>}
       {showAdd && canManageUsers && <section className="hmdl-users-panel"><div className="hmdl-users-panel-heading"><div><h2>Add guild user</h2><p>The Discord account must have logged into ROO Guild Suite at least once before it can be added.</p></div></div><form onSubmit={addUser} className="hmdl-users-add-form"><div><label htmlFor="discordId" className="hmdl-label">Discord User ID</label><input id="discordId" value={discordId} onChange={(event) => setDiscordId(event.target.value)} placeholder="123456789012345678" disabled={adding} className="hmdl-field mt-2" /><p className="mt-2 text-xs text-zinc-500">Discord → right-click the user → Copy User ID.</p></div><div><label htmlFor="newRole" className="hmdl-label">Role</label><select id="newRole" value={newRole} onChange={(event) => setNewRole(event.target.value as UserRole)} disabled={adding} className="hmdl-field mt-2">{ROLE_ORDER.map((role) => canAssignRole(role) && <option key={role} value={role}>{formatRole(role)}</option>)}</select></div><button type="submit" disabled={adding || !discordId.trim()} className="hmdl-btn hmdl-btn-primary self-end">{adding ? "Adding…" : "Add user"}</button></form></section>}
       <section className="hmdl-user-role-summary" aria-label="Users by role">{ROLE_ORDER.map((role) => <div key={role}><span>{formatRole(role)}</span><strong>{roleCounts[role]}</strong></div>)}</section>
