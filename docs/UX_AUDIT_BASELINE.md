@@ -334,3 +334,11 @@ The preview is now calculated after the guild lock is acquired, using the same P
 
 Both directories retain their full-platform summary semantics while bounding the detailed records and relationships returned for an individual page. Pagination uses deterministic secondary ID sorting to avoid unstable ordering when creation timestamps match. The user directory still uses offset pagination, so very deep page numbers can become more expensive; cursor pagination remains a follow-up if platform volume justifies it. Guild directory query uses a stable limit/offset window for straightforward page navigation. Search and filter behavior still needs browser validation against representative multi-guild accounts and subscription history edge cases.
 
+### Phase B — event results archive pagination
+
+| Finding | Change | Status |
+|---|---|---|
+| RESULTS-01 | The event results archive no longer fetches every event and groups the entire guild's screenshot metadata in memory. It now queries 20 result-bearing events per request with a stable date/ID cursor, fetches only those events' image metadata, and progressively appends further event groups on demand. Cursor validity is checked against the current guild before querying. | Implemented in source; CI and archive runtime validation pending |
+
+This bounds the number of event groups returned per archive request. Image metadata for each event is still returned as a complete group, so an event with an unusually large screenshot collection can still produce a large response; per-event image pagination is a separate follow-up if real usage warrants it.
+
