@@ -1108,3 +1108,16 @@ body {
   outline:2px solid var(--hmdl-accent);
   outline-offset:3px;
 }
+
+
+/* Phase 29 — platform guild creator administration */
+.hmdl-platform-admin-workspace .hmdl-creator-admin-client { display:grid; gap:1.5rem; }
+.hmdl-platform-admin-workspace .hmdl-creator-admin-client form,.hmdl-platform-admin-workspace .hmdl-creator-admin-client section,.hmdl-platform-admin-workspace .hmdl-creator-admin-client .rounded-2xl.border { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); }
+.hmdl-platform-admin-workspace .hmdl-creator-admin-client h2,.hmdl-platform-admin-workspace .hmdl-creator-admin-client h3 { color:var(--hmdl-text); font-weight:680; letter-spacing:-.02em; }
+.hmdl-platform-admin-workspace .hmdl-creator-admin-client p { color:var(--hmdl-text-muted); }
+.hmdl-platform-admin-workspace .hmdl-creator-admin-client input,.hmdl-platform-admin-workspace .hmdl-creator-admin-client select { min-height:2.5rem; border-color:var(--hmdl-border-strong); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); color:var(--hmdl-text); }
+.hmdl-platform-admin-workspace .hmdl-creator-admin-client button { border-radius:var(--hmdl-radius-md); font-weight:620; }
+.hmdl-platform-admin-workspace .hmdl-creator-admin-client table { width:100%; border-collapse:collapse; }
+.hmdl-platform-admin-workspace .hmdl-creator-admin-client th { color:var(--hmdl-text-muted); font-size:.7rem; font-weight:650; letter-spacing:.06em; text-align:left; text-transform:uppercase; }
+.hmdl-platform-admin-workspace .hmdl-creator-admin-client td { border-top:1px solid var(--hmdl-border); color:var(--hmdl-text-secondary); font-size:.82rem; }
+@media(max-width:700px){.hmdl-platform-admin-workspace .hmdl-creator-admin-client{overflow-x:auto}.hmdl-platform-admin-workspace .hmdl-creator-admin-client table{min-width:42rem}}
