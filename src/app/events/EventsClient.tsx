@@ -362,7 +362,7 @@ export default function EventsClient({
             <p className="mt-2 text-zinc-400">
               {pageDescription}
             </p>
-            <Link href="/events/results" className="mt-3 inline-flex rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 transition hover:border-zinc-500 hover:text-white">Event Results →</Link>
+            <Link href="/events/results" className="hmdl-btn hmdl-btn-secondary mt-3 inline-flex px-3 py-2 text-sm">Event Results →</Link>
           </div>
         </div>
 
@@ -824,7 +824,7 @@ function EventCard({
   return (
     <Link
       href={`/events/${event.id}`}
-      className="group block rounded-2xl border border-zinc-800 bg-zinc-900 p-6 transition hover:border-zinc-600 hover:bg-zinc-900/80"
+      className="hmdl-event-card group block rounded-2xl border border-zinc-800 bg-zinc-900 p-6 transition hover:border-zinc-600 hover:bg-zinc-900/80"
     >
       <div className="flex items-start justify-between gap-4">
         <div>
