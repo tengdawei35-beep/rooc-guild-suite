@@ -18,6 +18,7 @@ export default function NotificationsForm() {
   const [clearEventChannel, setClearEventChannel] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -30,6 +31,7 @@ export default function NotificationsForm() {
       if (!response.ok) throw new Error(result.error ?? "Failed to load notification settings.");
       setConfigured(result.configured);
       setHasEventChannel(Boolean(result.configured.eventChannelId));
+      setSettingsLoaded(true);
     } finally {
       setLoading(false);
     }
@@ -105,7 +107,7 @@ export default function NotificationsForm() {
     </div>
     {error && <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-900 bg-red-950/40 px-4 py-3 text-sm text-red-300"><span>{error}</span><button type="button" onClick={() => void load().catch(err => setError(err instanceof Error ? err.message : "Failed to load notification settings."))} disabled={loading} className="underline underline-offset-4 disabled:opacity-50">Retry loading</button></div>}
     {message && <div role="status" aria-live="polite" className="rounded-lg border border-emerald-900 bg-emerald-950/40 px-4 py-3 text-sm text-emerald-400">{message}</div>}
-    <button type="button" onClick={save} disabled={saving || loading} className="rounded-lg bg-white px-5 py-3 font-medium text-black transition hover:bg-zinc-200 disabled:cursor-wait disabled:opacity-50">{saving ? "Saving..." : "Save Discord Notifications"}</button>
+    <button type="button" onClick={save} disabled={saving || loading || !settingsLoaded} className="rounded-lg bg-white px-5 py-3 font-medium text-black transition hover:bg-zinc-200 disabled:cursor-wait disabled:opacity-50">{saving ? "Saving..." : "Save Discord Notifications"}</button>
     <p className="text-xs leading-5 text-zinc-600">Webhook URLs are stored server-side and are never displayed back in the UI. The event channel uses the HMDL bot rather than a webhook so members can respond with buttons.</p>
   </div>;
 }
