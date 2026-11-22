@@ -1121,3 +1121,16 @@ body {
 .hmdl-platform-admin-workspace .hmdl-creator-admin-client th { color:var(--hmdl-text-muted); font-size:.7rem; font-weight:650; letter-spacing:.06em; text-align:left; text-transform:uppercase; }
 .hmdl-platform-admin-workspace .hmdl-creator-admin-client td { border-top:1px solid var(--hmdl-border); color:var(--hmdl-text-secondary); font-size:.82rem; }
 @media(max-width:700px){.hmdl-platform-admin-workspace .hmdl-creator-admin-client{overflow-x:auto}.hmdl-platform-admin-workspace .hmdl-creator-admin-client table{min-width:42rem}}
+
+
+/* Phase 30 — member-facing allocation bid pages */
+.hmdl-member-bid-pages { min-height:100vh; background:var(--hmdl-bg); color:var(--hmdl-text); }
+.hmdl-member-bid-pages > div { width:min(100%,88rem); margin-inline:auto; padding:2.5rem 1.5rem; }
+.hmdl-member-bid-pages section,.hmdl-bid-page-client section { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); }
+.hmdl-member-bid-pages h1,.hmdl-member-bid-pages h2,.hmdl-bid-page-client h1,.hmdl-bid-page-client h2 { color:var(--hmdl-text); font-weight:680; letter-spacing:-.025em; }
+.hmdl-member-bid-pages p,.hmdl-bid-page-client p { color:var(--hmdl-text-muted); }
+.hmdl-bid-page-client { display:grid; gap:1.25rem; }
+.hmdl-bid-page-client input[type="search"] { min-height:2.8rem; border-color:var(--hmdl-border-strong); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); color:var(--hmdl-text); }
+.hmdl-bid-page-client button { border-radius:var(--hmdl-radius-md); }
+.hmdl-bid-page-client button:focus-visible,.hmdl-bid-page-client a:focus-visible { outline:2px solid var(--hmdl-accent); outline-offset:3px; }
+@media(max-width:640px){.hmdl-member-bid-pages > div{padding:1.25rem .85rem}.hmdl-bid-page-client{gap:.85rem}}
