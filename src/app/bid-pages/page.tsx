@@ -16,7 +16,7 @@ export default async function BidPagesPage() {
     return (
       <main className="hmdl-member-bid-pages min-h-screen bg-zinc-950 text-white">
         <div className="mx-auto max-w-7xl px-6 py-10">
-          <section className="mt-8 rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/50 p-10 text-center">
+          <section className="rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/50 p-10 text-center">
             <h1 className="text-xl font-semibold">Resource Suite required</h1>
             <p className="mt-2 text-sm text-zinc-400">
               Bid Pages are part of the Resource Suite and are not enabled for this guild.
