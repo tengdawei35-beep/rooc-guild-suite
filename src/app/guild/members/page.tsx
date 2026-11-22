@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import MembersClient from "./MembersClient";
 import { requirePageAuth } from "@/lib/auth";
@@ -25,6 +26,7 @@ export default async function MembersPage() {
           <div className="hmdl-empty">
             <h1 className="text-xl font-semibold text-zinc-200">No guild configured</h1>
             <p className="mt-2 text-sm">Configure your guild before managing members.</p>
+            <Link href="/guild" className="hmdl-btn hmdl-btn-primary mt-5">Configure Guild</Link>
           </div>
         </div>
       </main>
