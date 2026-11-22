@@ -109,12 +109,12 @@ export default function GuildForm({ guild }: { guild: GuildData }) {
         </p>
       </div>
 
-      {error && <div className="rounded-lg border border-red-900 bg-red-950/40 p-4 text-sm text-red-400">{error}</div>}
-      {success && <div className="rounded-lg border border-emerald-900 bg-emerald-950/40 p-4 text-sm text-emerald-400">{success}</div>}
+      {error && <div role="alert" className="rounded-lg border border-red-900 bg-red-950/40 p-4 text-sm text-red-400">{error}</div>}
+      {success && <div role="status" aria-live="polite" className="rounded-lg border border-emerald-900 bg-emerald-950/40 p-4 text-sm text-emerald-400">{success}</div>}
 
       <button
         type="submit"
-        disabled={saving}
+        disabled={saving || !name.trim() || !discordGuildId.trim()}
         className="rounded-lg bg-white px-5 py-3 font-medium text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {saving ? "Saving..." : "Save Changes"}

@@ -34,6 +34,33 @@ function normalizeDate(
   return date;
 }
 
+export async function GET(request: Request) {
+  try {
+    const auth = await getCurrentAuth();
+    if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+    if (!hasPermission(auth.role, "members.view")) return NextResponse.json({ error: "You do not have permission to view members." }, { status: 403 });
+
+    const memberId = new URL(request.url).searchParams.get("memberId");
+    if (!memberId) return NextResponse.json({ error: "Member ID is required." }, { status: 400 });
+
+    const member = await prisma.guildMember.findFirst({
+      where: { id: memberId, guildId: auth.guild.id },
+      select: { id: true },
+    });
+    if (!member) return NextResponse.json({ error: "Guild member not found." }, { status: 404 });
+
+    const leaveDates = await prisma.memberLeave.findMany({
+      where: { memberId: member.id },
+      orderBy: { date: "asc" },
+      select: { id: true, date: true, reason: true },
+    });
+    return NextResponse.json({ leaveDates: leaveDates.map(leave => ({ ...leave, date: leave.date.toISOString() })) });
+  } catch (error) {
+    console.error("[MEMBER LEAVE] Failed to fetch leave dates:", error);
+    return NextResponse.json({ error: "Failed to load unavailable dates." }, { status: 500 });
+  }
+}
+
 // =============================================================
 // CREATE
 // =============================================================

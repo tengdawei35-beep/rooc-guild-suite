@@ -36,6 +36,8 @@ export type AllocationOverride = {
   assignments: { memberId: string; assignedQuantity: number }[];
 };
 
+type AllocationDb = Pick<typeof prisma, "guild" | "$queryRaw">;
+
 type PendingRecovery = { id: string; memberId: string; resourceId: string; quantity: number };
 
 type AssignmentParts = {
@@ -47,8 +49,8 @@ type AssignmentParts = {
   normalQuantity: number;
 };
 
-async function getPendingRecoveries(guildId: string): Promise<PendingRecovery[]> {
-  return prisma.$queryRaw<PendingRecovery[]>`
+async function getPendingRecoveries(guildId: string, db: AllocationDb): Promise<PendingRecovery[]> {
+  return db.$queryRaw<PendingRecovery[]>`
     SELECT "id", "memberId", "resourceId", "quantity"
     FROM "RotationRecovery"
     WHERE "guildId" = ${guildId} AND "consumedAt" IS NULL AND "quantity" > 0
@@ -63,7 +65,7 @@ function assertStockInvariant(resourceName: string, total: number, reserved: num
   }
 }
 
-export async function buildAllocation(input: AllocationInput): Promise<AllocationPreviewResult> {
+export async function buildAllocation(input: AllocationInput, db: AllocationDb = prisma): Promise<AllocationPreviewResult> {
   if (!input.guildId) throw new Error("Guild ID is required.");
   if (!Number.isInteger(input.nonReservedMemberCount) || input.nonReservedMemberCount < 0) {
     throw new Error("Number of members per allocation must be a non-negative integer.");
@@ -72,11 +74,17 @@ export async function buildAllocation(input: AllocationInput): Promise<Allocatio
     throw new Error("A valid event date is required.");
   }
 
-  const dateParts = new Intl.DateTimeFormat("en-CA", { timeZone: input.timeZone || "UTC", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(input.eventDate);
+  let eventTimeZone = input.timeZone || "UTC";
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: eventTimeZone });
+  } catch {
+    eventTimeZone = "UTC";
+  }
+  const dateParts = new Intl.DateTimeFormat("en-CA", { timeZone: eventTimeZone, year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(input.eventDate);
   const part = (type: string) => dateParts.find((item) => item.type === type)?.value ?? "";
   const eventDateStart = new Date(`${part("year")}-${part("month")}-${part("day")}T00:00:00.000Z`);
   const eventDateEnd = new Date(eventDateStart.getTime() + 24 * 60 * 60 * 1000);
-  const guild = await prisma.guild.findUnique({
+  const guild = await db.guild.findUnique({
     where: { id: input.guildId },
     include: {
       members: {
@@ -104,7 +112,7 @@ export async function buildAllocation(input: AllocationInput): Promise<Allocatio
   });
   if (!guild) throw new Error("Guild not found.");
 
-  const pendingRecoveries = await getPendingRecoveries(input.guildId);
+  const pendingRecoveries = await getPendingRecoveries(input.guildId, db);
   const rotationMembers = guild.members;
   const eligibleIds = new Set(rotationMembers.map((member) => member.id));
   const requestedCount = Math.min(input.nonReservedMemberCount, rotationMembers.length);
@@ -247,6 +255,26 @@ export async function buildAllocation(input: AllocationInput): Promise<Allocatio
 }
 
 export function applyAllocationOverrides(preview: AllocationPreviewResult, overrides: AllocationOverride[]): AllocationPreviewResult {
+  if (!Array.isArray(overrides)) throw new Error("Allocation edits must be provided as a list.");
+
+  const knownResourceIds = new Set(preview.resources.map((resource) => resource.resourceId));
+  const seenResourceIds = new Set<string>();
+  for (const override of overrides) {
+    if (!override || typeof override.resourceId !== "string" || !override.resourceId.trim()) {
+      throw new Error("Each allocation edit must identify a resource.");
+    }
+    if (!knownResourceIds.has(override.resourceId)) {
+      throw new Error("An allocation edit references a resource that is not part of this preview.");
+    }
+    if (seenResourceIds.has(override.resourceId)) {
+      throw new Error("A resource can only appear once in the allocation edits.");
+    }
+    if (!Array.isArray(override.assignments)) {
+      throw new Error("Each resource edit must contain an assignment list.");
+    }
+    seenResourceIds.add(override.resourceId);
+  }
+
   const overrideMap = new Map(overrides.map((override) => [override.resourceId, override]));
   const resources = preview.resources.map((resource) => {
     const override = overrideMap.get(resource.resourceId);
@@ -259,6 +287,9 @@ export function applyAllocationOverrides(preview: AllocationPreviewResult, overr
     const overriddenMembers = new Set<string>();
 
     for (const item of override.assignments) {
+      if (!item || typeof item.memberId !== "string" || !item.memberId.trim()) {
+        throw new Error("Each allocation assignment must identify a member.");
+      }
       if (!Number.isInteger(item.assignedQuantity) || item.assignedQuantity < 0) throw new Error(`Invalid allocation amount for ${item.memberId}.`);
       if (overriddenMembers.has(item.memberId)) throw new Error(`A member cannot be assigned more than once to ${resource.resourceName}.`);
       overriddenMembers.add(item.memberId);

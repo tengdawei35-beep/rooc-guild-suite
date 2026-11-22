@@ -46,6 +46,139 @@ async function getReservationData(guildId: string, body: ReservationRequest) {
   return { member, resource, quantity: body.quantity! };
 }
 
-export async function POST(request: Request) { try { const auth=await getCurrentAuth(); if(!auth)return NextResponse.json({error:"Authentication required."},{status:401}); const gameGuard=await requireRoocGuild(auth.guild.id); if(gameGuard)return gameGuard; if(!hasPermission(auth.role,"allocation.run"))return NextResponse.json({error:"You do not have permission to manage reservations."},{status:403}); const body=await request.json() as ReservationRequest; const data=await getReservationData(auth.guild.id,body); if("error" in data)return NextResponse.json(data,{status:400}); const existing=await prisma.reservedAllocation.findUnique({where:{guildId_memberId_resourceId:{guildId:auth.guild.id,memberId:data.member.id,resourceId:data.resource.id}}}); if(existing)return NextResponse.json({error:"A reservation already exists for this member and resource. Edit the existing reservation instead."},{status:409}); const reservation=await prisma.reservedAllocation.create({data:{guildId:auth.guild.id,memberId:data.member.id,resourceId:data.resource.id,quantity:data.quantity},include:{member:true,resource:true}}); return NextResponse.json({reservation:{id:reservation.id,memberId:reservation.memberId,resourceId:reservation.resourceId,quantity:reservation.quantity,memberName:reservation.member.characterName,resourceName:reservation.resource.name,resourceType:reservation.resource.type,resourceTotal:reservation.resource.total}}); }catch(error){console.error("[RESERVATIONS] Failed to create reservation:",error);return NextResponse.json({error:"Failed to create reservation."},{status:500});}}
-export async function PUT(request: Request) { try { const auth=await getCurrentAuth(); if(!auth)return NextResponse.json({error:"Authentication required."},{status:401}); const gameGuard=await requireRoocGuild(auth.guild.id); if(gameGuard)return gameGuard; if(!hasPermission(auth.role,"allocation.run"))return NextResponse.json({error:"You do not have permission to manage reservations."},{status:403}); const body=await request.json() as ReservationRequest; if(!body.id)return NextResponse.json({error:"Reservation ID is required."},{status:400}); const existing=await prisma.reservedAllocation.findFirst({where:{id:body.id,guildId:auth.guild.id}}); if(!existing)return NextResponse.json({error:"Reservation not found."},{status:404}); const data=await getReservationData(auth.guild.id,body); if("error" in data)return NextResponse.json(data,{status:400}); const duplicate=await prisma.reservedAllocation.findFirst({where:{guildId:auth.guild.id,memberId:data.member.id,resourceId:data.resource.id,NOT:{id:body.id}}}); if(duplicate)return NextResponse.json({error:"A reservation already exists for this member and resource."},{status:409}); const reservation=await prisma.reservedAllocation.update({where:{id:body.id},data:{memberId:data.member.id,resourceId:data.resource.id,quantity:data.quantity},include:{member:true,resource:true}}); return NextResponse.json({reservation:{id:reservation.id,memberId:reservation.memberId,resourceId:reservation.resourceId,quantity:reservation.quantity,memberName:reservation.member.characterName,resourceName:reservation.resource.name,resourceType:reservation.resource.type,resourceTotal:reservation.resource.total}}); }catch(error){console.error("[RESERVATIONS] Failed to update reservation:",error);return NextResponse.json({error:"Failed to update reservation."},{status:500});}}
-export async function DELETE(request: Request) { try { const auth=await getCurrentAuth(); if(!auth)return NextResponse.json({error:"Authentication required."},{status:401}); const gameGuard=await requireRoocGuild(auth.guild.id); if(gameGuard)return gameGuard; if(!hasPermission(auth.role,"allocation.run"))return NextResponse.json({error:"You do not have permission to manage reservations."},{status:403}); const id=new URL(request.url).searchParams.get("id"); if(!id)return NextResponse.json({error:"Reservation ID is required."},{status:400}); const existing=await prisma.reservedAllocation.findFirst({where:{id,guildId:auth.guild.id}}); if(!existing)return NextResponse.json({error:"Reservation not found."},{status:404}); await prisma.reservedAllocation.delete({where:{id}}); return NextResponse.json({success:true}); }catch(error){console.error("[RESERVATIONS] Failed to delete reservation:",error);return NextResponse.json({error:"Failed to delete reservation."},{status:500});}}
+
+async function saveReservation(guildId: string, body: ReservationRequest, reservationId?: string) {
+  const data = await getReservationData(guildId, body);
+  if ("error" in data) return { error: data.error, status: 400 as const };
+
+  return prisma.$transaction(async (tx) => {
+    // Coordinate reservation changes with allocation runs and rotation resets.
+    const lockKey = `guild-allocation:${guildId}`;
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${lockKey}, 0))`;
+
+    const existing = reservationId
+      ? await tx.reservedAllocation.findFirst({ where: { id: reservationId, guildId } })
+      : null;
+    if (reservationId && !existing) return { error: "Reservation not found.", status: 404 as const };
+
+    const duplicate = await tx.reservedAllocation.findFirst({
+      where: {
+        guildId,
+        memberId: data.member.id,
+        resourceId: data.resource.id,
+        ...(reservationId ? { NOT: { id: reservationId } } : {}),
+      },
+      select: { id: true },
+    });
+    if (duplicate) return { error: "A reservation already exists for this member and resource. Edit the existing reservation instead.", status: 409 as const };
+
+    const totals = await tx.reservedAllocation.aggregate({
+      where: {
+        guildId,
+        resourceId: data.resource.id,
+        ...(reservationId ? { NOT: { id: reservationId } } : {}),
+      },
+      _sum: { quantity: true },
+    });
+    const alreadyReserved = totals._sum.quantity ?? 0;
+    if (alreadyReserved + data.quantity > data.resource.total) {
+      return {
+        error: `This reservation would exceed available stock. ${alreadyReserved} of ${data.resource.total} ${data.resource.name} are already reserved.`,
+        status: 409 as const,
+      };
+    }
+
+    const reservation = reservationId
+      ? await tx.reservedAllocation.update({
+          where: { id: reservationId },
+          data: { memberId: data.member.id, resourceId: data.resource.id, quantity: data.quantity },
+          include: { member: true, resource: true },
+        })
+      : await tx.reservedAllocation.create({
+          data: { guildId, memberId: data.member.id, resourceId: data.resource.id, quantity: data.quantity },
+          include: { member: true, resource: true },
+        });
+
+    return {
+      reservation: {
+        id: reservation.id,
+        memberId: reservation.memberId,
+        resourceId: reservation.resourceId,
+        quantity: reservation.quantity,
+        memberName: reservation.member.characterName,
+        resourceName: reservation.resource.name,
+        resourceType: reservation.resource.type,
+        resourceTotal: reservation.resource.total,
+      },
+    };
+  }, { isolationLevel: "Serializable" });
+}
+
+function transactionConflict(error: unknown) {
+  return Boolean(error && typeof error === "object" && "code" in error && String(error.code) === "P2034");
+}
+
+export async function POST(request: Request) {
+  try {
+    const auth = await getCurrentAuth();
+    if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+    const gameGuard = await requireRoocGuild(auth.guild.id);
+    if (gameGuard) return gameGuard;
+    if (!hasPermission(auth.role, "allocation.run")) return NextResponse.json({ error: "You do not have permission to manage reservations." }, { status: 403 });
+
+    const body = await request.json() as ReservationRequest;
+    const result = await saveReservation(auth.guild.id, body);
+    if ("error" in result) return NextResponse.json({ error: result.error }, { status: result.status });
+    return NextResponse.json({ reservation: result.reservation });
+  } catch (error) {
+    if (transactionConflict(error)) return NextResponse.json({ error: "Reservation capacity changed while this request was being processed. Refresh and try again." }, { status: 409 });
+    console.error("[RESERVATIONS] Failed to create reservation:", error);
+    return NextResponse.json({ error: "Failed to create reservation." }, { status: 500 });
+  }
+}
+
+export async function PUT(request: Request) {
+  try {
+    const auth = await getCurrentAuth();
+    if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+    const gameGuard = await requireRoocGuild(auth.guild.id);
+    if (gameGuard) return gameGuard;
+    if (!hasPermission(auth.role, "allocation.run")) return NextResponse.json({ error: "You do not have permission to manage reservations." }, { status: 403 });
+
+    const body = await request.json() as ReservationRequest;
+    if (!body.id) return NextResponse.json({ error: "Reservation ID is required." }, { status: 400 });
+    const result = await saveReservation(auth.guild.id, body, body.id);
+    if ("error" in result) return NextResponse.json({ error: result.error }, { status: result.status });
+    return NextResponse.json({ reservation: result.reservation });
+  } catch (error) {
+    if (transactionConflict(error)) return NextResponse.json({ error: "Reservation capacity changed while this request was being processed. Refresh and try again." }, { status: 409 });
+    console.error("[RESERVATIONS] Failed to update reservation:", error);
+    return NextResponse.json({ error: "Failed to update reservation." }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const auth = await getCurrentAuth();
+    if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+    const gameGuard = await requireRoocGuild(auth.guild.id);
+    if (gameGuard) return gameGuard;
+    if (!hasPermission(auth.role, "allocation.run")) return NextResponse.json({ error: "You do not have permission to manage reservations." }, { status: 403 });
+
+    const id = new URL(request.url).searchParams.get("id");
+    if (!id) return NextResponse.json({ error: "Reservation ID is required." }, { status: 400 });
+    const deleted = await prisma.$transaction(async (tx) => {
+      const lockKey = `guild-allocation:${auth.guild.id}`;
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${lockKey}, 0))`;
+      const existing = await tx.reservedAllocation.findFirst({ where: { id, guildId: auth.guild.id }, select: { id: true } });
+      if (!existing) return false;
+      await tx.reservedAllocation.delete({ where: { id: existing.id } });
+      return true;
+    });
+    if (!deleted) return NextResponse.json({ error: "Reservation not found." }, { status: 404 });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("[RESERVATIONS] Failed to delete reservation:", error);
+    return NextResponse.json({ error: "Failed to delete reservation." }, { status: 500 });
+  }
+}

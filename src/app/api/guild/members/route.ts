@@ -197,7 +197,7 @@ async function resolveDiscordIdentity(
   return { discordUserId, discordUsername, userId: user?.id ?? null };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const auth = await getAuth();
     if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
@@ -205,16 +205,97 @@ export async function GET() {
       return NextResponse.json({ error: "You do not have permission to view members." }, { status: 403 });
     }
 
-    const guild = await prisma.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true } });
-    if (guild?.gameType !== "RO3") await refreshGuildRankings(auth.guild.id);
-    const members = await prisma.guildMember.findMany({
-      where: { guildId: auth.guild.id },
-      include: { leaveDates: { orderBy: { date: "asc" } } },
-      orderBy: { characterName: "asc" },
+    const url = new URL(request.url);
+    const canFilterMembers = ["ADMIN", "MANAGER", "OFFICER"].includes(auth.role);
+    const requestedPage = Number(url.searchParams.get("page") ?? "1");
+    const page = Number.isSafeInteger(requestedPage) && requestedPage > 0 ? Math.min(requestedPage, 1_000_000) : 1;
+    const pageSize = 50;
+    const search = canFilterMembers ? (url.searchParams.get("q") ?? "").trim().slice(0, 100) : "";
+    const requestedJob = canFilterMembers ? (url.searchParams.get("job") ?? "ALL") : "ALL";
+    const requestedStatus = canFilterMembers ? (url.searchParams.get("status") ?? "ALL") : "ALL";
+    const sortBy = canFilterMembers ? url.searchParams.get("sortBy") ?? "characterName" : "characterName";
+    const sortDirection = canFilterMembers && url.searchParams.get("sortDirection") === "desc" ? "desc" : "asc";
+
+    const guild = await prisma.guild.findUnique({
+      where: { id: auth.guild.id },
+      select: { gameType: true },
     });
+    const gameType = guild?.gameType === "RO3" ? "RO3" : "ROOC";
+
+    const where: Prisma.GuildMemberWhereInput = { guildId: auth.guild.id };
+    if (search) {
+      const searchOr: Prisma.GuildMemberWhereInput[] = [
+        { characterName: { contains: search, mode: "insensitive" } },
+        { discordUsername: { contains: search, mode: "insensitive" } },
+        { job: { contains: search, mode: "insensitive" } },
+      ];
+      const priority = search.toUpperCase();
+      if (["ADMIN", "MANAGER", "OFFICER", "MEMBER", "LEADER", "COUNCIL"].includes(priority)) {
+        searchOr.push({ priority: priority as Prisma.EnumMemberPriorityFilter["equals"] });
+      }
+      where.OR = searchOr;
+    }
+    if (requestedJob !== "ALL") where.job = requestedJob;
+    if (requestedStatus === "ACTIVE") where.active = true;
+    if (requestedStatus === "INACTIVE") where.active = false;
+
+    const sortFields: Record<string, Prisma.GuildMemberOrderByWithRelationInput> = {
+      characterName: { characterName: sortDirection },
+      discordUsername: { discordUsername: sortDirection },
+      job: { job: sortDirection },
+      priority: { priority: sortDirection },
+      status: { active: sortDirection },
+      eligible: { eligible: sortDirection },
+      updatedAt: { updatedAt: sortDirection },
+    };
+    const orderBy = sortFields[sortBy] ?? sortFields.characterName;
+
+    const [
+      total,
+      members,
+      totalMembers,
+      activeMembers,
+      eligibleMembers,
+      linkedMembers,
+      jobGroups,
+    ] = await Promise.all([
+      prisma.guildMember.count({ where }),
+      prisma.guildMember.findMany({
+        where,
+        
+        orderBy: [orderBy, { characterName: "asc" }, { id: "asc" }],
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      prisma.guildMember.count({ where: { guildId: auth.guild.id } }),
+      prisma.guildMember.count({ where: { guildId: auth.guild.id, active: true } }),
+      prisma.guildMember.count({ where: { guildId: auth.guild.id, active: true, eligible: true } }),
+      prisma.guildMember.count({
+        where: {
+          guildId: auth.guild.id,
+          OR: [{ userId: { not: null } }, { discordUserId: { not: null } }],
+        },
+      }),
+      prisma.guildMember.groupBy({
+        by: ["job"],
+        where: { guildId: auth.guild.id, job: { not: null } },
+        orderBy: { job: "asc" },
+      }),
+    ]);
+
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    const currentPage = Math.min(page, totalPages);
+    const pageMembers = currentPage === page
+      ? members
+      : await prisma.guildMember.findMany({
+          where,
+          orderBy: [orderBy, { characterName: "asc" }, { id: "asc" }],
+          skip: (currentPage - 1) * pageSize,
+          take: pageSize,
+        });
 
     const canViewOtherStats = auth.role !== "MEMBER";
-    const safeMembers = members.map((member) => {
+    const safeMembers = pageMembers.map((member) => {
       const canViewCharacterStats =
         canViewOtherStats ||
         member.userId === auth.user.id ||
@@ -252,7 +333,25 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json({ gameType: guild?.gameType === "RO3" ? "RO3" : "ROOC", members: safeMembers });
+    return NextResponse.json({
+      gameType,
+      members: safeMembers,
+      jobs: jobGroups.map((group) => group.job).filter((job): job is string => Boolean(job)),
+      summary: {
+        total: totalMembers,
+        active: activeMembers,
+        inactive: totalMembers - activeMembers,
+        eligible: eligibleMembers,
+        linked: linkedMembers,
+        unlinked: totalMembers - linkedMembers,
+      },
+      pagination: {
+        page: currentPage,
+        pageSize,
+        total,
+        totalPages,
+      },
+    });
   } catch (error) {
     console.error("[MEMBERS] Failed to fetch members:", error);
     return NextResponse.json({ error: "Failed to fetch members." }, { status: 500 });

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { jobsForGame } from "@/lib/constants/jobs";
 import ManagementPageHeader from "@/app/ManagementPageHeader";
 
@@ -26,8 +26,104 @@ function CallStatus({ status }: { status: string }) { const labels: Record<strin
 function CreateModal({ gameType, onClose, onCreated }: { gameType: "ROOC" | "RO3"; onClose: () => void; onCreated: (id: string) => void }) {
   const [title, setTitle] = useState(""); const [description, setDescription] = useState(""); const [startDate, setStartDate] = useState(""); const [startTime, setStartTime] = useState(""); const [requirements, setRequirements] = useState<Requirement[]>([{ requirement: "DPS", quantity: 1 }]); const [error, setError] = useState(""); const [saving, setSaving] = useState(false);
   async function submit(e: React.FormEvent) { e.preventDefault(); setSaving(true); setError(""); try { if (!startDate || !startTime) throw new Error("Date and time are required."); const response = await fetch("/api/guild/calls", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ title, description, startAt: localInputToServerIso(startDate, startTime), requirements }) }); const data = await readJson(response); if (!response.ok) throw new Error(data.error ?? "Failed to create call."); if (!data.id) throw new Error("The call was created but the server did not return a call ID."); onCreated(String(data.id)); } catch (error) { setError(error instanceof Error ? error.message : "Failed to create call."); } finally { setSaving(false); } }
-  return <Modal title="Create Call To Arms" onClose={onClose}><form onSubmit={submit} className="space-y-4"><Field label="Event / Dungeon"><input required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Endless Tower" className="input" /></Field><Field label="Date & Time (Server Time — UTC+7)"><div className="grid grid-cols-[1fr_130px_110px] gap-2"><input required type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="input" /><select required value={startTime ? startTime.slice(0, 2) : ""} onChange={(e) => setStartTime(`${e.target.value}:${startTime ? startTime.slice(3, 5) : "00"}`)} style={{ colorScheme: "dark" }} className="input bg-zinc-900 text-white"><option value="">Hour</option>{HOURS.map((hour) => <option key={hour} value={hour} className="bg-zinc-900 text-white">{hour}</option>)}</select><select required value={startTime ? startTime.slice(3, 5) : ""} onChange={(e) => setStartTime(`${startTime ? startTime.slice(0, 2) : "00"}:${e.target.value}`)} style={{ colorScheme: "dark" }} className="input bg-zinc-900 text-white"><option value="">Minute</option>{MINUTES.map((minute) => <option key={minute} value={minute} className="bg-zinc-900 text-white">{minute}</option>)}</select></div><p className="mt-1 text-xs text-zinc-500">Enter the event time in server time (UTC+7). Hours use 24-hour format, including 20:00–23:59. Your computer's local timezone will not be used.</p></Field><Field label="Description"><textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="input" placeholder="Optional details..." /></Field><Field label="Required Party"><div className="space-y-2">{requirements.map((r, index) => <div key={index} className="flex gap-2"><select value={r.requirement} onChange={(e) => setRequirements(requirements.map((x, i) => i === index ? { ...x, requirement: e.target.value } : x))} style={{ colorScheme: "dark" }} className="input flex-1 bg-zinc-900 text-white"><optgroup label="Generic Roles" className="bg-zinc-900 text-white">{genericRolesForGame(gameType).map((role) => <option key={role} value={role} className="bg-zinc-900 text-white">{role}</option>)}</optgroup><optgroup label="Specific Jobs" className="bg-zinc-900 text-white">{jobsForGame(gameType).map((job) => <option key={job} value={job} className="bg-zinc-900 text-white">{job}</option>)}</optgroup></select><input min={1} max={50} type="number" value={r.quantity} onChange={(e) => setRequirements(requirements.map((x, i) => i === index ? { ...x, quantity: Number(e.target.value) } : x))} className="input w-20" /><button type="button" onClick={() => setRequirements(requirements.filter((_, i) => i !== index))} className="rounded-lg border border-zinc-700 px-3 text-zinc-400 hover:text-white">×</button></div>)}<button type="button" onClick={() => setRequirements([...requirements, { requirement: "DPS", quantity: 1 }])} className="text-sm text-zinc-400 hover:text-white">+ Add requirement</button></div></Field>{error && <p className="text-sm text-red-400">{error}</p>}<div className="flex justify-end gap-2 pt-2"><button type="button" onClick={onClose} className="rounded-lg border border-zinc-700 px-4 py-2 text-sm">Cancel</button><button disabled={saving} className="hmdl-btn hmdl-btn-primary rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50">{saving ? "Creating..." : "Open Sign-ups"}</button></div></form></Modal>;
+  return <Modal title="Create Call To Arms" onClose={onClose}><form onSubmit={submit} className="space-y-4"><Field label="Event / Dungeon"><input required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Endless Tower" className="input" /></Field><Field label="Date & Time (Server Time — UTC+7)"><div className="grid grid-cols-[1fr_130px_110px] gap-2"><input required aria-label="Call date" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="input" /><select required aria-label="Call start hour in server time" value={startTime ? startTime.slice(0, 2) : ""} onChange={(e) => setStartTime(`${e.target.value}:${startTime ? startTime.slice(3, 5) : "00"}`)} style={{ colorScheme: "dark" }} className="input bg-zinc-900 text-white"><option value="">Hour</option>{HOURS.map((hour) => <option key={hour} value={hour} className="bg-zinc-900 text-white">{hour}</option>)}</select><select required aria-label="Call start minute" value={startTime ? startTime.slice(3, 5) : ""} onChange={(e) => setStartTime(`${startTime ? startTime.slice(0, 2) : "00"}:${e.target.value}`)} style={{ colorScheme: "dark" }} className="input bg-zinc-900 text-white"><option value="">Minute</option>{MINUTES.map((minute) => <option key={minute} value={minute} className="bg-zinc-900 text-white">{minute}</option>)}</select></div><p className="mt-1 text-xs text-zinc-500">Enter the event time in server time (UTC+7). Hours use 24-hour format, including 20:00–23:59. Your computer's local timezone will not be used.</p></Field><Field label="Description"><textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="input" placeholder="Optional details..." /></Field><Field label="Required Party"><div className="space-y-2">{requirements.map((r, index) => <div key={index} className="flex gap-2"><select aria-label={`Required job or role ${index + 1}`} value={r.requirement} onChange={(e) => setRequirements(requirements.map((x, i) => i === index ? { ...x, requirement: e.target.value } : x))} style={{ colorScheme: "dark" }} className="input flex-1 bg-zinc-900 text-white"><optgroup label="Generic Roles" className="bg-zinc-900 text-white">{genericRolesForGame(gameType).map((role) => <option key={role} value={role} className="bg-zinc-900 text-white">{role}</option>)}</optgroup><optgroup label="Specific Jobs" className="bg-zinc-900 text-white">{jobsForGame(gameType).map((job) => <option key={job} value={job} className="bg-zinc-900 text-white">{job}</option>)}</optgroup></select><input aria-label={`Quantity for requirement ${index + 1}`} min={1} max={50} type="number" value={r.quantity} onChange={(e) => setRequirements(requirements.map((x, i) => i === index ? { ...x, quantity: Number(e.target.value) } : x))} className="input w-20" /><button type="button" aria-label={`Remove requirement ${index + 1}`} onClick={() => setRequirements(requirements.filter((_, i) => i !== index))} className="rounded-lg border border-zinc-700 px-3 text-zinc-400 hover:text-white">×</button></div>)}<button type="button" onClick={() => setRequirements([...requirements, { requirement: "DPS", quantity: 1 }])} className="text-sm text-zinc-400 hover:text-white">+ Add requirement</button></div></Field>{error && <p role="alert" className="text-sm text-red-400">{error}</p>}<div className="flex justify-end gap-2 pt-2"><button type="button" onClick={onClose} className="rounded-lg border border-zinc-700 px-4 py-2 text-sm">Cancel</button><button disabled={saving} className="hmdl-btn hmdl-btn-primary rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50">{saving ? "Creating..." : "Open Sign-ups"}</button></div></form></Modal>;
 }
-function DiscordSettings({ onClose, onSaved }: { onClose: () => void; onSaved: (configured: boolean) => void }) { const [url, setUrl] = useState(""); const [configured, setConfigured] = useState(false); useEffect(() => { fetch("/api/guild/calls/settings").then(readJson).then((d) => setConfigured(Boolean(d.configured))).catch(() => setConfigured(false)); }, []); async function save() { setSaving(true); try { const r = await fetch("/api/guild/calls/settings", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ webhookUrl: url }) }); const d = await readJson(r); if (r.ok) onSaved(d.configured); else throw new Error(d.error ?? "Failed to save Discord settings."); } catch (error) { alert(error instanceof Error ? error.message : "Failed to save Discord settings."); } finally { setSaving(false); } } const [saving, setSaving] = useState(false); return <Modal title="Discord Notifications" onClose={onClose}><p className="text-sm text-zinc-400">{configured ? "A webhook is currently configured." : "No webhook is configured."} Paste a Discord channel webhook URL to announce full parties and send 30-minute reminders.</p><input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://discord.com/api/webhooks/..." className="input" /><div className="flex justify-between"><button onClick={() => setUrl("")} className="text-sm text-zinc-500 hover:text-white">Clear / disable</button><button onClick={save} disabled={saving} className="hmdl-btn hmdl-btn-primary rounded-lg px-4 py-2 text-sm font-semibold">{saving ? "Saving..." : "Save"}</button></div></Modal>; }
-function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) { return <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"><div className="w-full max-w-2xl rounded-2xl border border-zinc-800 bg-zinc-950 p-6 shadow-2xl"><div className="mb-5 flex items-center justify-between"><h2 className="text-xl font-semibold">{title}</h2><button onClick={onClose} className="text-2xl text-zinc-500 hover:text-white">×</button></div>{children}</div></div>; }
+function DiscordSettings({ onClose, onSaved }: { onClose: () => void; onSaved: (configured: boolean) => void }) {
+  const [url, setUrl] = useState("");
+  const [configured, setConfigured] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    fetch("/api/guild/calls/settings")
+      .then(readJson)
+      .then((data) => setConfigured(Boolean(data.configured)))
+      .catch((loadError) => setError(loadError instanceof Error ? loadError.message : "Unable to load Discord settings."));
+  }, []);
+  async function save() {
+    setSaving(true); setError("");
+    try {
+      const response = await fetch("/api/guild/calls/settings", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ webhookUrl: url }),
+      });
+      const data = await readJson(response);
+      if (!response.ok) throw new Error(data.error ?? "Failed to save Discord settings.");
+      onSaved(data.configured);
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : "Failed to save Discord settings.");
+    } finally {
+      setSaving(false);
+    }
+  }
+  return (
+    <Modal title="Discord Notifications" onClose={onClose}>
+      <p className="text-sm text-zinc-400">{configured ? "A webhook is currently configured." : "No webhook is configured."} Paste a Discord channel webhook URL to announce full parties and send 30-minute reminders.</p>
+      <label htmlFor="call-discord-webhook" className="sr-only">Discord notification webhook URL</label>
+      <input id="call-discord-webhook" type="url" value={url} onChange={(event) => setUrl(event.target.value)} placeholder="https://discord.com/api/webhooks/..." className="input" />
+      {error && <p role="alert" className="mt-3 text-sm text-red-400">{error}</p>}
+      <div className="flex justify-between">
+        <button type="button" onClick={() => setUrl("")} className="text-sm text-zinc-500 hover:text-white">Clear / disable</button>
+        <button type="button" onClick={save} disabled={saving} className="hmdl-btn hmdl-btn-primary rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50">{saving ? "Saving..." : "Save"}</button>
+      </div>
+    </Modal>
+  );
+}
+function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  useEffect(() => {
+    const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const dialog = dialogRef.current;
+    const getFocusable = () => dialog?.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    );
+    const first = getFocusable()?.[0];
+    (first ?? dialog)?.focus();
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onCloseRef.current();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const focusable = Array.from(getFocusable() ?? []);
+      if (!focusable.length) {
+        event.preventDefault();
+        dialog?.focus();
+        return;
+      }
+      const firstElement = focusable[0];
+      const lastElement = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === firstElement) {
+        event.preventDefault();
+        lastElement.focus();
+      } else if (!event.shiftKey && document.activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      previouslyFocused?.focus();
+    };
+  }, []);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="hmdl-call-modal-title" tabIndex={-1} className="w-full max-w-2xl rounded-2xl border border-zinc-800 bg-zinc-950 p-6 shadow-2xl">
+        <div className="mb-5 flex items-center justify-between">
+          <h2 id="hmdl-call-modal-title" className="text-xl font-semibold">{title}</h2>
+          <button type="button" aria-label="Close dialog" onClick={onClose} className="text-2xl text-zinc-500 hover:text-white">×</button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
 function Field({ label, children }: { label: string; children: React.ReactNode }) { return <label className="block"><span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-zinc-500">{label}</span>{children}</label>; }

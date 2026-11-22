@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import RaidManagement from "./RaidManagement";
 import RosterJobOverrides from "./RosterJobOverrides";
 import EventAttendancePanel from "./EventAttendancePanel";
@@ -170,6 +170,7 @@ export default function EventClient({
 
   const [removingAssignmentId, setRemovingAssignmentId] =
     useState<string | null>(null);
+  const [deletingRosterId, setDeletingRosterId] = useState<string | null>(null);
 
   const [addMemberTarget, setAddMemberTarget] =
     useState<AddMemberTarget | null>(null);
@@ -231,17 +232,29 @@ export default function EventClient({
   // Keep roster assignments in sync with attendance changes made in HMDL
   // or Discord. The server removes assignments immediately; this refresh
   // makes those removals visible without requiring a manual page reload.
+  const refreshInFlight = useRef(false);
+
   useEffect(() => {
     let cancelled = false;
+    let controller: AbortController | null = null;
     const refreshEvent = async () => {
-      if (document.visibilityState !== "visible") return;
+      if (cancelled || document.visibilityState !== "visible" || refreshInFlight.current) return;
+      refreshInFlight.current = true;
+      controller = new AbortController();
       try {
-        const response = await fetch(`/api/events/${eventId}`, { cache: "no-store" });
+        const response = await fetch(`/api/events/${eventId}`, {
+          cache: "no-store",
+          signal: controller.signal,
+        });
         if (!response.ok) return;
         const result = await response.json();
         if (!cancelled) setData(result);
       } catch (error) {
-        console.error("[EVENT CLIENT] Failed to refresh event roster:", error);
+        if (!(error instanceof DOMException && error.name === "AbortError")) {
+          console.error("[EVENT CLIENT] Failed to refresh event roster:", error);
+        }
+      } finally {
+        refreshInFlight.current = false;
       }
     };
     const timer = window.setInterval(refreshEvent, 10000);
@@ -250,6 +263,8 @@ export default function EventClient({
       cancelled = true;
       window.clearInterval(timer);
       document.removeEventListener("visibilitychange", refreshEvent);
+      controller?.abort();
+      refreshInFlight.current = false;
     };
   }, [eventId]);
 
@@ -476,66 +491,30 @@ async function loadPreferredRoster() {
   // ==========================================================
 
   async function deleteRoster(rosterId: string) {
-    if (
-      !window.confirm(
-        "Delete this roster? This cannot be undone."
-      )
-    ) {
-      return;
-    }
+    if (deletingRosterId) return;
+    if (!window.confirm("Delete this roster? This cannot be undone.")) return;
 
+    setDeletingRosterId(rosterId);
+    setError(null);
     try {
-      const response = await fetch(
-        `/api/events/${eventId}/rosters`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            rosterId,
-          }),
-        }
-      );
-
-      const result =
-        await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          result.error ??
-            "Failed to delete roster."
-        );
-      }
-
-      setData((current) => {
-        if (!current) {
-          return current;
-        }
-
-        return {
-          ...current,
-          rosters: current.rosters.filter(
-            (roster) =>
-              roster.id !== rosterId
-          ),
-        };
+      const response = await fetch(`/api/events/${eventId}/rosters`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rosterId }),
       });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error ?? "Failed to delete roster.");
 
-      if (
-        editingRosterId ===
-        rosterId
-      ) {
-        setEditingRosterId(null);
-      }
-    } catch (error) {
-      console.error(error);
+      setData((current) => current ? {
+        ...current,
+        rosters: current.rosters.filter((roster) => roster.id !== rosterId),
+      } : current);
 
-      window.alert(
-        error instanceof Error
-          ? error.message
-          : "Failed to delete roster."
-      );
+      if (editingRosterId === rosterId) setEditingRosterId(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete roster.");
+    } finally {
+      setDeletingRosterId(null);
     }
   }
 
@@ -1224,7 +1203,7 @@ async function loadPreferredRoster() {
         )}
 
         {error && (
-          <div className="mt-5 rounded-lg border border-red-900 bg-red-950/40 px-4 py-3 text-sm text-red-400">
+          <div role="alert" className="mt-5 rounded-lg border border-red-900 bg-red-950/40 px-4 py-3 text-sm text-red-400">
             {error}
           </div>
         )}
@@ -1393,6 +1372,7 @@ async function loadPreferredRoster() {
                       onDeleteRoster={() =>
                         deleteRoster(roster.id)
                       }
+                      deletingRoster={deletingRosterId === roster.id}
                       draggedAssignmentId={
                         draggedAssignmentId
                       }
@@ -1653,6 +1633,7 @@ function RosterCard({
   editing,
   onEdit,
   onDeleteRoster,
+  deletingRoster,
   draggedAssignmentId,
   movingAssignmentId,
   removingAssignmentId,
@@ -1671,6 +1652,7 @@ function RosterCard({
   editing: boolean;
   onEdit: () => void;
   onDeleteRoster: () => void;
+  deletingRoster: boolean;
   draggedAssignmentId: string | null;
   movingAssignmentId: string | null;
   removingAssignmentId: string | null;
@@ -1707,7 +1689,7 @@ function RosterCard({
               <button type="button" onClick={onEdit} className={`rounded-lg border px-3 py-2 text-xs font-medium transition ${editing ? "border-white bg-white text-black" : "border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-white"}`}>
                 {editing ? "Done Editing" : "Edit Roster"}
               </button>
-              <button type="button" onClick={onDeleteRoster} className="rounded-lg border border-red-900/60 px-3 py-2 text-xs font-medium text-red-400 transition hover:border-red-700 hover:bg-red-950/30 hover:text-red-300">Delete Roster</button>
+              <button type="button" onClick={onDeleteRoster} disabled={deletingRoster} aria-busy={deletingRoster} className="rounded-lg border border-red-900/60 px-3 py-2 text-xs font-medium text-red-400 transition hover:border-red-700 hover:bg-red-950/30 hover:text-red-300 disabled:cursor-wait disabled:opacity-50">{deletingRoster ? "Deleting…" : "Delete Roster"}</button>
             </>
           )}
         </div>

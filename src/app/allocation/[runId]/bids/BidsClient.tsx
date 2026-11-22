@@ -197,13 +197,13 @@ export default function BidsClient({
           <div className="mt-4">
             {searchResults.length ===
             0 ? (
-              <p className="rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-4 text-sm text-zinc-500">
+              <p role="status" aria-live="polite" className="rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-4 text-sm text-zinc-500">
                 No allocations found for "
                 {search}".
               </p>
             ) : (
               <>
-                <p className="mb-3 text-xs uppercase tracking-wider text-zinc-600">
+                <p role="status" aria-live="polite" className="mb-3 text-xs uppercase tracking-wider text-zinc-600">
                   {searchResults.length}{" "}
                   matching{" "}
                   {searchResults.length ===
@@ -517,6 +517,7 @@ function TypeButton({
     <button
       type="button"
       onClick={onClick}
+      aria-pressed={active}
       className={`border-b-2 px-4 py-3 text-sm font-medium transition ${
         active
           ? "border-white text-white"
@@ -563,6 +564,8 @@ function PageSelector({
             onClick={() =>
               onChange(page)
             }
+            aria-label={`Go to page ${page}`}
+            aria-current={page === currentPage ? "page" : undefined}
             className={`h-9 min-w-9 rounded-lg px-2 text-sm transition ${
               page === currentPage
                 ? "bg-white font-semibold text-black"

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import ManagementPageHeader from "@/app/ManagementPageHeader";
 import {
+  useCallback,
   useEffect,
   useMemo,
   useState,
@@ -30,6 +31,29 @@ type EventItem = {
   rosterCount: number;
   allocationRunCount: number;
 };
+
+function dateKeyInTimeZone(value: Date | string, timeZone: string) {
+  const date = value instanceof Date ? value : new Date(value);
+  const format = (zone: string) => {
+    const parts = Object.fromEntries(new Intl.DateTimeFormat("en-CA", {
+      timeZone: zone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).formatToParts(date).map(part => [part.type, part.value]));
+    return `${parts.year}-${parts.month}-${parts.day}`;
+  };
+  try {
+    return format(timeZone);
+  } catch {
+    return format("Asia/Bangkok");
+  }
+}
+
+function isUpcomingEvent(event: EventItem) {
+  const timeZone = event.scheduleTimeZone || "Asia/Bangkok";
+  return dateKeyInTimeZone(event.date, timeZone) >= dateKeyInTimeZone(new Date(), timeZone);
+}
 
 type PreferredRoster = {
   id: string;
@@ -59,6 +83,9 @@ export default function EventsClient({
   const [loading, setLoading] =
     useState(true);
 
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+
   const [creating, setCreating] =
     useState(false);
 
@@ -72,6 +99,8 @@ export default function EventsClient({
     useState(EMPTY_FORM);
 
   const [isRo3, setIsRo3] = useState(false);
+  const [eventTypesLoading, setEventTypesLoading] = useState(true);
+  const [eventTypesError, setEventTypesError] = useState<string | null>(null);
   const [customEventTypes, setCustomEventTypes] = useState<{ id: string; name: string; weekdays: number[]; startTime: string; timeZone: string; battlefieldCount: number; partiesPerBattlefield: number }[]>([]);
   const [resourceEventTypes, setResourceEventTypes] = useState<{ id: string; name: string; guildEventTypeId: string | null }[]>([]);
   const [selectedGuildEventTypeId, setSelectedGuildEventTypeId] = useState("");
@@ -118,6 +147,8 @@ export default function EventsClient({
           : []
       );
 
+      setNextCursor(typeof data.nextCursor === "string" ? data.nextCursor : null);
+
       setPreferredRosters(
         Array.isArray(
           data.preferredRosters
@@ -136,28 +167,55 @@ export default function EventsClient({
     }
   }
 
+  async function loadMoreEvents() {
+    if (!nextCursor || loadingMore) return;
+    setLoadingMore(true);
+    setError(null);
+    try {
+      const response = await fetch(`/api/events?cursor=${encodeURIComponent(nextCursor)}`, { cache: "no-store" });
+      const data = await response.json();
+      if (response.status === 400) {
+        await loadEvents();
+        return;
+      }
+      if (!response.ok) throw new Error(data.error ?? "Failed to load more events.");
+      const incoming = Array.isArray(data.events) ? data.events as EventItem[] : [];
+      setEvents(current => {
+        const existingIds = new Set(current.map(event => event.id));
+        return [...current, ...incoming.filter(event => !existingIds.has(event.id))];
+      });
+      setNextCursor(typeof data.nextCursor === "string" ? data.nextCursor : null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load more events.");
+    } finally {
+      setLoadingMore(false);
+    }
+  }
+
   useEffect(() => {
     loadEvents();
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-    async function loadConfiguredEventTypes() {
-      try {
-        const response = await fetch("/api/events/types", { cache: "no-store" });
-        if (!response.ok) return;
-        const result = await response.json();
-        if (cancelled) return;
-        setIsRo3(Boolean(result.isRo3));
-        setCustomEventTypes(Array.isArray(result.eventTypes) ? result.eventTypes.filter((item: { active: boolean; weekdays: number[]; startTime: string }) => item.active && item.weekdays.length > 0 && Boolean(item.startTime)) : []);
-        setResourceEventTypes(Array.isArray(result.resourceEventTypes) ? result.resourceEventTypes : []);
-      } catch {
-        // Configured event types load when the API responds.
-      }
+  const loadConfiguredEventTypes = useCallback(async () => {
+    setEventTypesLoading(true);
+    setEventTypesError(null);
+    try {
+      const response = await fetch("/api/events/types", { cache: "no-store" });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error ?? "Could not load event configuration.");
+      setIsRo3(Boolean(result.isRo3));
+      setCustomEventTypes(Array.isArray(result.eventTypes) ? result.eventTypes.filter((item: { active: boolean; weekdays: number[]; startTime: string }) => item.active && item.weekdays.length > 0 && Boolean(item.startTime)) : []);
+      setResourceEventTypes(Array.isArray(result.resourceEventTypes) ? result.resourceEventTypes : []);
+    } catch (err) {
+      setEventTypesError(err instanceof Error ? err.message : "Could not load event configuration.");
+    } finally {
+      setEventTypesLoading(false);
     }
-    void loadConfiguredEventTypes();
-    return () => { cancelled = true; };
   }, []);
+
+  useEffect(() => {
+    void loadConfiguredEventTypes();
+  }, [loadConfiguredEventTypes]);
 
   // ==========================================================
   // CREATE EVENT
@@ -232,67 +290,19 @@ export default function EventsClient({
   // DATE GROUPS
   // ==========================================================
 
-  const upcomingEvents =
-    useMemo(() => {
-      const now =
-        new Date();
+  const upcomingEvents = useMemo(
+    () => events
+      .filter(isUpcomingEvent)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()),
+    [events]
+  );
 
-      now.setHours(
-        0,
-        0,
-        0,
-        0
-      );
-
-      return events
-        .filter(
-          (event) =>
-            new Date(event.date) >=
-            now
-        )
-        .sort(
-          (a, b) =>
-            new Date(
-              a.date
-            ).getTime() -
-            new Date(
-              b.date
-            ).getTime()
-        );
-    }, [events]);
-
-  const pastEvents =
-    useMemo(() => {
-      const now =
-        new Date();
-
-      now.setHours(
-        0,
-        0,
-        0,
-        0
-      );
-
-      return events
-        .filter(
-          (event) =>
-            new Date(event.date) <
-            now
-        )
-        .sort(
-          (a, b) =>
-            new Date(
-              b.date
-            ).getTime() -
-            new Date(
-              a.date
-            ).getTime()
-        );
-    }, [events]);
-
-  // ==========================================================
-  // EVENTS WITH ROSTERS
-  // ==========================================================
+  const pastEvents = useMemo(
+    () => events
+      .filter(event => !isUpcomingEvent(event))
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+    [events]
+  );
 
   const rosterUpcomingEvents =
     useMemo(
@@ -481,6 +491,8 @@ export default function EventsClient({
                       type="submit"
                       disabled={
                         creating ||
+                        eventTypesLoading ||
+                        Boolean(eventTypesError) ||
                         !form.date ||
                         (isRo3 && !selectedGuildEventTypeId)
                       }
@@ -500,8 +512,17 @@ export default function EventsClient({
                 {isRo3 && customEventTypes.length === 0 && <p className="mt-6 text-sm text-amber-300">Configure an active event type with at least one weekday and a start time before creating RO3 events.</p>}
               </form>
 
+              {eventTypesLoading && (
+                <p role="status" className="mt-4 text-sm text-zinc-400">Loading your guild's event configuration…</p>
+              )}
+              {eventTypesError && (
+                <div role="alert" className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-800 bg-amber-950/30 px-4 py-3 text-sm text-amber-200">
+                  <span>Event configuration could not be loaded: {eventTypesError} Event creation is paused to avoid using incorrect defaults.</span>
+                  <button type="button" onClick={() => void loadConfiguredEventTypes()} disabled={eventTypesLoading} className="hmdl-btn hmdl-btn-secondary">Retry</button>
+                </div>
+              )}
               {error && (
-                <div className="mt-5 rounded-lg border border-red-900 bg-red-950/40 px-4 py-3 text-sm text-red-400">
+                <div role="alert" className="mt-5 rounded-lg border border-red-900 bg-red-950/40 px-4 py-3 text-sm text-red-400">
                   {error}
                 </div>
               )}
@@ -557,6 +578,14 @@ export default function EventsClient({
                 </div>
               )}
             </section>
+            {nextCursor && (
+              <div className="mt-6 flex flex-col items-center gap-2">
+                <button type="button" onClick={() => void loadMoreEvents()} disabled={loadingMore || loading} className="hmdl-btn hmdl-btn-secondary min-h-11">
+                  {loadingMore ? "Loading events…" : "Load more events"}
+                </button>
+                <span role="status" className="text-xs text-zinc-600">{loadingMore ? "Retrieving older events." : "More event history is available."}</span>
+              </div>
+            )}
           </>
         )}
 
@@ -609,6 +638,14 @@ export default function EventsClient({
               )}
             </section>
 
+            {nextCursor && (
+              <div className="mt-6 flex flex-col items-center gap-2">
+                <button type="button" onClick={() => void loadMoreEvents()} disabled={loadingMore || loading} className="hmdl-btn hmdl-btn-secondary min-h-11">
+                  {loadingMore ? "Loading events…" : "Load more events"}
+                </button>
+                <span role="status" className="text-xs text-zinc-600">{loadingMore ? "Retrieving older events." : "More event history is available."}</span>
+              </div>
+            )}
             <section className="mt-12 rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/50 p-6">
               <h2 className="text-base font-semibold">
                 Need to create a roster?

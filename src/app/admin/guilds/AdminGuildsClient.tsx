@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import Link from "next/link";
 
 type GuildRow = {
@@ -51,29 +50,27 @@ function formatPrice(cents: number | null, currency: string | null, interval: st
 
 export default function AdminGuildsClient({
   guilds,
-  planBreakdown,
+  planBreakdown, total, page, pageSize, filters,
 }: {
   guilds: GuildRow[];
   planBreakdown: PlanBreakdown[];
+  total: number; page: number; pageSize: number;
+  filters: { q: string; game: string; status: string; plan: string };
 }) {
-  const [query, setQuery] = useState("");
-  const [gameFilter, setGameFilter] = useState("ALL");
-  const [statusFilter, setStatusFilter] = useState("ALL");
-  const [planFilter, setPlanFilter] = useState("ALL");
-
-  const planNames = useMemo(() => [...new Set(guilds.map((guild) => guild.planName).filter((name): name is string => Boolean(name)))].sort(), [guilds]);
-  const filtered = useMemo(() => {
-    const normalized = query.trim().toLowerCase();
-    return guilds.filter((guild) => {
-      const matchesQuery = !normalized || [
-        guild.name, guild.discordGuildId, guild.ownerName ?? "", guild.ownerDiscordId ?? "", guild.planName ?? "",
-      ].some((value) => value.toLowerCase().includes(normalized));
-      const matchesGame = gameFilter === "ALL" || guild.gameType === gameFilter;
-      const matchesStatus = statusFilter === "ALL" || (statusFilter === "NONE" ? !guild.subscriptionStatus : guild.subscriptionStatus === statusFilter);
-      const matchesPlan = planFilter === "ALL" || (planFilter === "NONE" ? !guild.planName : guild.planName === planFilter);
-      return matchesQuery && matchesGame && matchesStatus && matchesPlan;
-    });
-  }, [guilds, query, gameFilter, statusFilter, planFilter]);
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const query = filters.q;
+  const gameFilter = filters.game;
+  const statusFilter = filters.status;
+  const planFilter = filters.plan;
+  const pageHref = (nextPage: number) => {
+    const params = new URLSearchParams();
+    if (query) params.set("q", query);
+    if (gameFilter !== "ALL") params.set("game", gameFilter);
+    if (statusFilter !== "ALL") params.set("status", statusFilter);
+    if (planFilter !== "ALL") params.set("plan", planFilter);
+    params.set("page", String(nextPage));
+    return "/admin/guilds?" + params.toString();
+  };
 
   const maxPlanCount = Math.max(1, ...planBreakdown.map((item) => item.count));
 
@@ -85,27 +82,28 @@ export default function AdminGuildsClient({
             <h2 className="font-semibold text-white">Guild portfolio</h2>
             <p className="mt-1 text-sm text-zinc-500">Every guild registered on HMDL, including complimentary and unsubscribed guilds.</p>
           </div>
-          <span className="text-xs text-zinc-500">{filtered.length} of {guilds.length} guilds</span>
+          <span role="status" aria-live="polite" className="text-xs text-zinc-500">{Math.min(total, (page - 1) * pageSize + 1)}–{Math.min(total, page * pageSize)} of {total} guilds</span>
         </div>
-        <div className="grid gap-3 border-b border-zinc-800 p-4 lg:grid-cols-[minmax(220px,1fr)_150px_170px_170px]">
+        <form method="get" action="/admin/guilds" className="grid gap-3 border-b border-zinc-800 p-4 lg:grid-cols-[minmax(220px,1fr)_150px_170px_170px_auto]">
           <label className="sr-only" htmlFor="guild-search">Search guilds</label>
-          <input id="guild-search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search guild, Discord ID, owner or plan…" className={selectClass} />
-          <select aria-label="Filter by game" value={gameFilter} onChange={(event) => setGameFilter(event.target.value)} className={selectClass}>
+          <input id="guild-search" name="q" defaultValue={query} placeholder="Search guild, Discord ID, owner or plan…" className={selectClass} />
+          <select aria-label="Filter by game" name="game" defaultValue={gameFilter} className={selectClass}>
             <option value="ALL">All game types</option><option value="ROOC">ROO Classic</option><option value="RO3">RO3</option>
           </select>
-          <select aria-label="Filter by subscription status" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className={selectClass}>
+          <select aria-label="Filter by subscription status" name="status" defaultValue={statusFilter} className={selectClass}>
             <option value="ALL">All statuses</option><option value="ACTIVE">Active</option><option value="TRIALING">Trialing</option><option value="PAST_DUE">Past due</option><option value="CANCELED">Canceled</option><option value="INCOMPLETE">Incomplete</option><option value="NONE">No subscription</option>
           </select>
-          <select aria-label="Filter by plan" value={planFilter} onChange={(event) => setPlanFilter(event.target.value)} className={selectClass}>
-            <option value="ALL">All plans</option><option value="NONE">No plan</option>{planNames.map((name) => <option key={name} value={name}>{name}</option>)}
+          <select aria-label="Filter by plan" name="plan" defaultValue={planFilter} className={selectClass}>
+            <option value="ALL">All plans</option><option value="NONE">No plan</option>{planBreakdown.map((item) => <option key={item.name} value={item.name}>{item.name}</option>)}
           </select>
-        </div>
+          <button type="submit" className="rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-sm text-zinc-100 hover:bg-zinc-700">Apply</button>
+        </form>
 
-        {filtered.length === 0 ? (
+        {guilds.length === 0 ? (
           <div className="px-5 py-14 text-center">
             <p className="font-medium text-zinc-200">No matching guilds</p>
             <p className="mt-1 text-sm text-zinc-500">Try changing or clearing the filters.</p>
-            <button onClick={() => { setQuery(""); setGameFilter("ALL"); setStatusFilter("ALL"); setPlanFilter("ALL"); }} className="mt-4 text-sm text-zinc-300 underline underline-offset-4">Clear filters</button>
+            <button type="button" onClick={() => { window.location.href = "/admin/guilds"; }} className="mt-4 text-sm text-zinc-300 underline underline-offset-4">Clear filters</button>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -114,7 +112,7 @@ export default function AdminGuildsClient({
                 <th scope="col">Guild</th><th scope="col">Owner</th><th scope="col">Members</th><th scope="col">Subscription</th><th scope="col">Provider</th><th scope="col">Events</th><th scope="col">Renewal / expiry</th><th scope="col">Created</th><th scope="col">Last updated</th><th scope="col">Preview</th>
               </tr></thead>
               <tbody>
-                {filtered.map((guild) => {
+                {guilds.map((guild) => {
                   const status = guild.subscriptionStatus ?? "NONE";
                   return <tr key={guild.id}>
                     <td>
@@ -141,6 +139,13 @@ export default function AdminGuildsClient({
             </table>
           </div>
         )}
+        {totalPages > 1 && <nav aria-label="Guild directory pages" className="flex flex-wrap items-center justify-between gap-3 border-t border-zinc-800 px-5 py-3">
+          <span className="text-xs text-zinc-500">Page {page} of {totalPages}</span>
+          <div className="flex gap-2">
+            {page > 1 ? <Link href={pageHref(page - 1)} className="rounded-md border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300">Previous</Link> : <span className="rounded-md border border-zinc-800 px-3 py-1.5 text-xs text-zinc-600">Previous</span>}
+            {page < totalPages ? <Link href={pageHref(page + 1)} className="rounded-md border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300">Next</Link> : <span className="rounded-md border border-zinc-800 px-3 py-1.5 text-xs text-zinc-600">Next</span>}
+          </div>
+        </nav>}
         <div className="border-t border-zinc-800 px-5 py-3 text-xs text-zinc-600">Member counts use active guild roster records. Linked users are counted separately from roster entries.</div>
       </section>
 

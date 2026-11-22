@@ -325,32 +325,32 @@ body {
 }
 
 /* Legacy dashboard activity selectors retained until that module is migrated. */
-.grid.gap-4.lg\\:grid-cols-4 > .overflow-hidden.rounded-2xl.border,
-.grid.gap-4.lg\\:grid-cols-3 > .overflow-hidden.rounded-2xl.border {
+.grid.gap-4.lg\:grid-cols-4 > .overflow-hidden.rounded-2xl.border,
+.grid.gap-4.lg\:grid-cols-3 > .overflow-hidden.rounded-2xl.border {
   border: 0;
   border-radius: 0;
   background: transparent;
 }
 
-.grid.gap-4.lg\\:grid-cols-4 > .overflow-hidden.rounded-2xl.border > div:first-child,
-.grid.gap-4.lg\\:grid-cols-3 > .overflow-hidden.rounded-2xl.border > div:first-child {
+.grid.gap-4.lg\:grid-cols-4 > .overflow-hidden.rounded-2xl.border > div:first-child,
+.grid.gap-4.lg\:grid-cols-3 > .overflow-hidden.rounded-2xl.border > div:first-child {
   padding: 0 0 0.75rem;
 }
 
-.grid.gap-4.lg\\:grid-cols-4 > .overflow-hidden.rounded-2xl.border > .divide-y > a,
-.grid.gap-4.lg\\:grid-cols-3 > .overflow-hidden.rounded-2xl.border > .divide-y > a {
+.grid.gap-4.lg\:grid-cols-4 > .overflow-hidden.rounded-2xl.border > .divide-y > a,
+.grid.gap-4.lg\:grid-cols-3 > .overflow-hidden.rounded-2xl.border > .divide-y > a {
   padding-left: 0;
   padding-right: 0;
   transition: background-color 150ms ease;
 }
 
-.grid.gap-4.lg\\:grid-cols-4 > .overflow-hidden.rounded-2xl.border > .divide-y > a:hover,
-.grid.gap-4.lg\\:grid-cols-3 > .overflow-hidden.rounded-2xl.border > .divide-y > a:hover {
+.grid.gap-4.lg\:grid-cols-4 > .overflow-hidden.rounded-2xl.border > .divide-y > a:hover,
+.grid.gap-4.lg\:grid-cols-3 > .overflow-hidden.rounded-2xl.border > .divide-y > a:hover {
   background: rgb(24 24 27 / 0.4);
 }
 
-.grid.gap-4.lg\\:grid-cols-4 > .overflow-hidden.rounded-2xl.border > div:last-child:not(.divide-y),
-.grid.gap-4.lg\\:grid-cols-3 > .overflow-hidden.rounded-2xl.border > div:last-child:not(.divide-y) {
+.grid.gap-4.lg\:grid-cols-4 > .overflow-hidden.rounded-2xl.border > div:last-child:not(.divide-y),
+.grid.gap-4.lg\:grid-cols-3 > .overflow-hidden.rounded-2xl.border > div:last-child:not(.divide-y) {
   padding-left: 0;
   padding-right: 0;
 }
@@ -492,7 +492,7 @@ body {
 .hmdl-nav-items { display: flex; flex-direction: column; gap: 0.15rem; }
 .hmdl-nav-link {
   display: flex;
-  min-height: 2.25rem;
+  min-height: 2.75rem;
   align-items: center;
   gap: 0.7rem;
   border: 1px solid transparent;
@@ -527,7 +527,7 @@ body {
   .hmdl-sidebar { display: none; }
   .hmdl-mobile-header { position: sticky; top: 0; z-index: 40; display: flex; min-height: 3.8rem; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--hmdl-border); background: rgb(13 17 24 / 0.96); padding: 0.55rem 1rem; backdrop-filter: blur(14px); }
   .hmdl-mobile-header .hmdl-brand-copy small { max-width: 12rem; }
-  .hmdl-mobile-menu-button { min-height: 2.25rem; border: 1px solid var(--hmdl-border-strong); border-radius: 0.5rem; background: var(--hmdl-surface-raised); padding: 0.35rem 0.75rem; color: var(--hmdl-text); font-size: 0.75rem; font-weight: 600; }
+  .hmdl-mobile-menu-button { min-height: 2.75rem; border: 1px solid var(--hmdl-border-strong); border-radius: 0.5rem; background: var(--hmdl-surface-raised); padding: 0.35rem 0.75rem; color: var(--hmdl-text); font-size: 0.75rem; font-weight: 600; }
   .hmdl-mobile-navigation { position: absolute; z-index: 39; display: block; width: 100%; max-height: calc(100vh - 3.8rem); overflow-y: auto; border-bottom: 1px solid var(--hmdl-border); background: #0d1118; padding: 1rem; box-shadow: var(--hmdl-shadow-popover); }
   .hmdl-mobile-navigation .hmdl-shell-nav { gap: 1rem; overflow: visible; }
   .hmdl-shell-content { min-height: calc(100vh - 3.8rem); }
@@ -1189,11 +1189,11 @@ body,
 
 :where(.hmdl-app-shell,.hmdl-public-entry,.hmdl-auth-workspace,.hmdl-billing-workspace,.hmdl-pricing-workspace,.hmdl-applicant-form-workspace,.hmdl-platform-admin-workspace,.hmdl-member-bid-pages)
 :is(
-  .hover\\:bg-blue-500:hover,.hover\\:bg-blue-600:hover,.hover\\:bg-blue-700:hover,
-  .hover\\:bg-indigo-500:hover,.hover\\:bg-indigo-600:hover,.hover\\:bg-indigo-700:hover,
-  .hover\\:bg-violet-500:hover,.hover\\:bg-violet-600:hover,.hover\\:bg-violet-700:hover,
-  .hover\\:bg-purple-500:hover,.hover\\:bg-purple-600:hover,.hover\\:bg-purple-700:hover,
-  .hover\\:bg-cyan-500:hover,.hover\\:bg-cyan-600:hover,.hover\\:bg-cyan-700:hover
+  .hover\:bg-blue-500:hover,.hover\:bg-blue-600:hover,.hover\:bg-blue-700:hover,
+  .hover\:bg-indigo-500:hover,.hover\:bg-indigo-600:hover,.hover\:bg-indigo-700:hover,
+  .hover\:bg-violet-500:hover,.hover\:bg-violet-600:hover,.hover\:bg-violet-700:hover,
+  .hover\:bg-purple-500:hover,.hover\:bg-purple-600:hover,.hover\:bg-purple-700:hover,
+  .hover\:bg-cyan-500:hover,.hover\:bg-cyan-600:hover,.hover\:bg-cyan-700:hover
 ) {
   background-color: var(--hmdl-accent-strong) !important;
   color: var(--hmdl-accent-contrast) !important;
@@ -1678,7 +1678,7 @@ body,
 }
 .hmdl-management .hmdl-job-composition-track { background:var(--hmdl-surface-muted) !important; }
 .hmdl-management .hmdl-job-composition-bar { background:var(--hmdl-accent) !important; }
-.hmdl-management .hmdl-job-composition-row .group-hover\\:text-white { color:var(--hmdl-text) !important; }
+.hmdl-management .hmdl-job-composition-row .group-hover\:text-white { color:var(--hmdl-text) !important; }
 .hmdl-management .hmdl-job-composition-row .text-gray-600 { color:var(--hmdl-text-muted) !important; }
 
 
