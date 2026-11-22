@@ -596,3 +596,48 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .hmdl-upcoming-event, .hmdl-shortcut-card { transition: none; }
 }
+
+
+/* Management workspace overview */
+.hmdl-management-dashboard { min-height: 100vh; background: var(--hmdl-bg); color: var(--hmdl-text); }
+.hmdl-dashboard-page { width: min(100%, 1440px); margin: 0 auto; padding: clamp(1.25rem, 2.8vw, 2.6rem); }
+.hmdl-dashboard-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 1.5rem; margin-bottom: 2rem; }
+.hmdl-dashboard-heading h1 { margin: 0; color: var(--hmdl-text); font-size: clamp(1.8rem, 3vw, 2.35rem); font-weight: 660; letter-spacing: -0.045em; line-height: 1.1; }
+.hmdl-dashboard-heading p:not(.hmdl-eyebrow) { margin: 0.6rem 0 0; color: var(--hmdl-text-secondary); font-size: 0.86rem; }
+.hmdl-dashboard-heading > div:last-child { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.hmdl-dashboard-heading > div:last-child > span { max-width: 10rem; overflow: hidden; color: var(--hmdl-text-secondary); font-size: 0.75rem; text-overflow: ellipsis; white-space: nowrap; }
+.hmdl-dashboard-heading > div:last-child a, .hmdl-dashboard-heading > div:last-child button { display: inline-flex; min-height: 2.15rem; align-items: center; border: 1px solid var(--hmdl-border-strong); border-radius: var(--hmdl-radius-md); background: var(--hmdl-surface); padding: 0.4rem 0.7rem; color: var(--hmdl-text-secondary); font-size: 0.7rem; text-decoration: none; }
+.hmdl-dashboard-heading > div:last-child a:hover, .hmdl-dashboard-heading > div:last-child button:hover { border-color: var(--hmdl-accent); color: var(--hmdl-text); }
+.hmdl-management-dashboard .hmdl-dashboard-page > main, .hmdl-management-dashboard .hmdl-dashboard-page > section { min-width: 0; }
+.hmdl-management-dashboard .hmdl-dashboard-page > section:first-of-type { gap: 0.75rem; }
+.hmdl-management-dashboard .hmdl-dashboard-page > section:first-of-type > div { min-width: 0; border: 1px solid var(--hmdl-border); border-radius: var(--hmdl-radius-lg); background: var(--hmdl-surface); padding: 1.1rem 1.2rem; }
+.hmdl-management-dashboard .hmdl-dashboard-page > section:first-of-type > div p:first-child { color: var(--hmdl-text-muted); font-size: 0.7rem; }
+.hmdl-management-dashboard .hmdl-dashboard-page > section:first-of-type > div p:last-child { color: var(--hmdl-text); font-size: 1.8rem; font-weight: 650; letter-spacing: -0.04em; }
+.hmdl-management-section { margin-top: 2.4rem; }
+.hmdl-management-section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+.hmdl-management-section-heading h2 { margin: 0; color: var(--hmdl-text); font-size: 1.15rem; font-weight: 650; letter-spacing: -0.025em; }
+.hmdl-management-section-heading p:not(.hmdl-eyebrow) { margin: 0.35rem 0 0; color: var(--hmdl-text-muted); font-size: 0.75rem; }
+.hmdl-management-events { overflow: hidden; border: 1px solid var(--hmdl-border); border-radius: var(--hmdl-radius-lg); background: var(--hmdl-surface); }
+.hmdl-management-event { display: flex; min-height: 4.65rem; align-items: center; gap: 1rem; border-bottom: 1px solid var(--hmdl-border); padding: 0.75rem 1rem; color: inherit; text-decoration: none; transition: background 120ms ease; }
+.hmdl-management-event:last-child { border-bottom: 0; }
+.hmdl-management-event:hover { background: var(--hmdl-surface-raised); }
+.hmdl-management-event-date { display: flex; width: 2.7rem; flex: 0 0 2.7rem; flex-direction: column; align-items: center; border-right: 1px solid var(--hmdl-border); padding-right: 0.75rem; }
+.hmdl-management-event-date strong { font-size: 1.1rem; line-height: 1.2; }
+.hmdl-management-event-date span { color: var(--hmdl-text-muted); font-size: 0.63rem; text-transform: uppercase; }
+.hmdl-management-event-copy { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 0.25rem; }
+.hmdl-management-event-copy strong { overflow: hidden; font-size: 0.8rem; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+.hmdl-management-event-copy span, .hmdl-management-event-meta { color: var(--hmdl-text-muted); font-size: 0.68rem; }
+.hmdl-management-event-meta { display: flex; min-width: 10rem; flex-direction: column; gap: 0.2rem; text-align: right; }
+.hmdl-management-section .hmdl-management-events + .hmdl-member-empty { margin-top: 0.5rem; }
+.hmdl-management-dashboard .hmdl-management-section .hmdl-member-empty a { margin-top: 0.4rem; }
+@media (max-width: 760px) {
+  .hmdl-dashboard-heading { align-items: flex-start; flex-direction: column; }
+  .hmdl-management-event { gap: 0.65rem; padding: 0.75rem; }
+  .hmdl-management-event-meta { min-width: auto; font-size: 0.6rem; }
+}
+@media (max-width: 520px) {
+  .hmdl-management-event-meta { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hmdl-management-event { transition: none; }
+}
