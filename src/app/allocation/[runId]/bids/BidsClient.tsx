@@ -197,13 +197,13 @@ export default function BidsClient({
           <div className="mt-4">
             {searchResults.length ===
             0 ? (
-              <p className="rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-4 text-sm text-zinc-500">
+              <p role="status" aria-live="polite" className="rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-4 text-sm text-zinc-500">
                 No allocations found for "
                 {search}".
               </p>
             ) : (
               <>
-                <p className="mb-3 text-xs uppercase tracking-wider text-zinc-600">
+                <p role="status" aria-live="polite" className="mb-3 text-xs uppercase tracking-wider text-zinc-600">
                   {searchResults.length}{" "}
                   matching{" "}
                   {searchResults.length ===
