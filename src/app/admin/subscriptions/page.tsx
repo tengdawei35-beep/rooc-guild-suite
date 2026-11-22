@@ -25,7 +25,7 @@ function statusClass(status: string) {
   if (status === "ACTIVE" || status === "TRIALING") {
     return "border-emerald-900 bg-emerald-950/30 text-emerald-400";
   }
-  if (status === "PAST_DUE" || status === "UNPAID") {
+  if (status === "PAST_DUE") {
     return "border-amber-900 bg-amber-950/30 text-amber-400";
   }
   if (status === "CANCELED" || status === "INCOMPLETE") {
@@ -50,7 +50,7 @@ export default async function AdminSubscriptionsPage() {
     item.status === "ACTIVE" || item.status === "TRIALING"
   ).length;
   const pastDueCount = subscriptions.filter((item) =>
-    item.status === "PAST_DUE" || item.status === "UNPAID"
+    item.status === "PAST_DUE"
   ).length;
   const complimentaryCount = subscriptions.filter((item) =>
     item.provider === "complimentary"
