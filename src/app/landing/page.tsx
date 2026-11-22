@@ -4,7 +4,7 @@ const DISCORD_URL = "https://discord.gg/48yTtF9UxP";
 
 export default function LandingPage() {
   return (
-    <main className="hmdl-public-entry min-h-screen bg-zinc-950 text-white">
+    <main className="hmdl-public-entry hmdl-landing-page min-h-screen bg-zinc-950 text-white">
       <div className="hmdl-page mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-8 sm:px-10">
         <header className="flex items-center justify-between">
           <div>
