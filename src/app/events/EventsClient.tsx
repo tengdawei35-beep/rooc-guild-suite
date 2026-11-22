@@ -83,6 +83,9 @@ export default function EventsClient({
   const [loading, setLoading] =
     useState(true);
 
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+
   const [creating, setCreating] =
     useState(false);
 
@@ -144,6 +147,8 @@ export default function EventsClient({
           : []
       );
 
+      setNextCursor(typeof data.nextCursor === "string" ? data.nextCursor : null);
+
       setPreferredRosters(
         Array.isArray(
           data.preferredRosters
@@ -159,6 +164,27 @@ export default function EventsClient({
       );
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadMoreEvents() {
+    if (!nextCursor || loadingMore) return;
+    setLoadingMore(true);
+    setError(null);
+    try {
+      const response = await fetch(`/api/events?cursor=${encodeURIComponent(nextCursor)}`, { cache: "no-store" });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? "Failed to load more events.");
+      const incoming = Array.isArray(data.events) ? data.events as EventItem[] : [];
+      setEvents(current => {
+        const existingIds = new Set(current.map(event => event.id));
+        return [...current, ...incoming.filter(event => !existingIds.has(event.id))];
+      });
+      setNextCursor(typeof data.nextCursor === "string" ? data.nextCursor : null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load more events.");
+    } finally {
+      setLoadingMore(false);
     }
   }
 
@@ -548,6 +574,14 @@ export default function EventsClient({
                 </div>
               )}
             </section>
+            {nextCursor && (
+              <div className="mt-6 flex flex-col items-center gap-2">
+                <button type="button" onClick={() => void loadMoreEvents()} disabled={loadingMore || loading} className="hmdl-btn hmdl-btn-secondary min-h-11">
+                  {loadingMore ? "Loading events…" : "Load more events"}
+                </button>
+                <span role="status" className="text-xs text-zinc-600">{loadingMore ? "Retrieving older events." : "More event history is available."}</span>
+              </div>
+            )}
           </>
         )}
 
@@ -600,6 +634,14 @@ export default function EventsClient({
               )}
             </section>
 
+            {nextCursor && (
+              <div className="mt-6 flex flex-col items-center gap-2">
+                <button type="button" onClick={() => void loadMoreEvents()} disabled={loadingMore || loading} className="hmdl-btn hmdl-btn-secondary min-h-11">
+                  {loadingMore ? "Loading events…" : "Load more events"}
+                </button>
+                <span role="status" className="text-xs text-zinc-600">{loadingMore ? "Retrieving older events." : "More event history is available."}</span>
+              </div>
+            )}
             <section className="mt-12 rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/50 p-6">
               <h2 className="text-base font-semibold">
                 Need to create a roster?
