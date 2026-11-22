@@ -552,6 +552,9 @@ export default async function AllocationHistoryPage({ searchParams }: { searchPa
                                 ? "Page"
                                 : "Pages"}
                             </span>
+                            <span className="rounded-full border border-zinc-700 bg-zinc-950 px-3 py-1 text-xs text-zinc-400">
+                              {astrocorePages} Astrocore {astrocorePages === 1 ? "Page" : "Pages"}
+                            </span>
                           </div>
                         ) : (
                           <p className="mt-1 text-sm text-zinc-600">
