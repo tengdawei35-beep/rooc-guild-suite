@@ -24,6 +24,7 @@ export default function EventAttendancePanel({ eventId }: { eventId: string }) {
   const responsePageSize = 10;
   const responsePageCount = Math.max(1, Math.ceil(rows.length / responsePageSize));
   const visibleRows = rows.slice((responsePage - 1) * responsePageSize, responsePage * responsePageSize);
+  useEffect(() => { setResponsePage(page => Math.min(page, responsePageCount)); }, [responsePageCount]);
   const refreshInFlight = useRef(false);
   const busyRef = useRef(false);
 
