@@ -74,16 +74,17 @@ export default function EventResultsUploader({ eventId, canManage }: { eventId: 
       const remaining = pending.slice(uploaded);
       setFiles(remaining);
 
+      let refreshError = "";
       try {
         await load();
       } catch (e) {
-        const refreshError = e instanceof Error ? e.message : "Unable to refresh screenshots.";
-        if (uploadError) uploadError += ` ${uploaded} screenshot(s) were uploaded successfully.`;
-        else uploadError = `Upload completed, but the screenshot list could not refresh: ${refreshError}`;
+        refreshError = e instanceof Error ? e.message : "Unable to refresh screenshots.";
       }
 
       if (uploadError) {
         setError(uploaded > 0 ? `${uploaded} screenshot(s) uploaded. ${remaining.length} remain selected; retry to upload only those remaining. ${uploadError}` : uploadError);
+      } else if (refreshError) {
+        setError(`${uploaded} screenshot(s) uploaded successfully, but the screenshot list could not refresh. Reload this page to view them. ${refreshError}`);
       } else {
         setMessage(`${uploaded} screenshot(s) uploaded.`);
       }
