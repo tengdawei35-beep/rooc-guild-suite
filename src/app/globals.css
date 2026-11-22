@@ -1025,3 +1025,15 @@ body {
 .hmdl-platform-admin-workspace button { border-radius:var(--hmdl-radius-md); font-size:.78rem; font-weight:620; }
 .hmdl-platform-admin-workspace a:focus-visible,.hmdl-platform-admin-workspace button:focus-visible { outline:2px solid var(--hmdl-accent); outline-offset:2px; }
 .hmdl-platform-admin-workspace .grid > a { min-height:11rem; }
+
+
+/* Phase 23 — billing and pricing experiences */
+.hmdl-billing-workspace,.hmdl-pricing-workspace { min-height:100vh; background:var(--hmdl-bg); color:var(--hmdl-text); }
+.hmdl-billing-workspace h1,.hmdl-pricing-workspace h1 { color:var(--hmdl-text); font-weight:720; letter-spacing:-.045em; }
+.hmdl-billing-workspace h2,.hmdl-billing-workspace h3,.hmdl-pricing-workspace h2,.hmdl-pricing-workspace h3 { color:var(--hmdl-text); font-weight:680; }
+.hmdl-billing-workspace p,.hmdl-pricing-workspace p { color:var(--hmdl-text-muted); }
+.hmdl-billing-workspace .rounded-2xl.border,.hmdl-billing-workspace .rounded-xl.border,.hmdl-pricing-workspace .rounded-2xl.border,.hmdl-pricing-workspace .rounded-xl.border { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); }
+.hmdl-billing-workspace input,.hmdl-billing-workspace select,.hmdl-billing-workspace textarea,.hmdl-pricing-workspace input,.hmdl-pricing-workspace select { border-color:var(--hmdl-border-strong); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); color:var(--hmdl-text); }
+.hmdl-billing-workspace button,.hmdl-pricing-workspace button { border-radius:var(--hmdl-radius-md); font-weight:620; }
+.hmdl-billing-workspace a:focus-visible,.hmdl-billing-workspace button:focus-visible,.hmdl-pricing-workspace a:focus-visible,.hmdl-pricing-workspace button:focus-visible { outline:2px solid var(--hmdl-accent); outline-offset:2px; }
+.hmdl-pricing-workspace article { box-shadow:0 1px 2px rgb(0 0 0 / .12); }
