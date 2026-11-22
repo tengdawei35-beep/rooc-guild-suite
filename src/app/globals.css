@@ -641,3 +641,52 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .hmdl-management-event { transition: none; }
 }
+
+
+/* Phase 7 — recruitment and applicant review workspace */
+.hmdl-recruitment-page { min-height: 100vh; background: var(--hmdl-bg); color: var(--hmdl-text); }
+.hmdl-recruitment-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:1.5rem; margin-bottom:1.6rem; }
+.hmdl-recruitment-heading h1 { margin:0; }
+.hmdl-recruitment-heading p:not(.hmdl-eyebrow) { margin:.55rem 0 0; color:var(--hmdl-text-secondary); font-size:.84rem; }
+.hmdl-recruitment-metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.75rem; margin-bottom:1.25rem; }
+.hmdl-recruitment-metrics > div { display:flex; min-width:0; flex-direction:column; gap:.45rem; border:1px solid var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); padding:1rem 1.1rem; }
+.hmdl-recruitment-metrics span { color:var(--hmdl-text-muted); font-size:.7rem; font-weight:600; }
+.hmdl-recruitment-metrics strong { color:var(--hmdl-text); font-size:1.65rem; font-weight:680; letter-spacing:-.04em; }
+.hmdl-recruitment-panel { margin-top:1.25rem; border:1px solid var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); padding:1.15rem; }
+.hmdl-recruitment-panel-heading { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:1rem; }
+.hmdl-recruitment-panel-heading h2 { margin:0; font-size:.95rem; font-weight:680; }
+.hmdl-recruitment-panel-heading p { margin:.3rem 0 0; color:var(--hmdl-text-muted); font-size:.72rem; }
+.hmdl-invite-list { display:grid; gap:.55rem; }
+.hmdl-invite-row { display:flex; align-items:center; justify-content:space-between; gap:1rem; border:1px solid var(--hmdl-border); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); padding:.75rem; }
+.hmdl-invite-copy { display:flex; min-width:0; flex-direction:column; gap:.3rem; }
+.hmdl-invite-copy span { color:var(--hmdl-success); font-size:.58rem; font-weight:750; letter-spacing:.1em; }
+.hmdl-invite-copy code { overflow-wrap:anywhere; color:var(--hmdl-text-secondary); font-size:.75rem; }
+.hmdl-recruitment-empty-inline { margin:0; color:var(--hmdl-text-muted); font-size:.78rem; }
+.hmdl-recruitment-error { margin:1rem 0; border:1px solid rgb(240 120 120 / .3); border-radius:var(--hmdl-radius-md); background:rgb(240 120 120 / .08); padding:.75rem 1rem; color:var(--hmdl-danger); font-size:.8rem; }
+.hmdl-applicant-toolbar { display:grid; grid-template-columns:minmax(0,1fr) 12rem; gap:.65rem; margin-bottom:.85rem; }
+.hmdl-applicant-list { display:grid; gap:.55rem; }
+.hmdl-applicant-card { overflow:hidden; border:1px solid var(--hmdl-border); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); }
+.hmdl-applicant-card.is-expanded { border-color:var(--hmdl-border-strong); }
+.hmdl-applicant-summary { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.85rem; }
+.hmdl-applicant-toggle { display:flex; min-width:0; flex:1; align-items:center; gap:1rem; border:0; background:transparent; padding:0; color:inherit; text-align:left; cursor:pointer; }
+.hmdl-applicant-identity { display:flex; min-width:0; flex:1; flex-direction:column; gap:.2rem; }
+.hmdl-applicant-identity strong { color:var(--hmdl-text); font-size:.84rem; font-weight:680; }
+.hmdl-applicant-identity span { overflow:hidden; color:var(--hmdl-text-muted); font-size:.68rem; text-overflow:ellipsis; white-space:nowrap; }
+.hmdl-applicant-identity time { color:var(--hmdl-text-muted); font-size:.63rem; }
+.hmdl-applicant-expand { color:var(--hmdl-text-muted); font-size:.68rem; white-space:nowrap; }
+.hmdl-applicant-actions { display:flex; gap:.4rem; }
+.hmdl-applicant-details { display:grid; gap:1rem; border-top:1px solid var(--hmdl-border); padding:1rem; }
+.hmdl-recruitment-empty { display:flex; min-height:8rem; flex-direction:column; align-items:center; justify-content:center; gap:.35rem; border:1px dashed var(--hmdl-border-strong); border-radius:var(--hmdl-radius-md); color:var(--hmdl-text-muted); text-align:center; font-size:.78rem; }
+.hmdl-recruitment-empty strong { color:var(--hmdl-text); font-size:.84rem; }
+@media(max-width:760px) {
+ .hmdl-recruitment-heading { align-items:flex-start; flex-direction:column; }
+ .hmdl-recruitment-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .hmdl-applicant-summary { align-items:flex-start; flex-wrap:wrap; }
+ .hmdl-applicant-toggle { flex-wrap:wrap; }
+ .hmdl-applicant-expand { margin-left:auto; }
+}
+@media(max-width:520px) {
+ .hmdl-applicant-toolbar { grid-template-columns:1fr; }
+ .hmdl-invite-row { align-items:flex-start; flex-direction:column; }
+ .hmdl-applicant-identity span { white-space:normal; }
+}
