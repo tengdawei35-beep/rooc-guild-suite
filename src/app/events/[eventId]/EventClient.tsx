@@ -1112,7 +1112,7 @@ async function loadPreferredRoster() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-zinc-950 text-white">
+      <main className="hmdl-management hmdl-event-detail min-h-screen bg-zinc-950 text-white">
         <div className="mx-auto max-w-7xl px-6 py-10">
           <Link
             href="/events"
@@ -1133,7 +1133,7 @@ async function loadPreferredRoster() {
 
   if (error && !data) {
     return (
-      <main className="min-h-screen bg-zinc-950 text-white">
+      <main className="hmdl-management hmdl-event-detail min-h-screen bg-zinc-950 text-white">
         <div className="mx-auto max-w-7xl px-6 py-10">
           <Link
             href="/events"
@@ -1155,7 +1155,7 @@ async function loadPreferredRoster() {
   }
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white">
+    <main className="hmdl-management hmdl-event-detail min-h-screen bg-zinc-950 text-white">
       <div className="mx-auto max-w-7xl px-6 py-10">
         <Link
           href="/events"
