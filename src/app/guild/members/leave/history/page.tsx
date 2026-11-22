@@ -82,6 +82,7 @@ export default async function LeaveHistoryPage({ searchParams }: { searchParams:
       UNION ALL
       SELECT
         CASE WHEN lh."discordUserId" IS NOT NULL THEN 'discord:' || lh."discordUserId"
+             WHEN lh."originalMemberId" IS NOT NULL THEN 'member:' || lh."originalMemberId"
              ELSE 'archive:' || lh."id" END AS "identityKey",
         'archived-' || lh."id" AS "id",
         COALESCE(lh."characterName", 'Unknown') AS "characterName",
@@ -128,6 +129,7 @@ export default async function LeaveHistoryPage({ searchParams }: { searchParams:
       UNION ALL
       SELECT
         CASE WHEN lh."discordUserId" IS NOT NULL THEN 'discord:' || lh."discordUserId"
+             WHEN lh."originalMemberId" IS NOT NULL THEN 'member:' || lh."originalMemberId"
              ELSE 'archive:' || lh."id" END AS "identityKey",
         COALESCE(lh."characterName", 'Unknown') AS "characterName",
         lh."discordUsername" AS "discordUsername",
@@ -177,7 +179,8 @@ export default async function LeaveHistoryPage({ searchParams }: { searchParams:
           UNION ALL
           SELECT
             CASE WHEN lh."discordUserId" IS NOT NULL THEN 'discord:' || lh."discordUserId"
-                 ELSE 'archive:' || lh."id" END AS "identityKey",
+                 WHEN lh."originalMemberId" IS NOT NULL THEN 'member:' || lh."originalMemberId"
+             ELSE 'archive:' || lh."id" END AS "identityKey",
             'archived-' || lh."id" AS "id", lh."date" AS "date", lh."reason" AS "reason"
           FROM "LeaveHistory" lh
           WHERE lh."guildId" = ${auth.guild.id}
