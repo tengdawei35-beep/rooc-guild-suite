@@ -44,7 +44,7 @@ export default function AppShell({
   const [mobileOpen, setMobileOpen] = useState(false);
   const isMemberPortal = role === "MEMBER";
 
-  if (PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`))) {
+  if (!impersonation && PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`))) {
     return <>{children}</>;
   }
 
@@ -117,7 +117,7 @@ export default function AppShell({
         ? [
             { label: "Guild settings", href: "/guild", icon: "⚙" },
             { label: "Discord notifications", href: "/guild/notifications", icon: "◉" },
-            { label: "Subscription", href: "/billing/new", icon: "▤" },
+            ...(!impersonation ? [{ label: "Subscription", href: "/billing/new", icon: "▤" }] : []),
           ]
         : [],
     },
