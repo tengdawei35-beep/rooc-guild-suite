@@ -123,7 +123,8 @@ The following source-level changes have been committed to the audit branch only:
 | HOME-01 | Management dashboard “today” calculations now use the guild's configured timezone, with Asia/Bangkok retained only as the fallback when no timezone is configured. Midnight boundaries are calculated independently for the start and next day to account for daylight-saving transitions. | Implemented in source; timezone-specific test/build pending |
 | PEOPLE-03 | Added task-oriented member directory column presets: Overview, Roster and Combat. Existing individual field selection and per-user local persistence remain available. | Implemented in source; game-type/persistence checks pending |
 | NOTIFY-01 | Notification settings now show an initial loading state, disable Save until settings have loaded, announce success/error feedback and offer retry when loading fails. | Implemented in source; failure-state test pending |
+| RECRUIT-01 | Recruitment decision confirmation now identifies the applicant and explains what accepting or denying does. The affected row shows processing feedback and an accessible status announcement. | Implemented in source; decision workflow test pending |
 
-Recruitment queue observations are recorded as a follow-up improvement, not yet implemented.
+Recruitment decision confirmation now names the applicant and explains the consequence of acceptance or denial. The affected applicant receives a processing label and an accessible status announcement while the request is running. This is implemented in source; decision workflow testing remains pending.
 
 These changes are not merged or deployed. The remaining audit and validation phases are still required.
