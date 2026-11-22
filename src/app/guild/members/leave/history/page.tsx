@@ -1,4 +1,4 @@
-import Link from "next/link";
+import ManagementPageHeader from "@/app/ManagementPageHeader";
 import { redirect } from "next/navigation";
 import { requirePageAuth, hasPermission } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -120,13 +120,12 @@ export default async function LeaveHistoryPage() {
   return (
     <main className="hmdl-management hmdl-leave-history-workspace min-h-screen bg-zinc-950 text-white">
       <div className="hmdl-page mx-auto max-w-7xl px-6 py-10">
-        <Link href="/guild/members" className="text-sm text-zinc-500 hover:text-white">← Guild Members</Link>
-
-        <header className="mt-6 mb-8">
-          <p className="text-sm font-medium uppercase tracking-widest text-zinc-500">{auth.guild.name}</p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight">Leave History</h1>
-          <p className="mt-2 text-zinc-400">Review leave frequency across current and former guild members.</p>
-        </header>
+        <ManagementPageHeader
+          eyebrow="PEOPLE"
+          title="Leave History"
+          description="Review leave frequency across current and former guild members."
+          breadcrumb={{ label: "Guild Members", href: "/guild/members" }}
+        />
 
         <section className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5"><p className="text-sm text-zinc-500">Total Leave Days</p><p className="mt-2 text-3xl font-bold">{totalLeaveDays}</p></div>

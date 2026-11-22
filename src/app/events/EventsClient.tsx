@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import ManagementPageHeader from "@/app/ManagementPageHeader";
 import {
   useEffect,
   useMemo,
@@ -342,23 +343,12 @@ export default function EventsClient({
             HEADER
         ==================================================== */}
 
-        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-
-            <p className="text-sm font-medium uppercase tracking-widest text-zinc-500">
-              ROO Guild Suite
-            </p>
-
-            <h1 className="hmdl-page-title mt-1">
-              {pageTitle}
-            </h1>
-
-            <p className="mt-2 text-zinc-400">
-              {pageDescription}
-            </p>
-            <Link href="/events/results" className="hmdl-btn hmdl-btn-secondary mt-3 inline-flex px-3 py-2 text-sm">Event Results →</Link>
-          </div>
-        </div>
+        <ManagementPageHeader
+          eyebrow="EVENT OPERATIONS"
+          title={pageTitle}
+          description={pageDescription}
+          actions={<Link href="/events/results" className="hmdl-btn hmdl-btn-secondary">Event Results</Link>}
+        />
 
         {/* ====================================================
             NAVIGATION
