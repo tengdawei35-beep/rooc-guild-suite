@@ -42,7 +42,7 @@ export async function POST() {
       failedGuilds: failures.length,
       failures: failures.slice(0, 20),
       message: failures.length
-        ? "Backfill completed with errors. Review failed guilds and run the sync again."
+        ? "Backfill completed with errors. Review the per-guild diagnostics, resolve the Discord permission/configuration issue, and retry."
         : "Historical subscription roles have been reconciled.",
     }, { status: failures.length ? 207 : 200 });
   } catch (error) {
