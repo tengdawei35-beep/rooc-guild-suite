@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 
 type GuildRow = {
   id: string;
@@ -110,7 +111,7 @@ export default function AdminGuildsClient({
           <div className="overflow-x-auto">
             <table className="hmdl-table w-full min-w-[1240px]">
               <thead><tr>
-                <th scope="col">Guild</th><th scope="col">Owner</th><th scope="col">Members</th><th scope="col">Subscription</th><th scope="col">Provider</th><th scope="col">Events</th><th scope="col">Renewal / expiry</th><th scope="col">Created</th><th scope="col">Last updated</th>
+                <th scope="col">Guild</th><th scope="col">Owner</th><th scope="col">Members</th><th scope="col">Subscription</th><th scope="col">Provider</th><th scope="col">Events</th><th scope="col">Renewal / expiry</th><th scope="col">Created</th><th scope="col">Last updated</th><th scope="col">Preview</th>
               </tr></thead>
               <tbody>
                 {filtered.map((guild) => {
@@ -133,7 +134,7 @@ export default function AdminGuildsClient({
                     <td className="capitalize text-zinc-400">{guild.provider === "complimentary" ? "Complimentary" : guild.provider ?? "—"}</td>
                     <td className="tabular-nums text-zinc-300">{guild.eventCount.toLocaleString()}</td>
                     <td className="text-zinc-400">{formatDate(guild.periodEnd)}</td>
-                    <td className="text-zinc-400">{formatDate(guild.createdAt)}</td><td className="text-zinc-400">{formatDate(guild.updatedAt)}</td>
+                    <td className="text-zinc-400">{formatDate(guild.createdAt)}</td><td className="text-zinc-400">{formatDate(guild.updatedAt)}</td><td><Link href={`/admin/impersonation?guildId=${guild.id}`} className="rounded-md border border-orange-900/70 px-2.5 py-1.5 text-xs font-medium text-orange-300 hover:bg-orange-950/50">Preview roles</Link></td>
                   </tr>;
                 })}
               </tbody>
