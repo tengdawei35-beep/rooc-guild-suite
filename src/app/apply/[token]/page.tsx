@@ -1,8 +1,24 @@
+import type { Metadata } from "next";
 import { getApplicantSession } from "@/lib/auth/applicant";
 import { prisma } from "@/lib/prisma";
 import ApplicantApplyClient from "./ApplicantApplyClient";
 
-export default async function ApplicantApplyPage({ params }: { params: Promise<{ token: string }> }) {
+type ApplicantPageProps = { params: Promise<{ token: string }> };
+
+export async function generateMetadata({ params }: ApplicantPageProps): Promise<Metadata> {
+  const { token } = await params;
+  const invite = await prisma.applicantInvite.findFirst({
+    where: { token, active: true },
+    select: { guild: { select: { name: true, gameType: true } } },
+  });
+  const guildName = invite?.guild.name;
+  if (!guildName) return { title: "Application link unavailable | Heimdall", description: "This guild application link is invalid or has been revoked.", robots: { index: false, follow: false } };
+  const title = `Apply to ${guildName} | Heimdall`;
+  const description = `Submit your ${invite.guild.gameType === "RO3" ? "RO3" : "ROOC"} guild application to ${guildName} through Heimdall.`;
+  return { title, description, openGraph: { title, description, type: "website", siteName: "Heimdall" }, twitter: { card: "summary", title, description }, robots: { index: false, follow: false } };
+}
+
+export default async function ApplicantApplyPage({ params }: ApplicantPageProps) {
   const { token } = await params;
   const invite = await prisma.applicantInvite.findFirst({ where: { token, active: true } });
 
@@ -16,7 +32,7 @@ export default async function ApplicantApplyPage({ params }: { params: Promise<{
 
   if (!user) {
     const loginHref = `/api/auth/discord?apply=${encodeURIComponent(token)}`;
-    return <main className="min-h-screen bg-zinc-950 p-6 text-white"><div className="hmdl-page mx-auto max-w-xl py-16"><div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-8 text-center"><p className="text-sm font-medium uppercase tracking-widest text-zinc-500">ROO Guild Suite</p><h1 className="mt-3 text-3xl font-bold">Apply to {guild?.name ?? "this guild"}</h1><p className="mt-3 text-zinc-400">You must sign in with Discord before submitting a guild application.</p><a href={loginHref} className="mt-7 inline-flex rounded-lg bg-white px-5 py-3 font-medium text-black">Continue with Discord</a></div></div></main>;
+    return <main className="min-h-screen bg-zinc-950 p-6 text-white"><div className="hmdl-page mx-auto max-w-xl py-16"><div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-8 text-center"><p className="text-sm font-medium uppercase tracking-widest text-zinc-500">{guild?.name ?? "Guild Application"}</p><h1 className="mt-3 text-3xl font-bold">Apply to {guild?.name ?? "this guild"}</h1><p className="mt-3 text-zinc-400">You must sign in with Discord before submitting a guild application.</p><a href={loginHref} className="mt-7 inline-flex rounded-lg bg-white px-5 py-3 font-medium text-black">Continue with Discord</a></div></div></main>;
   }
 
   const existingMember = await prisma.guildMember.findFirst({ where: { guildId: invite.guildId, discordUserId: user.discordId }, select: { id: true } });
@@ -35,6 +51,7 @@ export default async function ApplicantApplyPage({ params }: { params: Promise<{
   return <ApplicantApplyClient
     token={token}
     guildId={invite.guildId}
+    guildName={guild?.name ?? "this guild"}
     gameType={guild?.gameType === "RO3" ? "RO3" : "ROOC"}
     discordUserId={user.discordId}
     discordUsername={user.username}
