@@ -9,7 +9,10 @@ import {
   RESOURCE_SUITE_MODULE,
 } from "@/lib/auth/modules";
 
-export default async function AllocationHistoryPage() {
+export default async function AllocationHistoryPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
+  const params = await searchParams;
+  const requestedPage = Math.max(1, Number.parseInt(params.page ?? "1", 10) || 1);
+  const PAGE_SIZE = 10;
   const auth =
     await requirePageAuth();
 
@@ -75,6 +78,16 @@ export default async function AllocationHistoryPage() {
     );
   }
 
+  const [totalRuns, cumulativeGroups] = await Promise.all([
+    prisma.allocationRun.count({ where: { guildId: auth.guild.id } }),
+    prisma.allocationResult.groupBy({
+      by: ["memberId", "resourceId"],
+      where: { allocationRun: { guildId: auth.guild.id } },
+      _sum: { reservedQuantity: true, assignedQuantity: true },
+    }),
+  ]);
+  const totalPages = Math.max(1, Math.ceil(totalRuns / PAGE_SIZE));
+  const page = Math.min(requestedPage, totalPages);
   const runs =
     await prisma.allocationRun.findMany({
       where: {
@@ -82,9 +95,12 @@ export default async function AllocationHistoryPage() {
           auth.guild.id,
       },
 
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: [
+        { createdAt: "desc" },
+        { id: "desc" },
+      ],
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
 
       include: {
         resourceResults: {
@@ -124,6 +140,23 @@ export default async function AllocationHistoryPage() {
         },
       },
     });
+  const memberIds = [...new Set(cumulativeGroups.map(row => row.memberId))];
+  const resourceIds = [...new Set(cumulativeGroups.map(row => row.resourceId))];
+  const [members, resources] = await Promise.all([
+    memberIds.length ? prisma.guildMember.findMany({ where: { id: { in: memberIds }, guildId: auth.guild.id }, select: { id: true, characterName: true } }) : Promise.resolve([]),
+    resourceIds.length ? prisma.resource.findMany({ where: { id: { in: resourceIds }, guildId: auth.guild.id }, select: { id: true, name: true } }) : Promise.resolve([]),
+  ]);
+  const memberNames = new Map(members.map(member => [member.id, member.characterName ?? "Unknown"]));
+  const resourceNames = new Map(resources.map(resource => [resource.id, resource.name]));
+  const cumulativeTotals = cumulativeGroups
+    .map(row => ({
+      memberId: row.memberId,
+      memberName: memberNames.get(row.memberId) ?? "Unknown",
+      resourceName: resourceNames.get(row.resourceId) ?? "Unknown resource",
+      quantity: (row._sum.reservedQuantity ?? 0) + (row._sum.assignedQuantity ?? 0),
+    }))
+    .filter(row => row.quantity > 0)
+    .sort((a, b) => a.memberName.localeCompare(b.memberName) || a.resourceName.localeCompare(b.resourceName));
 
   return (
     <main className="hmdl-management hmdl-history-workspace min-h-screen bg-zinc-950 text-white">
@@ -541,30 +574,22 @@ export default async function AllocationHistoryPage() {
             })}
           </div>
 
+          {totalPages > 1 && <nav aria-label="Allocation history pages" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-800 bg-zinc-900 px-5 py-3">
+            <span className="text-xs text-zinc-500">Page {page} of {totalPages} · {totalRuns.toLocaleString()} allocation runs</span>
+            <div className="flex gap-2">
+              {page > 1 ? <Link href={`/allocation/history?page=${page - 1}`} className="rounded-md border border-zinc-700 px-3 py-2 text-xs text-zinc-300 hover:bg-zinc-800">Previous</Link> : <span className="rounded-md border border-zinc-800 px-3 py-2 text-xs text-zinc-600">Previous</span>}
+              {page < totalPages ? <Link href={`/allocation/history?page=${page + 1}`} className="rounded-md border border-zinc-700 px-3 py-2 text-xs text-zinc-300 hover:bg-zinc-800">Next</Link> : <span className="rounded-md border border-zinc-800 px-3 py-2 text-xs text-zinc-600">Next</span>}
+            </div>
+          </nav>}
           <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
             <h2 className="text-lg font-semibold">Cumulative Member Totals</h2>
-            <p className="mt-1 text-sm text-zinc-500">Total resources each member has received across all allocation runs.</p>
-            {(() => {
-              const totals = new Map<string, { name: string; resources: Map<string, number>; total: number }>();
-              for (const run of runs) for (const allocation of run.allocationResults) {
-                const quantity = allocation.reservedQuantity + allocation.assignedQuantity;
-                if (quantity === 0) continue;
-                const existing = totals.get(allocation.memberId) ?? { name: allocation.member.characterName ?? "Unknown", resources: new Map<string, number>(), total: 0 };
-                existing.resources.set(allocation.resource.name, (existing.resources.get(allocation.resource.name) ?? 0) + quantity);
-                existing.total += quantity;
-                totals.set(allocation.memberId, existing);
-              }
-              const rows = Array.from(totals.values()).sort((a, b) => a.name.localeCompare(b.name));
-              const resourceNames = Array.from(new Set(runs.flatMap((run) => run.resourceResults.map((result) => result.resource.name)))).sort((a, b) => a.localeCompare(b));
-              return rows.length === 0 ? <p className="mt-4 text-sm text-zinc-600">No member allocations were recorded.</p> : (
-                <div className="mt-4 overflow-x-auto">
-                  <table aria-label="Allocation totals by member and resource" className="w-full text-left text-sm">
-                    <thead><tr className="border-b border-zinc-800 text-zinc-500"><th scope="col" className="px-3 py-3 font-medium">Member</th>{resourceNames.map((name) => <th key={name} scope="col" className="px-3 py-3 font-medium">{name}</th>)}<th scope="col" className="px-3 py-3 font-medium">Total</th></tr></thead>
-                    <tbody>{rows.map((row) => <tr key={row.name} className="border-b border-zinc-900 last:border-0"><td className="px-3 py-3 font-medium text-white">{row.name}</td>{resourceNames.map((name) => <td key={name} className="px-3 py-3 text-zinc-400">{row.resources.get(name) ?? 0}</td>)}<td className="px-3 py-3 font-semibold">{row.total}</td></tr>)}</tbody>
-                  </table>
-                </div>
-              );
-            })()}
+            <p className="mt-1 text-sm text-zinc-500">All-time totals across every allocation run. These totals are aggregated independently of the history page currently displayed.</p>
+            {cumulativeTotals.length === 0 ? <p className="mt-4 text-sm text-zinc-600">No member allocations were recorded.</p> : <div className="mt-4 overflow-x-auto">
+              <table aria-label="All-time allocation totals by member and resource" className="w-full text-left text-sm">
+                <thead><tr className="border-b border-zinc-800 text-zinc-500"><th scope="col" className="px-3 py-3 font-medium">Member</th><th scope="col" className="px-3 py-3 font-medium">Resource</th><th scope="col" className="px-3 py-3 text-right font-medium">Total received</th></tr></thead>
+                <tbody>{cumulativeTotals.map((row, index) => <tr key={row.memberId + "-" + row.resourceName + "-" + index} className="border-b border-zinc-900 last:border-0"><td className="px-3 py-3 font-medium text-white">{row.memberName}</td><td className="px-3 py-3 text-zinc-400">{row.resourceName}</td><td className="px-3 py-3 text-right font-semibold">{row.quantity}</td></tr>)}</tbody>
+              </table>
+            </div>}
           </section>
           </>
         )}
