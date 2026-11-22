@@ -2232,3 +2232,77 @@ body,
     padding: 1.25rem 1rem;
   }
 }
+
+
+/* Phase 51 — structural page-header component shared by management routes. */
+.hmdl-page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0 0 1.75rem;
+}
+.hmdl-page-header-main {
+  display: flex;
+  min-width: 0;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.25rem;
+}
+.hmdl-page-header-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.hmdl-page-eyebrow {
+  margin: 0 0 0.5rem;
+  color: var(--hmdl-text-muted);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+.hmdl-page-header .hmdl-page-title {
+  margin: 0;
+  color: var(--hmdl-text);
+  font-family: var(--hmdl-font-ui, var(--font-geist-sans), Arial, sans-serif);
+  font-size: clamp(1.5rem, 1.8vw, 1.875rem);
+  font-weight: 680;
+  letter-spacing: -0.035em;
+  line-height: 1.2;
+}
+.hmdl-page-description {
+  margin: 0.5rem 0 0;
+  color: var(--hmdl-text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+.hmdl-page-breadcrumb {
+  width: fit-content;
+  color: var(--hmdl-text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  text-decoration: none;
+}
+.hmdl-page-breadcrumb:hover { color: var(--hmdl-accent); }
+.hmdl-page-header-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.625rem;
+}
+@media (max-width: 700px) {
+  .hmdl-page-header-main {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.875rem;
+  }
+  .hmdl-page-header-actions {
+    width: 100%;
+  }
+  .hmdl-page-header-actions > :is(a, button) {
+    max-width: 100%;
+  }
+}
