@@ -1831,18 +1831,26 @@ function PartyCard({
               className={`min-h-[58px] rounded-lg border px-3 py-2 transition ${assignment ? "border-zinc-800 bg-zinc-900" : editing ? "border-dashed border-zinc-700 bg-zinc-950 hover:border-zinc-500 hover:bg-zinc-900" : "border-transparent bg-zinc-900/40"} ${draggedAssignmentId === assignment?.id ? "opacity-40" : ""}`}
             >
               {assignment ? (
-                <div
-                  draggable={editing}
-                  onDragStart={(event) => {
-                    if (!editing) return;
-                    event.dataTransfer.effectAllowed = "move";
-                    event.dataTransfer.setData("text/plain", assignment.id);
-                    onDragStart(assignment.id);
-                  }}
-                  onDragEnd={onDragEnd}
-                  className={`flex flex-wrap items-center gap-2 sm:gap-3 ${editing ? "cursor-grab active:cursor-grabbing" : ""}`}
-                >
-                  <span className="w-4 shrink-0 text-xs text-zinc-700">{slotNumber}</span>
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                  {editing ? (
+                    <button
+                      type="button"
+                      draggable
+                      aria-label={`Drag ${assignment.member.characterName} to another roster slot`}
+                      title="Drag to move or swap"
+                      onDragStart={(event) => {
+                        event.dataTransfer.effectAllowed = "move";
+                        event.dataTransfer.setData("text/plain", assignment.id);
+                        onDragStart(assignment.id);
+                      }}
+                      onDragEnd={onDragEnd}
+                      className="w-4 shrink-0 cursor-grab touch-none text-left text-xs text-zinc-500 active:cursor-grabbing"
+                    >
+                      {slotNumber}
+                    </button>
+                  ) : (
+                    <span className="w-4 shrink-0 text-xs text-zinc-700">{slotNumber}</span>
+                  )}
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm text-zinc-300">{assignment.member.characterName || assignment.member.characterName}</p>
                     <RosterJobOverrides
@@ -1880,7 +1888,7 @@ function PartyCard({
                     </select>
                   )}
                   {editing && (
-                    <button type="button" draggable={false} disabled={removingAssignmentId === assignment.id} onClick={(event) => { event.stopPropagation(); onRemoveMember(assignment.id); }} className="shrink-0 rounded-md border border-red-900/60 px-2 py-1 text-[10px] text-red-500 transition hover:border-red-700 hover:bg-red-950/50 hover:text-red-400 disabled:cursor-wait disabled:opacity-50">
+                    <button type="button" draggable={false} disabled={removingAssignmentId === assignment.id || movingAssignmentId === assignment.id} onClick={(event) => { event.stopPropagation(); if (window.confirm(`Remove ${assignment.member.characterName} from this roster?`)) onRemoveMember(assignment.id); }} className="shrink-0 rounded-md border border-red-900/60 px-2 py-1 text-[10px] text-red-500 transition hover:border-red-700 hover:bg-red-950/50 hover:text-red-400 disabled:cursor-wait disabled:opacity-50">
                       {removingAssignmentId === assignment.id ? "Removing..." : "Remove"}
                     </button>
                   )}
