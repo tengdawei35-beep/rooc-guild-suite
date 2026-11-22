@@ -58,15 +58,13 @@ export default async function LeaveHistoryPage({ searchParams }: { searchParams:
 
   const params = await searchParams;
   const requestedPage = Number(params.page ?? "1");
-  const page = Number.isSafeInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+  const page = Number.isSafeInteger(requestedPage) && requestedPage > 0 ? Math.min(requestedPage, 1_000_000) : 1;
   const q = (params.q ?? "").trim().slice(0, 100);
   const from = validDate(params.from);
   const to = validDate(params.to);
   const fromLabel = from ? params.from! : "";
   const toLabel = to ? params.to! : "";
-  const offset = (page - 1) * PAGE_SIZE;
-
-  const rowsCte = prisma.$queryRaw<LeavePerson[]>\u0060
+  const rowsCte = prisma.$queryRaw<LeavePerson[]>`
     WITH leave_rows AS (
       SELECT
         CASE WHEN gm."discordUserId" IS NOT NULL THEN 'discord:' || gm."discordUserId"
@@ -112,10 +110,10 @@ export default async function LeaveHistoryPage({ searchParams }: { searchParams:
     FROM filtered
     GROUP BY "identityKey"
     ORDER BY COUNT(*) DESC, MAX("date") DESC, "identityKey" ASC
-    LIMIT ${PAGE_SIZE} OFFSET ${offset}
+    LIMIT ${PAGE_SIZE} OFFSET ${safeOffset}
   `;
 
-  const summaryQuery = prisma.$queryRaw<LeaveSummary[]>\u0060
+  const summaryQuery = prisma.$queryRaw<LeaveSummary[]>`
     WITH leave_rows AS (
       SELECT
         CASE WHEN gm."discordUserId" IS NOT NULL THEN 'discord:' || gm."discordUserId"
@@ -156,17 +154,18 @@ export default async function LeaveHistoryPage({ searchParams }: { searchParams:
     FROM filtered
   `;
 
-  const [people, summaryRows] = await Promise.all([rowsCte, summaryQuery]);
+  const summaryRows = await summaryQuery;
   const summary = summaryRows[0] ?? { totalLeaveDays: 0n, peopleCount: 0n, currentPeople: 0n, formerPeople: 0n };
   const totalPeople = Number(summary.peopleCount);
   const totalPages = Math.max(1, Math.ceil(totalPeople / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const safeOffset = (currentPage - 1) * PAGE_SIZE;
+  const people = await rowsCte;
 
   // Fetch only the six most recent dates for the 25 people on this page.
   const pageKeys = people.map((person) => person.key);
   const dates: LeaveDate[] = pageKeys.length
-    ? await prisma.$queryRaw<LeaveDate[]>\u0060
+    ? await prisma.$queryRaw<LeaveDate[]>`
         WITH leave_rows AS (
           SELECT
             CASE WHEN gm."discordUserId" IS NOT NULL THEN 'discord:' || gm."discordUserId"
