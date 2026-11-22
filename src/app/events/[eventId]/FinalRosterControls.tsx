@@ -109,6 +109,7 @@ export default function FinalRosterControls({
   }
 
   async function unpublish() {
+    if (!window.confirm("Unpublish the current final roster? Members will no longer see it as the published roster.")) return;
     setSaving(true);
     setError(null);
     try {
@@ -162,7 +163,9 @@ export default function FinalRosterControls({
         Published roster
       </span>
 
+      <label className="sr-only" htmlFor="final-roster-select">Published roster</label>
       <select
+        id="final-roster-select"
         value={selectedRosterId}
         onChange={(event) => setSelectedRosterId(event.target.value)}
         disabled={saving || rosters.length === 0}
@@ -209,7 +212,7 @@ export default function FinalRosterControls({
         <span className="text-xs text-emerald-500">{finalRoster.name} is visible to members</span>
       )}
 
-      {error && <span className="basis-full text-xs text-red-400">{error}</span>}
+      {error && <span role="alert" className="basis-full text-xs text-red-400">{error}</span>}
     </div>,
     mount
   );

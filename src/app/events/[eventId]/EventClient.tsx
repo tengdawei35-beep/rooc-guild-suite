@@ -1113,7 +1113,7 @@ async function loadPreferredRoster() {
   if (loading) {
     return (
       <main className="hmdl-management hmdl-event-detail min-h-screen bg-zinc-950 text-white">
-        <div className="mx-auto max-w-7xl px-6 py-10">
+        <div className="hmdl-page">
           <Link
             href="/events"
             className="text-sm text-zinc-500 hover:text-white"
@@ -1134,7 +1134,7 @@ async function loadPreferredRoster() {
   if (error && !data) {
     return (
       <main className="hmdl-management hmdl-event-detail min-h-screen bg-zinc-950 text-white">
-        <div className="mx-auto max-w-7xl px-6 py-10">
+        <div className="hmdl-page">
           <Link
             href="/events"
             className="text-sm text-zinc-500 hover:text-white"
@@ -1156,7 +1156,7 @@ async function loadPreferredRoster() {
 
   return (
     <main className="hmdl-management hmdl-event-detail min-h-screen bg-zinc-950 text-white">
-      <div className="mx-auto max-w-7xl px-6 py-10">
+      <div className="hmdl-page">
         <Link
           href="/events"
           className="text-sm text-zinc-500 transition hover:text-white"
@@ -1177,7 +1177,7 @@ async function loadPreferredRoster() {
                 </span>
               </div>
 
-              <h1 className="mt-4 text-3xl font-bold tracking-tight">
+              <h1 className="hmdl-page-title mt-4">
                 {formatEventDate(data.event.date, data.event.type === "RO3_CUSTOM" ? data.event.scheduleTimeZone ?? "Asia/Bangkok" : "Asia/Bangkok", data.event.type === "RO3_CUSTOM")}
               </h1>
 
@@ -1450,6 +1450,7 @@ async function loadPreferredRoster() {
                       onRemoveMember={
                         removeRosterMember
                       }
+                      onMoveMember={moveRosterMember}
                     />
 
                     <RaidManagement
@@ -1660,6 +1661,7 @@ function RosterCard({
   onDrop,
   onEmptySlotClick,
   onRemoveMember,
+  onMoveMember,
   rosterJobOverrides,
   onRosterJobSaved,
 }: {
@@ -1677,6 +1679,7 @@ function RosterCard({
   onDrop: (targetPartyId: string, targetSlotNumber: number) => void;
   onEmptySlotClick: (partyId: string, slotNumber: number) => void;
   onRemoveMember: (assignmentId: string) => void;
+  onMoveMember: (assignmentId: string, targetPartyId: string, targetSlotNumber: number) => void;
   rosterJobOverrides: Record<string, string | null>;
   onRosterJobSaved: (
     assignmentId: string,
@@ -1712,7 +1715,7 @@ function RosterCard({
 
       {editing && (
         <div className="mt-4 rounded-lg border border-blue-900/50 bg-blue-950/20 px-4 py-3 text-xs text-blue-400">
-          Drag members between slots to move or swap them. Click an empty slot to add an unassigned member. Use Remove member to take someone out of the roster. Manual changes override the automatic composition.
+          Drag members between slots, or use each member’s Move to selector to move or swap them without dragging. Click an empty slot to add an unassigned member. Use Remove member to take someone out of the roster. Manual changes override the automatic composition.
         </div>
       )}
 
@@ -1739,6 +1742,8 @@ function RosterCard({
                       onDrop={onDrop}
                       onEmptySlotClick={onEmptySlotClick}
                       onRemoveMember={onRemoveMember}
+                      onMoveMember={onMoveMember}
+                      rosterParties={parties}
                       rosterJobOverrides={rosterJobOverrides}
                       onRosterJobSaved={onRosterJobSaved}
                     />
@@ -1772,10 +1777,14 @@ function PartyCard({
   onDrop,
   onEmptySlotClick,
   onRemoveMember,
+  onMoveMember,
+  rosterParties,
   rosterJobOverrides,
   onRosterJobSaved,
 }: {
   party: RosterParty;
+  rosterParties: RosterParty[];
+  onMoveMember: (assignmentId: string, targetPartyId: string, targetSlotNumber: number) => void;
   canEdit: boolean;
   editing: boolean;
   draggedAssignmentId: string | null;
@@ -1822,18 +1831,26 @@ function PartyCard({
               className={`min-h-[58px] rounded-lg border px-3 py-2 transition ${assignment ? "border-zinc-800 bg-zinc-900" : editing ? "border-dashed border-zinc-700 bg-zinc-950 hover:border-zinc-500 hover:bg-zinc-900" : "border-transparent bg-zinc-900/40"} ${draggedAssignmentId === assignment?.id ? "opacity-40" : ""}`}
             >
               {assignment ? (
-                <div
-                  draggable={editing}
-                  onDragStart={(event) => {
-                    if (!editing) return;
-                    event.dataTransfer.effectAllowed = "move";
-                    event.dataTransfer.setData("text/plain", assignment.id);
-                    onDragStart(assignment.id);
-                  }}
-                  onDragEnd={onDragEnd}
-                  className={`flex items-center gap-3 ${editing ? "cursor-grab active:cursor-grabbing" : ""}`}
-                >
-                  <span className="w-4 shrink-0 text-xs text-zinc-700">{slotNumber}</span>
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                  {editing ? (
+                    <button
+                      type="button"
+                      draggable
+                      aria-label={`Drag ${assignment.member.characterName} to another roster slot`}
+                      title="Drag to move or swap"
+                      onDragStart={(event) => {
+                        event.dataTransfer.effectAllowed = "move";
+                        event.dataTransfer.setData("text/plain", assignment.id);
+                        onDragStart(assignment.id);
+                      }}
+                      onDragEnd={onDragEnd}
+                      className="w-4 shrink-0 cursor-grab touch-none text-left text-xs text-zinc-500 active:cursor-grabbing"
+                    >
+                      {slotNumber}
+                    </button>
+                  ) : (
+                    <span className="w-4 shrink-0 text-xs text-zinc-700">{slotNumber}</span>
+                  )}
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm text-zinc-300">{assignment.member.characterName || assignment.member.characterName}</p>
                     <RosterJobOverrides
@@ -1848,7 +1865,30 @@ function PartyCard({
                     />
                   </div>
                   {editing && (
-                    <button type="button" draggable={false} disabled={removingAssignmentId === assignment.id} onClick={(event) => { event.stopPropagation(); onRemoveMember(assignment.id); }} className="shrink-0 rounded-md border border-red-900/60 px-2 py-1 text-[10px] text-red-500 transition hover:border-red-700 hover:bg-red-950/50 hover:text-red-400 disabled:cursor-wait disabled:opacity-50">
+                    <select
+                      aria-label={`Move ${assignment.member.characterName} to another roster slot`}
+                      value=""
+                      disabled={movingAssignmentId === assignment.id || removingAssignmentId === assignment.id}
+                      onChange={(event) => {
+                        const [targetPartyId, targetSlot] = event.target.value.split(":");
+                        if (targetPartyId && targetSlot) onMoveMember(assignment.id, targetPartyId, Number(targetSlot));
+                      }}
+                      className="max-w-28 rounded-md border border-zinc-700 bg-zinc-950 px-2 py-1 text-[10px] text-zinc-300"
+                    >
+                      <option value="">Move to…</option>
+                      {rosterParties.flatMap((targetParty) =>
+                        Array.from({ length: 5 }, (_, index) => index + 1)
+                          .filter((targetSlot) => targetParty.id !== party.id || targetSlot !== slotNumber)
+                          .map((targetSlot) => (
+                            <option key={`${targetParty.id}:${targetSlot}`} value={`${targetParty.id}:${targetSlot}`}>
+                              P{targetParty.partyNumber} · Slot {targetSlot}
+                            </option>
+                          ))
+                      )}
+                    </select>
+                  )}
+                  {editing && (
+                    <button type="button" draggable={false} disabled={removingAssignmentId === assignment.id || movingAssignmentId === assignment.id} onClick={(event) => { event.stopPropagation(); if (window.confirm(`Remove ${assignment.member.characterName} from this roster?`)) onRemoveMember(assignment.id); }} className="shrink-0 rounded-md border border-red-900/60 px-2 py-1 text-[10px] text-red-500 transition hover:border-red-700 hover:bg-red-950/50 hover:text-red-400 disabled:cursor-wait disabled:opacity-50">
                       {removingAssignmentId === assignment.id ? "Removing..." : "Remove"}
                     </button>
                   )}

@@ -21,6 +21,7 @@ export default function RosterJobOverrides({
   onSaved,
 }: Props) {
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const effectiveJob = overrideJob ?? submittedJob ?? "Unknown Job";
 
@@ -28,6 +29,7 @@ export default function RosterJobOverrides({
     if (!canEdit || saving) return;
 
     setSaving(true);
+    setError(null);
 
     try {
       const response = await fetch(
@@ -57,11 +59,7 @@ export default function RosterJobOverrides({
         result.overrideJob ?? null
       );
     } catch (error) {
-      window.alert(
-        error instanceof Error
-          ? error.message
-          : "Failed to update roster job."
-      );
+      setError(error instanceof Error ? error.message : "Failed to update roster job.");
     } finally {
       setSaving(false);
     }
@@ -76,8 +74,10 @@ export default function RosterJobOverrides({
   }
 
   return (
-    <div className="flex min-w-0 items-center gap-1.5">
+    <div className="flex min-w-0 flex-col items-start gap-1">
+      <div className="flex min-w-0 items-center gap-1.5">
       <select
+        aria-label={`Roster job for ${submittedJob ?? "this member"}`}
         value={overrideJob ?? submittedJob ?? ""}
         disabled={saving}
         onChange={(event) => updateJob(event.target.value)}
@@ -116,6 +116,8 @@ export default function RosterJobOverrides({
           override
         </span>
       )}
+      </div>
+      {error && <span role="alert" className="text-[11px] text-red-400">{error}</span>}
     </div>
   );
 }
