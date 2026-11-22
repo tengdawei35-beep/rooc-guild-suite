@@ -209,7 +209,7 @@ export default function FinalRosterControls({
         <span className="text-xs text-emerald-500">{finalRoster.name} is visible to members</span>
       )}
 
-      {error && <span className="basis-full text-xs text-red-400">{error}</span>}
+      {error && <span role="alert" className="basis-full text-xs text-red-400">{error}</span>}
     </div>,
     mount
   );
