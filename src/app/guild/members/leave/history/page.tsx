@@ -119,7 +119,7 @@ export default async function LeaveHistoryPage() {
 
   return (
     <main className="hmdl-management hmdl-leave-history-workspace min-h-screen bg-zinc-950 text-white">
-      <div className="hmdl-page mx-auto max-w-7xl px-6 py-10">
+      <div className="hmdl-page">
         <ManagementPageHeader
           eyebrow="PEOPLE"
           title="Leave History"
