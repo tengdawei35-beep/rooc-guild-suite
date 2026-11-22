@@ -492,7 +492,7 @@ body {
 .hmdl-nav-items { display: flex; flex-direction: column; gap: 0.15rem; }
 .hmdl-nav-link {
   display: flex;
-  min-height: 2.25rem;
+  min-height: 2.75rem;
   align-items: center;
   gap: 0.7rem;
   border: 1px solid transparent;
@@ -527,7 +527,7 @@ body {
   .hmdl-sidebar { display: none; }
   .hmdl-mobile-header { position: sticky; top: 0; z-index: 40; display: flex; min-height: 3.8rem; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--hmdl-border); background: rgb(13 17 24 / 0.96); padding: 0.55rem 1rem; backdrop-filter: blur(14px); }
   .hmdl-mobile-header .hmdl-brand-copy small { max-width: 12rem; }
-  .hmdl-mobile-menu-button { min-height: 2.25rem; border: 1px solid var(--hmdl-border-strong); border-radius: 0.5rem; background: var(--hmdl-surface-raised); padding: 0.35rem 0.75rem; color: var(--hmdl-text); font-size: 0.75rem; font-weight: 600; }
+  .hmdl-mobile-menu-button { min-height: 2.75rem; border: 1px solid var(--hmdl-border-strong); border-radius: 0.5rem; background: var(--hmdl-surface-raised); padding: 0.35rem 0.75rem; color: var(--hmdl-text); font-size: 0.75rem; font-weight: 600; }
   .hmdl-mobile-navigation { position: absolute; z-index: 39; display: block; width: 100%; max-height: calc(100vh - 3.8rem); overflow-y: auto; border-bottom: 1px solid var(--hmdl-border); background: #0d1118; padding: 1rem; box-shadow: var(--hmdl-shadow-popover); }
   .hmdl-mobile-navigation .hmdl-shell-nav { gap: 1rem; overflow: visible; }
   .hmdl-shell-content { min-height: calc(100vh - 3.8rem); }
