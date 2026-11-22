@@ -31,13 +31,14 @@ This is a static code audit. It does not claim that every screen was visually in
 
 | Area | Page routes |
 |---|---:|
-| Guild management and member experience | 20 |
+| Guild management and member experience | 19 |
 | Events and event results | 3 |
 | Allocation and bidding | 5 |
 | Platform administration | 3 |
 | Billing and pricing | 3 |
 | Public landing, login and root | 3 |
-| **Total page/layout route files** | **37** |
+| Applicant access | 1 |
+| **Total page routes** | **37** |
 
 The count includes the root layout file. There are **36 `page.tsx` routes**.
 
