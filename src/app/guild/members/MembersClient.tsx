@@ -223,28 +223,12 @@ export default function MembersClient({ initialMembers, gameType }: { initialMem
   const canManageAnyLeave = userRole !== null && hasPermission(userRole, "leave.manageAny");
   const canManageOwnProfile = userRole !== null && hasPermission(userRole, "profile.editOwn");
   const canFilterMembers = userRole === "ADMIN" || userRole === "MANAGER" || userRole === "OFFICER";
-  function getSortValue(member: Member, field: MemberDisplayField): string | number | null {
-    switch (field) {
-      case "characterName": return member.characterName; case "discordUsername": return member.discordUsername; case "job": return member.job;
-      case "priority": return { ADMIN: 6, MANAGER: 5, LEADER: 4, COUNCIL: 3, OFFICER: 2, MEMBER: 1 }[member.priority];
-      case "status": return member.active ? 1 : 0; case "eligible": return member.eligible ? 1 : 0; case "updatedAt": return member.updatedAt;
-      case "hp": return member.hp; case "patk": return member.patk; case "matk": return member.matk;
-      case "rawPdef": return Math.round(calculateRawPdef(member.pdef, member.equipmentPdefPercent));
-      case "rawMdef": return Math.round(calculateRawMdef(member.mdef, member.equipmentMdefPercent));
-      case "pvpDamageBonus": return member.pvpDamageBonus; case "pvpDamageReduction": return member.pvpDamageReduction;
-      case "pdmgPercent": return member.pdmgPercent; case "mdmgPercent": return member.mdmgPercent; case "pdmgReductionPercent": return member.pdmgReductionPercent; case "mdmgReductionPercent": return member.mdmgReductionPercent;
-      case "critRes": return member.critRes; case "ignorePdef": return member.ignorePdef; case "ignoreMdef": return member.ignoreMdef;
-      case "damageVsSmall": return member.damageVsSmall; case "damageReductionVsSmall": return member.damageReductionVsSmall; case "damageVsMedium": return member.damageVsMedium; case "damageReductionVsMedium": return member.damageReductionVsMedium;
-      case "damageVsDemiHuman": return member.damageVsDemiHuman; case "damageReductionVsDemiHuman": return member.damageReductionVsDemiHuman; case "damageVsBrute": return member.damageVsBrute; case "damageReductionVsBrute": return member.damageReductionVsBrute;
-      case "equipmentPdefPercent": return member.equipmentPdefPercent; case "equipmentMdefPercent": return member.equipmentMdefPercent; default: return null;
-    }
-  }
   function handleSort(field: MemberDisplayField) { if (!canFilterMembers) return; if (sortField === field) setSortDirection(current => current === "asc" ? "desc" : "asc"); else { setSortField(field); setSortDirection("asc"); } setPage(1); }
   function getSortIndicator(field: MemberDisplayField) { if (!canFilterMembers || sortField !== field) return ""; return sortDirection === "asc" ? " ↑" : " ↓"; }
   function isOwnMember(member: Member) { return (currentUserId !== null && member.userId === currentUserId) || (currentDiscordId !== null && member.discordUserId === currentDiscordId); }
   function canEditMember(member: Member) { return canManageMembers || (canManageOwnProfile && isOwnMember(member)); }
   function canManageLeave(member: Member) { return canManageAnyLeave || (userRole !== null && hasPermission(userRole, "leave.manageOwn") && isOwnMember(member)); }
-  async function loadAuth() { try { const response = await fetch("/api/auth/me", { cache: "no-store" }); const data = await response.json(); if (!response.ok) { setCurrentUserId(null); setCurrentDiscordId(null); setUserRole(null); return; } setCurrentUserId(data.user?.id ?? null); setCurrentDiscordId(data.user?.discordId ?? null); setUserRole(data.role ?? null); } catch { setCurrentUserId(null); setCurrentDiscordId(null); setUserRole(null); } }
+  const loadAuth = useCallback(async () => { try { const response = await fetch("/api/auth/me", { cache: "no-store" }); const data = await response.json(); if (!response.ok) { setCurrentUserId(null); setCurrentDiscordId(null); setUserRole(null); return; } setCurrentUserId(data.user?.id ?? null); setCurrentDiscordId(data.user?.discordId ?? null); setUserRole(data.role ?? null); } catch { setCurrentUserId(null); setCurrentDiscordId(null); setUserRole(null); } }, []);
   const loadMembers = useCallback(async (targetPage: number = 1) => {
     try {
       setLoading(true);
@@ -273,7 +257,7 @@ export default function MembersClient({ initialMembers, gameType }: { initialMem
       setLoading(false);
     }
   }, [search, jobFilter, statusFilter, sortField, sortDirection]);
-  useEffect(() => { void loadAuth(); }, []);
+  useEffect(() => { void loadAuth(); }, [loadAuth]);
   useEffect(() => {
     const timeout = window.setTimeout(() => { void loadMembers(page); }, 250);
     return () => window.clearTimeout(timeout);
