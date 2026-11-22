@@ -396,3 +396,12 @@ These indexes are based on query shapes verified in source, not measured query p
 
 The member directory's substring search uses case-insensitive contains/ILIKE patterns. Ordinary B-tree indexes do not accelerate leading-wildcard substring matching; a pg_trgm extension and GIN indexes may help, but are deliberately deferred until production query plans, search volume and extension availability are confirmed. Likewise, optional member sorts such as Discord username, priority and updated time are not each given a dedicated index to avoid unnecessary write amplification and storage cost.
 
+
+### Phase H — event pagination payload efficiency
+
+| Finding | Change | Status |
+|---|---|---|
+| EVENTS-03 | The event list endpoint previously queried and returned preferred-roster configuration on every cursor page, although the client only consumes that configuration during the initial load. Preferred rosters are now fetched and included only on the initial request; load-more requests return only the next event page. | Implemented in source; CI and browser pagination validation pending |
+
+This removes a repeated guild configuration query and response payload from each subsequent event page. The initial event response retains the existing preferred-roster shape, and the client load-more path does not clear or replace the already loaded configuration.
+
