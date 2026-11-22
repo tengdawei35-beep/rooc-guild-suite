@@ -11,6 +11,13 @@ export async function GET(request: Request) {
   if (!hasPermission(auth.role, "events.view")) return NextResponse.json({ error: "You do not have permission to view event results." }, { status: 403 });
   const url = new URL(request.url);
   const cursor = url.searchParams.get("cursor");
+  if (cursor) {
+    const cursorEvent = await prisma.event.findFirst({
+      where: { id: cursor, guildId: auth.guild.id, resultImages: { some: {} } },
+      select: { id: true },
+    });
+    if (!cursorEvent) return NextResponse.json({ error: "The results page cursor is no longer available. Refresh the archive." }, { status: 400 });
+  }
   const events = await prisma.event.findMany({
     where: { guildId: auth.guild.id, resultImages: { some: {} } },
     orderBy: [{ date: "desc" }, { id: "desc" }],
