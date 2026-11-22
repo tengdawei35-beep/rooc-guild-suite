@@ -74,7 +74,8 @@ export default function RosterJobOverrides({
   }
 
   return (
-    <div className="flex min-w-0 flex-col items-start gap-1">\n      <div className="flex min-w-0 items-center gap-1.5">
+    <div className="flex min-w-0 flex-col items-start gap-1">
+      <div className="flex min-w-0 items-center gap-1.5">
       <select
         value={overrideJob ?? submittedJob ?? ""}
         disabled={saving}
