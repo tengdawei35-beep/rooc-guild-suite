@@ -1246,3 +1246,291 @@ body,
     --hmdl-border-strong: #68788d;
   }
 }
+
+
+/* Phase 32 — shared component normalization across every HMDL surface.
+   Normalize repeated Tailwind-built controls/cards while retaining semantic
+   status treatments (success, warning, danger and informational badges). */
+:where(
+  .hmdl-app-shell,
+  .hmdl-public-entry,
+  .hmdl-auth-workspace,
+  .hmdl-billing-workspace,
+  .hmdl-pricing-workspace,
+  .hmdl-applicant-form-workspace,
+  .hmdl-platform-admin-workspace,
+  .hmdl-member-bid-pages,
+  .hmdl-member-stat-workspace,
+  .hmdl-event-detail,
+  .hmdl-results-archive,
+  .hmdl-resource-workspace,
+  .hmdl-allocation-workspace,
+  .hmdl-management
+) {
+  --hmdl-control-radius: var(--hmdl-radius-md);
+  --hmdl-card-radius: var(--hmdl-radius-lg);
+  --hmdl-control-border: var(--hmdl-border-strong);
+}
+
+/* Inputs, selects and textareas share one height, radius, surface and focus. */
+:where(
+  .hmdl-app-shell,
+  .hmdl-public-entry,
+  .hmdl-auth-workspace,
+  .hmdl-billing-workspace,
+  .hmdl-pricing-workspace,
+  .hmdl-applicant-form-workspace,
+  .hmdl-platform-admin-workspace,
+  .hmdl-member-bid-pages,
+  .hmdl-member-stat-workspace,
+  .hmdl-event-detail,
+  .hmdl-results-archive,
+  .hmdl-resource-workspace,
+  .hmdl-allocation-workspace,
+  .hmdl-management
+) :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),select,textarea) {
+  border-radius:var(--hmdl-control-radius);
+  border-color:var(--hmdl-control-border);
+  font-family:var(--hmdl-font-ui);
+}
+
+:where(
+  .hmdl-app-shell,
+  .hmdl-public-entry,
+  .hmdl-auth-workspace,
+  .hmdl-billing-workspace,
+  .hmdl-pricing-workspace,
+  .hmdl-applicant-form-workspace,
+  .hmdl-platform-admin-workspace,
+  .hmdl-member-bid-pages,
+  .hmdl-member-stat-workspace,
+  .hmdl-event-detail,
+  .hmdl-results-archive,
+  .hmdl-resource-workspace,
+  .hmdl-allocation-workspace,
+  .hmdl-management
+) :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),select) {
+  min-height:var(--hmdl-control-height);
+}
+
+:where(
+  .hmdl-app-shell,
+  .hmdl-public-entry,
+  .hmdl-auth-workspace,
+  .hmdl-billing-workspace,
+  .hmdl-pricing-workspace,
+  .hmdl-applicant-form-workspace,
+  .hmdl-platform-admin-workspace,
+  .hmdl-member-bid-pages,
+  .hmdl-member-stat-workspace,
+  .hmdl-event-detail,
+  .hmdl-results-archive,
+  .hmdl-resource-workspace,
+  .hmdl-allocation-workspace,
+  .hmdl-management
+) :where(input,select,textarea):focus {
+  border-color:var(--hmdl-accent);
+  outline:0;
+  box-shadow:0 0 0 3px var(--hmdl-accent-soft);
+}
+
+/* Primary white/light action buttons use the same HMDL brand accent. */
+:where(
+  .hmdl-app-shell,
+  .hmdl-public-entry,
+  .hmdl-auth-workspace,
+  .hmdl-billing-workspace,
+  .hmdl-pricing-workspace,
+  .hmdl-applicant-form-workspace,
+  .hmdl-platform-admin-workspace,
+  .hmdl-member-bid-pages,
+  .hmdl-member-stat-workspace,
+  .hmdl-event-detail,
+  .hmdl-results-archive,
+  .hmdl-resource-workspace,
+  .hmdl-allocation-workspace,
+  .hmdl-management
+) :where(button,a)[class*="bg-white"],
+:where(
+  .hmdl-app-shell,
+  .hmdl-public-entry,
+  .hmdl-auth-workspace,
+  .hmdl-billing-workspace,
+  .hmdl-pricing-workspace,
+  .hmdl-applicant-form-workspace,
+  .hmdl-platform-admin-workspace,
+  .hmdl-member-bid-pages,
+  .hmdl-member-stat-workspace,
+  .hmdl-event-detail,
+  .hmdl-results-archive,
+  .hmdl-resource-workspace,
+  .hmdl-allocation-workspace,
+  .hmdl-management
+) :where(button,a)[class*="bg-zinc-100"] {
+  border-color:var(--hmdl-accent-border);
+  background:var(--hmdl-accent);
+  color:var(--hmdl-accent-contrast);
+  font-weight:650;
+}
+
+:where(
+  .hmdl-app-shell,
+  .hmdl-public-entry,
+  .hmdl-auth-workspace,
+  .hmdl-billing-workspace,
+  .hmdl-pricing-workspace,
+  .hmdl-applicant-form-workspace,
+  .hmdl-platform-admin-workspace,
+  .hmdl-member-bid-pages,
+  .hmdl-member-stat-workspace,
+  .hmdl-event-detail,
+  .hmdl-results-archive,
+  .hmdl-resource-workspace,
+  .hmdl-allocation-workspace,
+  .hmdl-management
+) :where(button,a)[class*="bg-white"]:hover:not(:disabled),
+:where(
+  .hmdl-app-shell,
+  .hmdl-public-entry,
+  .hmdl-auth-workspace,
+  .hmdl-billing-workspace,
+  .hmdl-pricing-workspace,
+  .hmdl-applicant-form-workspace,
+  .hmdl-platform-admin-workspace,
+  .hmdl-member-bid-pages,
+  .hmdl-member-stat-workspace,
+  .hmdl-event-detail,
+  .hmdl-results-archive,
+  .hmdl-resource-workspace,
+  .hmdl-allocation-workspace,
+  .hmdl-management
+) :where(button,a)[class*="bg-zinc-100"]:hover:not(:disabled) {
+  background:var(--hmdl-accent-strong);
+  color:var(--hmdl-accent-contrast);
+}
+
+/* Shared dark secondary controls, without flattening destructive actions. */
+:where(
+  .hmdl-app-shell,
+  .hmdl-public-entry,
+  .hmdl-auth-workspace,
+  .hmdl-billing-workspace,
+  .hmdl-pricing-workspace,
+  .hmdl-applicant-form-workspace,
+  .hmdl-platform-admin-workspace,
+  .hmdl-member-bid-pages,
+  .hmdl-member-stat-workspace,
+  .hmdl-event-detail,
+  .hmdl-results-archive,
+  .hmdl-resource-workspace,
+  .hmdl-allocation-workspace,
+  .hmdl-management
+) :where(button,a)[class*="bg-zinc-800"]:not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]) {
+  border-color:var(--hmdl-border-strong);
+  border-radius:var(--hmdl-control-radius);
+  background:var(--hmdl-surface-raised);
+  color:var(--hmdl-text-secondary);
+}
+
+:where(
+  .hmdl-app-shell,
+  .hmdl-public-entry,
+  .hmdl-auth-workspace,
+  .hmdl-billing-workspace,
+  .hmdl-pricing-workspace,
+  .hmdl-applicant-form-workspace,
+  .hmdl-platform-admin-workspace,
+  .hmdl-member-bid-pages,
+  .hmdl-member-stat-workspace,
+  .hmdl-event-detail,
+  .hmdl-results-archive,
+  .hmdl-resource-workspace,
+  .hmdl-allocation-workspace,
+  .hmdl-management
+) :where(button,a)[class*="bg-zinc-800"]:not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):hover:not(:disabled) {
+  border-color:var(--hmdl-border-strong);
+  background:#202a37;
+  color:var(--hmdl-text);
+}
+
+/* Consistent card surface and radius; preserve explicit semantic status fills. */
+:where(
+  .hmdl-app-shell,
+  .hmdl-public-entry,
+  .hmdl-auth-workspace,
+  .hmdl-billing-workspace,
+  .hmdl-pricing-workspace,
+  .hmdl-applicant-form-workspace,
+  .hmdl-platform-admin-workspace,
+  .hmdl-member-bid-pages,
+  .hmdl-member-stat-workspace,
+  .hmdl-event-detail,
+  .hmdl-results-archive,
+  .hmdl-resource-workspace,
+  .hmdl-allocation-workspace,
+  .hmdl-management
+) :where(.rounded-2xl.border,.rounded-xl.border):not([class*="bg-emerald"]):not([class*="bg-red"]):not([class*="bg-amber"]):not([class*="bg-yellow"]) {
+  border-color:var(--hmdl-border);
+  border-radius:var(--hmdl-card-radius);
+}
+
+:where(
+  .hmdl-app-shell,
+  .hmdl-public-entry,
+  .hmdl-auth-workspace,
+  .hmdl-billing-workspace,
+  .hmdl-pricing-workspace,
+  .hmdl-applicant-form-workspace,
+  .hmdl-platform-admin-workspace,
+  .hmdl-member-bid-pages,
+  .hmdl-member-stat-workspace,
+  .hmdl-event-detail,
+  .hmdl-results-archive,
+  .hmdl-resource-workspace,
+  .hmdl-allocation-workspace,
+  .hmdl-management
+) :where(h1) {
+  font-family:var(--hmdl-font-ui);
+  font-weight:680;
+  letter-spacing:-.04em;
+}
+
+:where(
+  .hmdl-app-shell,
+  .hmdl-public-entry,
+  .hmdl-auth-workspace,
+  .hmdl-billing-workspace,
+  .hmdl-pricing-workspace,
+  .hmdl-applicant-form-workspace,
+  .hmdl-platform-admin-workspace,
+  .hmdl-member-bid-pages,
+  .hmdl-member-stat-workspace,
+  .hmdl-event-detail,
+  .hmdl-results-archive,
+  .hmdl-resource-workspace,
+  .hmdl-allocation-workspace,
+  .hmdl-management
+) :where(button,a) {
+  transition-property:background-color,border-color,color,box-shadow;
+  transition-duration:140ms;
+  transition-timing-function:ease;
+}
+
+@media (prefers-reduced-motion:reduce) {
+  :where(
+    .hmdl-app-shell,
+    .hmdl-public-entry,
+    .hmdl-auth-workspace,
+    .hmdl-billing-workspace,
+    .hmdl-pricing-workspace,
+    .hmdl-applicant-form-workspace,
+    .hmdl-platform-admin-workspace,
+    .hmdl-member-bid-pages,
+    .hmdl-member-stat-workspace,
+    .hmdl-event-detail,
+    .hmdl-results-archive,
+    .hmdl-resource-workspace,
+    .hmdl-allocation-workspace,
+    .hmdl-management
+  ) :where(button,a) { transition:none; }
+}
