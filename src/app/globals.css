@@ -893,3 +893,26 @@ body {
  .hmdl-resources-workspace .rounded-2xl.border { padding:1rem; }
  .hmdl-resources-workspace table { min-width:46rem; }
 }
+
+
+/* Phase 13 — allocation operations and rotation audit */
+.hmdl-allocation-workspace { min-height:100vh; background:var(--hmdl-bg); color:var(--hmdl-text); }
+.hmdl-allocation-workspace > .hmdl-page { width:100%; max-width:96rem; }
+.hmdl-allocation-workspace h1 { color:var(--hmdl-text); font-size:clamp(1.6rem,2.5vw,2.1rem); font-weight:690; letter-spacing:-.04em; }
+.hmdl-allocation-workspace h2 { color:var(--hmdl-text); font-weight:680; }
+.hmdl-allocation-workspace p { color:var(--hmdl-text-muted); }
+.hmdl-allocation-workspace .rounded-xl.border,
+.hmdl-allocation-workspace .rounded-2xl.border { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); }
+.hmdl-allocation-workspace input,
+.hmdl-allocation-workspace select { min-height:2.4rem; border-color:var(--hmdl-border-strong); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); color:var(--hmdl-text); font-size:.78rem; }
+.hmdl-allocation-workspace button { border-radius:var(--hmdl-radius-md); font-size:.76rem; font-weight:620; }
+.hmdl-allocation-workspace button:focus-visible,
+.hmdl-allocation-workspace a:focus-visible,
+.hmdl-allocation-workspace input:focus-visible,
+.hmdl-allocation-workspace select:focus-visible { outline:2px solid var(--hmdl-accent); outline-offset:2px; }
+.hmdl-allocation-workspace button.bg-white { background:var(--hmdl-accent); color:var(--hmdl-accent-contrast); }
+.hmdl-allocation-workspace button.bg-white:hover:not(:disabled) { background:var(--hmdl-accent-strong); }
+.hmdl-allocation-workspace table { border-collapse:collapse; }
+.hmdl-allocation-workspace th { color:var(--hmdl-text-muted); font-size:.67rem; font-weight:680; text-transform:uppercase; letter-spacing:.05em; }
+.hmdl-allocation-workspace td { color:var(--hmdl-text-secondary); font-size:.76rem; }
+@media(max-width:700px) { .hmdl-allocation-workspace > .hmdl-page { padding:1rem; } }
