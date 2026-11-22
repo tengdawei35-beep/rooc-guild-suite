@@ -28,19 +28,22 @@ export async function POST(request: Request) {
     const event = await prisma.event.findFirst({ where: { id: eventId, guildId: auth.guild.id }, select: { id: true, guildId: true, type: true, date: true, scheduleTimeZone: true } });
     if (!event) return NextResponse.json({ error: "Event not found." }, { status: 404 });
 
-    let preview = await buildAllocation({ guildId: auth.guild.id, nonReservedMemberCount, eventDate: event.date, eventId: event.id, timeZone: event.scheduleTimeZone });
-    if (body.overrides !== undefined) preview = applyAllocationOverrides(preview, body.overrides);
-    if (preview.guildId !== auth.guild.id || preview.guildId !== event.guildId) return NextResponse.json({ error: "Allocation does not belong to the configured guild." }, { status: 403 });
-
-    const bidSlotsByType: Record<"FEATHER" | "CARD", BidSlotData[]> = { FEATHER: [], CARD: [] };
-    for (const resource of preview.resources) for (const assignment of resource.assignments) {
-      const quantity = assignment.reservedQuantity + assignment.assignedQuantity;
-      for (let i = 0; i < quantity; i++) bidSlotsByType[resource.type].push({ memberId: assignment.memberId, resourceId: assignment.resourceId });
-    }
-
     const result = await prisma.$transaction(async (tx) => {
-      const allocationLockKey = `${auth.guild.id}:${event.id}`;
+      // Rotation state is shared across all events in a guild. Serialize the
+      // complete preview-and-commit sequence at guild scope so concurrent
+      // allocations cannot calculate from the same stale rotation snapshot.
+      const allocationLockKey = `guild-allocation:${auth.guild.id}`;
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${allocationLockKey}, 0))`;
+
+      let preview = await buildAllocation({ guildId: auth.guild.id, nonReservedMemberCount, eventDate: event.date, eventId: event.id, timeZone: event.scheduleTimeZone });
+      if (body.overrides !== undefined) preview = applyAllocationOverrides(preview, body.overrides);
+      if (preview.guildId !== auth.guild.id || preview.guildId !== event.guildId) throw new Error("Allocation does not belong to the configured guild.");
+
+      const bidSlotsByType: Record<"FEATHER" | "CARD", BidSlotData[]> = { FEATHER: [], CARD: [] };
+      for (const resource of preview.resources) for (const assignment of resource.assignments) {
+        const quantity = assignment.reservedQuantity + assignment.assignedQuantity;
+        for (let i = 0; i < quantity; i++) bidSlotsByType[resource.type].push({ memberId: assignment.memberId, resourceId: assignment.resourceId });
+      }
 
       const existingRun = await tx.allocationRun.findFirst({
         where: {
@@ -140,13 +143,13 @@ export async function POST(request: Request) {
       }
 
       const completedRun = await tx.allocationRun.update({ where: { id: run.id }, data: { status: "COMPLETED", rotationIndexAfter: rotationAfter, completedAt: new Date() } });
-      return { conflict: false as const, allocationRun: completedRun, rotationBefore, rotationAfter };
+      return { conflict: false as const, allocationRun: completedRun, rotationBefore, rotationAfter, preview, bidSlotsByType };
     });
 
     if (result.conflict) return NextResponse.json({ error: "An allocation has already been run for this event.", allocationRun: { id: result.runId, status: result.status, eventId: event.id } }, { status: 409 });
     await notifyBidComplete({ guildId: auth.guild.id, allocationRunId: result.allocationRun.id });
 
-    return NextResponse.json({ success: true, allocationRun: { id: result.allocationRun.id, status: result.allocationRun.status, createdAt: result.allocationRun.createdAt, completedAt: result.allocationRun.completedAt, eventId: event.id }, event: { id: event.id, type: event.type, date: event.date }, rotation: { before: result.rotationBefore, after: result.rotationAfter }, bidPages: { feathers: Math.ceil(bidSlotsByType.FEATHER.length / SLOTS_PER_PAGE), cards: Math.ceil(bidSlotsByType.CARD.length / SLOTS_PER_PAGE), totalSlots: bidSlotsByType.FEATHER.length + bidSlotsByType.CARD.length }, preview });
+    return NextResponse.json({ success: true, allocationRun: { id: result.allocationRun.id, status: result.allocationRun.status, createdAt: result.allocationRun.createdAt, completedAt: result.allocationRun.completedAt, eventId: event.id }, event: { id: event.id, type: event.type, date: event.date }, rotation: { before: result.rotationBefore, after: result.rotationAfter }, bidPages: { feathers: Math.ceil(result.bidSlotsByType.FEATHER.length / SLOTS_PER_PAGE), cards: Math.ceil(result.bidSlotsByType.CARD.length / SLOTS_PER_PAGE), totalSlots: result.bidSlotsByType.FEATHER.length + result.bidSlotsByType.CARD.length }, preview: result.preview });
   } catch (error) {
     console.error("[ALLOCATION] Failed to run allocation:", error);
     return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to run allocation." }, { status: 500 });
