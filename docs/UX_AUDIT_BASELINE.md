@@ -300,3 +300,12 @@ The API-side permission checks remain authoritative; this change improves the af
 | RESERVE-STOCK-01 | Reservation endpoints validated each individual quantity against resource stock, but did not validate the sum of all reservations for that resource. Multiple individually valid reservations could exceed stock and cause allocation preview generation to fail. Create/update now aggregate existing reservations inside a serializable transaction, serialize writes per guild/resource with a PostgreSQL transaction advisory lock, and reject requests that would exceed total stock. Duplicate member/resource checks remain enforced, and serialization conflicts return a retryable 409. | Implemented in source; CI and concurrent-request runtime validation pending |
 
 This is a server-side integrity safeguard; it does not change the allocation formula or existing reservation quantities.
+
+### Phase B — allocation override integrity
+
+| Finding | Change | Status |
+|---|---|---|
+| ALLOC-OVERRIDE-01 | Allocation override payloads were converted directly into a Map, so duplicate resource entries silently overwrote earlier edits and unknown resource IDs were silently ignored. Override processing now validates the list, resource membership, duplicate resource entries, assignment-list shape and member identifiers before applying edits. Existing eligibility, recovery minimum, per-player limit, hard-cap and stock-invariant checks remain in force. | Implemented in source; CI and allocation workflow validation pending |
+
+This hardens the API-facing allocation calculation against malformed or ambiguous edit payloads without changing the allocation policy.
+
