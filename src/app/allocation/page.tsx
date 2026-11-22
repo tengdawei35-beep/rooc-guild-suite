@@ -6,10 +6,10 @@ import { useEffect, useState } from "react";
 
 type EventOption = { id: string; type: "GUILD_LEAGUE" | "EMPERIUM_OVERRUN"; date: string };
 type MemberOption = { id: string; characterName: string | null; eligible?: boolean };
-type ResourceOption = { id: string; name: string; type: "FEATHER" | "CARD" | "ASTROCORE" | "ASTROCORE"; total: number; hardCap: number; perPlayerLimit: number };
-type Reservation = { id: string; memberId: string; resourceId: string; quantity: number; memberName: string | null; resourceName: string; resourceType: "FEATHER" | "CARD" | "ASTROCORE" | "ASTROCORE"; resourceTotal: number };
+type ResourceOption = { id: string; name: string; type: "FEATHER" | "CARD" | "ASTROCORE"; total: number; hardCap: number; perPlayerLimit: number };
+type Reservation = { id: string; memberId: string; resourceId: string; quantity: number; memberName: string | null; resourceName: string; resourceType: "FEATHER" | "CARD" | "ASTROCORE"; resourceTotal: number };
 type Assignment = { memberId: string; memberName: string | null; resourceId: string; resourceName: string; reservedQuantity: number; assignedQuantity: number };
-type ResourceResult = { resourceId: string; resourceName: string; type: "FEATHER" | "CARD" | "ASTROCORE" | "ASTROCORE"; total: number; reserved: number; allocated: number; overflow: number; perPlayerLimit: number; hardCap: number; selectedMembers: MemberOption[]; assignments: Assignment[] };
+type ResourceResult = { resourceId: string; resourceName: string; type: "FEATHER" | "CARD" | "ASTROCORE"; total: number; reserved: number; allocated: number; overflow: number; perPlayerLimit: number; hardCap: number; selectedMembers: MemberOption[]; assignments: Assignment[] };
 type AllocationResult = { guildId: string; guildName: string; nonReservedMemberCount: number; eligibleMembers: MemberOption[]; resources: ResourceResult[] };
 type AllocationRun = { id: string; status: string; createdAt: string; completedAt: string | null };
 type Override = { resourceId: string; assignments: { memberId: string; assignedQuantity: number }[] };
