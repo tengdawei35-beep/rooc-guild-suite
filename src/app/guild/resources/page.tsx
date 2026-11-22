@@ -16,6 +16,7 @@ import {
   prisma,
 } from "@/lib/prisma";
 
+import ManagementPageHeader from "@/app/ManagementPageHeader";
 import ResourcesClient from "./ResourcesClient";
 import Ro3ResourcesClient from "./Ro3ResourcesClient";
 
@@ -92,10 +93,11 @@ export default async function ResourcesPage() {
     return (
       <main className="hmdl-management hmdl-resources-workspace min-h-screen bg-zinc-950 text-white">
         <div className="hmdl-page mx-auto max-w-7xl px-6 py-10">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Guild Resources</h1>
-            <p className="mt-2 text-sm text-zinc-400">Manage item pools, event reward quantities and member opt-in limits.</p>
-          </div>
+          <ManagementPageHeader
+            eyebrow="RESOURCES"
+            title="Guild Resources"
+            description="Manage item pools, event reward quantities and member opt-in limits."
+          />
           <Ro3ResourcesClient initialSeasons={seasons.map((season) => ({
             ...season,
             updatedAt: season.updatedAt.toISOString(),
@@ -178,15 +180,11 @@ export default async function ResourcesPage() {
     <main className="hmdl-management hmdl-resources-workspace min-h-screen bg-zinc-950 text-white">
       <div className="hmdl-page mx-auto max-w-7xl px-6 py-10">
 
-        <div className="mt-8">
-          <h1 className="text-3xl font-bold tracking-tight">
-            Guild Resources
-          </h1>
-
-          <p className="mt-2 text-sm text-zinc-400">
-            Manage the resources available for allocation and bidding.
-          </p>
-        </div>
+        <ManagementPageHeader
+          eyebrow="RESOURCES"
+          title="Guild Resources"
+          description="Manage the resources available for allocation and bidding."
+        />
 
         <ResourcesClient
           initialResources={resources}
