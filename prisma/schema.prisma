@@ -137,6 +137,7 @@ model User {
   avatarUrl String?
   guildMemberships GuildMembership[]
   guildMembers GuildMember[]
+  onboardingJourneys GuildRoleOnboardingProgress[]
   ownedGuilds Guild[] @relation("GuildOwner")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -159,6 +160,7 @@ model Guild {
   preferredRosters PreferredRoster[]
   owner User? @relation("GuildOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
   onboardingProgress GuildOnboardingProgress?
+  onboardingJourneys GuildRoleOnboardingProgress[]
   subscriptions GuildSubscription[]
   moduleEntitlements GuildModuleEntitlement[]
   ro3Seasons Ro3Season[]
@@ -957,4 +959,19 @@ model GuildOnboardingProgress {
   guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+
+model GuildRoleOnboardingProgress {
+  id String @id @default(cuid())
+  userId String
+  guildId String
+  completedStepIds String[] @default([])
+  dismissedAt DateTime?
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([userId, guildId])
+  @@index([guildId])
 }
