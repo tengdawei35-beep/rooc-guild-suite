@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { destroySession } from "@/lib/auth";
 import { destroyPlatformUserSession } from "@/lib/auth/platform";
+import { stopImpersonation } from "@/lib/impersonation";
 
 const GUILD_SELECTION_COOKIE = "rooc_guild_selection";
 const OAUTH_STATE_COOKIE = "rooc_discord_oauth_state";
@@ -17,6 +18,7 @@ function getPublicOrigin(request: Request) {
 }
 
 export async function POST(request: Request) {
+  await stopImpersonation("ADMIN_LOGOUT");
   await destroySession();
   await destroyPlatformUserSession();
 
