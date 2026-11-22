@@ -158,6 +158,7 @@ model Guild {
   events Event[]
   preferredRosters PreferredRoster[]
   owner User? @relation("GuildOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
+  onboardingProgress GuildOnboardingProgress?
   subscriptions GuildSubscription[]
   moduleEntitlements GuildModuleEntitlement[]
   ro3Seasons Ro3Season[]
