@@ -28,7 +28,7 @@ function statusClass(status: string) {
   if (status === "PAST_DUE" || status === "UNPAID") {
     return "border-amber-900 bg-amber-950/30 text-amber-400";
   }
-  if (status === "CANCELED" || status === "INCOMPLETE_EXPIRED") {
+  if (status === "CANCELED" || status === "INCOMPLETE") {
     return "border-zinc-700 bg-zinc-900 text-zinc-400";
   }
   return "border-zinc-700 bg-zinc-900 text-zinc-300";
@@ -115,7 +115,7 @@ export default async function AdminSubscriptionsPage() {
                           <span className="ml-2 text-xs text-amber-400">Cancels at period end</span>
                         )}
                       </td>
-                      <td className="capitalize">{subscription.provider}</td>
+                      <td className="capitalize">{subscription.provider ?? "—"}</td>
                       <td>{formatPrice(subscription.plan.priceCents, subscription.plan.currency)}</td>
                       <td>{formatDate(subscription.currentPeriodEnd)}</td>
                       <td>{formatDate(subscription.createdAt)}</td>
