@@ -155,7 +155,7 @@ export default async function LeaveHistoryPage({ searchParams }: { searchParams:
   `;
 
   const summaryRows = await summaryQuery;
-  const summary = summaryRows[0] ?? { totalLeaveDays: 0n, peopleCount: 0n, currentPeople: 0n, formerPeople: 0n };
+  const summary = summaryRows[0] ?? { totalLeaveDays: BigInt(0), peopleCount: BigInt(0), currentPeople: BigInt(0), formerPeople: BigInt(0) };
   const totalPeople = Number(summary.peopleCount);
   const totalPages = Math.max(1, Math.ceil(totalPeople / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
