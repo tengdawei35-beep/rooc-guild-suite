@@ -1,3 +1,4 @@
+import ManagementPageHeader from "@/app/ManagementPageHeader";
 import {
   requirePageAuth,
 } from "@/lib/auth";
@@ -188,22 +189,11 @@ export default async function ReservationsPage() {
   return (
     <main className="hmdl-management hmdl-reservations-workspace min-h-screen bg-zinc-950 text-white">
       <div className="hmdl-page mx-auto max-w-7xl px-6 py-10">
-        <header className="mb-8">
-
-          <div className="mt-4">
-            <p className="text-sm font-medium uppercase tracking-widest text-zinc-500">
-              {guild.name}
-            </p>
-
-            <h1 className="mt-1 text-3xl font-bold tracking-tight">
-              Reservations
-            </h1>
-
-            <p className="mt-2 text-zinc-400">
-              Reserve resources for specific guild members before an allocation run.
-            </p>
-          </div>
-        </header>
+        <ManagementPageHeader
+          eyebrow="RESOURCES"
+          title="Reservations"
+          description="Reserve resources for specific guild members before an allocation run."
+        />
 
         <ReservationsClient
           initialMembers={
