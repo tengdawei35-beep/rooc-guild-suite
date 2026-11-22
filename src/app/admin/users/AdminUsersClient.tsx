@@ -52,7 +52,7 @@ export default function AdminUsersClient({ users }: { users: UserRow[] }) {
     <section className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900" aria-label="All HMDL users">
       <div className="flex flex-col gap-2 border-b border-zinc-800 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div><h2 className="font-semibold text-white">All users</h2><p className="mt-1 text-sm text-zinc-500">Accounts are listed once, even when they belong to multiple guilds.</p></div>
-        <span className="text-xs tabular-nums text-zinc-500">{filtered.length.toLocaleString()} of {users.length.toLocaleString()} users</span>
+        <span role="status" aria-live="polite" className="text-xs tabular-nums text-zinc-500">{filtered.length.toLocaleString()} of {users.length.toLocaleString()} users</span>
       </div>
       <div className="grid gap-3 border-b border-zinc-800 p-4 lg:grid-cols-[minmax(220px,1fr)_minmax(150px,190px)_150px_180px]">
         <label className="sr-only" htmlFor="admin-user-search">Search users</label>
@@ -68,7 +68,7 @@ export default function AdminUsersClient({ users }: { users: UserRow[] }) {
         </select>
       </div>
       {filtered.length === 0 ? (
-        <div className="px-5 py-14 text-center"><p className="font-medium text-zinc-200">No matching users</p><p className="mt-1 text-sm text-zinc-500">Try changing or clearing the filters.</p><button onClick={clearFilters} className="mt-4 text-sm text-zinc-300 underline underline-offset-4">Clear filters</button></div>
+        <div className="px-5 py-14 text-center"><p className="font-medium text-zinc-200">No matching users</p><p className="mt-1 text-sm text-zinc-500">Try changing or clearing the filters.</p><button type="button" onClick={clearFilters} className="mt-4 text-sm text-zinc-300 underline underline-offset-4">Clear filters</button></div>
       ) : (
         <div className="overflow-x-auto">
           <table className="hmdl-table w-full min-w-[1050px]">
