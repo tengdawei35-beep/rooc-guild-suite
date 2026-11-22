@@ -125,7 +125,7 @@ export default function RankingsClient() {
   }, [data, search, jobFilter, statusFilter, category]);
 
   return (
-    <main className="min-h-screen bg-[#0b0b0b] px-4 py-6 text-gray-100 md:px-6">
+    <main className="hmdl-management hmdl-rankings-workspace min-h-screen bg-[#0b0b0b] px-4 py-6 text-gray-100 md:px-6">
       <div className="mx-auto max-w-7xl">
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
@@ -161,8 +161,8 @@ export default function RankingsClient() {
           </div>
         )}
 
-        <div className="overflow-hidden rounded-xl border border-gray-800 bg-[#111111] shadow-2xl">
-          <div className="border-b border-gray-800 bg-[#151515] px-3 py-3">
+        <div className="hmdl-rankings-panel overflow-hidden rounded-xl border border-gray-800 bg-[#111111] shadow-2xl">
+          <div className="hmdl-rankings-tabs border-b border-gray-800 bg-[#151515] px-3 py-3">
             <div className="flex gap-1 overflow-x-auto">
               <CategoryButton active={category === "OVERALL"} onClick={() => setCategory("OVERALL")}>Overall</CategoryButton>
               <CategoryButton active={category === "DPS"} onClick={() => setCategory("DPS")}>DPS</CategoryButton>
@@ -171,17 +171,17 @@ export default function RankingsClient() {
             </div>
           </div>
 
-          <div className="grid gap-3 border-b border-gray-800 bg-[#0f0f0f] p-4 md:grid-cols-3">
+          <div className="hmdl-rankings-filters grid gap-3 border-b border-gray-800 bg-[#0f0f0f] p-4 md:grid-cols-3">
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search character, Discord name or job..."
-              className="h-10 rounded-lg border border-gray-700 bg-[#171717] px-3 text-sm text-white outline-none placeholder:text-gray-500 focus:border-gray-500 focus:ring-1 focus:ring-gray-500"
+              className="hmdl-rankings-control h-10 rounded-lg border border-gray-700 bg-[#171717] px-3 text-sm text-white outline-none placeholder:text-gray-500"
             />
             <select
               value={jobFilter}
               onChange={(event) => setJobFilter(event.target.value)}
-              className="h-10 rounded-lg border border-gray-700 bg-[#171717] px-3 text-sm text-white outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-500"
+              className="hmdl-rankings-control h-10 rounded-lg border border-gray-700 bg-[#171717] px-3 text-sm text-white outline-none"
             >
               <option value="ALL" className="bg-[#171717]">All Jobs</option>
               {jobs.map((job) => (
@@ -338,7 +338,7 @@ function sortRankings(members: RankingMember[], category: RankingCategory) {
 
 function SummaryCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-xl border border-gray-800 bg-[#111111] p-4">
+    <div className="hmdl-rankings-summary rounded-xl border border-gray-800 bg-[#111111] p-4">
       <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">{label}</div>
       <div className="mt-1 text-2xl font-bold text-white">{value}</div>
     </div>
@@ -347,7 +347,7 @@ function SummaryCard({ label, value }: { label: string; value: number }) {
 
 function CategoryButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
-    <button type="button" onClick={onClick} className={`whitespace-nowrap rounded-lg px-5 py-2 text-sm font-medium transition ${active ? "bg-white text-black shadow-sm" : "text-gray-500 hover:bg-gray-800/70 hover:text-gray-200"}`}>
+    <button type="button" onClick={onClick} className={`hmdl-rankings-tab whitespace-nowrap rounded-lg px-5 py-2 text-sm font-medium transition ${active ? "is-active" : ""}`}>
       {children}
     </button>
   );
