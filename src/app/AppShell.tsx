@@ -114,6 +114,7 @@ export default function AppShell({
         ? [
             { label: "Guild settings", href: "/guild", icon: "⚙" },
             { label: "Discord notifications", href: "/guild/notifications", icon: "◉" },
+            { label: "Subscription", href: "/billing/new", icon: "▤" },
           ]
         : [],
     },
@@ -153,9 +154,13 @@ export default function AppShell({
       {isPlatformAdmin && (
         <section className="hmdl-nav-group">
           <p className="hmdl-nav-group-label">PLATFORM</p>
-          <Link href="/admin" onClick={() => setMobileOpen(false)} className={`hmdl-nav-link${pathname.startsWith("/admin") ? " is-active" : ""}`}>
+          <Link href="/admin" onClick={() => setMobileOpen(false)} className={`hmdl-nav-link${pathname === "/admin" ? " is-active" : ""}`}>
             <span className="hmdl-nav-icon" aria-hidden="true">⌘</span>
             <span>Platform admin</span>
+          </Link>
+          <Link href="/admin/subscriptions" onClick={() => setMobileOpen(false)} aria-current={pathname.startsWith("/admin/subscriptions") ? "page" : undefined} className={`hmdl-nav-link${pathname.startsWith("/admin/subscriptions") ? " is-active" : ""}`}>
+            <span className="hmdl-nav-icon" aria-hidden="true">▤</span>
+            <span>Subscriptions</span>
           </Link>
         </section>
       )}
