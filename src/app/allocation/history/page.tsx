@@ -76,7 +76,7 @@ export default async function AllocationHistoryPage() {
 
             <Link
               href="/guild"
-              className="mt-6 inline-flex rounded-lg bg-white px-5 py-3 font-medium text-black hover:bg-zinc-200"
+              className="mt-6 inline-flex rounded-lg hmdl-btn hmdl-btn-primary px-5 py-3 font-medium"
             >
               Configure Guild
             </Link>
@@ -178,7 +178,7 @@ export default async function AllocationHistoryPage() {
 
             <Link
               href="/allocation"
-              className="mt-6 inline-flex rounded-lg bg-white px-5 py-3 font-medium text-black hover:bg-zinc-200"
+              className="mt-6 inline-flex rounded-lg hmdl-btn hmdl-btn-primary px-5 py-3 font-medium"
             >
               Create Allocation
             </Link>
@@ -561,7 +561,7 @@ export default async function AllocationHistoryPage() {
                       {hasBidPages && (
                         <Link
                           href={`/allocation/${run.id}/bids`}
-                          className="inline-flex shrink-0 items-center justify-center rounded-lg bg-white px-5 py-3 text-sm font-medium text-black transition hover:bg-zinc-200"
+                          className="inline-flex shrink-0 items-center justify-center rounded-lg hmdl-btn hmdl-btn-primary px-5 py-3 text-sm font-medium transition"
                         >
                           View Bid Pages →
                         </Link>
