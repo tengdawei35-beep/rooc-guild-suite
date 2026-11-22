@@ -18,7 +18,6 @@ export default async function AdminPage() {
   return (
     <main className="hmdl-platform-admin-workspace min-h-screen bg-zinc-950 text-white">
       <div className="hmdl-page mx-auto max-w-6xl px-6 py-10">
-        <Link href="/" className="text-sm text-zinc-500 hover:text-white">← Dashboard</Link>
         <div className="mt-8">
           <p className="text-sm font-medium uppercase tracking-widest text-zinc-500">Platform Administration</p>
           <h1 className="mt-1 text-3xl font-bold tracking-tight">Admin</h1>
