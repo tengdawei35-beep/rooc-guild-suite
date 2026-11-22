@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ManagementPageHeader from "@/app/ManagementPageHeader";
 
 import {
   prisma,
@@ -64,11 +65,11 @@ export default async function GuildPage() {
   return (
     <main className="hmdl-management hmdl-guild-settings-workspace min-h-screen bg-zinc-950 text-white">
       <div className="hmdl-page mx-auto max-w-4xl px-6 py-10">
-        <header className="mb-8">
-          <p className="mb-2 text-sm font-medium uppercase tracking-widest text-zinc-500">HMDL — Heimdall</p>
-          <h1 className="text-3xl font-bold tracking-tight">Guild</h1>
-          <p className="mt-2 text-zinc-400">Manage your guild configuration, members and access.</p>
-        </header>
+        <ManagementPageHeader
+          eyebrow="CONFIGURATION"
+          title="Guild Settings"
+          description="Manage your guild configuration, members and access."
+        />
 
         <OwnershipTransfer
           currentOwnerUserId={guild.ownerUserId}
