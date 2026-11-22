@@ -290,7 +290,7 @@ export async function GET(request: Request) {
     const nextCursor = hasMoreEvents ? events[events.length - 1]?.id ?? null : null;
 
     const preferredRosters =
-      canViewRosters
+      !cursor && canViewRosters
         ? await prisma.preferredRoster.findMany(
             {
               where: {
@@ -354,7 +354,7 @@ export async function GET(request: Request) {
           })
         ),
 
-      preferredRosters:
+      preferredRosters: cursor ? undefined :
         preferredRosters.map(
           (preferred) => ({
             id:
