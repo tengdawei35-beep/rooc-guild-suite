@@ -21,7 +21,7 @@ export default async function MembersPage() {
 
   if (!guild) {
     return (
-      <main className="hmdl-management min-h-screen text-white">
+      <main className="hmdl-management hmdl-member-directory-workspace min-h-screen text-white">
         <div className="hmdl-page mx-auto max-w-7xl">
           <div className="hmdl-empty">
             <h1 className="text-xl font-semibold text-zinc-200">No guild configured</h1>
@@ -84,7 +84,7 @@ export default async function MembersPage() {
   });
 
   return (
-    <main className="hmdl-management min-h-screen text-white">
+    <main className="hmdl-management hmdl-member-directory-workspace min-h-screen text-white">
       <MembersClient initialMembers={members} gameType={guild.gameType} />
     </main>
   );
