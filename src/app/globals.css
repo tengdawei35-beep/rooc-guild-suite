@@ -1001,3 +1001,14 @@ body {
 .hmdl-guild-settings-workspace input,.hmdl-guild-settings-workspace select { border-color:var(--hmdl-border-strong); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); color:var(--hmdl-text); }
 .hmdl-guild-settings-workspace button { border-radius:var(--hmdl-radius-md); font-size:.76rem; font-weight:620; }
 .hmdl-guild-settings-workspace a:focus-visible,.hmdl-guild-settings-workspace button:focus-visible { outline:2px solid var(--hmdl-accent); outline-offset:2px; }
+
+/* Phase 21 — member stat update and OCR workspace */
+.hmdl-member-stat-workspace { min-height:100vh; background:var(--hmdl-bg); color:var(--hmdl-text); }
+.hmdl-member-stat-workspace > .hmdl-page { width:100%; max-width:88rem; }
+.hmdl-member-stat-workspace h1 { color:var(--hmdl-text); font-size:clamp(1.55rem,2.4vw,2rem); font-weight:690; letter-spacing:-.04em; }
+.hmdl-member-stat-workspace h2 { color:var(--hmdl-text); font-weight:680; }
+.hmdl-member-stat-workspace p { color:var(--hmdl-text-muted); }
+.hmdl-member-stat-workspace .rounded-2xl.border,.hmdl-member-stat-workspace .rounded-xl.border { border-color:var(--hmdl-border); border-radius:var(--hmdl-radius-lg); background:var(--hmdl-surface); }
+.hmdl-member-stat-workspace input,.hmdl-member-stat-workspace select,.hmdl-member-stat-workspace textarea { border-color:var(--hmdl-border-strong); border-radius:var(--hmdl-radius-md); background:var(--hmdl-surface-muted); color:var(--hmdl-text); }
+.hmdl-member-stat-workspace button { border-radius:var(--hmdl-radius-md); font-size:.76rem; font-weight:620; }
+.hmdl-member-stat-workspace button:focus-visible,.hmdl-member-stat-workspace a:focus-visible { outline:2px solid var(--hmdl-accent); outline-offset:2px; }
