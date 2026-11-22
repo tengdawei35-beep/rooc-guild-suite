@@ -12,7 +12,7 @@ export default async function AdminImpersonationPage({ searchParams }: { searchP
   const params = await searchParams;
   const [guilds, users, sessions] = await Promise.all([
     prisma.guild.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true, gameType: true, owner: { select: { username: true } } } }),
-    prisma.user.findMany({ orderBy: { username: "asc" }, select: { id: true, username: true, discordId: true } }),
+    prisma.user.findMany({ orderBy: { username: "asc" }, select: { id: true, username: true, discordId: true, guildMemberships: { select: { guildId: true } } } }),
     prisma.adminImpersonationSession.findMany({ orderBy: { startedAt: "desc" }, take: 100, include: { auditLogs: { orderBy: { createdAt: "desc" }, take: 1 } } }),
   ]);
   const userIds = [...new Set(sessions.flatMap((session) => [session.adminUserId, session.targetUserId]))];
@@ -29,5 +29,5 @@ export default async function AdminImpersonationPage({ searchParams }: { searchP
     startedAt: session.startedAt.toISOString(), expiresAt: session.expiresAt.toISOString(),
     endedAt: session.endedAt?.toISOString() ?? null, endedReason: session.endedReason,
   }));
-  return <main className="hmdl-platform-admin-workspace min-h-screen bg-zinc-950 text-white"><div className="hmdl-page"><ManagementPageHeader eyebrow="PLATFORM · SUPPORT & TESTING" title="Impersonation" description="Temporarily preview Heimdall through a guild user’s account or simulate a guild role without changing your administrator account." /><div className="mt-6"><AdminImpersonationClient guilds={guilds.map((guild) => ({ id: guild.id, name: guild.name, gameType: guild.gameType, ownerName: guild.owner?.username ?? null }))} users={users} sessions={rows} initialGuildId={params.guildId} initialUserId={params.userId} /></div></div></main>;
+  return <main className="hmdl-platform-admin-workspace min-h-screen bg-zinc-950 text-white"><div className="hmdl-page"><ManagementPageHeader eyebrow="PLATFORM · SUPPORT & TESTING" title="Impersonation" description="Temporarily preview Heimdall through a guild user’s account or simulate a guild role without changing your administrator account." /><div className="mt-6"><AdminImpersonationClient guilds={guilds.map((guild) => ({ id: guild.id, name: guild.name, gameType: guild.gameType, ownerName: guild.owner?.username ?? null }))} users={users.map((user) => ({ id: user.id, username: user.username, discordId: user.discordId, guildIds: user.guildMemberships.map((membership) => membership.guildId) }))} sessions={rows} initialGuildId={params.guildId} initialUserId={params.userId} /></div></div></main>;
 }
