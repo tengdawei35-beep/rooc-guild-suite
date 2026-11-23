@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Permission, UserRole } from "@/lib/permissions";
+import { HMDL_MARK } from "@/lib/hmdl-brand";
 
 type Props = {
   children: ReactNode;
@@ -204,7 +205,7 @@ export default function AppShell({
     <div className={`hmdl-app-shell ${isMemberPortal ? "hmdl-member-portal" : "hmdl-management"}`}>
       <aside className="hmdl-sidebar">
         <Link href="/" className="hmdl-brand" aria-label="Heimdall home">
-          <span className="hmdl-brand-mark">H</span>
+          <span className="hmdl-brand-mark"><img src={HMDL_MARK} alt="" /></span>
           <span className="hmdl-brand-copy"><strong>HEIMDALL</strong><small>GUILD MANAGEMENT</small></span>
         </Link>
         <div className="hmdl-sidebar-context">
@@ -224,7 +225,7 @@ export default function AppShell({
       <div className="hmdl-shell-main">
         <header className="hmdl-mobile-header">
           <Link href="/" className="hmdl-brand">
-            <span className="hmdl-brand-mark">H</span><span className="hmdl-brand-copy"><strong>HEIMDALL</strong><small>{guild.name}</small></span>
+            <span className="hmdl-brand-mark"><img src={HMDL_MARK} alt="" /></span><span className="hmdl-brand-copy"><strong>HEIMDALL</strong><small>{guild.name}</small></span>
           </Link>
           <button ref={mobileMenuButtonRef} type="button" className="hmdl-mobile-menu-button" aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"} aria-expanded={mobileOpen} aria-controls="hmdl-mobile-navigation" onClick={() => setMobileOpen((open) => !open)}>
             {mobileOpen ? "Close" : "Menu"}
