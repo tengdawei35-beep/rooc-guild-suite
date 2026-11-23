@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { HMDL_MARK } from "@/lib/hmdl-brand";
 
 export default async function LoginPage({
   searchParams,
@@ -39,9 +40,9 @@ export default async function LoginPage({
     <main className="hmdl-auth-workspace flex min-h-screen items-center justify-center bg-zinc-950 px-4">
       <div className="hmdl-auth-card w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 p-8 shadow-xl">
         <div className="text-center">
-          <h1 className="text-2xl font-semibold text-white">
-            HMDL
-          </h1>
+          <img src={HMDL_MARK} alt="HMDL — Heimdall" className="mx-auto mb-5 h-28 w-28 rounded-xl object-contain" />
+          <p className="text-xs font-semibold uppercase tracking-[0.32em] text-amber-300/80">HEIMDALL · GUILD MANAGEMENT SUITE</p>
+          <h1 className="mt-2 text-2xl font-semibold text-white">Welcome back</h1>
 
           <p className="mt-2 text-sm text-zinc-500">
             Sign in with Discord to
