@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { HMDL_MARK } from "@/lib/hmdl-brand";
 import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
 
@@ -80,7 +81,7 @@ export default async function PricingPage() {
     <main className="hmdl-pricing-workspace min-h-screen bg-zinc-950 px-6 py-10 text-white sm:px-10">
       <div className="hmdl-page mx-auto max-w-6xl">
         <header className="flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold tracking-tight">HMDL</Link>
+          <Link href="/" className="flex items-center gap-3 text-2xl font-bold tracking-tight"><img src={HMDL_MARK} alt="" className="h-12 w-12 rounded-lg object-contain" /><span>HMDL</span></Link>
           <div className="flex items-center gap-5 text-sm">
             <Link href="/login" className="text-zinc-400 hover:text-white">Login</Link>
             <a href={DISCORD_URL} target="_blank" rel="noreferrer" className="text-zinc-400 hover:text-white">Discord ↗</a>
@@ -88,7 +89,7 @@ export default async function PricingPage() {
         </header>
 
         <section className="mx-auto mt-16 max-w-3xl text-center">
-          <p className="text-sm font-medium uppercase tracking-[0.3em] text-zinc-500">HMDL · Heimdall</p>
+          <img src={HMDL_MARK} alt="HMDL — Heimdall Guild Management Suite" className="mx-auto mb-6 h-32 w-32 object-contain" /><p className="text-sm font-medium uppercase tracking-[0.3em] text-amber-300/70">HEIMDALL · GUILD MANAGEMENT SUITE</p>
           <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl">Choose the tools your guild needs.</h1>
           <p className="mt-5 text-zinc-400">Start with core guild management or unlock the full resource, bidding and allocation suite.</p>
         </section>
