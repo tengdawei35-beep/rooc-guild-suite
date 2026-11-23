@@ -7,6 +7,7 @@ import { hasGuildModule, RESOURCE_SUITE_MODULE } from "@/lib/auth/modules";
 import { prisma } from "@/lib/prisma";
 import { getActiveImpersonation } from "@/lib/impersonation";
 import AppShell from "./AppShell";
+import { HMDL_MARK } from "@/lib/hmdl-brand";
 import NotificationWatcher from "./notifications/NotificationWatcher";
 import "./globals.css";
 
@@ -14,7 +15,9 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Heimdall",
+  title: { default: "HMDL | Heimdall", template: "%s | HMDL" },
+  applicationName: "HMDL",
+  icons: { icon: [{ url: HMDL_MARK, type: "image/webp" }], shortcut: [{ url: HMDL_MARK, type: "image/webp" }], apple: [{ url: HMDL_MARK, type: "image/webp" }] },
   description: "Guild management suite for Ragnarok Online Origin Classic and future games.",
 };
 
