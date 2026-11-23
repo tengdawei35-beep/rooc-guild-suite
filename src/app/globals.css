@@ -470,6 +470,8 @@ body {
   font-size: 1.05rem;
   font-weight: 750;
 }
+.hmdl-brand-mark { overflow: hidden; border-color: rgb(184 139 65 / 0.45); background: #090b0f; }
+.hmdl-brand-mark img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .hmdl-brand-copy { display: flex; min-width: 0; flex-direction: column; gap: 0.12rem; }
 .hmdl-brand-copy strong { font-size: 0.78rem; font-weight: 750; letter-spacing: 0.12em; }
 .hmdl-brand-copy small { overflow: hidden; color: var(--hmdl-text-muted); font-size: 0.58rem; font-weight: 600; letter-spacing: 0.11em; text-overflow: ellipsis; white-space: nowrap; }
