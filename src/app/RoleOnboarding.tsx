@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { HMDL_MARK } from "@/lib/hmdl-brand";
 import { useEffect, useState } from "react";
 
 type Task = { id: string; title: string; description: string; href: string; action: string; complete: boolean };
@@ -58,14 +59,14 @@ export default function RoleOnboarding() {
   if (journey.dismissed) {
     return <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-3">
       <p className="text-sm text-zinc-400">Your {journey.role === "OFFICER" ? "officer" : "member"} guide is hidden.</p>
-      <button type="button" disabled={busy} onClick={() => void update({ dismissed: false })} className="text-sm font-medium text-indigo-300 hover:text-indigo-200">Reopen guide</button>
+      <button type="button" disabled={busy} onClick={() => void update({ dismissed: false })} className="text-sm font-medium text-amber-300 hover:text-amber-200">Reopen guide</button>
     </div>;
   }
 
   return <section className="mb-8 rounded-xl border border-zinc-800 bg-zinc-900/70 p-5 sm:p-6" aria-labelledby="role-onboarding-title">
     <div className="flex flex-wrap items-start justify-between gap-4">
       <div className="min-w-0">
-        <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">{journey.role === "OFFICER" ? "OFFICER ORIENTATION" : "MEMBER ORIENTATION"}</p>
+        <div className="mb-3 flex items-center gap-3"><img src={HMDL_MARK} alt="" className="h-9 w-9 rounded-md object-contain" /><p className="text-xs font-semibold uppercase tracking-wider text-amber-300/75">{journey.role === "OFFICER" ? "OFFICER ORIENTATION" : "MEMBER ORIENTATION"} · HMDL GUIDE</p></div>
         <h2 id="role-onboarding-title" className="mt-1 text-lg font-semibold text-zinc-100">{journey.title}</h2>
         <p className="mt-1 max-w-2xl text-sm text-zinc-400">{journey.description}</p>
       </div>
@@ -73,7 +74,7 @@ export default function RoleOnboarding() {
     </div>
 
     <div className="mt-5 flex items-center gap-3">
-      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-zinc-800"><div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: percent + "%" }} /></div>
+      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-zinc-800"><div className="h-full rounded-full bg-amber-400 transition-all" style={{ width: percent + "%" }} /></div>
       <span className="text-xs tabular-nums text-zinc-400">{journey.completed}/{journey.total} explored</span>
     </div>
 
