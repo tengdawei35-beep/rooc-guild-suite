@@ -61,10 +61,15 @@ export async function POST(request: Request) {
     if (!body.targetId || (body.targetType !== "USER" && body.targetType !== "GUILD")) {
       return NextResponse.json({ error: "A valid grant and target type are required." }, { status: 400 });
     }
-    const model = body.targetType === "USER" ? prisma.userCombatSimulatorSubscription : prisma.guildCombatSimulatorSubscription;
-    const grant = await model.findFirst({ where: { id: body.targetId, provider: "admin" } });
-    if (!grant) return NextResponse.json({ error: "Administrator grant not found." }, { status: 404 });
-    await model.update({ where: { id: grant.id }, data: { status: "CANCELED", currentPeriodEnd: new Date(), cancelAtPeriodEnd: false } });
+    if (body.targetType === "USER") {
+      const grant = await prisma.userCombatSimulatorSubscription.findFirst({ where: { id: body.targetId, provider: "admin" } });
+      if (!grant) return NextResponse.json({ error: "Administrator grant not found." }, { status: 404 });
+      await prisma.userCombatSimulatorSubscription.update({ where: { id: grant.id }, data: { status: "CANCELED", currentPeriodEnd: new Date(), cancelAtPeriodEnd: false } });
+    } else {
+      const grant = await prisma.guildCombatSimulatorSubscription.findFirst({ where: { id: body.targetId, provider: "admin" } });
+      if (!grant) return NextResponse.json({ error: "Administrator grant not found." }, { status: 404 });
+      await prisma.guildCombatSimulatorSubscription.update({ where: { id: grant.id }, data: { status: "CANCELED", currentPeriodEnd: new Date(), cancelAtPeriodEnd: false } });
+    }
     return NextResponse.json({ success: true });
   }
 
