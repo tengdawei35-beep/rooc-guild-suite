@@ -30,6 +30,11 @@ export async function POST(request: Request) {
       if (!guildId) return NextResponse.json({ error: "GUILD_REQUIRED" }, { status: 400 });
       const guild = await prisma.guild.findUnique({ where: { id: guildId }, select: { id: true, ownerUserId: true, name: true } });
       if (!guild || guild.ownerUserId !== user.id) return NextResponse.json({ error: "GUILD_NOT_OWNED" }, { status: 403 });
+      const baseSubscription = await prisma.guildSubscription.findFirst({
+        where: { guildId, status: { in: ["ACTIVE", "TRIALING"] }, OR: [{ currentPeriodEnd: null }, { currentPeriodEnd: { gt: new Date() } }] },
+        select: { id: true },
+      });
+      if (!baseSubscription) return NextResponse.json({ error: "ACTIVE_GUILD_PLAN_REQUIRED" }, { status: 409 });
       const active = await prisma.guildCombatSimulatorSubscription.findFirst({
         where: { guildId, status: { in: ["ACTIVE", "TRIALING"] }, OR: [{ currentPeriodEnd: null }, { currentPeriodEnd: { gt: new Date() } }] },
         select: { id: true },
