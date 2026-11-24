@@ -2,10 +2,6 @@ import { prisma } from "@/lib/prisma";
 
 const ACTIVE_STATUSES = ["ACTIVE", "TRIALING"] as const;
 
-function periodIsCurrent(currentPeriodEnd: Date | null) {
-  return currentPeriodEnd === null || currentPeriodEnd > new Date();
-}
-
 /**
  * The simulator is independently purchasable by a user or as a guild add-on.
  * Guild access is inherited by every authenticated guild member; personal
