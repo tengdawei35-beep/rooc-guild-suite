@@ -5750,6 +5750,10 @@ function refresh({ sim = true } = {}) {
   renderBuildOverview();
   if (sim) schedule();
 }
+function renderAll() {
+  refresh();
+}
+
 function syncInputs() {
   for (const el of $$('[data-k]')) if (el !== document.activeElement) el.value = getPath(el.dataset.k);
 }
