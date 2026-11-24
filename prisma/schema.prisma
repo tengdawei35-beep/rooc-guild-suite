@@ -111,6 +111,7 @@ enum RosterGenerationMode {
 enum SaaSModule {
   CORE
   RESOURCE_SUITE
+  COMBAT_SIMULATOR
 }
 
 enum SubscriptionStatus {
@@ -139,6 +140,7 @@ model User {
   avatarUrl String?
   guildMemberships GuildMembership[]
   guildMembers GuildMember[]
+  combatSimulatorSubscriptions UserCombatSimulatorSubscription[]
   onboardingJourneys GuildRoleOnboardingProgress[]
   ownedGuilds Guild[] @relation("GuildOwner")
   createdAt DateTime @default(now())
@@ -165,6 +167,7 @@ model Guild {
   onboardingJourneys GuildRoleOnboardingProgress[]
   subscriptions GuildSubscription[]
   moduleEntitlements GuildModuleEntitlement[]
+  combatSimulatorSubscriptions GuildCombatSimulatorSubscription[]
   ro3Seasons Ro3Season[]
   ro3EventTypes Ro3EventType[]
   customEventTypes GuildEventType[]
@@ -627,6 +630,40 @@ model GuildSubscription {
   @@index([guildId, status])
   @@index([guildId, createdAt(sort: Desc), id(sort: Desc)])
   @@index([planId])
+  @@index([providerCustomerId])
+}
+
+model UserCombatSimulatorSubscription {
+  id String @id @default(cuid())
+  userId String
+  status SubscriptionStatus @default(INCOMPLETE)
+  provider String?
+  providerCustomerId String?
+  providerSubscriptionId String? @unique
+  currentPeriodStart DateTime?
+  currentPeriodEnd DateTime?
+  cancelAtPeriodEnd Boolean @default(false)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([userId, status])
+  @@index([providerCustomerId])
+}
+
+model GuildCombatSimulatorSubscription {
+  id String @id @default(cuid())
+  guildId String
+  status SubscriptionStatus @default(INCOMPLETE)
+  provider String?
+  providerCustomerId String?
+  providerSubscriptionId String? @unique
+  currentPeriodStart DateTime?
+  currentPeriodEnd DateTime?
+  cancelAtPeriodEnd Boolean @default(false)
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([guildId, status])
   @@index([providerCustomerId])
 }
 

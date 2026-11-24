@@ -35,7 +35,45 @@ export async function POST(request: Request) {
   let event: Stripe.Event; try { event = await stripePaymentProvider.verifyWebhook(payload, signature) as Stripe.Event; } catch (error) { console.error("[STRIPE WEBHOOK] Invalid signature", error); return NextResponse.json({ error: "INVALID_STRIPE_SIGNATURE" }, { status: 400 }); }
   try {
     if (event.type === "checkout.session.completed") {
-      const session = event.data.object as Stripe.Checkout.Session; const metadata = session.metadata; const planId = metadata?.planId; const guildName = metadata?.guildName; const discordGuildId = metadata?.discordGuildId; const gameType = metadata?.gameType === "RO3" ? "RO3" : "ROOC"; const discordUserId = metadata?.discordUserId; const guildId = metadata?.guildId; const affiliateId = metadata?.affiliateId;
+      const session = event.data.object as Stripe.Checkout.Session;
+      const purchaseMetadata = session.metadata;
+      const purchaseType = purchaseMetadata?.purchaseType;
+      if (purchaseType === "COMBAT_SIMULATOR_PERSONAL" || purchaseType === "COMBAT_SIMULATOR_GUILD") {
+        const subscriptionId = typeof session.subscription === "string" ? session.subscription : session.subscription?.id;
+        const customerId = typeof session.customer === "string" ? session.customer : session.customer?.id;
+        const userId = purchaseMetadata?.userId;
+        const guildId = purchaseMetadata?.guildId;
+        if (!subscriptionId || !userId || (purchaseType === "COMBAT_SIMULATOR_GUILD" && !guildId)) {
+          return NextResponse.json({ error: "INVALID_COMBAT_SIMULATOR_CHECKOUT_METADATA" }, { status: 400 });
+        }
+        const subscription = await stripePaymentProvider.getSubscription(subscriptionId) as Stripe.Subscription;
+        const item = subscription.items.data[0];
+        const common = {
+          status: subscriptionStatus(subscription.status),
+          provider: "stripe",
+          providerCustomerId: customerId,
+          currentPeriodStart: item?.current_period_start ? new Date(item.current_period_start * 1000) : null,
+          currentPeriodEnd: item?.current_period_end ? new Date(item.current_period_end * 1000) : null,
+          cancelAtPeriodEnd: subscription.cancel_at_period_end,
+        };
+        if (purchaseType === "COMBAT_SIMULATOR_PERSONAL") {
+          await prisma.userCombatSimulatorSubscription.upsert({
+            where: { providerSubscriptionId: subscriptionId },
+            create: { userId, providerSubscriptionId: subscriptionId, ...common },
+            update: { userId, ...common },
+          });
+        } else {
+          const guild = await prisma.guild.findUnique({ where: { id: guildId! }, select: { ownerUserId: true } });
+          if (!guild || guild.ownerUserId !== userId) return NextResponse.json({ error: "GUILD_OWNER_MISMATCH" }, { status: 403 });
+          await prisma.guildCombatSimulatorSubscription.upsert({
+            where: { providerSubscriptionId: subscriptionId },
+            create: { guildId: guildId!, providerSubscriptionId: subscriptionId, ...common },
+            update: { guildId: guildId!, ...common },
+          });
+        }
+        return NextResponse.json({ received: true });
+      }
+      const metadata = session.metadata; const planId = metadata?.planId; const guildName = metadata?.guildName; const discordGuildId = metadata?.discordGuildId; const gameType = metadata?.gameType === "RO3" ? "RO3" : "ROOC"; const discordUserId = metadata?.discordUserId; const guildId = metadata?.guildId; const affiliateId = metadata?.affiliateId;
       if (!planId || !discordUserId || (!guildId && (!guildName || !discordGuildId))) return NextResponse.json({ error: "INVALID_CHECKOUT_METADATA" }, { status: 400 });
       const subscriptionId = typeof session.subscription === "string" ? session.subscription : session.subscription?.id; const customerId = typeof session.customer === "string" ? session.customer : session.customer?.id; if (!subscriptionId) return NextResponse.json({ error: "MISSING_STRIPE_SUBSCRIPTION" }, { status: 400 });
       let createdGuildId = guildId;
@@ -49,6 +87,25 @@ export async function POST(request: Request) {
     }
     if (event.type === "customer.subscription.created" || event.type === "customer.subscription.updated" || event.type === "customer.subscription.deleted") {
       const subscription = event.data.object as Stripe.Subscription;
+      const item = subscription.items.data[0];
+      const common = {
+        status: subscriptionStatus(subscription.status),
+        cancelAtPeriodEnd: subscription.cancel_at_period_end,
+        currentPeriodStart: item?.current_period_start ? new Date(item.current_period_start * 1000) : null,
+        currentPeriodEnd: item?.current_period_end ? new Date(item.current_period_end * 1000) : null,
+      };
+      const [personalAddon, guildAddon] = await Promise.all([
+        prisma.userCombatSimulatorSubscription.findUnique({ where: { providerSubscriptionId: subscription.id }, select: { id: true } }),
+        prisma.guildCombatSimulatorSubscription.findUnique({ where: { providerSubscriptionId: subscription.id }, select: { id: true } }),
+      ]);
+      if (personalAddon) {
+        await prisma.userCombatSimulatorSubscription.update({ where: { providerSubscriptionId: subscription.id }, data: common });
+        return NextResponse.json({ received: true });
+      }
+      if (guildAddon) {
+        await prisma.guildCombatSimulatorSubscription.update({ where: { providerSubscriptionId: subscription.id }, data: common });
+        return NextResponse.json({ received: true });
+      }
       const existing = await prisma.guildSubscription.findUnique({ where: { providerSubscriptionId: subscription.id }, select: { guildId: true } });
       await prisma.$transaction((tx) => syncSubscription(tx, subscription));
       if (existing) await syncGuildSubscriptionDiscordRoles(existing.guildId);
