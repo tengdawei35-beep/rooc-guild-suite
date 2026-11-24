@@ -9,7 +9,7 @@ const ACTIVE_STATUSES = ["ACTIVE", "TRIALING"] as const;
  */
 export async function hasCombatSimulatorAccess(userId: string, guildId?: string | null): Promise<boolean> {
   const now = new Date();
-  const [personal, guild, guildPlan] = await Promise.all([
+  const [personal, adminGuildGrant, guild, guildPlan] = await Promise.all([
     prisma.userCombatSimulatorSubscription.findFirst({
       where: {
         userId,
@@ -22,6 +22,18 @@ export async function hasCombatSimulatorAccess(userId: string, guildId?: string 
       ? prisma.guildCombatSimulatorSubscription.findFirst({
           where: {
             guildId,
+            provider: "admin",
+            status: { in: [...ACTIVE_STATUSES] },
+            OR: [{ currentPeriodEnd: null }, { currentPeriodEnd: { gt: now } }],
+          },
+          select: { id: true },
+        })
+      : Promise.resolve(null),
+    guildId
+      ? prisma.guildCombatSimulatorSubscription.findFirst({
+          where: {
+            guildId,
+            provider: { not: "admin" },
             status: { in: [...ACTIVE_STATUSES] },
             OR: [{ currentPeriodEnd: null }, { currentPeriodEnd: { gt: now } }],
           },
@@ -40,7 +52,7 @@ export async function hasCombatSimulatorAccess(userId: string, guildId?: string 
       : Promise.resolve(null),
   ]);
 
-  return Boolean(personal || (guild && guildPlan));
+  return Boolean(personal || adminGuildGrant || (guild && guildPlan));
 }
 
 export async function requireCombatSimulatorAccess(userId: string, guildId?: string | null) {
