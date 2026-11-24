@@ -7184,35 +7184,52 @@ renderBuilds();
 refresh({ sim: false });
 simulateNow();
 
-/* Heimdall profile bridge: import final member stats without exposing the source build state. */
+/* Heimdall profile bridge: announce readiness and acknowledge applied imports. */
 window.addEventListener('message', (event) => {
   const message = event.data;
   if (!message || message.source !== 'heimdall' || message.type !== 'RO3_PROFILE_IMPORT') return;
   const finite = (value) => typeof value === 'number' && Number.isFinite(value) && value >= 0;
-  if (message.role === 'attacker' && message.stats && typeof message.stats === 'object') {
-    const want = {};
-    for (const [key, attr] of [['hp', 101], ['patk', 103], ['matk', 104], ['pdef', 105], ['mdef', 106]]) {
-      if (finite(message.stats[key]) && message.stats[key] > 0) want[attr] = message.stats[key];
-    }
-    if (Object.keys(want).length) {
+  const reply = (status, detail = {}) => window.parent.postMessage({
+    source: 'ro3-simulator',
+    type: 'RO3_PROFILE_IMPORTED',
+    role: message.role,
+    status,
+    ...detail
+  }, '*');
+  try {
+    if (message.role === 'attacker' && message.stats && typeof message.stats === 'object') {
+      const want = {};
+      const accepted = [];
+      for (const [key, attr] of [['hp', 101], ['patk', 103], ['matk', 104], ['pdef', 105], ['mdef', 106]]) {
+        if (finite(message.stats[key]) && message.stats[key] > 0) {
+          want[attr] = message.stats[key];
+          accepted.push(key);
+        }
+      }
+      if (!accepted.length) return reply('ignored', { reason: 'No valid attacker stats were supplied.' });
       S.hold = {};
       S.holdSrc = '';
       if (Number.isInteger(message.stats.level) && message.stats.level >= 1 && message.stats.level <= 200) S.level = message.stats.level;
       refit(S, want);
       save();
-      renderAll();
-      window.parent.postMessage({ source: 'ro3-simulator', type: 'RO3_PROFILE_IMPORTED', role: 'attacker' }, '*');
+      refresh();
+      reply('applied', { fields: accepted, level: S.level });
+    } else if (message.role === 'defender' && message.stats && typeof message.stats === 'object') {
+      const target = { ...S.target };
+      const accepted = [];
+      if (finite(message.stats.pdef)) { target.def = message.stats.pdef; accepted.push('pdef'); }
+      if (finite(message.stats.mdef)) { target.mdef = message.stats.mdef; accepted.push('mdef'); }
+      if (!accepted.length) return reply('ignored', { reason: 'No valid defender PDEF/MDEF values were supplied.' });
+      S.target = target;
+      save();
+      refresh();
+      reply('applied', { fields: accepted });
     }
-  } else if (message.role === 'defender' && message.stats && typeof message.stats === 'object') {
-    const target = { ...S.target };
-    if (finite(message.stats.pdef)) target.def = message.stats.pdef;
-    if (finite(message.stats.mdef)) target.mdef = message.stats.mdef;
-    S.target = target;
-    save();
-    renderAll();
-    window.parent.postMessage({ source: 'ro3-simulator', type: 'RO3_PROFILE_IMPORTED', role: 'defender' }, '*');
+  } catch (error) {
+    reply('error', { reason: error instanceof Error ? error.message : String(error) });
   }
 });
+window.parent.postMessage({ source: 'ro3-simulator', type: 'RO3_SIMULATOR_READY' }, '*');
 </script>
 <!-- @@EXPORTER-BEGIN --><script type="text/plain" id="ro3-export">// RO3 character capture for the damage utility.
 // READ-ONLY: reads GetAssetData and writes Desktop\RO3 Character Exports\ro3-character.json. No server messages.
