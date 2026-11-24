@@ -6855,8 +6855,8 @@ window.addEventListener('message', (event) => {
     if (Object.keys(want).length) {
       S.hold = {};
       S.holdSrc = '';
-      refit(S, want);
       if (Number.isInteger(message.stats.level) && message.stats.level >= 1 && message.stats.level <= 200) S.level = message.stats.level;
+      refit(S, want);
       save();
       renderAll();
       window.parent.postMessage({ source: 'ro3-simulator', type: 'RO3_PROFILE_IMPORTED', role: 'attacker' }, '*');
