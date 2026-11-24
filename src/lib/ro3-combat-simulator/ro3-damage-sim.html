@@ -3255,13 +3255,28 @@ const fmtK = (n) => {
 const pct = (v, d = 1) => `${(v * 100).toFixed(d)}%`;
 const secs = (ms) => `${+(ms / 1000).toFixed(2)} s`;
 
-// Any failure (including during data load) is shown on the page instead of leaving it blank.
+// Keep browser-extension failures (for example, wallet-provider injection) out of the
+// simulator's own error UI. The simulator runs in a sandboxed iframe with an opaque
+// origin; extensions may still inject isolated-world scripts into frames, and their
+// provider connection errors are not simulator failures.
+const isExtensionError = (error, filename = '') => {
+  const extensionUrl = /(?:chrome|moz|safari-web)-extension:\/\//i;
+  if (extensionUrl.test(filename)) return true;
+  const detail = typeof error === 'string' ? error : `${error?.stack || ''} ${error?.message || ''}`;
+  return extensionUrl.test(detail);
+};
 const showError = (e) => {
   console.error(e);
   document.body.insertAdjacentHTML('afterbegin', `<div class="err">Something went wrong:\n${esc(e?.stack || e?.message || e)}</div>`);
 };
-addEventListener('error', (e) => showError(e.error ?? e.message));
-addEventListener('unhandledrejection', (e) => showError(e.reason));
+addEventListener('error', (e) => {
+  if (isExtensionError(e.error ?? e.message, e.filename)) return;
+  showError(e.error ?? e.message);
+});
+addEventListener('unhandledrejection', (e) => {
+  if (isExtensionError(e.reason)) return;
+  showError(e.reason);
+});
 
 async function unpack(b64) {
   const bytes = Uint8Array.from(atob(b64.trim()), (c) => c.charCodeAt(0));
