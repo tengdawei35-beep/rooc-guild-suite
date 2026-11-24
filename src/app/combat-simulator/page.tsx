@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentAuth } from "@/lib/auth";
 import { hasCombatSimulatorAccess } from "@/lib/ro3-combat-simulator/entitlements";
+import CombatSimulatorProfiles from "./CombatSimulatorProfiles";
 
 export const metadata = { title: "RO3 Combat Simulator" };
 
@@ -23,9 +24,7 @@ export default async function CombatSimulatorPage() {
       <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">RO3 tools</p><h1 className="mt-2 text-2xl font-semibold">Combat Simulator</h1><p className="mt-1 text-sm text-zinc-400">Community R&D damage estimates. Results may differ from live game outcomes.</p></div>
       <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-xs text-amber-200">Preliminary integration</span>
     </header>
-    <div className="min-h-[760px] flex-1 overflow-hidden rounded-xl border border-white/10 bg-zinc-950">
-      <iframe title="RO3 community combat simulator" src="/api/combat-simulator/source" className="h-full min-h-[760px] w-full border-0" />
-    </div>
+    <CombatSimulatorProfiles />
     <p className="text-xs leading-5 text-zinc-500">Simulator source is served behind Heimdall authentication and entitlement checks. Some PvP effects, healing, shields and selected skill interactions are not fully modeled. This is an estimate, not an official game calculator.</p>
   </section>;
 }
