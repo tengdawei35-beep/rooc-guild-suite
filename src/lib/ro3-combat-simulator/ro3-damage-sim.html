@@ -692,6 +692,45 @@ select:disabled, input:disabled, textarea:disabled {
 .fin .num:hover, .fin .num:focus {
   background: #111b28 !important;
 }
+
+/* Follow-up dropdown contrast fix: override legacy parchment gradients on native selects. */
+html body select,
+html body select.sel,
+html body select.btab.tpl,
+html body .sel {
+  color: #eef2f7 !important;
+  -webkit-text-fill-color: #eef2f7 !important;
+  background-color: #0c121a !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M0 0h12L6 8z' fill='%23c3cee2'/%3E%3C/svg%3E"), linear-gradient(180deg,#172230,#0c121a) !important;
+  border-color: #39495d !important;
+  color-scheme: dark;
+}
+html body select option,
+html body select optgroup {
+  color: #eef2f7 !important;
+  -webkit-text-fill-color: #eef2f7 !important;
+  background-color: #141b24 !important;
+}
+html body select option:checked {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  background-color: #29415d !important;
+}
+html body select:focus,
+html body select.sel:focus,
+html body .sel:focus {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  background-color: #111b28 !important;
+  border-color: #a9c7f5 !important;
+}
+html body select:disabled,
+html body .sel:disabled {
+  color: #8491a3 !important;
+  -webkit-text-fill-color: #8491a3 !important;
+  background-color: #111720 !important;
+  opacity: .7;
+}
 </style>
 </head>
 <body>
