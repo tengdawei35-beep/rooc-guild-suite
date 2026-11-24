@@ -6841,6 +6841,36 @@ wire();
 renderBuilds();
 refresh({ sim: false });
 simulateNow();
+
+/* Heimdall profile bridge: import final member stats without exposing the source build state. */
+window.addEventListener('message', (event) => {
+  const message = event.data;
+  if (!message || message.source !== 'heimdall' || message.type !== 'RO3_PROFILE_IMPORT') return;
+  const finite = (value) => typeof value === 'number' && Number.isFinite(value) && value >= 0;
+  if (message.role === 'attacker' && message.stats && typeof message.stats === 'object') {
+    const want = {};
+    for (const [key, attr] of [['hp', 101], ['patk', 103], ['matk', 104], ['pdef', 105], ['mdef', 106]]) {
+      if (finite(message.stats[key]) && message.stats[key] > 0) want[attr] = message.stats[key];
+    }
+    if (Object.keys(want).length) {
+      S.hold = {};
+      S.holdSrc = '';
+      refit(S, want);
+      if (Number.isInteger(message.stats.level) && message.stats.level >= 1 && message.stats.level <= 200) S.level = message.stats.level;
+      save();
+      renderAll();
+      window.parent.postMessage({ source: 'ro3-simulator', type: 'RO3_PROFILE_IMPORTED', role: 'attacker' }, '*');
+    }
+  } else if (message.role === 'defender' && message.stats && typeof message.stats === 'object') {
+    const target = { ...S.target };
+    if (finite(message.stats.pdef)) target.def = message.stats.pdef;
+    if (finite(message.stats.mdef)) target.mdef = message.stats.mdef;
+    S.target = target;
+    save();
+    renderAll();
+    window.parent.postMessage({ source: 'ro3-simulator', type: 'RO3_PROFILE_IMPORTED', role: 'defender' }, '*');
+  }
+});
 </script>
 <!-- @@EXPORTER-BEGIN --><script type="text/plain" id="ro3-export">// RO3 character capture for the damage utility.
 // READ-ONLY: reads GetAssetData and writes Desktop\RO3 Character Exports\ro3-character.json. No server messages.
