@@ -2405,3 +2405,31 @@ body,
 @media (prefers-reduced-motion: reduce) {
   .hmdl-activity-row, .hmdl-activity-row-arrow { transition: none; }
 }
+
+
+/* Combat Simulator — align the embedded tool with Heimdall's authenticated workspace. */
+.hmdl-shell-content > .hmdl-management.hmdl-combat-simulator-workspace {
+  width: 100%;
+  min-width: 0;
+}
+.hmdl-shell-content > .hmdl-management.hmdl-combat-simulator-workspace > .hmdl-page {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--hmdl-page-max-standard, 96rem);
+  min-width: 0;
+  margin-inline: auto;
+  padding: var(--hmdl-page-space-block, clamp(1.5rem, 2.4vw, 2.5rem))
+    var(--hmdl-page-gutter, clamp(1rem, 2.2vw, 2rem));
+}
+.hmdl-combat-simulator-workspace iframe {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  border-radius: var(--hmdl-radius-lg);
+  background: var(--hmdl-bg);
+}
+@media (max-width: 700px) {
+  .hmdl-shell-content > .hmdl-management.hmdl-combat-simulator-workspace > .hmdl-page {
+    padding: 1.25rem 1rem;
+  }
+}
