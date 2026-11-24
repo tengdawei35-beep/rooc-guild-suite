@@ -4,7 +4,7 @@ import { getCurrentPlatformUser } from "@/lib/auth/platform";
 import { prisma } from "@/lib/prisma";
 
 type PurchaseType = "PERSONAL" | "GUILD";
-type BillingTerm = "MONTHLY" | "ANNUAL";
+type BillingTerm = "MONTHLY" | "QUARTERLY" | "SEMIANNUAL" | "ANNUAL";
 
 function getPriceId(type: PurchaseType, term: BillingTerm) {
   const suffix = type === "PERSONAL" ? "PERSONAL" : "GUILD";
@@ -19,7 +19,8 @@ export async function POST(request: Request) {
 
     const body = await request.json() as { purchaseType?: PurchaseType; guildId?: string; billingTerm?: BillingTerm };
     const purchaseType = body.purchaseType;
-    const billingTerm: BillingTerm = body.billingTerm === "ANNUAL" ? "ANNUAL" : "MONTHLY";
+    const validTerms: BillingTerm[] = ["MONTHLY", "QUARTERLY", "SEMIANNUAL", "ANNUAL"];
+    const billingTerm: BillingTerm = validTerms.includes(body.billingTerm as BillingTerm) ? body.billingTerm as BillingTerm : "MONTHLY";
     if (purchaseType !== "PERSONAL" && purchaseType !== "GUILD") {
       return NextResponse.json({ error: "INVALID_PURCHASE_TYPE" }, { status: 400 });
     }
