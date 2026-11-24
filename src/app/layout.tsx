@@ -6,6 +6,7 @@ import { getPlatformAdmin } from "@/lib/platform-admin";
 import { hasGuildModule, RESOURCE_SUITE_MODULE } from "@/lib/auth/modules";
 import { prisma } from "@/lib/prisma";
 import { getActiveImpersonation } from "@/lib/impersonation";
+import { hasCombatSimulatorAccess } from "@/lib/ro3-combat-simulator/entitlements";
 import AppShell from "./AppShell";
 import { HMDL_MARK } from "@/lib/hmdl-brand";
 import NotificationWatcher from "./notifications/NotificationWatcher";
@@ -26,11 +27,12 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const impersonation = await getActiveImpersonation();
   const navPermissionKeys: Permission[] = ["members.view", "applicants.view", "users.view", "leave.manageAny", "leave.manageOwn", "events.view", "rosters.view", "allocation.view", "guild.manage"];
   const permissions = auth ? navPermissionKeys.filter((permission) => hasPermission(auth.role, permission)) : [];
-  const [accessibleGuildCount, isPlatformAdmin, hasResourceSuite, ownMember, adminUser] = auth
+  const [accessibleGuildCount, isPlatformAdmin, hasResourceSuite, hasCombatSimulator, ownMember, adminUser] = auth
     ? await Promise.all([
         prisma.guildMembership.count({ where: { userId: auth.user.id } }),
         getPlatformAdmin().then(Boolean),
         hasGuildModule(auth.guild.id, RESOURCE_SUITE_MODULE),
+        hasCombatSimulatorAccess(auth.user.id, auth.guild.id),
         prisma.guildMember.findFirst({
           where: {
             guildId: auth.guild.id,
@@ -41,7 +43,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         }),
         impersonation ? prisma.user.findUnique({ where: { id: impersonation.adminUserId }, select: { username: true } }) : Promise.resolve(null),
       ])
-    : [0, false, false, null, null];
+    : [0, false, false, false, null, null];
 
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
@@ -54,6 +56,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             accessibleGuildCount={accessibleGuildCount}
             isPlatformAdmin={isPlatformAdmin}
             hasResourceSuite={hasResourceSuite}
+            hasCombatSimulator={hasCombatSimulator}
             ownMemberId={ownMember?.id ?? null}
             permissions={permissions}
             impersonation={impersonation ? { mode: impersonation.mode as "USER" | "ROLE", role: impersonation.role, targetUsername: auth.user.username, guildName: auth.guild.name, adminUsername: adminUser?.username ?? "Platform Admin", expiresAt: impersonation.expiresAt.toISOString() } : null}
