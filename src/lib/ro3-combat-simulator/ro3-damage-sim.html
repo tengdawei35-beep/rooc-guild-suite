@@ -815,6 +815,100 @@ html body textarea:disabled {
   background-image: none !important;
   opacity: .7;
 }
+
+
+/* Heimdall design-system alignment: Damage Report */
+#w-report {
+  --report-bg: #10141b;
+  --report-raised: #151b24;
+  --report-muted: #0c1016;
+  --report-border: #252d38;
+  --report-border-strong: #394454;
+  --report-text: #eef2f7;
+  --report-secondary: #a4afbd;
+  --report-muted-text: #748092;
+  --report-accent: #a9c7f5;
+  color: var(--report-text);
+  background: var(--report-bg);
+  border: 1px solid var(--report-border);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 28%);
+}
+#w-report > header {
+  background: #151b24;
+  border-bottom: 1px solid var(--report-border);
+  color: var(--report-text);
+}
+#w-report > header h2,
+#w-report .chart h3 { color: var(--report-text); }
+#w-report > .body { background: var(--report-bg); }
+#w-report .kpi {
+  min-width: 0;
+  color: var(--report-text);
+  background: linear-gradient(180deg, #151b24 0%, #10141b 100%);
+  border: 1px solid var(--report-border-strong);
+  border-radius: 9px;
+  box-shadow: none;
+}
+#w-report .kpi small { color: var(--report-secondary); }
+#w-report .kpi b { color: var(--report-text); }
+#w-report .kpi span { color: var(--report-secondary); }
+#w-report .kpi .up { color: #43c58a; }
+#w-report .kpi .down { color: #f07878; }
+#w-report .chart {
+  color: var(--report-text);
+  background: #10141b;
+  border: 1px solid var(--report-border);
+  border-radius: 10px;
+  box-shadow: none;
+}
+#w-report .chart .sub,
+#w-report .leg,
+#w-report .foot2 { color: var(--report-secondary); }
+#w-report .foot2 b { color: var(--report-text); }
+#w-report .chart svg text {
+  fill: #a4afbd !important;
+}
+#w-report .chart svg .ttl {
+  fill: #eef2f7 !important;
+  stroke: #10141b !important;
+  stroke-width: 3px;
+  paint-order: stroke;
+}
+#w-report .tbl th {
+  color: var(--report-secondary);
+  border-bottom-color: var(--report-border-strong);
+}
+#w-report .tbl td {
+  color: var(--report-text);
+  border-bottom-color: var(--report-border);
+}
+#w-report .tbl tr:hover td { background: rgb(255 255 255 / 3%); }
+#w-report .cmp tr.on td { background: rgb(169 199 245 / 9%); }
+#w-report .cmp td.nm small { color: var(--report-muted-text); }
+#w-report .cmp .up { color: #43c58a; }
+#w-report .cmp .down { color: #f07878; }
+#w-report .cmp td.warn { color: #f07878; }
+#w-report .seg {
+  border-color: var(--report-border-strong);
+  border-radius: 7px;
+}
+#w-report .seg button {
+  color: var(--report-secondary);
+  background: #151b24;
+}
+#w-report .seg button + button { border-left-color: var(--report-border); }
+#w-report .seg button.on {
+  color: #101a2a;
+  background: #a9c7f5;
+}
+#w-report .share b { color: var(--report-text); }
+#w-report .mut { color: var(--report-muted-text); }
+#w-report button:focus-visible {
+  outline: 2px solid var(--report-accent);
+  outline-offset: 2px;
+}
+
 </style>
 </head>
 <body>
