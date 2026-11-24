@@ -9,6 +9,7 @@ const cards = [
   { href: "/admin/users", title: "Users", description: "Review platform users and their guild relationships.", label: "Platform" },
   { href: "/admin/impersonation", title: "Impersonation", description: "Preview the product as a guild owner, manager, officer, member or registered user. Review session history.", label: "Support & testing" },
   { href: "/admin/subscriptions", title: "Subscriptions", description: "Review platform-wide subscription and billing activity.", label: "Billing" },
+  { href: "/admin/combat-simulator-access", title: "Combat Simulator Access", description: "Grant or revoke complimentary Combat Simulator access for individual users and entire guilds.", label: "Product access" },
   { href: "/admin/settings", title: "System Settings", description: "Platform-level configuration and administrative controls.", label: "Configuration" },
   { href: "/admin/settings/discord", title: "Discord Role Sync", description: "Map subscription plans to existing roles in the official HMDL Discord server.", label: "Integrations" },
 ];

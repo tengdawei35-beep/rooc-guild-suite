@@ -137,13 +137,15 @@ export default function AppShell({
     },
     {
       label: "INSIGHTS",
-      items: roleCan("members.view")
-        ? [
-            { label: "Statistics", href: "/guild/statistics", icon: "▥" },
-            { label: "Rankings", href: "/guild/rankings", icon: "↗" },
-            ...(hasCombatSimulator ? [{ label: "Combat simulator", href: "/combat-simulator", icon: "⚔" }] : []),
-          ]
-        : [],
+      items: [
+        ...(roleCan("members.view")
+          ? [
+              { label: "Statistics", href: "/guild/statistics", icon: "▥" },
+              { label: "Rankings", href: "/guild/rankings", icon: "↗" },
+            ]
+          : []),
+        ...(hasCombatSimulator ? [{ label: "Combat simulator", href: "/combat-simulator", icon: "⚔" }] : []),
+      ],
     },
     {
       label: "CONFIGURATION",
