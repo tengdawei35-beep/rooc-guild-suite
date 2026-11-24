@@ -768,6 +768,53 @@ html body textarea:disabled {
   -webkit-text-fill-color: #8491a3 !important;
   opacity: .7;
 }
+
+/* Corrected field override: legacy .num/.txt rules use background shorthand gradients. */
+html body input.num,
+html body input.txt,
+html body input.bname,
+html body textarea,
+html body .field input,
+html body .combo input {
+  color: #eef2f7 !important;
+  -webkit-text-fill-color: #eef2f7 !important;
+  background: #0c121a !important;
+  background-image: none !important;
+  border-color: #39495d !important;
+  box-shadow: none !important;
+  caret-color: #a9c7f5 !important;
+}
+html body input.num::placeholder,
+html body input.txt::placeholder,
+html body textarea::placeholder {
+  color: #8491a3 !important;
+  -webkit-text-fill-color: #8491a3 !important;
+  opacity: 1 !important;
+}
+html body input.num:focus,
+html body input.txt:focus,
+html body input.bname:focus,
+html body textarea:focus,
+html body .field input:focus,
+html body .combo input:focus {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  background: #111b28 !important;
+  background-image: none !important;
+  border-color: #a9c7f5 !important;
+  outline: 2px solid rgb(169 199 245 / 24%) !important;
+  outline-offset: 1px;
+}
+html body input.num:disabled,
+html body input.txt:disabled,
+html body input.bname:disabled,
+html body textarea:disabled {
+  color: #8491a3 !important;
+  -webkit-text-fill-color: #8491a3 !important;
+  background: #111720 !important;
+  background-image: none !important;
+  opacity: .7;
+}
 </style>
 </head>
 <body>
