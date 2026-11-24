@@ -14,6 +14,7 @@ type Props = {
   accessibleGuildCount: number;
   isPlatformAdmin: boolean;
   hasResourceSuite: boolean;
+  hasCombatSimulator: boolean;
   ownMemberId: string | null;
   permissions: Permission[];
   impersonation: { mode: "USER" | "ROLE"; role: UserRole; targetUsername: string; guildName: string; adminUsername: string; expiresAt: string } | null;
@@ -47,6 +48,7 @@ export default function AppShell({
   accessibleGuildCount,
   isPlatformAdmin,
   hasResourceSuite,
+  hasCombatSimulator,
   ownMemberId,
   permissions,
   impersonation,
@@ -139,6 +141,7 @@ export default function AppShell({
         ? [
             { label: "Statistics", href: "/guild/statistics", icon: "▥" },
             { label: "Rankings", href: "/guild/rankings", icon: "↗" },
+            ...(hasCombatSimulator ? [{ label: "Combat simulator", href: "/combat-simulator", icon: "⚔" }] : []),
           ]
         : [],
     },
