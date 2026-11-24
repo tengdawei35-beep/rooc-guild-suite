@@ -6858,7 +6858,7 @@ window.addEventListener('message', (event) => {
       if (Number.isInteger(message.stats.level) && message.stats.level >= 1 && message.stats.level <= 200) S.level = message.stats.level;
       refit(S, want);
       save();
-      renderAll();
+      refresh();
       window.parent.postMessage({ source: 'ro3-simulator', type: 'RO3_PROFILE_IMPORTED', role: 'attacker' }, '*');
     }
   } else if (message.role === 'defender' && message.stats && typeof message.stats === 'object') {
@@ -6867,7 +6867,7 @@ window.addEventListener('message', (event) => {
     if (finite(message.stats.mdef)) target.mdef = message.stats.mdef;
     S.target = target;
     save();
-    renderAll();
+    refresh();
     window.parent.postMessage({ source: 'ro3-simulator', type: 'RO3_PROFILE_IMPORTED', role: 'defender' }, '*');
   }
 });
