@@ -637,6 +637,61 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 @media(max-width:600px) {
   .workspace { padding:10px 0; }
 }
+
+/* Heimdall form-control pass: consistent dark fields, readable values and native option menus. */
+:root { color-scheme: dark; }
+input, select, textarea,
+.num, .txt, .sel,
+select.btab.tpl, .bname {
+  color: #eef2f7 !important;
+  -webkit-text-fill-color: #eef2f7;
+  background-color: #0c121a !important;
+  border-color: #39495d !important;
+  box-shadow: none;
+  color-scheme: dark;
+}
+input:hover, select:hover, textarea:hover,
+.num:hover, .txt:hover, .sel:hover {
+  border-color: #607b9f !important;
+}
+input:focus, select:focus, textarea:focus,
+.num:focus, .txt:focus, .sel:focus {
+  color: #f5f8fc !important;
+  border-color: #a9c7f5 !important;
+  background-color: #111b28 !important;
+  outline: 2px solid rgb(169 199 245 / 24%) !important;
+  outline-offset: 1px;
+}
+input::placeholder, textarea::placeholder {
+  color: #748092 !important;
+  -webkit-text-fill-color: #748092;
+  opacity: 1;
+}
+select option, select optgroup,
+select.btab.tpl option, select.btab.tpl optgroup {
+  color: #eef2f7 !important;
+  background: #141b24 !important;
+  -webkit-text-fill-color: #eef2f7;
+}
+select option:checked {
+  color: #f5f8fc !important;
+  background: #263a53 !important;
+}
+select:disabled, input:disabled, textarea:disabled {
+  color: #748092 !important;
+  -webkit-text-fill-color: #748092;
+  background-color: #111720 !important;
+  opacity: .65;
+}
+.num.red { color: #f07878 !important; -webkit-text-fill-color: #f07878; }
+.fin .num {
+  color: #eef2f7 !important;
+  -webkit-text-fill-color: #eef2f7;
+  background: transparent !important;
+}
+.fin .num:hover, .fin .num:focus {
+  background: #111b28 !important;
+}
 </style>
 </head>
 <body>
