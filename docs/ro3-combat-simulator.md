@@ -62,10 +62,14 @@ The current Heimdall branch includes:
 
 ### Stripe configuration
 
-Set recurring Stripe Price IDs before enabling checkout:
+Set eight recurring Stripe Price IDs before enabling checkout. Configure all eight with a monthly interval and interval counts of 1, 3, 6 and 12 months respectively:
 - `STRIPE_PRICE_COMBAT_SIMULATOR_PERSONAL_MONTHLY`
+- `STRIPE_PRICE_COMBAT_SIMULATOR_PERSONAL_QUARTERLY`
+- `STRIPE_PRICE_COMBAT_SIMULATOR_PERSONAL_SEMIANNUAL`
 - `STRIPE_PRICE_COMBAT_SIMULATOR_PERSONAL_ANNUAL`
 - `STRIPE_PRICE_COMBAT_SIMULATOR_GUILD_MONTHLY`
+- `STRIPE_PRICE_COMBAT_SIMULATOR_GUILD_QUARTERLY`
+- `STRIPE_PRICE_COMBAT_SIMULATOR_GUILD_SEMIANNUAL`
 - `STRIPE_PRICE_COMBAT_SIMULATOR_GUILD_ANNUAL`
 
 The guild add-on requires an active Basic or Total guild subscription. Individual subscriptions do not require a guild add-on or an active guild plan. Both purchase types are synchronized through Stripe subscription webhooks.
