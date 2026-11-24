@@ -49,3 +49,27 @@ Upstream README notes that Divine Totem execute effects, healing, shields, and P
 - Add attacker/defender presets from saved member stats, while allowing manual edits.
 - Use the source engine's own self-tests and regression fixtures when the engine is extracted into a testable module.
 - Establish and document versioned PvP, DPS, and Tank scoring weights before ranking members. Scores must normalize inputs and avoid rewarding duplicate/overlapping stats twice.
+
+## Heimdall integration status
+
+The current Heimdall branch includes:
+- A protected `/combat-simulator` workspace and an authenticated, non-cacheable source endpoint.
+- Personal subscriptions and guild add-on subscriptions, separate from the existing Basic / Total guild-plan records.
+- Server-side entitlement checks for both purchase types.
+- Billing UI and Stripe Customer Portal routing for personal and guild add-on subscriptions.
+- Guild member attacker presets that fit imported HP, PATK, MATK, PDEF and MDEF to the simulator's final stat sheet; defender presets import PDEF and MDEF into the target panel.
+- Manual simulator builds remain available when no member preset is selected.
+
+### Stripe configuration
+
+Set recurring Stripe Price IDs before enabling checkout:
+- `STRIPE_PRICE_COMBAT_SIMULATOR_PERSONAL_MONTHLY`
+- `STRIPE_PRICE_COMBAT_SIMULATOR_PERSONAL_ANNUAL`
+- `STRIPE_PRICE_COMBAT_SIMULATOR_GUILD_MONTHLY`
+- `STRIPE_PRICE_COMBAT_SIMULATOR_GUILD_ANNUAL`
+
+The guild add-on requires an active Basic or Total guild subscription. Individual subscriptions do not require a guild add-on or an active guild plan. Both purchase types are synchronized through Stripe subscription webhooks.
+
+### Member preset scope
+
+The first preset bridge imports the final core stat values stored by Heimdall. It does not yet reconstruct the complete equipment, card, pet, talent, skill-tree or buff loadout from OCR JSON. After importing an attacker, confirm the job and skill and review all other build components manually. The defender preset only replaces target PDEF and MDEF.
