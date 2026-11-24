@@ -731,6 +731,43 @@ html body .sel:disabled {
   background-color: #111720 !important;
   opacity: .7;
 }
+
+/* Final text-field pass: remove legacy parchment gradients from editable fields. */
+html body input:not([type="checkbox]):not([type="radio"]):not([type="range"]),
+html body textarea,
+html body .txt,
+html body .bname {
+  color: #eef2f7 !important;
+  -webkit-text-fill-color: #eef2f7 !important;
+  background: linear-gradient(180deg, #172230 0%, #0c121a 100%) !important;
+  border: 1px solid #39495d !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 3%) !important;
+  caret-color: #a9c7f5;
+}
+html body input:not([type="checkbox"]):not([type="radio"]):not([type="range"])::placeholder,
+html body textarea::placeholder {
+  color: #8491a3 !important;
+  -webkit-text-fill-color: #8491a3 !important;
+  opacity: 1 !important;
+}
+html body input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus,
+html body textarea:focus,
+html body .txt:focus,
+html body .bname:focus {
+  background: #111b28 !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  border-color: #a9c7f5 !important;
+  outline: 2px solid rgb(169 199 245 / 24%) !important;
+  outline-offset: 1px;
+}
+html body input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):disabled,
+html body textarea:disabled {
+  background: #111720 !important;
+  color: #8491a3 !important;
+  -webkit-text-fill-color: #8491a3 !important;
+  opacity: .7;
+}
 </style>
 </head>
 <body>
