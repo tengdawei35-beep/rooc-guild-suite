@@ -73,7 +73,7 @@ export async function POST(request: Request) {
         }
         return NextResponse.json({ received: true });
       }
-      const session = event.data.object as Stripe.Checkout.Session; const metadata = session.metadata; const planId = metadata?.planId; const guildName = metadata?.guildName; const discordGuildId = metadata?.discordGuildId; const gameType = metadata?.gameType === "RO3" ? "RO3" : "ROOC"; const discordUserId = metadata?.discordUserId; const guildId = metadata?.guildId; const affiliateId = metadata?.affiliateId;
+      const metadata = session.metadata; const planId = metadata?.planId; const guildName = metadata?.guildName; const discordGuildId = metadata?.discordGuildId; const gameType = metadata?.gameType === "RO3" ? "RO3" : "ROOC"; const discordUserId = metadata?.discordUserId; const guildId = metadata?.guildId; const affiliateId = metadata?.affiliateId;
       if (!planId || !discordUserId || (!guildId && (!guildName || !discordGuildId))) return NextResponse.json({ error: "INVALID_CHECKOUT_METADATA" }, { status: 400 });
       const subscriptionId = typeof session.subscription === "string" ? session.subscription : session.subscription?.id; const customerId = typeof session.customer === "string" ? session.customer : session.customer?.id; if (!subscriptionId) return NextResponse.json({ error: "MISSING_STRIPE_SUBSCRIPTION" }, { status: 400 });
       let createdGuildId = guildId;
