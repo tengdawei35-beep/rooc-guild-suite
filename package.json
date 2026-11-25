@@ -10,7 +10,7 @@
     "lint": "eslint",
     "db:migrate:deploy": "prisma migrate deploy",
     "call-to-arms:reminder": "tsx scripts/call-to-arms-reminder.ts",
-    "test:combat-engine": "tsx --test tests/ro3-combat-engine.test.mjs tests/ro3-combat-game-data.test.mjs"
+    "test:combat-engine": "tsx --test tests/ro3-combat-engine.test.mjs tests/ro3-combat-game-data.test.mjs tests/ro3-combat-input-validation.test.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.0",
