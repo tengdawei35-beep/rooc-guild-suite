@@ -86,3 +86,10 @@ The native preview now reads each selected item's affix pool, slot count, fixed 
 Two-handed weapons (the simulator's weapon part 1) now expose separate off-hand-grid Refine and Enhance values. The UI prevents simultaneously selecting an off-hand item and a two-handed weapon. The adapter maps off-hand levels onto the two-handed weapon input so the existing engine can account for the off-hand grid's Max HP contribution.
 
 The new regression coverage inspects the full exported data for an equipment row with affix or stunt configuration and verifies the engine breakdown exposes its corresponding pools. Build-input tests also assert affix, stunt and off-hand level values survive the native-to-engine mapping. This remains software-level coverage; no live-game damage validation or complete native-versus-legacy equivalence claim is made.
+
+
+### Base-level equipment and card cap parity
+
+The legacy UI derives each grid's maximum Refine and Enhance from `RefiningTable` and `StrengthenTable` `_iLev` requirements. The native hook now calculates those same seven per-grid caps from the exported tables, displays them as input maxima, and clamps mapped values before simulation. A two-handed weapon's off-hand grid levels use grid 2's own caps.
+
+Card advancement now follows the legacy `CARD_CAP` values (star 0–3: levels 5, 10, 15, 15). The native UI also queries the existing `cardParts()` breakdown to determine whether a selected card actually has Collection attributes; the Collection toggle is disabled when it does not. The adapter clamps card level to the selected star's cap. Tests cover gear cap mapping and card star-level clamping.
