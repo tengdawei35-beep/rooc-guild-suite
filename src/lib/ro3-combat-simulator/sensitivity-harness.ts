@@ -85,12 +85,14 @@ function evaluate(
   channel: "physical" | "magic",
   stats: Stats,
   defender: Readonly<Record<string, number>> = REFERENCE_DEFENDER,
+  forceCritical = false,
 ): DamageResult {
   const build = { level: REFERENCE_LEVEL, element: 1, activeBuffs: [], cards: [], totems: [] };
+  const skillRow = { ...SKILLS[channel], ...(forceCritical ? { _iSkillCri: 10000 } : {}) };
   return simulator.evaluateSkillDamage(
     build,
     { ...defender },
-    { ...SKILLS[channel] },
+    skillRow,
     { stats, rulesApplied: true },
     data,
   );
@@ -187,6 +189,22 @@ export function buildSensitivityReport() {
     };
   });
 
+  const criticalBaseStats = copyStats(REFERENCE_PROFILES.physical);
+  criticalBaseStats[111] = 10000; // Guaranteed physical critical chance for this isolated probe.
+  const criticalChangedStats = copyStats(criticalBaseStats);
+  criticalChangedStats[209] = 1000;
+  const criticalBaseline = evaluate("physical", criticalBaseStats, REFERENCE_DEFENDER, true);
+  const criticalChanged = evaluate("physical", criticalChangedStats, REFERENCE_DEFENDER, true);
+  const criticalDamageSensitivity = {
+    channel: "physical" as const,
+    input: "Critical Damage (209)",
+    baselineDamage: criticalBaseline.expectedPerCast,
+    changedDamage: criticalChanged.expectedPerCast,
+    absoluteChange: criticalChanged.expectedPerCast - criticalBaseline.expectedPerCast,
+    percentChange: Number(deltaPercent(criticalBaseline.expectedPerCast, criticalChanged.expectedPerCast).toFixed(4)),
+    probe: "+1,000 bp with guaranteed physical critical chance",
+  };
+
   return {
     reportVersion: "RO3_SIM_SENSITIVITY_V1",
     status: "ENGINEERING_PROBE_ONLY",
@@ -207,6 +225,7 @@ export function buildSensitivityReport() {
       "Simulator formula caveats remain applicable; this report is not an in-game validation or a published scoring baseline.",
     ],
     sensitivity: rows,
+    criticalDamageSensitivity,
     targetDefenceSensitivity: defenderRows,
     overlappingBonusTests: overlaps,
   };
