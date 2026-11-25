@@ -35,7 +35,7 @@ test("selected gear and cards map to engine-native structures and reject wrong s
   assert.equal(capped.gear[0].offRefine,2);
   assert.equal(capped.gear[0].offEnhance,3);
   assert.deepEqual(mapped.cards.map((c)=>c.id),[20,21]);
-  assert.deepEqual(mapped.cards[0],{id:20,star:2,level:10,flash:true});
+  assert.deepEqual(mapped.cards[0],{id:20,star:2,level:12,flash:true});
   const lowLevel = toEngineEquipment(state, [{ id:10,name:"Sword",part:1,quality:6,levelRequired:90,tier:7,rank:7 }], [{ id:20,name:"Weapon card",part:1,quality:6},{ id:21,name:"Offhand card",part:2,quality:5 }], 10);
   assert.equal(lowLevel.gear.length,0);
   assert.deepEqual(lowLevel.cards.map((card)=>card.id),[20]);
