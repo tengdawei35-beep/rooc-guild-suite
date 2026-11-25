@@ -191,8 +191,9 @@ export function calculateRo3PvPScore(
   job: string | null | undefined,
   dpsScore: number | null | undefined,
   tankScore: number | null | undefined,
+  role?: "DPS" | "TANK",
 ): Ro3ScoreResult {
-  const isDps = isRo3DpsJob(job);
+  const isDps = job !== "Archbishop" && (role ?? "DPS") === "DPS";
   const weights = isDps ? { dps: 60, tank: 40 } : { tank: 100 };
   const missingComponents: string[] = [];
   if (typeof tankScore !== "number" || !Number.isFinite(tankScore)) missingComponents.push("tank");
@@ -231,19 +232,21 @@ export function calculateRo3PvPScore(
  */
 export function calculateRo3MemberScores(input: {
   job: string | null | undefined;
+  role?: "DPS" | "TANK";
   dpsCategory?: "PHYSICAL_DPS" | "MAGIC_DPS";
   dpsComponents?: Ro3ScoreComponents;
   tankComponents: Ro3ScoreComponents;
   supportsCriticalHits?: boolean;
 }): Ro3MemberScoreResult {
   const dpsCategory = input.dpsCategory ?? (input.job === "Warlock" ? "MAGIC_DPS" : "PHYSICAL_DPS");
-  const dps = isRo3DpsJob(input.job)
+  const isDpsRole = input.job !== "Archbishop" && (input.role ?? "DPS") === "DPS";
+  const dps = isDpsRole
     ? calculateRo3Score(dpsCategory, input.dpsComponents ?? {}, {
         supportsCriticalHits: input.supportsCriticalHits,
       })
     : null;
   const tank = calculateRo3Score("TANK", input.tankComponents);
-  const pvp = calculateRo3PvPScore(input.job, dps?.score, tank.score);
+  const pvp = calculateRo3PvPScore(input.job, dps?.score, tank.score, input.role);
 
   return {
     version: "RO3_MEMBER_V2",
@@ -251,7 +254,7 @@ export function calculateRo3MemberScores(input: {
     dps,
     tank,
     pvp,
-    pvpComposition: isRo3DpsJob(input.job)
+    pvpComposition: isDpsRole
       ? { dpsWeight: 60, tankWeight: 40 }
       : { dpsWeight: 0, tankWeight: 100 },
   };
