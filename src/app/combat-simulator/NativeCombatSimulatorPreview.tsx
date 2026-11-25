@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useCombatSimulatorEngine } from "@/lib/ro3-combat-simulator/hooks/use-combat-simulator-engine";
 import type { CombatBuild, CombatDefender, CombatRotationResult } from "@/lib/ro3-combat-simulator/types";
+import { validateCombatInput } from "@/lib/ro3-combat-simulator/validate-input.mjs";
 
 type Member = {
   id: string; characterName: string | null; discordUsername: string | null; job: string | null;
@@ -82,11 +83,21 @@ export default function NativeCombatSimulatorPreview() {
   function runSimulation() {
     setSimulationError(null); setResult(null);
     try {
-      const ids = skillIds.trim() ? skillIds.split(/[\s,;]+/).filter(Boolean).map(Number) : [];
-      if (ids.some((id) => !Number.isInteger(id) || id <= 0)) throw new Error("Skill IDs must be positive whole numbers, separated by commas or spaces.");
-      const ms = numeric(duration,30000);
-      if (ms < 1000 || ms > 300000) throw new Error("Duration must be between 1,000 and 300,000 milliseconds.");
-      const output = engine.simulate(attacker, defender, ids, ms);
+      const validated = validateCombatInput({
+        level, stats, defenderLevel: targetLevel, pdef: def, mdef,
+        element, race, size, durationMs: duration, skillIds,
+      });
+      const validatedAttacker: CombatBuild = {
+        career: 1410, level: validated.level, stats: validated.stats,
+      };
+      const validatedDefender: CombatDefender = {
+        name: "Training target", level: validated.defenderLevel,
+        def: validated.pdef, mdef: validated.mdef, element: validated.element,
+        race: validated.race, size: validated.size,
+      };
+      const output = engine.simulate(
+        validatedAttacker, validatedDefender, validated.skillIds, validated.durationMs,
+      );
       setResult(output); setRunCount((n) => n + 1);
     } catch (e) { setSimulationError(e instanceof Error ? e.message : String(e)); }
   }
