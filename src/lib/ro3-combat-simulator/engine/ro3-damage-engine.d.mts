@@ -33,3 +33,5 @@ export declare function simulateRotation(
 };
 
 export declare function buildCharacterStats(build: Record<string, any>, data?: Ro3MemoryDataStore, skipTotemOp10?: boolean): { data: Record<number, number>; base: Record<number, number>; [key: number]: any };
+
+export declare function gearParts(gear: Record<string, any>, data?: Ro3MemoryDataStore): any;
