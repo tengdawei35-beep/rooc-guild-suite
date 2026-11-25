@@ -53,7 +53,6 @@ async function main() {
     where: {
       active: true,
       guild: { gameType: "RO3" },
-      ro3Stats: { not: null },
     },
     select: {
       job: true,
