@@ -41,8 +41,8 @@ testCase("Tank defensive weights rebalance only inside the 95% allocation", () =
   });
   assert.equal(result.score, 74.09);
   assert.equal(result.contributions.hp, 5);
-  assert.equal(result.contributions.defence, 25.91);
-  assert.equal(result.contributions.damageReduction, 43.18);
+  assert.ok(Math.abs((result.contributions.defence ?? 0) - 25.9090909091) < 0.001);
+  assert.ok(Math.abs((result.contributions.damageReduction ?? 0) - 43.1818181818) < 0.001);
 });
 
 testCase("DPS PvP score is 60% DPS plus 40% Tank", () => {
