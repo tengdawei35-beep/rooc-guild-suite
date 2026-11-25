@@ -58,6 +58,7 @@ type RosterMember = {
       | "OFFICER"
       | "COUNCIL"
       | "MEMBER";
+    ro3Stats?: Record<string, number | null> | null;
   };
 };
 
@@ -1835,6 +1836,7 @@ function PartyCard({
                   )}
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm text-zinc-300">{assignment.member.characterName || assignment.member.characterName}</p>
+                    {assignment.member.ro3Stats && (assignment.member.ro3Stats.damageVsDemiHuman != null || assignment.member.ro3Stats.damageReductionVsDemiHuman != null) && <p className="mt-1 text-[10px] text-zinc-500">Demi-Human DMG {assignment.member.ro3Stats.damageVsDemiHuman ?? "—"}% · Reduction {assignment.member.ro3Stats.damageReductionVsDemiHuman ?? "—"}%</p>}
                     <RosterJobOverrides
                       eventId={eventId}
                       assignmentId={assignment.id}
