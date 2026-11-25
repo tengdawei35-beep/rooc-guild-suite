@@ -20,3 +20,17 @@ test("skill options mirror the selected career ancestry and choose highest learn
   assert.deepEqual(options.map((option) => option.id).sort((a,b)=>a-b), [1100110,1400110,1410110]);
   assert.equal(options.find((option) => option.groupId === 11001)?.level, 10);
 });
+
+import { loadRo3GameData } from "../src/lib/ro3-combat-simulator/data/ro3-game-data";
+
+test("full exported dataset produces Royal Guard career skill options", async () => {
+  const exported = await loadRo3GameData();
+  const options = getCombatSkillOptions(
+    exported.ui,
+    exported.tables.SkillConfig,
+    1410,
+  );
+  assert.ok(options.length > 0, "Royal Guard career tree should expose learnable damage skills");
+  assert.equal(new Set(options.map((option) => option.groupId)).size, options.length);
+  assert.ok(options.every((option) => option.id > 0 && option.level > 0));
+});
