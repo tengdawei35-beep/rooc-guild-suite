@@ -49,6 +49,7 @@ been migrated in this phase.
 | Extract embedded game data | Complete; compressed payload module and in-memory store factory added |
 | Define typed engine inputs/outputs and expand coverage | Initial models/rotation result defined; broader engine typings pending |
 | Typed workspace models and calculation adapter | Initial boundary complete |
+| React engine lifecycle hook | Initial hook complete; not connected to production route |
 | Build native React component architecture | Not started |
 | Connect React state to extracted engine | Not started |
 | Migrate profile import and reports | Not started |
