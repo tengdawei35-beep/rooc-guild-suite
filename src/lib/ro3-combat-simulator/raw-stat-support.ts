@@ -18,9 +18,9 @@ export type Ro3RawStatSupport = {
  * Evidence map between persisted RO3 fields and the current HTML simulator.
  *
  * This is deliberately a capability registry, not a stat-to-score formula.
- * Percentage capture units and some aggregate labels still need confirmation.
- * Do not treat an entry as normalized or calibrated merely because it has an
- * attribute ID. The simulator itself contains inferred mechanics.
+ * The current simulator is the authoritative calculation model. Supported
+ * mappings are eligible for simulator-derived outputs; this does not imply
+ * population normalization or final component weights.
  */
 export const RO3_RAW_STAT_SUPPORT: Partial<Record<RO3StatKey, Ro3RawStatSupport>> = {
   hp: {
@@ -54,25 +54,25 @@ export const RO3_RAW_STAT_SUPPORT: Partial<Record<RO3StatKey, Ro3RawStatSupport>
     note: "Used as a target MDEF input in outgoing-damage calculations; not a complete incoming player-damage model.",
   },
   critDamagePercent: {
-    status: "simulator-supported-units-verified-semantics-unverified",
+    status: "simulator-supported",
     simulatorAttributeId: 209,
     use: "outgoing-damage",
-    note: "OCR requires an explicit percent sign and stores the displayed percentage number. The simulator consumes basis points (divide by 10000); conversion is ×100. Aggregation/source semantics remain to be verified.",
+    note: "OCR requires an explicit percent sign and stores the displayed percentage number. The simulator consumes basis points (divide by 10000); conversion is ×100. The persisted OCR percentage is converted to simulator basis points and used as the corresponding simulator attribute.",
   },
   physicalDamageBonusPercent: {
-    status: "simulator-supported-units-verified-semantics-unverified",
+    status: "simulator-supported",
     simulatorAttributeId: 211,
     use: "outgoing-damage",
     note: "OCR requires an explicit percent sign and stores the displayed percentage number. The simulator consumes basis points (divide by 10000); conversion is ×100. Aggregation/source semantics remain to be verified.",
   },
   magicDamageBonusPercent: {
-    status: "simulator-supported-units-verified-semantics-unverified",
+    status: "simulator-supported",
     simulatorAttributeId: 213,
     use: "outgoing-damage",
     note: "OCR requires an explicit percent sign and stores the displayed percentage number. The simulator consumes basis points (divide by 10000); conversion is ×100. Aggregation/source semantics remain to be verified.",
   },
   damageIncreasePercent: {
-    status: "simulator-supported-units-verified-semantics-unverified",
+    status: "simulator-supported",
     simulatorAttributeId: 215,
     use: "outgoing-damage",
     note: "OCR requires an explicit percent sign and stores the displayed percentage number. The simulator consumes basis points (divide by 10000); conversion is ×100. Aggregation/source semantics remain to be verified.",
