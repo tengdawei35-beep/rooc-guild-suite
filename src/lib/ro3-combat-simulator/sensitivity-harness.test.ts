@@ -65,3 +65,12 @@ testCase("a 10% target defence reduction produces the expected 5.26% damage incr
     assert.equal(row.percentChange, 5.26);
   }
 });
+
+testCase("critical damage modifier is isolated behind guaranteed physical criticals", () => {
+  const report = buildSensitivityReport();
+  const row = report.criticalDamageSensitivity;
+  assert.equal(row.input, "Critical Damage (209)");
+  assert.equal(row.baselineDamage, 7500);
+  assert.equal(row.changedDamage, 8000);
+  assert.equal(row.percentChange, 6.6667);
+});
