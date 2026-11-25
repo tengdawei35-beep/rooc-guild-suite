@@ -7,7 +7,7 @@ import { getCombatSkillOptions, type CombatSkillOption } from "../skill-options"
 import { simulateCombatRotation } from "../simulate";
 import { buildCharacterStats, gearParts } from "../engine/ro3-damage-engine.mjs";
 import { getCombatEquipmentCatalog } from "../equipment-options";
-import type { NativeEquipmentSelection } from "../build-input";
+import type { NativeEquipmentSelection, GearLevelCaps } from "../build-input";
 import { toEngineEquipment } from "../build-input";
 import type { Ro3MemoryDataStore } from "../engine/ro3-damage-engine.mjs";
 import type { CombatBuild, CombatDefender, CombatRotationResult } from "../types";
@@ -56,9 +56,19 @@ export function useCombatSimulatorEngine() {
 
   const getCharacterSheet = useCallback((attacker: CombatBuild, selection: NativeEquipmentSelection) => {
     if (!data || !equipmentCatalog) throw new Error("Combat engine is not ready yet.");
-    const mapped = toEngineEquipment(selection, equipmentCatalog.equipment, equipmentCatalog.cards, attacker.level);
+    const mapped = toEngineEquipment(selection, equipmentCatalog.equipment, equipmentCatalog.cards, attacker.level, getGearLevelCaps(attacker.level));
     return buildCharacterStats({ ...attacker, ...mapped }, data);
   }, [data, equipmentCatalog]);
+
+  const getGearLevelCaps = useCallback((baseLevel: number): GearLevelCaps => {
+    if (!data) return { refine: Array(7).fill(0), enhance: Array(7).fill(0) };
+    const cap = (tableName: string, key: string) => Array.from({ length: 7 }, (_, index) => {
+      const needs = Object.values(data.table(tableName)).filter((row) => Number(row._iEquipType) === index + 1)
+        .reduce((rows, row) => { rows[Number(row[key])] = Number(row._iLev); return rows; }, [] as number[]);
+      return needs.reduce((top, requiredLevel, level) => requiredLevel <= baseLevel ? level : top, 0);
+    });
+    return { refine: cap("RefiningTable", "_iRefiningInterval"), enhance: cap("StrengthenTable", "_iStrengthenInterval") };
+  }, [data]);
 
   const getGearCustomization = useCallback((id: number, grid: number) => {
     if (!data) return null;
@@ -94,5 +104,5 @@ export function useCombatSimulatorEngine() {
     return simulateCombatRotation(attacker, defender, rotationSkillIds, durationMs, data);
   }, [data]);
 
-  return { status, error, ready: status === "ready", skillOptions, equipmentCatalog, getCharacterSheet, getGearCustomization, simulate };
+  return { status, error, ready: status === "ready", skillOptions, equipmentCatalog, getCharacterSheet, getGearCustomization, getGearLevelCaps, simulate };
 }
