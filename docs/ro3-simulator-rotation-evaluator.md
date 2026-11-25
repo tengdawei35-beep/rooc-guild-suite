@@ -39,7 +39,7 @@ The evaluator reconciles supported persisted sheet values against the selected c
 
 ## Simulator-authored job profile discovery
 
-`listRo3SimulatorReferenceProfiles()` now inventories candidate rotations already present in the embedded simulator's `CLASS_PROFILES` data for the Heimdall DPS labels that have a direct profile key:
+`listRo3SimulatorReferenceProfiles()` now inventories candidate rotations already present in the embedded simulator's `CLASS_PROFILES` data for the six Heimdall DPS labels. Five have simulator-authored candidates; Royal Guard is represented explicitly as a missing-profile record:
 
 - Mechanic
 - Rune Knight (DPS)
@@ -51,7 +51,7 @@ It reports each candidate's simulator career ID, whether a corresponding `JobCon
 
 ### Gaps surfaced rather than guessed
 
-- Royal Guard (DPS) has no matching simulator-authored `CLASS_PROFILES` entry.
+- Royal Guard (DPS) is surfaced with `status: simulator-profile-missing` and no career ID because it has no matching simulator-authored `CLASS_PROFILES` entry.
 - The current simulator data's `JobConfig` table does not contain the 4th-job career IDs referenced by those profiles. The evaluator now rejects a missing career row instead of silently allowing the engine's Novice fallback sheet to contaminate the result.
 - A profile is marked `ready-for-review` only if its career row exists, all listed skill rows exist, and at least one candidate rotation has a valid damage skill. Even then, it is not executable until human review; no profile is currently auto-approved.
 
