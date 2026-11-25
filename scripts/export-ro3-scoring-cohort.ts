@@ -53,7 +53,6 @@ async function main() {
   const members = await prisma.guildMember.findMany({
     where: {
       active: true,
-      eligible: true,
       guild: { gameType: "RO3" },
       job: { in: ["Archbishop", "Royal Guard (Tank)", "Rune Knight (Tank)"] },
     },
