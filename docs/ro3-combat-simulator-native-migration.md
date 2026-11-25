@@ -50,8 +50,8 @@ been migrated in this phase.
 | Define typed engine inputs/outputs and expand coverage | Initial models/rotation result defined; broader engine typings pending |
 | Typed workspace models and calculation adapter | Initial boundary complete |
 | React engine lifecycle hook | Initial hook complete; not connected to production route |
-| Build native React component architecture | Initial isolated preview route and profile panels added; full editor architecture pending |
-| Connect React state to extracted engine | Engine lifecycle is exposed in the isolated preview; build-to-engine input mapping pending |
+| Build native React component architecture | Isolated preview route, native attacker/defender profile panels, build inputs and simulation report added; full feature parity pending |
+| Connect React state to extracted engine | Native Royal Guard baseline build and defender inputs now call the extracted rotation engine; equipment/card/talent and guild-profile mapping pending |
 | Migrate profile import and reports | Native preview reads the existing guild profile API and displays selected attacker/defender values; applying profiles to simulator builds and report migration pending |
 | Regression/equivalence tests against current iframe | Not started |
 | Remove iframe and legacy message bridge | Blocked until equivalence passes |
@@ -62,3 +62,8 @@ The authenticated iframe route remains the production path throughout this work.
 ## Native preview checkpoint
 
 An authenticated, subscription-gated preview is available at `/combat-simulator/native-preview` on the migration branch. It loads the extracted engine/data through the React lifecycle hook and reads the same active-guild member profile API as the legacy workspace. Attacker and defender selections are displayed in native panels for profile-contract verification. This is intentionally an isolated preview: `/combat-simulator` continues to use the existing iframe, and the preview does not yet run a damage calculation or claim parity.
+
+
+### Native baseline simulation checkpoint
+
+The isolated preview now exposes a deliberately small, explicit baseline build: the existing Royal Guard career ID (1410), six base stats, defender level/P.DEF/M.DEF/element/race/size IDs, optional SkillConfig IDs in rotation order, and simulation duration. It calls the extracted `simulateRotation` through the existing React hook and displays expected damage, sustained DPS, burst-5s DPS, cast counts and cast log. Empty skill rotation uses the engine's normal attack fallback. Guild profiles remain reference-only until their stored stat schema can be mapped without guessing. This is a native-engine smoke workflow, not a complete migration or an equivalence claim.
