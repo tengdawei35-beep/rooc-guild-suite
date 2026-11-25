@@ -194,7 +194,7 @@ export function calculateRo3PvPScore(
   role?: "DPS" | "TANK",
 ): Ro3ScoreResult {
   const isDps = job !== "Archbishop" && (role ?? "DPS") === "DPS";
-  const weights = isDps ? { dps: 60, tank: 40 } : { tank: 100 };
+  const weights: Record<string, number> = isDps ? { dps: 60, tank: 40 } : { tank: 100 };
   const missingComponents: string[] = [];
   if (typeof tankScore !== "number" || !Number.isFinite(tankScore)) missingComponents.push("tank");
   if (isDps && (typeof dpsScore !== "number" || !Number.isFinite(dpsScore))) missingComponents.push("dps");
