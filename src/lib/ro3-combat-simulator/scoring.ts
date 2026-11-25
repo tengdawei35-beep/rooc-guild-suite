@@ -72,15 +72,28 @@ const TANK: WeightedComponent[] = [
 
 const DPS_JOBS = [
   "Mechanic",
-  "Royal Guard",
-  "Rune Knight",
+  "Royal Guard (DPS)",
+  "Rune Knight (DPS)",
   "Warlock",
   "Ranger",
   "Guillotine Cross",
 ] as const;
 
+const TANK_JOBS = ["Royal Guard (Tank)", "Rune Knight (Tank)", "Archbishop"] as const;
+
 export function isRo3DpsJob(job: string | null | undefined): boolean {
   return typeof job === "string" && (DPS_JOBS as readonly string[]).includes(job);
+}
+
+export function isRo3TankOrSupportJob(job: string | null | undefined): boolean {
+  return typeof job === "string" && (TANK_JOBS as readonly string[]).includes(job);
+}
+
+function resolveRo3Role(job: string | null | undefined, role?: "DPS" | "TANK"): "DPS" | "TANK" {
+  if (job === "Archbishop") return "TANK";
+  if (role) return role;
+  if (typeof job === "string" && job.endsWith(" (Tank)")) return "TANK";
+  return "DPS";
 }
 
 export function getRo3ScoreWeights(
@@ -193,7 +206,7 @@ export function calculateRo3PvPScore(
   tankScore: number | null | undefined,
   role?: "DPS" | "TANK",
 ): Ro3ScoreResult {
-  const isDps = job !== "Archbishop" && (role ?? "DPS") === "DPS";
+  const isDps = resolveRo3Role(job, role) === "DPS";
   const weights: Record<string, number> = isDps ? { dps: 60, tank: 40 } : { tank: 100 };
   const missingComponents: string[] = [];
   if (typeof tankScore !== "number" || !Number.isFinite(tankScore)) missingComponents.push("tank");
@@ -239,7 +252,7 @@ export function calculateRo3MemberScores(input: {
   supportsCriticalHits?: boolean;
 }): Ro3MemberScoreResult {
   const dpsCategory = input.dpsCategory ?? (input.job === "Warlock" ? "MAGIC_DPS" : "PHYSICAL_DPS");
-  const isDpsRole = input.job !== "Archbishop" && (input.role ?? "DPS") === "DPS";
+  const isDpsRole = resolveRo3Role(input.job, input.role) === "DPS";
   const dps = isDpsRole
     ? calculateRo3Score(dpsCategory, input.dpsComponents ?? {}, {
         supportsCriticalHits: input.supportsCriticalHits,
