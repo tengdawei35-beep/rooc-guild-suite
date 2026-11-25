@@ -135,11 +135,11 @@ export default function NativeCombatSimulatorPreview() {
       <details className="mt-3" open><summary className="cursor-pointer text-xs font-medium text-zinc-300">Equipment slots (7)</summary>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           {EQUIPMENT_GRIDS.map((grid,index)=>{
-            const choices=(engine.equipmentCatalog?.equipment ?? []).filter((item)=>grid.parts.includes(item.part)&&item.levelRequired<=numeric(level,100)&&!(index===0&&item.part===1&&equipment.gear[1]?.id)&&!(index===1&&equipment.gear[0]?.id&&engine.equipmentCatalog?.equipment.find((w)=>w.id===equipment.gear[0]?.id)?.part===1));
+            const choices=(engine.equipmentCatalog?.equipment ?? []).filter((item)=>grid.parts.includes(item.part)&&item.levelRequired<=numeric(level,100)&&!(index===1&&equipment.gear[0]?.id&&engine.equipmentCatalog?.equipment.find((w)=>w.id===equipment.gear[0]?.id)?.part===1));
             const selectedItem=choices.find((item)=>item.id===equipment.gear[index]?.id);
             const gearOptions=selectedItem ? engine.getGearCustomization(selectedItem.id,index+1) : null;
             return <div key={grid.index} className="rounded-lg bg-black/20 p-3"><label className="block text-xs text-zinc-400">{grid.name}
-              <select disabled={index===1&&!!engine.equipmentCatalog?.equipment.find((w)=>w.id===equipment.gear[0]?.id&&w.part===1)} value={equipment.gear[index]?.id ?? 0} onChange={(e)=>setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===index?{...slot,id:Number(e.target.value)}:slot)}))} className={inputClass}>
+              <select disabled={index===1&&!!engine.equipmentCatalog?.equipment.find((w)=>w.id===equipment.gear[0]?.id&&w.part===1)} value={equipment.gear[index]?.id ?? 0} onChange={(e)=>{const id=Number(e.target.value);const picked=choices.find((item)=>item.id===id);setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===index?{...slot,id}:index===1&&picked?.part===1?{...slot,id:0}:slot)}));}} className={inputClass}>
                 <option value="0">Empty</option>{choices.map((item)=><option key={item.id} value={item.id}>{item.name} · T{item.tier} · Lv {item.levelRequired}</option>)}
               </select></label>
               {equipment.gear[index]?.id!==0&&<div className="mt-2 grid grid-cols-2 gap-2">
@@ -234,7 +234,7 @@ export default function NativeCombatSimulatorPreview() {
     </section>}
     <div className="rounded-xl border border-white/10 bg-zinc-900/50 p-4 text-xs leading-5 text-zinc-500">
       {profilesLoading ? "Loading active guild profiles…" : profilesError ? profilesError : `${members.length} active guild profiles available.`}
-      <p className="mt-1">Selected guild profiles are currently reference-only. Full profile-to-build mapping, equipment/card/talent controls, and saved-build migration remain separate tasks. The production iframe is untouched.</p>
+      <p className="mt-1">Selected guild profiles are currently reference-only. Full profile-to-build mapping, pets/talents/resonance and saved-build migration remain separate tasks. The production iframe is untouched.</p>
     </div>
   </div>;
 }
