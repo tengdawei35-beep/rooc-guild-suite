@@ -231,12 +231,14 @@ export function calculateRo3PvPScore(
  */
 export function calculateRo3MemberScores(input: {
   job: string | null | undefined;
+  dpsCategory?: "PHYSICAL_DPS" | "MAGIC_DPS";
   dpsComponents?: Ro3ScoreComponents;
   tankComponents: Ro3ScoreComponents;
   supportsCriticalHits?: boolean;
 }): Ro3MemberScoreResult {
+  const dpsCategory = input.dpsCategory ?? (input.job === "Warlock" ? "MAGIC_DPS" : "PHYSICAL_DPS");
   const dps = isRo3DpsJob(input.job)
-    ? calculateRo3Score("PHYSICAL_DPS", input.dpsComponents ?? {}, {
+    ? calculateRo3Score(dpsCategory, input.dpsComponents ?? {}, {
         supportsCriticalHits: input.supportsCriticalHits,
       })
     : null;
