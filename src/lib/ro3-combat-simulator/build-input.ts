@@ -6,20 +6,22 @@ export type NativeEquipmentSelection = { gear: NativeGearSlot[]; cards: NativeCa
 
 export const emptyNativeEquipmentSelection = (): NativeEquipmentSelection => ({
   gear: EQUIPMENT_GRIDS.map(() => ({ id: 0, roll: 5000, refine: 0, enhance: 0, affixes: slot.affixes.slice(0,2), stunts: slot.stunts.slice(0,2),
-      ...(index === 0 ? { offRefine: Math.max(0, Math.min(99, Math.round(slot.offRefine))), offEnhance: Math.max(0, Math.min(999, Math.round(slot.offEnhance))) } : {}), offRefine: 0, offEnhance: 0 })),
+      ...(index === 0 ? { offRefine: Math.max(0, Math.min(caps?.refine[1] ?? 99, Math.round(slot.offRefine))), offEnhance: Math.max(0, Math.min(caps?.enhance[1] ?? 999, Math.round(slot.offEnhance))) } : {}), offRefine: 0, offEnhance: 0 })),
   cards: CARD_SOCKETS.map(() => ({ id: 0, star: 3, level: 15, flash: false })),
 });
 
 /** Convert UI selections into the exact gear/card shape already consumed by buildCharacterStats. */
-export function toEngineEquipment(selection: NativeEquipmentSelection, equipment: EquipmentOption[], cards: CardOption[], baseLevel = 200) {
+export type GearLevelCaps = { refine: number[]; enhance: number[] };
+
+export function toEngineEquipment(selection: NativeEquipmentSelection, equipment: EquipmentOption[], cards: CardOption[], baseLevel = 200, caps?: GearLevelCaps) {
   const gear = selection.gear.flatMap((slot, index) => {
     const item = equipment.find((candidate) => candidate.id === slot.id);
     if (!item || item.levelRequired > baseLevel || !EQUIPMENT_GRIDS[index]?.parts.includes(item.part)) return [];
     return [{
       grid: index + 1, id: item.id, roll: Math.max(0, Math.min(10000, Math.round(slot.roll))),
       affixes: [], stunts: [],
-      refine: Math.max(0, Math.min(99, Math.round(slot.refine))),
-      enhance: Math.max(0, Math.min(999, Math.round(slot.enhance))),
+      refine: Math.max(0, Math.min(caps?.refine[index] ?? 99, Math.round(slot.refine))),
+      enhance: Math.max(0, Math.min(caps?.enhance[index] ?? 999, Math.round(slot.enhance))),
     }];
   });
   const activeCards = selection.cards.flatMap((slot, index) => {
