@@ -5,7 +5,7 @@ import { createRo3CombatDataStore } from "../create-data-store";
 import { loadRo3GameData } from "../data/ro3-game-data";
 import { getCombatSkillOptions, type CombatSkillOption } from "../skill-options";
 import { simulateCombatRotation } from "../simulate";
-import { buildCharacterStats, gearParts } from "../engine/ro3-damage-engine.mjs";
+import { buildCharacterStats, gearParts, cardParts } from "../engine/ro3-damage-engine.mjs";
 import { getCombatEquipmentCatalog } from "../equipment-options";
 import type { NativeEquipmentSelection, GearLevelCaps } from "../build-input";
 import { toEngineEquipment } from "../build-input";
@@ -70,6 +70,15 @@ export function useCombatSimulatorEngine() {
     return { refine: cap("RefiningTable", "_iRefiningInterval"), enhance: cap("StrengthenTable", "_iStrengthenInterval") };
   }, [data]);
 
+  const getCardCustomization = useCallback((id: number, star: number) => {
+    if (!data) return { maxLevel: [5, 10, 15, 15][Math.max(0, Math.min(3, star))], hasCollection: false };
+    const parts = cardParts({ id, star, level: 0 }, data);
+    return {
+      maxLevel: [5, 10, 15, 15][Math.max(0, Math.min(3, star))],
+      hasCollection: !!parts?.collectionAttrs?.length,
+    };
+  }, [data]);
+
   const getGearCustomization = useCallback((id: number, grid: number) => {
     if (!data) return null;
     const parts = gearParts({ id, grid, roll: 5000, affixes: [], stunts: [] }, data);
@@ -104,5 +113,5 @@ export function useCombatSimulatorEngine() {
     return simulateCombatRotation(attacker, defender, rotationSkillIds, durationMs, data);
   }, [data]);
 
-  return { status, error, ready: status === "ready", skillOptions, equipmentCatalog, getCharacterSheet, getGearCustomization, getGearLevelCaps, simulate };
+  return { status, error, ready: status === "ready", skillOptions, equipmentCatalog, getCharacterSheet, getGearCustomization, getGearLevelCaps, getCardCustomization, simulate };
 }
