@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
+import { join } from "node:path";
 import {
   persistedRo3StatsToSimulatorAttributes,
   type PersistedRo3Stats,
@@ -49,7 +50,7 @@ let simulatorPromise: Promise<{
 async function loadSimulator() {
   if (!simulatorPromise) {
     simulatorPromise = (async () => {
-      const html = await readFile(new URL("./ro3-damage-sim.html", import.meta.url), "utf8");
+      const html = await readFile(join(process.cwd(), "src/lib/ro3-combat-simulator/ro3-damage-sim.html"), "utf8");
       const begin = html.indexOf("/* @@ENGINE-BEGIN */");
       const end = html.indexOf("/* @@ENGINE-END */");
       if (begin < 0 || end <= begin) {
