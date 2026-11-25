@@ -109,10 +109,10 @@ export async function listRo3SimulatorReferenceProfiles(): Promise<Ro3SimulatorR
     const profile = simulator.CLASS_PROFILES[profileKey];
     if (!profile) {
       return {
-        profileKey, heimdallJob, simulatorProfileName: "", careerId: 0,
+        profileKey, heimdallJob, simulatorProfileName: "", careerId: null,
         careerConfigAvailable: false, passiveSkillIds: [], rotations: [],
-        status: "career-config-missing" as const, executable: false as const,
-        note: "No matching simulator-authored class profile exists.",
+        status: "simulator-profile-missing" as const, executable: false as const,
+        note: "No matching simulator-authored class profile exists; a career ID or rotation must not be inferred.",
       };
     }
     const careerConfigAvailable = Boolean(simulator.data.row("JobConfig", profile.career));
