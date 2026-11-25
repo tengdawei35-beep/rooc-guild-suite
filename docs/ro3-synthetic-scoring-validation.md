@@ -34,3 +34,16 @@ The command runs both the core composition tests and `scoring.synthetic.test.ts`
 ## Next calibration gate
 
 Raw-stat calibration must wait until the simulator's supported inputs can be mapped to persisted fields with verified units and deterministic paired scenarios. Population-derived distributions and defensive baselines must wait until the real cohort is sufficiently populated. Until those gates are met, keep member scores experimental and do not publish them as authoritative rankings.
+
+
+## Raw-stat capability boundary
+
+`src/lib/ro3-combat-simulator/raw-stat-support.ts` records the current persisted-field to simulator-attribute evidence map. It distinguishes directly supported core attack inputs, candidate percentage modifiers whose capture units still need verification, defensive context fields, and fields not modeled by the evaluator.
+
+The registry is intentionally not a normalization formula. In particular:
+- PATK and MATK are the only currently direct outgoing-damage inputs marked eligible for immediate damage calibration.
+- Physical/magic damage bonus, general damage increase, critical damage, Demi-Human and Medium bonuses remain blocked pending capture-unit and aggregation verification.
+- Penetration and damage-reduction fields are not credited as simulator-backed because the current evaluator does not apply them.
+- PDEF, MDEF and HP are defensive context only; this is not an incoming player-damage evaluator.
+
+The raw-stat registry tests assert that every persisted field has an explicit classification and that unsupported or unit-unverified fields cannot silently become calibration inputs.
