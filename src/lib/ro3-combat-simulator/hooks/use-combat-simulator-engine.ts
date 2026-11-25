@@ -56,7 +56,7 @@ export function useCombatSimulatorEngine() {
 
   const getCharacterSheet = useCallback((attacker: CombatBuild, selection: NativeEquipmentSelection) => {
     if (!data || !equipmentCatalog) throw new Error("Combat engine is not ready yet.");
-    const mapped = toEngineEquipment(selection, equipmentCatalog.equipment, equipmentCatalog.cards);
+    const mapped = toEngineEquipment(selection, equipmentCatalog.equipment, equipmentCatalog.cards, attacker.level);
     return buildCharacterStats({ ...attacker, ...mapped }, data);
   }, [data, equipmentCatalog]);
 
