@@ -12,10 +12,13 @@ testCase("Every persisted RO3 stat has an explicit support classification", () =
   }
 });
 
-testCase("Only directly supported attack inputs are immediately eligible for damage calibration", () => {
+testCase("Simulator-supported attack and damage modifiers are eligible for damage calibration", () => {
   assert.equal(isRo3RawStatEligibleForDamageCalibration("patk"), true);
   assert.equal(isRo3RawStatEligibleForDamageCalibration("matk"), true);
-  assert.equal(isRo3RawStatEligibleForDamageCalibration("physicalDamageBonusPercent"), false);
+  assert.equal(isRo3RawStatEligibleForDamageCalibration("physicalDamageBonusPercent"), true);
+  assert.equal(isRo3RawStatEligibleForDamageCalibration("magicDamageBonusPercent"), true);
+  assert.equal(isRo3RawStatEligibleForDamageCalibration("damageIncreasePercent"), true);
+  assert.equal(isRo3RawStatEligibleForDamageCalibration("critDamagePercent"), true);
   assert.equal(isRo3RawStatEligibleForDamageCalibration("physicalPenetrationPercent"), false);
   assert.equal(isRo3RawStatEligibleForDamageCalibration("damageReductionPercent"), false);
 });
