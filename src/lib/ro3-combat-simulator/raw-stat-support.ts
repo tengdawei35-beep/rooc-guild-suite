@@ -2,6 +2,7 @@ import type { RO3StatKey } from "@/lib/constants/ro3-stats";
 
 export type Ro3RawStatSupportStatus =
   | "simulator-supported"
+  | "simulator-supported-units-verified-semantics-unverified"
   | "simulator-supported-unit-unverified"
   | "tank-context-only"
   | "not-modeled";
@@ -53,28 +54,28 @@ export const RO3_RAW_STAT_SUPPORT: Partial<Record<RO3StatKey, Ro3RawStatSupport>
     note: "Used as a target MDEF input in outgoing-damage calculations; not a complete incoming player-damage model.",
   },
   critDamagePercent: {
-    status: "simulator-supported-unit-unverified",
+    status: "simulator-supported-units-verified-semantics-unverified",
     simulatorAttributeId: 209,
     use: "outgoing-damage",
-    note: "Physical critical damage modifier; capture units and crit-capable class applicability must be verified.",
+    note: "OCR requires an explicit percent sign and stores the displayed percentage number. The simulator consumes basis points (divide by 10000); conversion is ×100. Aggregation/source semantics remain to be verified.",
   },
   physicalDamageBonusPercent: {
-    status: "simulator-supported-unit-unverified",
+    status: "simulator-supported-units-verified-semantics-unverified",
     simulatorAttributeId: 211,
     use: "outgoing-damage",
-    note: "Candidate physical damage modifier; aggregate field semantics and units are not yet verified.",
+    note: "OCR requires an explicit percent sign and stores the displayed percentage number. The simulator consumes basis points (divide by 10000); conversion is ×100. Aggregation/source semantics remain to be verified.",
   },
   magicDamageBonusPercent: {
-    status: "simulator-supported-unit-unverified",
+    status: "simulator-supported-units-verified-semantics-unverified",
     simulatorAttributeId: 213,
     use: "outgoing-damage",
-    note: "Candidate magic damage modifier; aggregate field semantics and units are not yet verified.",
+    note: "OCR requires an explicit percent sign and stores the displayed percentage number. The simulator consumes basis points (divide by 10000); conversion is ×100. Aggregation/source semantics remain to be verified.",
   },
   damageIncreasePercent: {
-    status: "simulator-supported-unit-unverified",
+    status: "simulator-supported-units-verified-semantics-unverified",
     simulatorAttributeId: 215,
     use: "outgoing-damage",
-    note: "General damage modifier in the simulator's damage-increase bracket; capture units require verification.",
+    note: "OCR requires an explicit percent sign and stores the displayed percentage number. The simulator consumes basis points (divide by 10000); conversion is ×100. Aggregation/source semantics remain to be verified.",
   },
   damageVsDemiHuman: {
     status: "simulator-supported-unit-unverified",
