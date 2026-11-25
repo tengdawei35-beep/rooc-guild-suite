@@ -21,7 +21,7 @@ type SimulatorModule = {
   Ro3DataStore: new () => {
     row: (table: string, id: number) => Record<string, unknown> | null;
   };
-  buildCharacterStats: (build: Record<string, unknown>, data: unknown) => Record<number, number>;
+  buildCharacterStats: (build: Record<string, unknown>, data: unknown) => Record<number, number>;\n  CLASS_PROFILES: Record<string, { name: string; career: number; candidateRotations: Array<{ name: string; skills: number[] }>; passiveSkills?: number[] }>;
   simulateRotation: (
     build: Record<string, unknown>,
     defender: Record<string, unknown>,
