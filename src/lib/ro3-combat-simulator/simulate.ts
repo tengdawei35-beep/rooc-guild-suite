@@ -1,4 +1,5 @@
-import { Ro3MemoryDataStore, simulateRotation } from "./engine/ro3-damage-engine.mjs";
+import { simulateRotation } from "./engine/ro3-damage-engine.mjs";
+import type { Ro3MemoryDataStore } from "./engine/ro3-damage-engine.mjs";
 import type { CombatBuild, CombatDefender, CombatRotationResult } from "./types";
 
 /**
