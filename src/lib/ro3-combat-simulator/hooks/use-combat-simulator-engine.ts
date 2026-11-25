@@ -5,7 +5,7 @@ import { createRo3CombatDataStore } from "../create-data-store";
 import { loadRo3GameData } from "../data/ro3-game-data";
 import { getCombatSkillOptions, type CombatSkillOption } from "../skill-options";
 import { simulateCombatRotation } from "../simulate";
-import { buildCharacterStats } from "../engine/ro3-damage-engine.mjs";
+import { buildCharacterStats, gearParts } from "../engine/ro3-damage-engine.mjs";
 import { getCombatEquipmentCatalog } from "../equipment-options";
 import type { NativeEquipmentSelection } from "../build-input";
 import { toEngineEquipment } from "../build-input";
@@ -60,6 +60,30 @@ export function useCombatSimulatorEngine() {
     return buildCharacterStats({ ...attacker, ...mapped }, data);
   }, [data, equipmentCatalog]);
 
+  const getGearCustomization = useCallback((id: number, grid: number) => {
+    if (!data) return null;
+    const parts = gearParts({ id, grid, roll: 5000, affixes: [], stunts: [] }, data);
+    if (!parts) return null;
+    const attributeNames = data.table("AttributeConfig");
+    const specialEffects = data.table("SpecialEffectConfig");
+    return {
+      affixes: parts.pool.map((row: Record<string, unknown>) => ({
+        id: Number(row._iAttriID), name: String(attributeNames[String(row._iAttriID)]?.name ?? `Attribute ${row._iAttriID}`),
+        min: Number(row._iMin ?? 0), max: Number(row._iMax ?? 0),
+      })),
+      affixSlots: Number(parts.slots ?? 0),
+      stuntPools: parts.pools.map((pool: number[], index: number) => ({
+        chance: Number(parts.chances[index] ?? 0),
+        options: pool.map((stuntId) => ({
+          id: Number(stuntId), name: String(specialEffects[String(stuntId)]?.tx ?? `Stunt ${stuntId}`),
+        })),
+      })),
+      fixedStunts: parts.fixedStunts.map((stuntId: number) => ({
+        id: Number(stuntId), name: String(specialEffects[String(stuntId)]?.tx ?? `Stunt ${stuntId}`),
+      })),
+    };
+  }, [data]);
+
   const simulate = useCallback((
     attacker: CombatBuild,
     defender: CombatDefender,
@@ -70,5 +94,5 @@ export function useCombatSimulatorEngine() {
     return simulateCombatRotation(attacker, defender, rotationSkillIds, durationMs, data);
   }, [data]);
 
-  return { status, error, ready: status === "ready", skillOptions, equipmentCatalog, getCharacterSheet, simulate };
+  return { status, error, ready: status === "ready", skillOptions, equipmentCatalog, getCharacterSheet, getGearCustomization, simulate };
 }
