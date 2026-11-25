@@ -139,7 +139,7 @@ export default function NativeCombatSimulatorPreview() {
             const selectedItem=choices.find((item)=>item.id===equipment.gear[index]?.id);
             const gearOptions=selectedItem ? engine.getGearCustomization(selectedItem.id,index+1) : null;
             return <div key={grid.index} className="rounded-lg bg-black/20 p-3"><label className="block text-xs text-zinc-400">{grid.name}
-              <select disabled={index===1&&!!engine.equipmentCatalog?.equipment.find((w)=>w.id===equipment.gear[0]?.id&&w.part===1)} value={equipment.gear[index]?.id ?? 0} onChange={(e)=>{const id=Number(e.target.value);const picked=choices.find((item)=>item.id===id);setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===index?{...slot,id}:index===1&&picked?.part===1?{...slot,id:0}:slot)}));}} className={inputClass}>
+              <select disabled={index===1&&!!engine.equipmentCatalog?.equipment.find((w)=>w.id===equipment.gear[0]?.id&&w.part===1)} value={equipment.gear[index]?.id ?? 0} onChange={(e)=>{const id=Number(e.target.value);const picked=choices.find((item)=>item.id===id);setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===index?{...slot,id}:index===0&&picked?.part===1&&i===1?{...slot,id:0}:slot)}));}} className={inputClass}>
                 <option value="0">Empty</option>{choices.map((item)=><option key={item.id} value={item.id}>{item.name} · T{item.tier} · Lv {item.levelRequired}</option>)}
               </select></label>
               {equipment.gear[index]?.id!==0&&<div className="mt-2 grid grid-cols-2 gap-2">
