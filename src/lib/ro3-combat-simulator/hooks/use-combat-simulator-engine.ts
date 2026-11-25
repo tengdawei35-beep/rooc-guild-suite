@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { createRo3CombatDataStore } from "../create-data-store";
+import { loadRo3GameData } from "../data/ro3-game-data";
+import { getCombatSkillOptions, type CombatSkillOption } from "../skill-options";
 import { simulateCombatRotation } from "../simulate";
 import type { Ro3MemoryDataStore } from "../engine/ro3-damage-engine.mjs";
 import type { CombatBuild, CombatDefender, CombatRotationResult } from "../types";
@@ -15,15 +17,21 @@ export type CombatEngineStatus = "loading" | "ready" | "error";
  */
 export function useCombatSimulatorEngine() {
   const [data, setData] = useState<Ro3MemoryDataStore | null>(null);
+  const [skillOptions, setSkillOptions] = useState<CombatSkillOption[]>([]);
   const [status, setStatus] = useState<CombatEngineStatus>("loading");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
-    createRo3CombatDataStore()
-      .then((store) => {
+    Promise.all([createRo3CombatDataStore(), loadRo3GameData()])
+      .then(([store, exported]) => {
         if (!active) return;
         setData(store);
+        setSkillOptions(getCombatSkillOptions(
+          exported.ui as { jobs: Array<{ id: number; parent?: number }>; trees: Record<string, Array<Array<number | null>>> },
+          exported.tables.SkillConfig as Record<string, Record<string, unknown>>,
+          1410,
+        ));
         setStatus("ready");
       })
       .catch((cause: unknown) => {
@@ -46,5 +54,5 @@ export function useCombatSimulatorEngine() {
     return simulateCombatRotation(attacker, defender, rotationSkillIds, durationMs, data);
   }, [data]);
 
-  return { status, error, ready: status === "ready", simulate };
+  return { status, error, ready: status === "ready", skillOptions, simulate };
 }
