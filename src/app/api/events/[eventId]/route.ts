@@ -136,6 +136,7 @@ export async function GET(
                           characterName: true,
                           job: true,
                           priority: true,
+                          ro3Stats: true,
                         },
                       },
                     },
