@@ -37,4 +37,4 @@ The current evaluator adds the applicable sheet damage bonuses into one bracket 
 - OCR-to-simulator unit conversion does not prove source-screen aggregation semantics. The four percentage fields remain gated from live calibration until those semantics are confirmed.
 - The simulator contains inferred assumptions; passing these tests validates deterministic behavior against the current embedded evaluator, not equivalence with live game combat.
 
-Run with `npm run test:ro3-scoring`.
+Run the deterministic test suite with `npm run test:ro3-scoring`. Print the full auditable JSON report (including the engine fingerprint) with `npm run report:ro3-sensitivity`.
