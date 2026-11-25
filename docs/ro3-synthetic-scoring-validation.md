@@ -47,3 +47,13 @@ The registry is intentionally not a normalization formula. In particular:
 - PDEF, MDEF and HP are defensive context only; this is not an incoming player-damage evaluator.
 
 The raw-stat registry tests assert that every persisted field has an explicit classification and that unsupported or unit-unverified fields cannot silently become calibration inputs.
+
+
+## Persisted profile → simulator attribute adapter
+
+`src/lib/ro3-combat-simulator/persisted-stat-adapter.ts` now converts only fields with a defensible unit mapping:
+- HP, PATK, MATK, PDEF and MDEF pass through as numeric attributes 101, 103, 104, 105 and 106.
+- OCR percentage fields 209, 211, 213 and 215 are stored as displayed percentage numbers because the OCR parser requires a literal percent sign and strips it (for example, `12.5%` becomes `12.5`). The simulator consumes basis points divided by 10000, so the adapter converts `12.5` to `1250`.
+- Penetration, reductions, target bonuses with unverified capture semantics, healing, and crystals are excluded with an explicit reason.
+
+This verifies the display-unit conversion path, not the game-side aggregation/source semantics of those bonuses. The adapter is a safe input-preparation layer only; it does not call the simulator, calculate DPS, or assign member scores.
