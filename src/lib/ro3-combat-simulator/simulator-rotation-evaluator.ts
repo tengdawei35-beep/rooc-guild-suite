@@ -258,6 +258,6 @@ export async function evaluateRo3Rotation(input: {
     skippedSkills,
     excludedPersistedStats: adapted.excluded.map(({ key, reason }) => ({ key, reason })),
     score: null,
-    note: "Simulator-authoritative rotation estimate using the supplied skill cycle and persisted sheet stats. It is not a normalized member score or a job-default build. Equipment, cards, pets, buffs and passives are included only when explicitly supplied; no job-to-career mapping is inferred.",
+    note: "Simulator-authoritative rotation estimate using the supplied skill cycle and persisted sheet stats. It is not a normalized member score or a job-default build. Only supported persisted stats and explicitly supplied passive skill IDs are included; equipment, cards, pets, buffs and totems are omitted, and no job-to-career mapping is inferred.",
   };
 }
