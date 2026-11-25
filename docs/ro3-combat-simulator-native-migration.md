@@ -50,10 +50,15 @@ been migrated in this phase.
 | Define typed engine inputs/outputs and expand coverage | Initial models/rotation result defined; broader engine typings pending |
 | Typed workspace models and calculation adapter | Initial boundary complete |
 | React engine lifecycle hook | Initial hook complete; not connected to production route |
-| Build native React component architecture | Not started |
-| Connect React state to extracted engine | Not started |
-| Migrate profile import and reports | Not started |
+| Build native React component architecture | Initial isolated preview route and profile panels added; full editor architecture pending |
+| Connect React state to extracted engine | Engine lifecycle is exposed in the isolated preview; build-to-engine input mapping pending |
+| Migrate profile import and reports | Native preview reads the existing guild profile API and displays selected attacker/defender values; applying profiles to simulator builds and report migration pending |
 | Regression/equivalence tests against current iframe | Not started |
 | Remove iframe and legacy message bridge | Blocked until equivalence passes |
 
 The authenticated iframe route remains the production path throughout this work.
+
+
+## Native preview checkpoint
+
+An authenticated, subscription-gated preview is available at `/combat-simulator/native-preview` on the migration branch. It loads the extracted engine/data through the React lifecycle hook and reads the same active-guild member profile API as the legacy workspace. Attacker and defender selections are displayed in native panels for profile-contract verification. This is intentionally an isolated preview: `/combat-simulator` continues to use the existing iframe, and the preview does not yet run a damage calculation or claim parity.
