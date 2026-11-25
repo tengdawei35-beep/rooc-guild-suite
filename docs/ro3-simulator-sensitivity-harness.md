@@ -1,6 +1,6 @@
 # RO3 simulator sensitivity harness
 
-Status: engineering validation only. This is not a production calibration, final scoring model, or in-game formula validation.
+Status: simulator-authoritative engineering reference. The embedded Heimdall damage simulator is the authoritative calculation model for current RO3 damage-derived scoring until explicitly superseded. The harness verifies reproducible behavior against that model; it does not claim independent equivalence with live-game combat.
 
 ## Reproducibility
 
@@ -36,6 +36,8 @@ The current evaluator adds the applicable sheet damage bonuses into one bracket 
 - Penetration is not measured because the current evaluator does not implement it.
 - Incoming damage reduction, complete Tank scoring, and PvP scoring are not measured by this outgoing-damage harness.
 - OCR-to-simulator unit conversion does not prove source-screen aggregation semantics. The four percentage fields remain gated from live calibration until those semantics are confirmed.
-- The simulator contains inferred assumptions; passing these tests validates deterministic behavior against the current embedded evaluator, not equivalence with live game combat.
+- The embedded simulator is the current source of truth for supported damage calculations. Its implemented formula and data tables define the model used by scoring.
+- This report does not create population baselines or final component weights; synthetic probes remain controlled engineering fixtures.
+- Mechanics absent from the simulator remain unsupported rather than inferred.
 
 Run the deterministic test suite with `npm run test:ro3-scoring`. Print the full auditable JSON report (including the engine fingerprint) with `npm run report:ro3-sensitivity`.
