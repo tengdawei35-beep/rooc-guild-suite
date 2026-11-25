@@ -98,6 +98,7 @@ export default function NativeCombatSimulatorPreview() {
       });
       const validatedAttacker: CombatBuild = {
         career: 1410, level: validated.level, stats: validated.stats,
+        ...engineEquipment,
       };
       const validatedDefender: CombatDefender = {
         name: "Training target", level: validated.defenderLevel,
