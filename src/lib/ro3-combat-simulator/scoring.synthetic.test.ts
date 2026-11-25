@@ -11,7 +11,14 @@ import {
  * Values are already-normalized 0–100 component inputs; they are not raw
  * character stats, simulator outputs, or proposed live-member baselines.
  */
-const scenarios = [
+type SyntheticScenario = {
+  id: string;
+  category: "PHYSICAL_DPS" | "MAGIC_DPS";
+  supportsCriticalHits?: boolean;
+  components: Ro3ScoreComponents;
+};
+
+const scenarios: SyntheticScenario[] = [
   {
     id: "physical-dps-balanced",
     category: "PHYSICAL_DPS" as const,
