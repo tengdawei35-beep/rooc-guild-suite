@@ -73,7 +73,7 @@ export type Ro3SimulatorReferenceProfile = {
   profileKey: string;
   heimdallJob: string;
   simulatorProfileName: string;
-  careerId: number;
+  careerId: number | null;
   careerConfigAvailable: boolean;
   passiveSkillIds: number[];
   rotations: Array<{
@@ -90,6 +90,7 @@ export type Ro3SimulatorReferenceProfile = {
 
 const HEIMDALL_PROFILE_MAP: Record<string, string> = {
   mechanic: "Mechanic",
+  royalguard: "Royal Guard (DPS)",
   runeknight: "Rune Knight (DPS)",
   warlock: "Warlock",
   ranger: "Ranger",
