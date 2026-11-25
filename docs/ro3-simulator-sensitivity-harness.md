@@ -21,6 +21,7 @@ These are deliberately controlled test values, not observed character builds, cl
 The harness performs one-at-a-time probes for:
 
 - PATK (103) and MATK (104), each increased by 10%.
+- Critical Damage (209), increased by 1,000 basis points under a separate guaranteed-physical-critical probe.
 - Physical Damage (211), Magic Damage (213), and General Damage (215), each increased by 1,000 basis points.
 - Demi-Human (402) and Medium (503) target bonuses, each increased by 1,000 basis points.
 - Target PDEF/MDEF, each reduced by 10%, reported separately from attacker stats.
