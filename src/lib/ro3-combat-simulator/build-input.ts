@@ -1,11 +1,12 @@
 import { CARD_SOCKETS, EQUIPMENT_GRIDS, type CardOption, type EquipmentOption } from "./equipment-options";
 
-export type NativeGearSlot = { id: number; roll: number; refine: number; enhance: number };
+export type NativeGearSlot = { id: number; roll: number; refine: number; enhance: number; affixes: number[]; stunts: number[]; offRefine: number; offEnhance: number };
 export type NativeCardSlot = { id: number; star: number; level: number; flash?: boolean };
 export type NativeEquipmentSelection = { gear: NativeGearSlot[]; cards: NativeCardSlot[] };
 
 export const emptyNativeEquipmentSelection = (): NativeEquipmentSelection => ({
-  gear: EQUIPMENT_GRIDS.map(() => ({ id: 0, roll: 5000, refine: 0, enhance: 0 })),
+  gear: EQUIPMENT_GRIDS.map(() => ({ id: 0, roll: 5000, refine: 0, enhance: 0, affixes: slot.affixes.slice(0,2), stunts: slot.stunts.slice(0,2),
+      ...(index === 0 ? { offRefine: Math.max(0, Math.min(99, Math.round(slot.offRefine))), offEnhance: Math.max(0, Math.min(999, Math.round(slot.offEnhance))) } : {}), offRefine: 0, offEnhance: 0 })),
   cards: CARD_SOCKETS.map(() => ({ id: 0, star: 3, level: 15, flash: false })),
 });
 
