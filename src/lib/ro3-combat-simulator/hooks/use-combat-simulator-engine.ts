@@ -5,6 +5,10 @@ import { createRo3CombatDataStore } from "../create-data-store";
 import { loadRo3GameData } from "../data/ro3-game-data";
 import { getCombatSkillOptions, type CombatSkillOption } from "../skill-options";
 import { simulateCombatRotation } from "../simulate";
+import { buildCharacterStats } from "../engine/ro3-damage-engine.mjs";
+import { getCombatEquipmentCatalog } from "../equipment-options";
+import type { NativeEquipmentSelection } from "../build-input";
+import { toEngineEquipment } from "../build-input";
 import type { Ro3MemoryDataStore } from "../engine/ro3-damage-engine.mjs";
 import type { CombatBuild, CombatDefender, CombatRotationResult } from "../types";
 
@@ -18,6 +22,7 @@ export type CombatEngineStatus = "loading" | "ready" | "error";
 export function useCombatSimulatorEngine() {
   const [data, setData] = useState<Ro3MemoryDataStore | null>(null);
   const [skillOptions, setSkillOptions] = useState<CombatSkillOption[]>([]);
+  const [equipmentCatalog, setEquipmentCatalog] = useState<ReturnType<typeof getCombatEquipmentCatalog> | null>(null);
   const [status, setStatus] = useState<CombatEngineStatus>("loading");
   const [error, setError] = useState<string | null>(null);
 
@@ -44,7 +49,7 @@ export function useCombatSimulatorEngine() {
     };
   }, []);
 
-  const simulate = useCallback((
+  const getCharacterSheet = useCallback((attacker: CombatBuild, selection: NativeEquipmentSelection) => {\n    if (!data || !equipmentCatalog) throw new Error("Combat engine is not ready yet.");\n    const mapped = toEngineEquipment(selection, equipmentCatalog.equipment, equipmentCatalog.cards);\n    return buildCharacterStats({ ...attacker, ...mapped }, data);\n  }, [data, equipmentCatalog]);\n\n  const simulate = useCallback((
     attacker: CombatBuild,
     defender: CombatDefender,
     rotationSkillIds: number[],
@@ -54,5 +59,5 @@ export function useCombatSimulatorEngine() {
     return simulateCombatRotation(attacker, defender, rotationSkillIds, durationMs, data);
   }, [data]);
 
-  return { status, error, ready: status === "ready", skillOptions, simulate };
+  return { status, error, ready: status === "ready", skillOptions, equipmentCatalog, getCharacterSheet, simulate };
 }
