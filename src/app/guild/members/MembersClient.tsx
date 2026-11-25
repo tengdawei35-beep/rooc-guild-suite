@@ -340,6 +340,9 @@ export default function MembersClient({ initialMembers, gameType }: { initialMem
       }
       if (!payload.characterName) throw new Error("Character name is required.");
       if (!payload.job) throw new Error("Job is required.");
+      if (gameType === "RO3" && (payload.job === "Royal Guard" || payload.job === "Rune Knight")) {
+        throw new Error(`Please classify ${payload.job} as DPS or Tank before saving.`);
+      }
       const response = await fetch("/api/guild/members", { method: selectedMember ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "Failed to save member.");
