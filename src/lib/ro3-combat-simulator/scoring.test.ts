@@ -4,6 +4,8 @@ import {
   calculateRo3MemberScores,
   calculateRo3PvPScore,
   calculateRo3Score,
+  isRo3DpsJob,
+  isRo3TankOrSupportJob,
 } from "./scoring";
 
 testCase("Tank score keeps HP at a fixed 5% and scales the other components to 95%", () => {
@@ -78,4 +80,36 @@ testCase("A hybrid job can be explicitly scored as Tank for PvP", () => {
   const result = calculateRo3PvPScore("Royal Guard", 80, 60, "TANK");
   assert.equal(result.score, 60);
   assert.deepEqual(result.weights, { tank: 100 });
+});
+
+testCase("Split Royal Guard and Rune Knight jobs resolve to their selected roles", () => {
+  assert.equal(isRo3DpsJob("Royal Guard (DPS)"), true);
+  assert.equal(isRo3DpsJob("Rune Knight (DPS)"), true);
+  assert.equal(isRo3TankOrSupportJob("Royal Guard (Tank)"), true);
+  assert.equal(isRo3TankOrSupportJob("Rune Knight (Tank)"), true);
+  assert.equal(isRo3TankOrSupportJob("Archbishop"), true);
+  assert.equal(isRo3TankOrSupportJob("Royal Guard (DPS)"), false);
+});
+
+testCase("Tank-labelled hybrid jobs use Tank-only PvP composition by default", () => {
+  const result = calculateRo3PvPScore("Royal Guard (Tank)", 90, 70);
+  assert.equal(result.score, 70);
+  assert.deepEqual(result.weights, { tank: 100 });
+});
+
+testCase("Tank-labelled hybrid member does not receive a DPS score", () => {
+  const result = calculateRo3MemberScores({
+    job: "Rune Knight (Tank)",
+    dpsComponents: { attackPower: 100, penetration: 100, damageAmplification: 100, targetBonuses: 100 },
+    tankComponents: { hp: 100, defence: 100, damageReduction: 100, pvpSurvivability: 100, criticalResilience: 100 },
+  });
+  assert.equal(result.dps, null);
+  assert.equal(result.pvp.score, 100);
+  assert.deepEqual(result.pvpComposition, { dpsWeight: 0, tankWeight: 100 });
+});
+
+testCase("DPS-labelled hybrid jobs retain DPS plus Tank PvP composition", () => {
+  const result = calculateRo3PvPScore("Royal Guard (DPS)", 80, 50);
+  assert.equal(result.score, 68);
+  assert.deepEqual(result.weights, { dps: 60, tank: 40 });
 });
