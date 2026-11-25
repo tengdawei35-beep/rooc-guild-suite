@@ -56,6 +56,7 @@ export default function NativeCombatSimulatorPreview() {
   const [race, setRace] = useState("1");
   const [size, setSize] = useState("2");
   const [skillIds, setSkillIds] = useState("");
+  const [selectedSkillId, setSelectedSkillId] = useState("");
   const [duration, setDuration] = useState("30000");
   const [result, setResult] = useState<CombatRotationResult | null>(null);
   const [simulationError, setSimulationError] = useState<string | null>(null);
@@ -133,7 +134,22 @@ export default function NativeCombatSimulatorPreview() {
     <section className="rounded-xl border border-white/10 bg-zinc-900/70 p-4">
       <h2 className="text-sm font-semibold text-white">Skill rotation</h2>
       <p className="mt-1 text-xs text-zinc-500">Enter simulator SkillConfig IDs in cast order. Leave empty to simulate the character's normal attack only.</p>
-      <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_180px]"><label className="text-xs text-zinc-400">Skill IDs<input value={skillIds} onChange={(e)=>setSkillIds(e.target.value)} placeholder="e.g. 1100110, 1100210" className={inputClass}/></label><label className="text-xs text-zinc-400">Duration (ms)<input type="number" min="1000" max="300000" step="1000" value={duration} onChange={(e)=>setDuration(e.target.value)} className={inputClass}/></label></div>
+      <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,1fr)_180px]">
+        <div className="space-y-2">
+          <label className="block text-xs text-zinc-400">Add Royal Guard skill
+            <select value={selectedSkillId} onChange={(e)=>setSelectedSkillId(e.target.value)} className={inputClass}>
+              <option value="">Select a learnable damage skill…</option>
+              {engine.skillOptions.map((skill)=> <option key={skill.id} value={skill.id}>{skill.name} · Lv {skill.level} · ID {skill.id}</option>)}
+            </select>
+          </label>
+          <button type="button" disabled={!selectedSkillId} onClick={()=>setSkillIds((current)=>current.trim() ? `${current.trim()}, ${selectedSkillId}` : selectedSkillId)} className="rounded-lg border border-white/15 px-3 py-2 text-xs font-medium text-zinc-200 hover:bg-white/5 disabled:opacity-40">Add to rotation</button>
+          <label className="block text-xs text-zinc-400">Rotation SkillConfig IDs (cast order)
+            <input value={skillIds} onChange={(e)=>setSkillIds(e.target.value)} placeholder="Select skills above or enter IDs manually" className={inputClass}/>
+          </label>
+        </div>
+        <label className="text-xs text-zinc-400">Duration (ms)<input type="number" min="1000" max="300000" step="1000" value={duration} onChange={(e)=>setDuration(e.target.value)} className={inputClass}/></label>
+      </div>
+      <p className="mt-2 text-[11px] text-zinc-500">{engine.skillOptions.length} learnable damage skills found across Royal Guard's career progression. Empty rotation uses normal attacks only.</p>
       <button type="button" disabled={!engine.ready} onClick={runSimulation} className="mt-4 rounded-lg bg-cyan-400 px-4 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-40">{engine.ready ? "Run native simulation" : "Engine loading…"}</button>
       {simulationError && <p role="alert" className="mt-3 text-sm text-rose-300">{simulationError}</p>}
     </section>
