@@ -46,7 +46,7 @@ HP is mandatory for a Tank score because its 5% allocation is permanent. If HP i
 
 A DPS PvP score is unavailable unless both its DPS score and Tank score are available. Archbishop PvP uses Tank score only and does not require a DPS score.
 
-Current RO3 DPS job classification in the implementation is Mechanic, Royal Guard, Rune Knight, Warlock, Ranger, and Guillotine Cross. Archbishop is Tank-only for PvP composition. Warlock defaults to Magic DPS; other DPS jobs default to Physical DPS. Callers may explicitly provide the DPS category where a build requires it.
+For PvP composition, non-Archbishop jobs default to the DPS path (60% DPS + 40% Tank), while Archbishop is always Tank-only (100%), even if a caller passes a DPS role. Hybrid jobs such as Royal Guard and Rune Knight can be explicitly marked as Tank; in that case their PvP score is 100% Tank. Warlock defaults to Magic DPS; other DPS builds default to Physical DPS. Callers may explicitly provide the DPS category where a build requires it.
 
 ## Live and scheduled calculation boundary
 
