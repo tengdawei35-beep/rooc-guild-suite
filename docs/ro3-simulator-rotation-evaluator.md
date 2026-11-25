@@ -35,3 +35,24 @@ The evaluator reconciles supported persisted sheet values against the selected c
 ## Tests
 
 `npm run test:ro3-scoring` includes deterministic checks for simulator execution, invalid skill filtering, required career/duration validation, and rejection of rotations without a valid damage skill.
+
+
+## Simulator-authored job profile discovery
+
+`listRo3SimulatorReferenceProfiles()` now inventories candidate rotations already present in the embedded simulator's `CLASS_PROFILES` data for the Heimdall DPS labels that have a direct profile key:
+
+- Mechanic
+- Rune Knight (DPS)
+- Warlock
+- Ranger
+- Guillotine Cross
+
+It reports each candidate's simulator career ID, whether a corresponding `JobConfig` row exists, each rotation's skill IDs, missing skill rows, and damage-skill count. The catalog is review-only (`executable: false`) and deliberately does not import the simulator's sample equipment, refine, stunts, cards, pets, buffs, or totems.
+
+### Gaps surfaced rather than guessed
+
+- Royal Guard (DPS) has no matching simulator-authored `CLASS_PROFILES` entry.
+- The current simulator data's `JobConfig` table does not contain the 4th-job career IDs referenced by those profiles. The evaluator now rejects a missing career row instead of silently allowing the engine's Novice fallback sheet to contaminate the result.
+- A profile is marked `ready-for-review` only if its career row exists, all listed skill rows exist, and at least one candidate rotation has a valid damage skill. Even then, it is not executable until human review; no profile is currently auto-approved.
+
+This is an intentional data-integrity gate. Add or verify the missing career/skill configuration in the simulator source before using these candidate rotations for member comparisons.
