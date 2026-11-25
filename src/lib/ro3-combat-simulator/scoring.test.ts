@@ -113,3 +113,12 @@ testCase("DPS-labelled hybrid jobs retain DPS plus Tank PvP composition", () => 
   assert.equal(result.score, 68);
   assert.deepEqual(result.weights, { dps: 60, tank: 40 });
 });
+
+testCase("Explicit split job labels take precedence over legacy role overrides", () => {
+  const tank = calculateRo3PvPScore("Rune Knight (Tank)", 95, 60, "DPS");
+  const dps = calculateRo3PvPScore("Rune Knight (DPS)", 80, 50, "TANK");
+  assert.equal(tank.score, 60);
+  assert.deepEqual(tank.weights, { tank: 100 });
+  assert.equal(dps.score, 68);
+  assert.deepEqual(dps.weights, { dps: 60, tank: 40 });
+});
