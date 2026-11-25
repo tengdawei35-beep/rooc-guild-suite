@@ -58,14 +58,100 @@ async function loadSimulator() {
         engineSha256,
         data: new engine.Ro3DataStore(),
         buildCharacterStats: engine.buildCharacterStats,
-        simulateRotation: engine.simulateRotation,
+        simulateRotation: engine.simulateRotation,\n      CLASS_PROFILES: engine.CLASS_PROFILES,
       };
     })();
   }
   return simulatorPromise;
 }
 
-export type Ro3RotationEvaluation = {
+
+export type Ro3SimulatorReferenceProfile = {
+  profileKey: string;
+  heimdallJob: string;
+  simulatorProfileName: string;
+  careerId: number;
+  careerConfigAvailable: boolean;
+  passiveSkillIds: number[];
+  rotations: Array<{
+    name: string;
+    skillIds: number[];
+    availableSkillIds: number[];
+    unavailableSkillIds: number[];
+    damageSkillCount: number;
+  }>;
+  status: "ready-for-review" | "career-config-missing" | "skills-incomplete" | "no-valid-damage-rotation";
+  executable: false;
+  note: string;
+};
+
+const HEIMDALL_PROFILE_MAP: Record<string, string> = {
+  mechanic: "Mechanic",
+  runeknight: "Rune Knight (DPS)",
+  warlock: "Warlock",
+  ranger: "Ranger",
+  guillotinecross: "Guillotine Cross",
+};
+
+/**
+ * Discover existing simulator-authored reference rotations without importing
+ * the sample gear/totem presets or treating them as validated member builds.
+ * Profiles are review-only until their JobConfig and all rotation skill rows
+ * are present in the embedded data.
+ */
+export async function listRo3SimulatorReferenceProfiles(): Promise<Ro3SimulatorReferenceProfile[]> {
+  const simulator = await loadSimulator();
+  return Object.entries(HEIMDALL_PROFILE_MAP).map(([profileKey, heimdallJob]) => {
+    const profile = simulator.CLASS_PROFILES[profileKey];
+    if (!profile) {
+      return {
+        profileKey, heimdallJob, simulatorProfileName: "", careerId: 0,
+        careerConfigAvailable: false, passiveSkillIds: [], rotations: [],
+        status: "career-config-missing" as const, executable: false as const,
+        note: "No matching simulator-authored class profile exists.",
+      };
+    }
+    const careerConfigAvailable = Boolean(simulator.data.row("JobConfig", profile.career));
+    const rotations = profile.candidateRotations.map((rotation) => {
+      const availableSkillIds = rotation.skills.filter((id) => Boolean(simulator.data.row("SkillConfig", id)));
+      const unavailableSkillIds = rotation.skills.filter((id) => !simulator.data.row("SkillConfig", id));
+      const damageSkillCount = availableSkillIds.filter((id) => {
+        const row = simulator.data.row("SkillConfig", id);
+        return Number(row?._iBasicType) === 1 &&
+          Array.isArray(row?._kDamageParam1) && row._kDamageParam1.length > 0;
+      }).length;
+      return {
+        name: rotation.name,
+        skillIds: [...rotation.skills],
+        availableSkillIds,
+        unavailableSkillIds,
+        damageSkillCount,
+      };
+    });
+    const allSkillsAvailable = rotations.every((r) => r.unavailableSkillIds.length === 0);
+    const hasDamageRotation = rotations.some((r) => r.damageSkillCount > 0);
+    const status = !careerConfigAvailable
+      ? "career-config-missing" as const
+      : !allSkillsAvailable
+        ? "skills-incomplete" as const
+        : !hasDamageRotation
+          ? "no-valid-damage-rotation" as const
+          : "ready-for-review" as const;
+    return {
+      profileKey,
+      heimdallJob,
+      simulatorProfileName: profile.name,
+      careerId: profile.career,
+      careerConfigAvailable,
+      passiveSkillIds: [...(profile.passiveSkills ?? [])],
+      rotations,
+      status,
+      executable: false as const,
+      note: "Simulator-authored candidate only. Sample equipment, cards, pets, totems and buffs are deliberately not imported. Human review is required before treating this as a job reference rotation.",
+    };
+  });
+}
+\nexport type Ro3RotationEvaluation = {
   version: "RO3_SIMULATOR_ROTATION_V1";
   engineSha256: string;
   careerId: number;
@@ -121,7 +207,7 @@ export async function evaluateRo3Rotation(input: {
     extraAttrs: [],
     rotationCycle: true,
   };
-  const baseSheet = simulator.buildCharacterStats(baseBuild, simulator.data);
+  if (!simulator.data.row("JobConfig", input.careerId)) {\n    throw new Error(`Simulator JobConfig career ${input.careerId} is missing; refusing to use the simulator fallback career sheet.`);\n  }\n  const baseSheet = simulator.buildCharacterStats(baseBuild, simulator.data);
   const extraAttrs = Object.entries(adapted.attributes).map(([rawId, value]) => {
     const id = Number(rawId);
     return [id, Number(value) - Number(baseSheet[id] ?? 0)];
