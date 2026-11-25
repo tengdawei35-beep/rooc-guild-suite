@@ -1,12 +1,12 @@
 # RO3 scoring calibration audit — simulator and persisted-stat coverage
 
-Status: analysis only. No scoring weights or production rankings are changed by this document.
+Status: simulator-authoritative working model. For current RO3 damage-derived scoring work, the embedded Heimdall damage simulator is the source of truth until explicitly superseded by a later simulator revision or product decision. This is an engineering authority decision, not a claim that the simulator has been independently verified against live-game combat.
 
 ## Executive finding
 
 The current RO3 damage simulator can support a defensible, sensitivity-derived **offensive DPS** model for a subset of persisted stats. It cannot, by itself, derive a complete Tank or PvP score from every field currently stored by Heimdall.
 
-Do not publish final weights yet. Several persisted fields have no corresponding term in the current simulator, and the simulator's outgoing-damage evaluator does not model incoming player damage reduction. Assigning weights to those fields from this engine would be invented rather than measured.
+Use the simulator as the authoritative calculation model for the mechanics it implements. Build and compare offensive scoring inputs against its outputs without requiring separate in-game damage samples first. Fields and mechanics the simulator does not implement remain unsupported: do not invent penetration, incoming-damage reduction, complete Tank or PvP calculations.
 
 ## Simulator formula audit
 
@@ -56,10 +56,10 @@ The whitelist below is the current `RO3_STAT_FIELDS` registry in `src/lib/consta
 - The simulator's target-bonus function applies bonuses against a target's **race, element and size**. Its race ordering is Brute (1), Demi-Human (2), Demon (3), Plant (4), Undead (5), Formless (6), Fish (7), Angel (8), Insect (9), Dragon (10). Demi-Human therefore maps to race attribute 402, not to a generic PvP or All Job modifier.
 - Medium maps to size attribute 503.
 - The current stored schema has aggregate fields such as `physicalDamageBonusPercent`, while the simulator separates P.DMG from melee/ranged P.DMG. Do not assume the aggregate field represents every simulator bracket.
-- The simulator's damage formula does not currently use the persisted penetration fields. Their existence in the database is not evidence that the simulator models them.
+- The simulator's damage formula does not currently use the persisted penetration fields. Their existence in the database is not evidence that the simulator models them. Under the current authority decision, this means penetration is excluded until the simulator itself implements it.
 - The current damage evaluator is an outgoing-skill calculator. It does not provide a complete model for a player receiving physical/magic/PvP damage. A Tank score cannot be fully calibrated from it.
 
-## Calibration method to use once comparable profile data is available
+## Calibration method under the simulator-authoritative decision
 
 Use simulator sensitivity over the real persisted-stat distribution, not arbitrary percentage-point bumps.
 
@@ -84,10 +84,10 @@ A single percentage-point increase is not a fair comparison between PATK, a dama
 
 ## Required next inputs / engineering work
 
-- Obtain a representative export of persisted `ro3Stats` values (anonymized; member identifiers are not required) to calculate P10/P50/P90 ranges and field coverage.
-- Confirm the exact source-screen meaning and unit convention for the stored aggregate physical/magic bonus fields, penetration fields, and All Job fields.
-- Build a calibration harness around the simulator's existing exported evaluator without changing the paused iframe-to-native-React migration. The harness must pin the simulator data/formula revision and run deterministic paired scenarios.
-- Before enabling Tank/PvP scoring, implement and validate a separate incoming-damage evaluator that consumes the persisted reduction fields. Do not infer it from outgoing damage.
+- When meaningful persisted profile data becomes available, calculate P10/P50/P90 ranges and field coverage; do not export sparse/empty production data merely to fill the gap.
+- Treat the current simulator's formula, data tables and generated engine fingerprint as the authoritative calculation contract. Pin each scoring revision to that engine fingerprint.
+- Use deterministic paired simulator scenarios to measure supported persisted inputs and interactions. Do not require separate live-game samples as a gate for using the current simulator model.
+- Keep unsupported fields out of the score. Tank/PvP components that require incoming-damage mechanics remain unavailable until the simulator implements those mechanics.
 
 ## Guardrails
 
