@@ -42,6 +42,7 @@ let simulatorPromise: Promise<{
   data: InstanceType<SimulatorModule["Ro3DataStore"]>;
   buildCharacterStats: SimulatorModule["buildCharacterStats"];
   simulateRotation: SimulatorModule["simulateRotation"];
+  CLASS_PROFILES: SimulatorModule["CLASS_PROFILES"];
 }> | null = null;
 
 async function loadSimulator() {
@@ -60,7 +61,7 @@ async function loadSimulator() {
         data: new engine.Ro3DataStore(),
         buildCharacterStats: engine.buildCharacterStats,
         simulateRotation: engine.simulateRotation,
-      CLASS_PROFILES: engine.CLASS_PROFILES,
+        CLASS_PROFILES: engine.CLASS_PROFILES,
       };
     })();
   }
