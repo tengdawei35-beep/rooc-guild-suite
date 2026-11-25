@@ -133,9 +133,12 @@ export async function GET(
                       member: {
                         select: {
                           id: true,
+                          userId: true,
+                          discordUserId: true,
                           characterName: true,
                           job: true,
                           priority: true,
+                          ro3Stats: true,
                         },
                       },
                     },
@@ -369,6 +372,9 @@ export async function GET(
                           priority:
                             assignment.member
                               .priority,
+                          ...(auth.role !== "MEMBER" || assignment.member.userId === auth.user.id || assignment.member.discordUserId === auth.user.discordId
+                            ? { ro3Stats: assignment.member.ro3Stats }
+                            : {}),
                         },
                       })
                     ),
