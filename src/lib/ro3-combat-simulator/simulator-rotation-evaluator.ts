@@ -83,7 +83,7 @@ export type Ro3SimulatorReferenceProfile = {
     unavailableSkillIds: number[];
     damageSkillCount: number;
   }>;
-  status: "ready-for-review" | "career-config-missing" | "skills-incomplete" | "no-valid-damage-rotation";
+  status: "ready-for-review" | "simulator-profile-missing" | "career-config-missing" | "skills-incomplete" | "no-valid-damage-rotation";
   executable: false;
   note: string;
 };
