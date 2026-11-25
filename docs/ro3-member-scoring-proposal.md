@@ -1,58 +1,66 @@
-# RO3 member scoring model — preliminary v1
+# RO3 member scoring model — implementation v2 composition rules
 
-These weights are an intentionally provisional starting point for relative build comparison. They are not official game ratings or predictions of match outcomes. Revisit after validating the imported simulator against in-game tests.
+This document defines the score composition rules implemented in `src/lib/ro3-combat-simulator/scoring.ts`. Scores are estimates for build comparison, not official game ratings or predictions of match outcomes.
 
-## Scoring method
+## Score composition
 
-Normalize each stat family to 0–100 using documented reference ranges or percentile ranks within the selected comparison cohort. Prefer comparisons within the same role/archetype. Winsorize extreme outliers where percentile normalization is used. The implementation accepts normalized component scores, excludes missing components, and proportionally rebalances the remaining weights. It never silently treats missing values as zero.
+The composition engine accepts normalized component scores (0–100). It does not normalize raw stat values or invent stat caps. The conversion from stored member stats into normalized components requires a separately validated, versioned reference-scenario model; until that exists, the composition layer must not be represented as a fully live-calibrated score.
 
-Physical DPS uses PATK and physical penetration; Magic DPS uses MATK and magic penetration. Do not blend attack channels for the default role score. The skill/build profile determines whether critical output is relevant.
+## DPS score
 
-## DPS weights
+Physical DPS and Magic DPS are separate categories. The default non-critical weighting is:
 
-| Component | Non-crit build | Crit-capable build | Included stats |
-| --- | ---: | ---: | --- |
-| Attack power | 30% | 25% | PATK for physical; MATK for magic |
-| Penetration | 25% | 20% | Physical penetration / ignore PDEF; magic penetration / ignore MDEF |
-| Damage amplification | 25% | 25% | Applicable physical/magic and general damage bonuses |
-| Target bonuses | 20% | 20% | Supported size, race and elemental matchup bonuses |
-| Critical output | — | 10% | Critical rate and critical damage, only when the selected build supports critical hits |
-| **Total** | **100%** | **100%** | |
+| Component | Weight |
+| --- | ---: |
+| Attack power | 30% |
+| Penetration | 25% |
+| Damage amplification | 25% |
+| Target bonuses | 20% |
+| **Total** | **100%** |
 
-HIT and ASPD are deliberately excluded from this score. Critical output is not part of the non-crit baseline and must not be inferred from a character's job alone; use the selected skill/build's actual critical capability.
+A critical-capable build can opt into the alternate 25/20/25/20/10 split, but critical output must not be enabled merely from the job name. The caller must establish that the selected build/skill supports critical hits and supply a normalized critical-output component.
 
-## Tank weights
+Missing DPS components are excluded and the remaining available weights are proportionally rebalanced.
 
-| Component | Weight | Included stats |
-| --- | ---: | --- |
-| Effective health | 25% | HP |
-| Defence | 20% | PDEF and MDEF, evaluated against relevant damage channels |
-| Damage reduction | 30% | Physical, magic and general damage reduction |
-| PvP survivability | 15% | PvP damage reduction and supported Demi-human reduction |
-| Critical resilience | 10% | Critical resistance / critical damage mitigation where applicable |
-| **Total** | **100%** | |
+## Tank score
 
-## PvP readiness weights
+HP has a permanent 5% allocation. The remaining defensive components share 95%, preserving the same relative 30:25:25:20 proportions as the non-critical DPS score:
 
-| Component | Weight | Included stats |
-| --- | ---: | --- |
-| PvP damage output | 25% | PvP damage bonus |
-| Penetration | 15% | Relevant physical/magic penetration |
-| General damage amplification | 15% | Applicable physical/magic and general damage bonuses |
-| Target bonuses | 10% | Relevant Demi-human, size and elemental bonuses |
-| PvP survivability | 20% | PvP damage reduction |
-| General durability | 15% | HP and relevant defence |
-| **Total** | **100%** | |
+| Component | Weight |
+| --- | ---: |
+| HP | **5% fixed** |
+| Defence | 28.50% |
+| Damage reduction | 23.75% |
+| PvP survivability | 23.75% |
+| Critical resilience | 19.00% |
+| **Total** | **100%** |
 
-PvP readiness is a stat-based comparison, not a simulated win probability. The upstream simulator does not fully model all PvP effects, healing, shields, or some Divine Totem effects.
+HP is mandatory for a Tank score because its 5% allocation is permanent. If HP is missing, the Tank score is unavailable; its weight is not redistributed. Missing defensive components are excluded and the remaining defensive weights are normalized within the 95% defensive allocation.
 
-## Guardrails and implementation notes
+## PvP score
 
-- The code model is versioned as `RO3_PRELIMINARY_V1` in `src/lib/ro3-combat-simulator/scoring.ts`.
-- The score function accepts normalized 0–100 component values, returns the applied weights and per-component contributions, and rebalances weights when inputs are missing.
-- Do not include HIT or ASPD in any of these preliminary score categories.
-- Do not include critical output in a build that cannot crit with its selected damage skills.
-- Avoid double-counting overlapping bonus brackets. Verify whether general and specialized bonuses are additive, multiplicative, conditional, or mutually exclusive before combining them.
-- Penetration weights are provisional. The currently imported evaluator's visible defence formula uses PDEF/MDEF mitigation and does not establish a simple flat penetration subtraction. Validate actual penetration and penetration-defence behavior before treating these weights as calibrated.
-- The simulator has inferred and unsupported effects. Display an estimate disclaimer and preserve upstream attribution.
-- Keep historic score versions attached to computed scores so rankings remain explainable when weights change.
+| Job category | DPS contribution | Tank contribution |
+| --- | ---: | ---: |
+| DPS jobs | **60%** | **40%** |
+| Archbishop | 0% | **100%** |
+
+A DPS PvP score is unavailable unless both its DPS score and Tank score are available. Archbishop PvP uses Tank score only and does not require a DPS score.
+
+Current RO3 DPS job classification in the implementation is Mechanic, Royal Guard, Rune Knight, Warlock, Ranger, and Guillotine Cross. Archbishop is Tank-only for PvP composition. Warlock defaults to Magic DPS; other DPS jobs default to Physical DPS. Callers may explicitly provide the DPS category where a build requires it.
+
+## Live and scheduled calculation boundary
+
+The composition functions are pure and deterministic, so they can be called by a live update handler or a scheduled batch job without changing the score rules. However, this PR does not claim raw-stat-to-component normalization or database persistence is complete. That requires fixed, game-validated reference scenarios and confirmed handling for penetration, defensive reductions, and target bonuses. The stored stat snapshot and the visible outgoing-damage evaluator do not yet establish every defensive/PvP term needed for a defensible live score.
+
+Do not substitute current guild percentiles or population-relative ranks for fixed reference scenarios: a member's score must not change merely because other members join or update their stats.
+
+## Guardrails
+
+- Version: `RO3_MEMBER_V2`.
+- The engine accepts normalized 0–100 component scores only.
+- Missing DPS components are reweighted among available DPS components.
+- Tank HP remains fixed at 5%; missing HP makes Tank unavailable.
+- Missing defensive components are reweighted only within the remaining 95%.
+- PvP requires all applicable underlying scores; it does not silently replace missing values with zero.
+- HIT and ASPD are excluded.
+- Do not include unsupported effects, skill multipliers, buffs, or passives as member-stat features.
