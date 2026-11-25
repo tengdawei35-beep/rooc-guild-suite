@@ -1,0 +1,34 @@
+import { CARD_SOCKETS, EQUIPMENT_GRIDS, type CardOption, type EquipmentOption } from "./equipment-options";
+
+export type NativeGearSlot = { id: number; roll: number; refine: number; enhance: number };
+export type NativeCardSlot = { id: number; star: number; level: number; flash?: boolean };
+export type NativeEquipmentSelection = { gear: NativeGearSlot[]; cards: NativeCardSlot[] };
+
+export const emptyNativeEquipmentSelection = (): NativeEquipmentSelection => ({
+  gear: EQUIPMENT_GRIDS.map(() => ({ id: 0, roll: 5000, refine: 0, enhance: 0 })),
+  cards: CARD_SOCKETS.map(() => ({ id: 0, star: 3, level: 15, flash: false })),
+});
+
+/** Convert UI selections into the exact gear/card shape already consumed by buildCharacterStats. */
+export function toEngineEquipment(selection: NativeEquipmentSelection, equipment: EquipmentOption[], cards: CardOption[]) {
+  const gear = selection.gear.flatMap((slot, index) => {
+    const item = equipment.find((candidate) => candidate.id === slot.id);
+    if (!item || !EQUIPMENT_GRIDS[index]?.parts.includes(item.part)) return [];
+    return [{
+      grid: index + 1, id: item.id, roll: Math.max(0, Math.min(10000, Math.round(slot.roll))),
+      affixes: [], stunts: [],
+      refine: Math.max(0, Math.min(99, Math.round(slot.refine))),
+      enhance: Math.max(0, Math.min(999, Math.round(slot.enhance))),
+    }];
+  });
+  const activeCards = selection.cards.flatMap((slot, index) => {
+    const item = cards.find((candidate) => candidate.id === slot.id);
+    const socket = CARD_SOCKETS[index];
+    if (!item || !socket || item.part !== socket.part) return [];
+    return [{
+      id: item.id, star: Math.max(0, Math.min(3, Math.round(slot.star))),
+      level: Math.max(0, Math.min(15, Math.round(slot.level))), flash: !!slot.flash,
+    }];
+  });
+  return { gear, cards: activeCards };
+}
