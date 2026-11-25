@@ -10,7 +10,7 @@
     "lint": "eslint",
     "db:migrate:deploy": "prisma migrate deploy",
     "call-to-arms:reminder": "tsx scripts/call-to-arms-reminder.ts",
-    "test:ro3-scoring": "tsx --test src/lib/ro3-combat-simulator/scoring.test.ts",
+    "test:ro3-scoring": "tsx --test src/lib/ro3-combat-simulator/scoring.test.ts src/lib/ro3-combat-simulator/scoring.synthetic.test.ts",
     "export:ro3-calibration": "tsx scripts/export-ro3-scoring-calibration-cohort.ts"
   },
   "dependencies": {
