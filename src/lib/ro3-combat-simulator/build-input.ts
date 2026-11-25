@@ -36,7 +36,7 @@ export function toEngineEquipment(selection: NativeEquipmentSelection, equipment
     return [{
       id: item.id,
       star: Math.max(0, Math.min(3, Math.round(slot.star))),
-      level: Math.max(0, Math.min(15, Math.round(slot.level))),
+      level: Math.max(0, Math.min([5, 10, 15, 15][Math.max(0, Math.min(3, Math.round(slot.star)))], Math.round(slot.level))),
       flash: !!slot.flash,
     }];
   });
