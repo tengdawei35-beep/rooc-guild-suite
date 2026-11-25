@@ -63,7 +63,7 @@ export const RO3_RAW_STAT_SUPPORT: Partial<Record<RO3StatKey, Ro3RawStatSupport>
     status: "simulator-supported",
     simulatorAttributeId: 211,
     use: "outgoing-damage",
-    note: "OCR requires an explicit percent sign and stores the displayed percentage number. The simulator consumes basis points (divide by 10000); conversion is ×100. Aggregation/source semantics remain to be verified.",
+    note: "OCR requires an explicit percent sign and stores the displayed percentage number. The adapter converts it to simulator basis points (×100); the current persisted field is used as the matching simulator attribute.",
   },
   magicDamageBonusPercent: {
     status: "simulator-supported",
