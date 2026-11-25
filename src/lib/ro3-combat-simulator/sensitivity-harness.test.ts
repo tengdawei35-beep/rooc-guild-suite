@@ -47,3 +47,21 @@ testCase("target PDEF/MDEF sensitivity is measured separately from attacker offe
   assert.ok(report.targetDefenceSensitivity.some((row) => row.input === "Target PDEF (105)"));
   assert.ok(report.targetDefenceSensitivity.some((row) => row.input === "Target MDEF (106)"));
 });
+
+testCase("synthetic 10% stat probes produce the expected 10% outgoing damage change", () => {
+  const report = buildSensitivityReport();
+  for (const row of report.sensitivity) {
+    assert.equal(row.percentChange, 10, `${row.channel} ${row.input} should produce a 10% probe response`);
+    assert.equal(row.baselineDamage, 5000);
+    assert.equal(row.changedDamage, 5500);
+  }
+});
+
+testCase("a 10% target defence reduction produces the expected 5.26% damage increase", () => {
+  const report = buildSensitivityReport();
+  for (const row of report.targetDefenceSensitivity) {
+    assert.equal(row.baselineDamage, 5000);
+    assert.equal(row.changedDamage, 5263);
+    assert.equal(row.percentChange, 5.26);
+  }
+});
