@@ -33,6 +33,7 @@ are not recommended character baselines or claims about actual in-game damage.
 | General Damage +10 percentage points (215), magic | 5,000 | 5,500 | +10.00% |
 | Demi-Human target bonus +10 percentage points (402) | 5,000 | 5,500 | +10.00% |
 | Medium target bonus +10 percentage points (503) | 5,000 | 5,500 | +10.00% |
+| Critical Damage +1,000 bp (209), guaranteed physical critical | 7,500 | 8,000 | +6.67% |
 | Target PDEF reduced 10% | 5,000 | 5,263 | +5.26% |
 | Target MDEF reduced 10% | 5,000 | 5,263 | +5.26% |
 
@@ -76,9 +77,11 @@ game's complete live damage-bracket rules.
   evaluator.
 - HP: defensive context only here; no survival, healing, shield, or time-to-kill
   model is measured.
-- Critical damage (209): current evaluator has a crit path, but this harness
-  deliberately disables critical chance. A separate critical sensitivity test
-  with a controlled, guaranteed physical critical is still required.
+- Critical damage (209): a separate guaranteed-physical-critical probe now
+  measures 7,500 → 8,000 (+6.67%) for +1,000 bp. This is consistent with the
+  evaluator's 1.5x critical base and its (15,000 + 209) / 15,000 critical
+  modifier. Persisted source/aggregation semantics remain unverified, so the
+  field is still blocked from live calibration.
 - Element, skill-specific, ranged/melee, buffs, pet/totem, cards, and class
   effects: not covered by these isolated probes.
 - The evaluator contains inferred assumptions, including its DEF formula and
