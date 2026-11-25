@@ -2460,8 +2460,8 @@ let cached: Promise<Ro3GameData> | undefined;
 export function loadRo3GameData(): Promise<Ro3GameData> {
   if (!cached) {
     cached = (async () => {
-      if (typeof window === "undefined" || typeof DecompressionStream === "undefined") {
-        throw new Error("RO3 game data must be decompressed in a browser supporting gzip DecompressionStream.");
+      if (typeof DecompressionStream === "undefined") {
+        throw new Error("RO3 game data requires gzip DecompressionStream support.");
       }
       const binary = atob(RO3_GAME_DATA_GZIP_BASE64);
       const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
