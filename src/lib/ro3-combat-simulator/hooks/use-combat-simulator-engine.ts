@@ -32,6 +32,11 @@ export function useCombatSimulatorEngine() {
       .then(([store, exported]) => {
         if (!active) return;
         setData(store);
+        setEquipmentCatalog(getCombatEquipmentCatalog(
+          exported.tables as Parameters<typeof getCombatEquipmentCatalog>[0],
+          exported.ui as Parameters<typeof getCombatEquipmentCatalog>[1],
+          1410,
+        ));
         setSkillOptions(getCombatSkillOptions(
           exported.ui as { jobs: Array<{ id: number; parent?: number }>; trees: Record<string, Array<Array<number | null>>> },
           exported.tables.SkillConfig as Record<string, Record<string, unknown>>,
@@ -49,7 +54,13 @@ export function useCombatSimulatorEngine() {
     };
   }, []);
 
-  const getCharacterSheet = useCallback((attacker: CombatBuild, selection: NativeEquipmentSelection) => {\n    if (!data || !equipmentCatalog) throw new Error("Combat engine is not ready yet.");\n    const mapped = toEngineEquipment(selection, equipmentCatalog.equipment, equipmentCatalog.cards);\n    return buildCharacterStats({ ...attacker, ...mapped }, data);\n  }, [data, equipmentCatalog]);\n\n  const simulate = useCallback((
+  const getCharacterSheet = useCallback((attacker: CombatBuild, selection: NativeEquipmentSelection) => {
+    if (!data || !equipmentCatalog) throw new Error("Combat engine is not ready yet.");
+    const mapped = toEngineEquipment(selection, equipmentCatalog.equipment, equipmentCatalog.cards);
+    return buildCharacterStats({ ...attacker, ...mapped }, data);
+  }, [data, equipmentCatalog]);
+
+  const simulate = useCallback((
     attacker: CombatBuild,
     defender: CombatDefender,
     rotationSkillIds: number[],
