@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { writeFile } from "node:fs/promises";
 import { prisma } from "../src/lib/prisma";
+import { isRo3TankOrSupportJob } from "../src/lib/ro3-combat-simulator/scoring";
 
 const STAT_KEYS = [
   "hp",
@@ -52,7 +53,9 @@ async function main() {
   const members = await prisma.guildMember.findMany({
     where: {
       active: true,
+      eligible: true,
       guild: { gameType: "RO3" },
+      job: { in: ["Archbishop", "Royal Guard (Tank)", "Rune Knight (Tank)"] },
     },
     select: {
       job: true,
@@ -61,6 +64,7 @@ async function main() {
   });
 
   const rows = members.flatMap((member) => {
+    if (!isRo3TankOrSupportJob(member.job)) return [];
     if (!member.ro3Stats || typeof member.ro3Stats !== "object" || Array.isArray(member.ro3Stats)) {
       return [];
     }
@@ -87,10 +91,31 @@ async function main() {
     ...rows.map((row) => header.map((key) => csvCell(row[key as keyof typeof row] as string | number | null)).join(",")),
   ].join("\n");
 
-  const outputPath = process.env.RO3_SCORING_EXPORT_PATH ?? "ro3-scoring-cohort.csv";
-  await writeFile(outputPath, `${csv}\n`, "utf8");
+  const pdefValues = rows.map((row) => row.pdef).filter((value): value is number => value !== null);
+  const mdefValues = rows.map((row) => row.mdef).filter((value): value is number => value !== null);
+  const average = (values: number[]) => values.length
+    ? values.reduce((sum, value) => sum + value, 0) / values.length
+    : null;
 
-  console.log(`Exported ${rows.length} anonymized active RO3 stat snapshots to ${outputPath}`);
+  const baseline = {
+    referenceLevel: 99,
+    population: "All active, eligible RO3 Tank and Support characters across Heimdall guilds",
+    qualifyingCharacters: rows.length,
+    pdefSampleCount: pdefValues.length,
+    averagePdef: average(pdefValues),
+    mdefSampleCount: mdefValues.length,
+    averageMdef: average(mdefValues),
+    generatedAt: new Date().toISOString(),
+  };
+
+  const outputPath = process.env.RO3_SCORING_EXPORT_PATH ?? "ro3-scoring-cohort.csv";
+  const baselinePath = process.env.RO3_SCORING_BASELINE_PATH ?? "ro3-scoring-baseline.json";
+  await writeFile(outputPath, `${csv}\n`, "utf8");
+  await writeFile(baselinePath, `${JSON.stringify(baseline, null, 2)}\n`, "utf8");
+
+  console.log(`Exported ${rows.length} anonymized active, eligible RO3 Tank/Support stat snapshots to ${outputPath}`);
+  console.log(`Level 99 defensive baseline written to ${baselinePath}`);
+  console.log(JSON.stringify(baseline, null, 2));
   console.log("No member IDs, Discord IDs, character names, or guild identifiers were selected or exported.");
 }
 
