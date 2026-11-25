@@ -47,7 +47,8 @@ been migrated in this phase.
 | Architecture audit | Complete |
 | Extract calculation engine | Initial extraction complete; smoke tests added |
 | Extract embedded game data | Complete; compressed payload module and in-memory store factory added |
-| Define typed engine inputs/outputs and expand coverage | Not started |
+| Define typed engine inputs/outputs and expand coverage | Initial models/rotation result defined; broader engine typings pending |
+| Typed workspace models and calculation adapter | Initial boundary complete |
 | Build native React component architecture | Not started |
 | Connect React state to extracted engine | Not started |
 | Migrate profile import and reports | Not started |
