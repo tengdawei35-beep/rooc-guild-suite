@@ -141,6 +141,7 @@ export default function NativeCombatSimulatorPreview() {
                 <option value="0">Empty</option>{choices.map((item)=><option key={item.id} value={item.id}>{item.name} · T{item.tier} · Lv {item.levelRequired}</option>)}
               </select></label>
               {equipment.gear[index]?.id!==0&&<div className="mt-2 grid grid-cols-2 gap-2">
+                <label className="text-[11px] text-zinc-500">Roll (0–10000)<input type="number" min="0" max="10000" value={equipment.gear[index]?.roll??5000} onChange={(e)=>setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===index?{...slot,roll:numeric(e.target.value,5000)}:slot)}))} className={inputClass}/></label>
                 <label className="text-[11px] text-zinc-500">Refine<input type="number" min="0" max="99" value={equipment.gear[index]?.refine??0} onChange={(e)=>setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===index?{...slot,refine:numeric(e.target.value,0)}:slot)}))} className={inputClass}/></label>
                 <label className="text-[11px] text-zinc-500">Enhance<input type="number" min="0" max="999" value={equipment.gear[index]?.enhance??0} onChange={(e)=>setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===index?{...slot,enhance:numeric(e.target.value,0)}:slot)}))} className={inputClass}/></label>
               </div>}
@@ -151,11 +152,16 @@ export default function NativeCombatSimulatorPreview() {
       <details className="mt-3"><summary className="cursor-pointer text-xs font-medium text-zinc-300">Card sockets (18)</summary>
         <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {CARD_SOCKETS.map((socket,index)=>{
-            const choices=(engine.equipmentCatalog?.cards ?? []).filter((card)=>card.part===socket.part);
+            const choices=(engine.equipmentCatalog?.cards ?? []).filter((card)=>card.part===socket.part && numeric(level,100)>=socket.levelRequired);
             return <label key={socket.index} className="text-xs text-zinc-400">{socket.name} · Lv {socket.levelRequired}
               <select value={equipment.cards[index]?.id??0} onChange={(e)=>setEquipment((old)=>({...old,cards:old.cards.map((slot,i)=>i===index?{...slot,id:Number(e.target.value)}:slot)}))} className={inputClass}>
                 <option value="0">Empty</option>{choices.map((card)=><option key={card.id} value={card.id}>{card.name} · Q{card.quality}</option>)}
               </select>
+              {equipment.cards[index]?.id!==0&&<div className="mt-2 grid grid-cols-3 gap-2">
+                <label className="text-[10px] text-zinc-500">Stars<select value={equipment.cards[index]?.star??3} onChange={(e)=>setEquipment((old)=>({...old,cards:old.cards.map((slot,i)=>i===index?{...slot,star:Number(e.target.value)}:slot)}))} className={inputClass}>{[0,1,2,3].map((v)=><option key={v} value={v}>{v}</option>)}</select></label>
+                <label className="text-[10px] text-zinc-500">Level<input type="number" min="0" max="15" value={equipment.cards[index]?.level??15} onChange={(e)=>setEquipment((old)=>({...old,cards:old.cards.map((slot,i)=>i===index?{...slot,level:numeric(e.target.value,15)}:slot)}))} className={inputClass}/></label>
+                <label className="flex items-end gap-1 text-[10px] text-zinc-500"><input type="checkbox" checked={!!equipment.cards[index]?.flash} onChange={(e)=>setEquipment((old)=>({...old,cards:old.cards.map((slot,i)=>i===index?{...slot,flash:e.target.checked}:slot)}))}/>Collection</label>
+              </div>}
             </label>;
           })}
         </div>
