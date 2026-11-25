@@ -75,7 +75,10 @@ const SKILLS = Object.freeze({
 });
 
 function copyStats(stats: Readonly<Stats>): Stats {
-  return { ...stats };
+  // The simulator's stat sheet is dense: absent attributes must be explicit
+  // zeroes because targetBonus and damage-bracket sums read several keys.
+  const complete = Object.fromEntries(Array.from({ length: 1301 }, (_, id) => [id, 0])) as Stats;
+  return Object.assign(complete, stats);
 }
 
 function evaluate(channel: "physical" | "magic", stats: Stats, defender = REFERENCE_DEFENDER): DamageResult {
