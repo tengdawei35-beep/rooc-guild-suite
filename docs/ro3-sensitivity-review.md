@@ -1,0 +1,99 @@
+# RO3 sensitivity review — engineering evidence
+
+Status: **experimental / not approved for live scoring**.
+
+This review records the output of CI run #438 on simulator engine fingerprint
+`095c4c5e73b28306839093015cb3451e43e147189ba954a552ab4c41848fb76b`.
+The report uses synthetic profiles and synthetic probe skills only. No production
+cohort, member record, or persisted score was read.
+
+## Fixed reference scenario
+
+- Attacker and defender: Level 99.
+- Physical and magic probe attack: 10,000 PATK / MATK.
+- Defender: PDEF 1,980 and MDEF 1,980, race ID 2 (Demi-Human), size ID 2 (Medium).
+- The evaluator's current mitigation term produces 50% damage at this equal-level,
+  1,980 defence reference point.
+- Probe skill: one 100% ratio hit, no flat damage, guaranteed hit, no critical chance,
+  no active buffs/cards/totems/bond adjustments.
+- Baseline damage: 5,000 for both channels.
+
+These values exist to expose the evaluator's response to controlled changes; they
+are not recommended character baselines or claims about actual in-game damage.
+
+## Measured results
+
+| Probe | Baseline | Changed | Damage delta |
+|---|---:|---:|---:|
+| PATK +10% (physical) | 5,000 | 5,500 | +10.00% |
+| MATK +10% (magic) | 5,000 | 5,500 | +10.00% |
+| Physical Damage +10 percentage points (211) | 5,000 | 5,500 | +10.00% |
+| Magic Damage +10 percentage points (213) | 5,000 | 5,500 | +10.00% |
+| General Damage +10 percentage points (215), physical | 5,000 | 5,500 | +10.00% |
+| General Damage +10 percentage points (215), magic | 5,000 | 5,500 | +10.00% |
+| Demi-Human target bonus +10 percentage points (402) | 5,000 | 5,500 | +10.00% |
+| Medium target bonus +10 percentage points (503) | 5,000 | 5,500 | +10.00% |
+| Target PDEF reduced 10% | 5,000 | 5,263 | +5.26% |
+| Target MDEF reduced 10% | 5,000 | 5,263 | +5.26% |
+
+### Overlapping damage bonus check
+
+- Physical Damage +10 points plus General Damage +10 points: 5,000 → 6,000 (+20%).
+- Magic Damage +10 points plus General Damage +10 points: 5,000 → 6,000 (+20%).
+
+The evaluator adds these values into one sheet-bonus bracket. They are additive
+within that bracket, not multiplicative (which would have produced +21%). This
+is a statement about the current simulator implementation, not proof of the
+game's complete live damage-bracket rules.
+
+## What this supports
+
+1. **PATK and MATK:** direct, linear attack inputs in the current evaluator.
+   Their persisted-to-simulator mappings (103 / 104) are eligible for further
+   offensive scoring engineering. This does not by itself define a fair class
+   comparison or a final score weight.
+2. **Physical Damage (211), Magic Damage (213), General Damage (215):** the
+   evaluator responds linearly in the isolated probes and combines channel
+   damage plus General Damage additively. OCR display-unit conversion is
+   implemented, but source-screen aggregation semantics are still unverified.
+   Keep these fields blocked from live calibration until their capture and
+   aggregation semantics are checked against actual character screens.
+3. **Demi-Human (402) and Medium (503):** the simulator routes them to the
+   matching defender race/size IDs and responds linearly in this probe.
+   Persisted units and aggregation/source semantics are unverified. Keep them
+   blocked from live calibration.
+4. **PDEF / MDEF (105 / 106):** the evaluator uses these as target mitigation
+   inputs. This establishes a defensive effect on outgoing damage *against a
+   target*. It does not establish a player's own defensive score or their
+   survival against player damage. Do not treat these as a Tank score input
+   based on this harness.
+
+## What remains unsupported or unverified
+
+- Penetration (physical/magic): not applied by the current evaluator.
+- Incoming physical/magic/general reduction, critical damage reduction, and
+  race/size/job-specific damage reduction: no validated incoming player-damage
+  evaluator.
+- HP: defensive context only here; no survival, healing, shield, or time-to-kill
+  model is measured.
+- Critical damage (209): current evaluator has a crit path, but this harness
+  deliberately disables critical chance. A separate critical sensitivity test
+  with a controlled, guaranteed physical critical is still required.
+- Element, skill-specific, ranged/melee, buffs, pet/totem, cards, and class
+  effects: not covered by these isolated probes.
+- The evaluator contains inferred assumptions, including its DEF formula and
+  damage-bracket interpretation. Sensitivity tests do not validate those
+  assumptions against the live game.
+
+## Calibration decision
+
+Do not derive final DPS weights or Tank/PvP scores from these results. They show
+that several inputs move the current evaluator as expected, not how much each
+stat should matter across classes or builds. Continue with:
+- a separate controlled critical-damage probe;
+- actual game/source verification for persisted percentage and target-bonus
+  fields;
+- formula verification against controlled in-game damage samples;
+- an incoming player-damage evaluator before Tank/PvP calibration.
+
+No database cohort export is authorized or required for this stage.
