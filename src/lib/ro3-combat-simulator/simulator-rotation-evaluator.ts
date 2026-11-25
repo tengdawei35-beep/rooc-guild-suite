@@ -21,7 +21,8 @@ type SimulatorModule = {
   Ro3DataStore: new () => {
     row: (table: string, id: number) => Record<string, unknown> | null;
   };
-  buildCharacterStats: (build: Record<string, unknown>, data: unknown) => Record<number, number>;\n  CLASS_PROFILES: Record<string, { name: string; career: number; candidateRotations: Array<{ name: string; skills: number[] }>; passiveSkills?: number[] }>;
+  buildCharacterStats: (build: Record<string, unknown>, data: unknown) => Record<number, number>;
+  CLASS_PROFILES: Record<string, { name: string; career: number; candidateRotations: Array<{ name: string; skills: number[] }>; passiveSkills?: number[] }>;
   simulateRotation: (
     build: Record<string, unknown>,
     defender: Record<string, unknown>,
@@ -58,7 +59,8 @@ async function loadSimulator() {
         engineSha256,
         data: new engine.Ro3DataStore(),
         buildCharacterStats: engine.buildCharacterStats,
-        simulateRotation: engine.simulateRotation,\n      CLASS_PROFILES: engine.CLASS_PROFILES,
+        simulateRotation: engine.simulateRotation,
+      CLASS_PROFILES: engine.CLASS_PROFILES,
       };
     })();
   }
@@ -151,7 +153,8 @@ export async function listRo3SimulatorReferenceProfiles(): Promise<Ro3SimulatorR
     };
   });
 }
-\nexport type Ro3RotationEvaluation = {
+
+export type Ro3RotationEvaluation = {
   version: "RO3_SIMULATOR_ROTATION_V1";
   engineSha256: string;
   careerId: number;
@@ -207,7 +210,10 @@ export async function evaluateRo3Rotation(input: {
     extraAttrs: [],
     rotationCycle: true,
   };
-  if (!simulator.data.row("JobConfig", input.careerId)) {\n    throw new Error(`Simulator JobConfig career ${input.careerId} is missing; refusing to use the simulator fallback career sheet.`);\n  }\n  const baseSheet = simulator.buildCharacterStats(baseBuild, simulator.data);
+  if (!simulator.data.row("JobConfig", input.careerId)) {
+    throw new Error(`Simulator JobConfig career ${input.careerId} is missing; refusing to use the simulator fallback career sheet.`);
+  }
+  const baseSheet = simulator.buildCharacterStats(baseBuild, simulator.data);
   const extraAttrs = Object.entries(adapted.attributes).map(([rawId, value]) => {
     const id = Number(rawId);
     return [id, Number(value) - Number(baseSheet[id] ?? 0)];
