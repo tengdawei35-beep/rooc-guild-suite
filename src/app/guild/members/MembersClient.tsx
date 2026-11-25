@@ -157,6 +157,8 @@ const MEMBER_DISPLAY_FIELDS = [
   { key: "ro3_damageReductionVsAllJob", label: "DMG Reduction vs All Job", group: "RO3 Stats" },
   { key: "ro3_damageVsMedium", label: "DMG vs Medium", group: "RO3 Stats" },
   { key: "ro3_damageReductionVsMedium", label: "DMG Reduction vs Medium", group: "RO3 Stats" },
+  { key: "ro3_damageVsDemiHuman", label: "Damage vs Demi-Human", group: "RO3 Stats" },
+  { key: "ro3_damageReductionVsDemiHuman", label: "Damage Reduction vs Demi-Human", group: "RO3 Stats" },
   { key: "ro3_bladeCrystal", label: "Blade Crystal", group: "RO3 Stats" },
   { key: "ro3_shieldCrystal", label: "Shield Crystal", group: "RO3 Stats" },
   { key: "ro3_manaCrystal", label: "Mana Crystal", group: "RO3 Stats" },
@@ -214,7 +216,7 @@ export default function MembersClient({ initialMembers, gameType }: { initialMem
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [sortField, setSortField] = useState<MemberDisplayField>("characterName");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
-  const [displayFields, setDisplayFields] = useState<MemberDisplayField[]>(gameType === "RO3" ? [...DEFAULT_MEMBER_DISPLAY_FIELDS, "ro3_hp", "ro3_patk", "ro3_matk", "ro3_pdef", "ro3_mdef", "ro3_damageVsMedium", "ro3_damageReductionVsMedium"] : DEFAULT_MEMBER_DISPLAY_FIELDS);
+  const [displayFields, setDisplayFields] = useState<MemberDisplayField[]>(gameType === "RO3" ? [...DEFAULT_MEMBER_DISPLAY_FIELDS, "ro3_hp", "ro3_patk", "ro3_matk", "ro3_pdef", "ro3_mdef", "ro3_damageVsMedium", "ro3_damageReductionVsMedium", "ro3_damageVsDemiHuman", "ro3_damageReductionVsDemiHuman"] : DEFAULT_MEMBER_DISPLAY_FIELDS);
   const [showFieldPicker, setShowFieldPicker] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [leaveDate, setLeaveDate] = useState("");
@@ -288,13 +290,13 @@ export default function MembersClient({ initialMembers, gameType }: { initialMem
   useEffect(() => { if (!currentUserId) return; try { window.localStorage.setItem(`${MEMBER_DISPLAY_FIELDS_STORAGE_KEY}:${currentUserId}`, JSON.stringify(displayFields)); } catch {} }, [currentUserId, displayFields]);
   function hasDisplayField(field: MemberDisplayField) { const isRo3Field = String(field).startsWith("ro3_"); return (gameType === "RO3" ? isRo3Field || ["characterName", "discordUsername", "job", "priority", "status", "eligible", "updatedAt"].includes(field) : !isRo3Field) && displayFields.includes(field); }
   function toggleDisplayField(field: MemberDisplayField) { setDisplayFields(current => current.includes(field) ? current.filter(value => value !== field) : [...current, field]); }
-  function resetDisplayFields() { setDisplayFields([...DEFAULT_MEMBER_DISPLAY_FIELDS, ...(gameType === "RO3" ? RO3_FIELDS.map(key => ("ro3_" + key) as MemberDisplayField).filter(key => ["ro3_hp", "ro3_patk", "ro3_matk", "ro3_pdef", "ro3_mdef", "ro3_damageVsMedium", "ro3_damageReductionVsMedium"].includes(key)) : [])]); }
+  function resetDisplayFields() { setDisplayFields([...DEFAULT_MEMBER_DISPLAY_FIELDS, ...(gameType === "RO3" ? RO3_FIELDS.map(key => ("ro3_" + key) as MemberDisplayField).filter(key => ["ro3_hp", "ro3_patk", "ro3_matk", "ro3_pdef", "ro3_mdef", "ro3_damageVsMedium", "ro3_damageReductionVsMedium", "ro3_damageVsDemiHuman", "ro3_damageReductionVsDemiHuman"].includes(key)) : [])]); }
   function applyFieldPreset(preset: "overview" | "roster" | "combat") {
     const identity: MemberDisplayField[] = ["characterName", "discordUsername", "job", "priority", "status", "eligible"];
     const overview: MemberDisplayField[] = [...identity, "updatedAt"];
     const roster: MemberDisplayField[] = ["characterName", "job", "priority", "status", "eligible"];
     const combatRooc: MemberDisplayField[] = ["characterName", "job", "hp", "patk", "matk", "rawPdef", "rawMdef", "pvpDamageBonus", "pvpDamageReduction", "ignorePdef", "ignoreMdef", "damageVsMedium", "damageReductionVsMedium", "damageVsDemiHuman", "damageReductionVsDemiHuman"];
-    const combatRo3: MemberDisplayField[] = ["characterName", "job", "ro3_hp", "ro3_patk", "ro3_matk", "ro3_pdef", "ro3_mdef", "ro3_damageVsMedium", "ro3_damageReductionVsMedium"];
+    const combatRo3: MemberDisplayField[] = ["characterName", "job", "ro3_hp", "ro3_patk", "ro3_matk", "ro3_pdef", "ro3_mdef", "ro3_damageVsMedium", "ro3_damageReductionVsMedium", "ro3_damageVsDemiHuman", "ro3_damageReductionVsDemiHuman"];
     setDisplayFields(preset === "overview" ? overview : preset === "roster" ? roster : gameType === "RO3" ? combatRo3 : combatRooc);
   }
   function openNewMember() { if (!canManageMembers) return; setSelectedMember(null); setLeaveDates([]); setShowMemberForm(true); setForm({ ...EMPTY_FORM }); setLeaveDate(""); setLeaveReason(""); setError(null); }
