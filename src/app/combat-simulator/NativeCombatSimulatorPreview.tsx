@@ -172,14 +172,16 @@ export default function NativeCombatSimulatorPreview() {
         <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {CARD_SOCKETS.map((socket,index)=>{
             const choices=(engine.equipmentCatalog?.cards ?? []).filter((card)=>card.part===socket.part && numeric(level,100)>=socket.levelRequired);
+            const selectedCard=choices.find((card)=>card.id===equipment.cards[index]?.id);
+            const cardOptions=selectedCard ? engine.getCardCustomization(selectedCard.id,equipment.cards[index]?.star??3) : null;
             return <label key={socket.index} className="text-xs text-zinc-400">{socket.name} · Lv {socket.levelRequired}
               <select value={equipment.cards[index]?.id??0} onChange={(e)=>setEquipment((old)=>({...old,cards:old.cards.map((slot,i)=>i===index?{...slot,id:Number(e.target.value)}:slot)}))} className={inputClass}>
                 <option value="0">Empty</option>{choices.map((card)=><option key={card.id} value={card.id}>{card.name} · Q{card.quality}</option>)}
               </select>
-              {equipment.cards[index]?.id!==0&&<div className="mt-2 grid grid-cols-3 gap-2">
+              {selectedCard&&cardOptions&&<div className="mt-2 grid grid-cols-3 gap-2">
                 <label className="text-[10px] text-zinc-500">Stars<select value={equipment.cards[index]?.star??3} onChange={(e)=>setEquipment((old)=>({...old,cards:old.cards.map((slot,i)=>i===index?{...slot,star:Number(e.target.value)}:slot)}))} className={inputClass}>{[0,1,2,3].map((v)=><option key={v} value={v}>{v}</option>)}</select></label>
-                <label className="text-[10px] text-zinc-500">Level<input type="number" min="0" max="15" value={equipment.cards[index]?.level??15} onChange={(e)=>setEquipment((old)=>({...old,cards:old.cards.map((slot,i)=>i===index?{...slot,level:numeric(e.target.value,15)}:slot)}))} className={inputClass}/></label>
-                <label className="flex items-end gap-1 text-[10px] text-zinc-500"><input type="checkbox" checked={!!equipment.cards[index]?.flash} onChange={(e)=>setEquipment((old)=>({...old,cards:old.cards.map((slot,i)=>i===index?{...slot,flash:e.target.checked}:slot)}))}/>Collection</label>
+                <label className="text-[10px] text-zinc-500">Level<input type="number" min="0" max={cardOptions.maxLevel} value={Math.min(equipment.cards[index]?.level??15,cardOptions.maxLevel)} onChange={(e)=>setEquipment((old)=>({...old,cards:old.cards.map((slot,i)=>i===index?{...slot,level:numeric(e.target.value,15)}:slot)}))} className={inputClass}/></label>
+                <label className="flex items-end gap-1 text-[10px] text-zinc-500"><input type="checkbox" disabled={!cardOptions.hasCollection} checked={!!equipment.cards[index]?.flash&&cardOptions.hasCollection} onChange={(e)=>setEquipment((old)=>({...old,cards:old.cards.map((slot,i)=>i===index?{...slot,flash:e.target.checked}:slot)}))}/>Collection</label>
               </div>}
             </label>;
           })}
