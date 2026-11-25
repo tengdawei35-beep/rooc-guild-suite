@@ -20,13 +20,14 @@ stat pipeline, skill parameter rules, damage evaluation, rotation simulation, op
 and talent helpers. The extraction removes only the HTML marker comments and adds a
 module header; calculation code has not been intentionally rewritten.
 
-A Node built-in test suite is available via:
+A regression test suite is available via:
 
 `npm run test:combat-engine`
 
-The initial smoke tests cover module import, fallback data access, stat-point calculations,
-and the attribute calculation pipeline. These are module-boundary checks, not live-game
-validation and not yet full simulator equivalence tests.
+It covers module import, fallback data access, stat-point calculations, the attribute
+calculation pipeline, decompression of the full embedded export, and construction of the
+in-memory data store with the expected career/skill records. These are software regression
+checks, not live-game validation and not yet full simulator equivalence tests.
 
 ## Important remaining extraction work
 
@@ -45,7 +46,8 @@ been migrated in this phase.
 | --- | --- |
 | Architecture audit | Complete |
 | Extract calculation engine | Initial extraction complete; smoke tests added |
-| Extract embedded game data and define typed inputs/outputs | Not started |
+| Extract embedded game data | Complete; compressed payload module and in-memory store factory added |
+| Define typed engine inputs/outputs and expand coverage | Not started |
 | Build native React component architecture | Not started |
 | Connect React state to extracted engine | Not started |
 | Migrate profile import and reports | Not started |
