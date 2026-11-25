@@ -90,10 +90,10 @@ export function isRo3TankOrSupportJob(job: string | null | undefined): boolean {
 }
 
 function resolveRo3Role(job: string | null | undefined, role?: "DPS" | "TANK"): "DPS" | "TANK" {
-  if (job === "Archbishop") return "TANK";
-  if (role) return role;
-  if (typeof job === "string" && job.endsWith(" (Tank)")) return "TANK";
-  return "DPS";
+  if (job === "Archbishop" || (typeof job === "string" && job.endsWith(" (Tank)"))) return "TANK";
+  if (typeof job === "string" && job.endsWith(" (DPS)")) return "DPS";
+  // The optional override remains for legacy, unsuffixed hybrid job values.
+  return role ?? "DPS";
 }
 
 export function getRo3ScoreWeights(
