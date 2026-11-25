@@ -73,3 +73,9 @@ testCase("Member composition selects Magic DPS by default for Warlock", () => {
   assert.equal(result.dps?.category, "MAGIC_DPS");
   assert.equal(result.pvp.score, 100);
 });
+
+testCase("A hybrid job can be explicitly scored as Tank for PvP", () => {
+  const result = calculateRo3PvPScore("Royal Guard", 80, 60, "TANK");
+  assert.equal(result.score, 60);
+  assert.deepEqual(result.weights, { tank: 100 });
+});
