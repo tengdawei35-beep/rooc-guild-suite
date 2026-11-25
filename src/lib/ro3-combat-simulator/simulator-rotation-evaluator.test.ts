@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import testCase from "node:test";
-import { evaluateRo3Rotation } from "./simulator-rotation-evaluator";
+import { evaluateRo3Rotation, listRo3SimulatorReferenceProfiles } from "./simulator-rotation-evaluator";
 
 testCase("Explicit skill cycle is evaluated by the embedded simulator rotation scheduler", async () => {
   const result = await evaluateRo3Rotation({
@@ -31,4 +31,26 @@ testCase("Rotation evaluator requires at least one valid damage skill", async ()
   await assert.rejects(() => evaluateRo3Rotation({
     stats: { patk: 10000 }, careerId: 1100, skillIds: [999999999],
   }), /damage skill/);
+});
+
+testCase("Reference profile discovery only exposes simulator-authored candidates and never marks them executable", async () => {
+  const profiles = await listRo3SimulatorReferenceProfiles();
+  assert.deepEqual(
+    profiles.map((profile) => profile.heimdallJob),
+    ["Mechanic", "Rune Knight (DPS)", "Warlock", "Ranger", "Guillotine Cross"],
+  );
+  assert.ok(profiles.every((profile) => profile.executable === false));
+  assert.ok(profiles.every((profile) => profile.rotations.every((rotation) =>
+    rotation.availableSkillIds.every((id) => rotation.skillIds.includes(id))
+  )));
+  assert.ok(profiles.every((profile) => profile.rotations.every((rotation) =>
+    rotation.damageSkillCount <= rotation.availableSkillIds.length
+  )));
+  assert.equal(profiles.some((profile) => profile.heimdallJob === "Royal Guard (DPS)"), false);
+});
+
+testCase("Rotation evaluator refuses career IDs missing from simulator JobConfig", async () => {
+  await assert.rejects(() => evaluateRo3Rotation({
+    stats: { patk: 10000 }, careerId: 6400, skillIds: [1100110],
+  }), /JobConfig career 6400 is missing/);
 });
