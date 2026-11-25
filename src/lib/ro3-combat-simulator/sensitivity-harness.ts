@@ -81,7 +81,11 @@ function copyStats(stats: Readonly<Stats>): Stats {
   return Object.assign(complete, stats);
 }
 
-function evaluate(channel: "physical" | "magic", stats: Stats, defender = REFERENCE_DEFENDER): DamageResult {
+function evaluate(
+  channel: "physical" | "magic",
+  stats: Stats,
+  defender: Readonly<Record<string, number>> = REFERENCE_DEFENDER,
+): DamageResult {
   const build = { level: REFERENCE_LEVEL, element: 1, activeBuffs: [], cards: [], totems: [] };
   return simulator.evaluateSkillDamage(
     build,
