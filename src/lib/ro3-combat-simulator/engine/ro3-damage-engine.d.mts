@@ -12,3 +12,22 @@ export declare function totalStatPoints(level: number, bonusPoints?: number, dat
 export declare function statCost(value: number, data?: Ro3MemoryDataStore): number;
 export declare function usedStatPoints(stats6: number[], data?: Ro3MemoryDataStore): number;
 export declare function computeStatSheet(raw: Record<string, number>, data?: Ro3MemoryDataStore): { data: Record<number, number>; base: Record<number, number>; [key: number]: any };
+
+export declare function simulateRotation(
+  build: Record<string, any>,
+  defender: Record<string, any>,
+  rotationSkillIds: number[],
+  durationMs?: number,
+  data?: Ro3MemoryDataStore,
+  trace?: unknown[] | null,
+): {
+  durationMs: number;
+  totalExpectedDamage: number;
+  sustainedDps: number;
+  burst5sDps: number;
+  casts: number;
+  autoSwings: number;
+  groundTicks: number;
+  sampleTimeline: unknown[];
+  castLog: unknown[];
+};
