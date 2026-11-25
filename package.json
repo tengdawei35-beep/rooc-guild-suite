@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "eslint",
     "db:migrate:deploy": "prisma migrate deploy",
-    "call-to-arms:reminder": "tsx scripts/call-to-arms-reminder.ts"
+    "call-to-arms:reminder": "tsx scripts/call-to-arms-reminder.ts",
+    "test:ro3-scoring": "tsx --test src/lib/ro3-combat-simulator/scoring.test.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.0",
