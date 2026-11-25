@@ -4,7 +4,7 @@ import {
   calculateRo3MemberScores,
   calculateRo3Score,
   type Ro3ScoreComponents,
-} from "../src/lib/ro3-combat-simulator/scoring";
+} from "./scoring";
 
 /**
  * Deterministic synthetic fixtures for validating score composition only.
@@ -62,7 +62,7 @@ testCase("Increasing any included DPS component cannot reduce its score", () => 
       const higher = calculateRo3Score(scenario.category, changed, {
         supportsCriticalHits: scenario.supportsCriticalHits,
       });
-      assert.ok((higher.score ?? -1) >= (base.score ?? 0), `${scenario.id}: ${key}`);
+      assert.ok((higher.score ?? -1) >= (base.score ?? 0), `${scenario.id}: ${String(key)}`);
     }
   }
 });
