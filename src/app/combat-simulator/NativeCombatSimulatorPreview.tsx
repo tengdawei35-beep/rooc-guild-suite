@@ -144,8 +144,8 @@ export default function NativeCombatSimulatorPreview() {
               </select></label>
               {equipment.gear[index]?.id!==0&&<div className="mt-2 grid grid-cols-2 gap-2">
                 <label className="text-[11px] text-zinc-500">Roll (0–10000)<input type="number" min="0" max="10000" value={equipment.gear[index]?.roll??5000} onChange={(e)=>setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===index?{...slot,roll:numeric(e.target.value,5000)}:slot)}))} className={inputClass}/></label>
-                <label className="text-[11px] text-zinc-500">Refine<input type="number" min="0" max="99" value={equipment.gear[index]?.refine??0} onChange={(e)=>setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===index?{...slot,refine:numeric(e.target.value,0)}:slot)}))} className={inputClass}/></label>
-                <label className="text-[11px] text-zinc-500">Enhance<input type="number" min="0" max="999" value={equipment.gear[index]?.enhance??0} onChange={(e)=>setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===index?{...slot,enhance:numeric(e.target.value,0)}:slot)}))} className={inputClass}/></label>
+                <label className="text-[11px] text-zinc-500">Refine<input type="number" min="0" max={engine.getGearLevelCaps(numeric(level,100)).refine[index]??0} value={equipment.gear[index]?.refine??0} onChange={(e)=>setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===index?{...slot,refine:numeric(e.target.value,0)}:slot)}))} className={inputClass}/></label>
+                <label className="text-[11px] text-zinc-500">Enhance<input type="number" min="0" max={engine.getGearLevelCaps(numeric(level,100)).enhance[index]??0} value={equipment.gear[index]?.enhance??0} onChange={(e)=>setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===index?{...slot,enhance:numeric(e.target.value,0)}:slot)}))} className={inputClass}/></label>
               </div>}
               {selectedItem&&gearOptions&&<div className="mt-3 space-y-2 border-t border-white/10 pt-3">
                 {gearOptions.affixSlots>0&&<div><p className="mb-1 text-[10px] uppercase tracking-wide text-zinc-500">Random attributes · {gearOptions.affixSlots} available</p>
@@ -160,8 +160,8 @@ export default function NativeCombatSimulatorPreview() {
                   </select>
                 </label>)}
                 {index===0&&selectedItem.part===1&&<div className="grid grid-cols-2 gap-2 border-t border-white/10 pt-2">
-                  <label className="text-[10px] text-zinc-500">Off-hand Refine<input type="number" min="0" max="99" value={equipment.gear[0]?.offRefine??0} onChange={(e)=>setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===0?{...slot,offRefine:numeric(e.target.value,0)}:slot)}))} className={inputClass}/></label>
-                  <label className="text-[10px] text-zinc-500">Off-hand Enhance<input type="number" min="0" max="999" value={equipment.gear[0]?.offEnhance??0} onChange={(e)=>setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===0?{...slot,offEnhance:numeric(e.target.value,0)}:slot)}))} className={inputClass}/></label>
+                  <label className="text-[10px] text-zinc-500">Off-hand Refine<input type="number" min="0" max={engine.getGearLevelCaps(numeric(level,100)).refine[1]??0} value={equipment.gear[0]?.offRefine??0} onChange={(e)=>setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===0?{...slot,offRefine:numeric(e.target.value,0)}:slot)}))} className={inputClass}/></label>
+                  <label className="text-[10px] text-zinc-500">Off-hand Enhance<input type="number" min="0" max={engine.getGearLevelCaps(numeric(level,100)).enhance[1]??0} value={equipment.gear[0]?.offEnhance??0} onChange={(e)=>setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===0?{...slot,offEnhance:numeric(e.target.value,0)}:slot)}))} className={inputClass}/></label>
                 </div>}
               </div>}
             </div>;
