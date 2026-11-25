@@ -131,11 +131,13 @@ export default function NativeCombatSimulatorPreview() {
     </section>
     <section className="rounded-xl border border-white/10 bg-zinc-900/70 p-4">
       <h2 className="text-sm font-semibold text-white">Equipment &amp; cards</h2>
-      <p className="mt-1 text-xs text-zinc-500">Catalogs and slot rules are sourced from exported simulator data. Gear defaults to midpoint rolls with no affixes or stunts.</p>
+      <p className="mt-1 text-xs text-zinc-500">Gear rolls, eligible affixes, fixed/random stunts, refine and enhance feed the existing engine. Two-handed weapons expose off-hand grid levels.</p>
       <details className="mt-3" open><summary className="cursor-pointer text-xs font-medium text-zinc-300">Equipment slots (7)</summary>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           {EQUIPMENT_GRIDS.map((grid,index)=>{
             const choices=(engine.equipmentCatalog?.equipment ?? []).filter((item)=>grid.parts.includes(item.part)&&item.levelRequired<=numeric(level,100));
+            const selectedItem=choices.find((item)=>item.id===equipment.gear[index]?.id);
+            const gearOptions=selectedItem ? engine.getGearCustomization(selectedItem.id,index+1) : null;
             return <div key={grid.index} className="rounded-lg bg-black/20 p-3"><label className="block text-xs text-zinc-400">{grid.name}
               <select value={equipment.gear[index]?.id ?? 0} onChange={(e)=>setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===index?{...slot,id:Number(e.target.value)}:slot)}))} className={inputClass}>
                 <option value="0">Empty</option>{choices.map((item)=><option key={item.id} value={item.id}>{item.name} · T{item.tier} · Lv {item.levelRequired}</option>)}
@@ -144,6 +146,23 @@ export default function NativeCombatSimulatorPreview() {
                 <label className="text-[11px] text-zinc-500">Roll (0–10000)<input type="number" min="0" max="10000" value={equipment.gear[index]?.roll??5000} onChange={(e)=>setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===index?{...slot,roll:numeric(e.target.value,5000)}:slot)}))} className={inputClass}/></label>
                 <label className="text-[11px] text-zinc-500">Refine<input type="number" min="0" max="99" value={equipment.gear[index]?.refine??0} onChange={(e)=>setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===index?{...slot,refine:numeric(e.target.value,0)}:slot)}))} className={inputClass}/></label>
                 <label className="text-[11px] text-zinc-500">Enhance<input type="number" min="0" max="999" value={equipment.gear[index]?.enhance??0} onChange={(e)=>setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===index?{...slot,enhance:numeric(e.target.value,0)}:slot)}))} className={inputClass}/></label>
+              </div>}
+              {selectedItem&&gearOptions&&<div className="mt-3 space-y-2 border-t border-white/10 pt-3">
+                {gearOptions.affixSlots>0&&<div><p className="mb-1 text-[10px] uppercase tracking-wide text-zinc-500">Random attributes · {gearOptions.affixSlots} available</p>
+                  {Array.from({length:Math.min(gearOptions.affixSlots,2)},(_,slotIndex)=><select key={slotIndex} value={equipment.gear[index]?.affixes[slotIndex]??0} onChange={(e)=>setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===index?{...slot,affixes:slot.affixes.map((id,j)=>j===slotIndex?Number(e.target.value):id)}:slot)}))} className={inputClass}>
+                    <option value="0">No attribute {slotIndex+1}</option>{gearOptions.affixes.map((affix)=><option key={affix.id} value={affix.id}>{affix.name} · {affix.min}–{affix.max}</option>)}
+                  </select>)}
+                </div>}
+                {gearOptions.fixedStunts.length>0&&<div><p className="mb-1 text-[10px] uppercase tracking-wide text-zinc-500">Fixed stunts</p>{gearOptions.fixedStunts.map((stunt)=><p key={stunt.id} className="text-xs text-zinc-300">{stunt.name}</p>)}</div>}
+                {gearOptions.stuntPools.map((pool,poolIndex)=><label key={poolIndex} className="block text-[10px] text-zinc-500">Stunt {poolIndex+1} · {pool.chance/100}% chance
+                  <select value={equipment.gear[index]?.stunts[poolIndex]??0} onChange={(e)=>setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===index?{...slot,stunts:slot.stunts.map((id,j)=>j===poolIndex?Number(e.target.value):id)}:slot)}))} className={inputClass}>
+                    <option value="0">No stunt</option>{pool.options.map((stunt)=><option key={stunt.id} value={stunt.id}>{stunt.name}</option>)}
+                  </select>
+                </label>)}
+                {index===0&&selectedItem.part===1&&<div className="grid grid-cols-2 gap-2 border-t border-white/10 pt-2">
+                  <label className="text-[10px] text-zinc-500">Off-hand Refine<input type="number" min="0" max="99" value={equipment.gear[0]?.offRefine??0} onChange={(e)=>setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===0?{...slot,offRefine:numeric(e.target.value,0)}:slot)}))} className={inputClass}/></label>
+                  <label className="text-[10px] text-zinc-500">Off-hand Enhance<input type="number" min="0" max="999" value={equipment.gear[0]?.offEnhance??0} onChange={(e)=>setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===0?{...slot,offEnhance:numeric(e.target.value,0)}:slot)}))} className={inputClass}/></label>
+                </div>}
               </div>}
             </div>;
           })}
