@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useCombatSimulatorEngine } from "@/lib/ro3-combat-simulator/hooks/use-combat-simulator-engine";
 import type { CombatBuild, CombatDefender, CombatRotationResult } from "@/lib/ro3-combat-simulator/types";
 import { validateCombatInput } from "@/lib/ro3-combat-simulator/validate-input.mjs";
+import { emptyNativeEquipmentSelection, toEngineEquipment, type NativeEquipmentSelection } from "@/lib/ro3-combat-simulator/build-input";
+import { EQUIPMENT_GRIDS, CARD_SOCKETS } from "@/lib/ro3-combat-simulator/equipment-options";
 
 type Member = {
   id: string; characterName: string | null; discordUsername: string | null; job: string | null;
@@ -49,6 +51,7 @@ export default function NativeCombatSimulatorPreview() {
   const [defenderId, setDefenderId] = useState("");
   const [level, setLevel] = useState("100");
   const [stats, setStats] = useState(["80","60","50","20","80","20"]);
+  const [equipment, setEquipment] = useState<NativeEquipmentSelection>(() => emptyNativeEquipmentSelection());
   const [def, setDef] = useState("5000");
   const [mdef, setMdef] = useState("3000");
   const [targetLevel, setTargetLevel] = useState("100");
@@ -76,6 +79,11 @@ export default function NativeCombatSimulatorPreview() {
   const attacker = useMemo<CombatBuild>(() => ({
     career: 1410, level: numeric(level,100), stats: stats.map((v) => numeric(v,1)) as CombatBuild["stats"],
   }), [level, stats]);
+  const engineEquipment = useMemo(() => engine.equipmentCatalog ? toEngineEquipment(equipment, engine.equipmentCatalog.equipment, engine.equipmentCatalog.cards) : { gear: [], cards: [] }, [equipment, engine.equipmentCatalog]);
+  const characterSheet = useMemo(() => {
+    if (!engine.ready) return null;
+    try { return engine.getCharacterSheet(attacker, equipment); } catch { return null; }
+  }, [engine.ready, engine.getCharacterSheet, attacker, equipment]);
   const defender = useMemo<CombatDefender>(() => ({
     name: "Training target", level: numeric(targetLevel,100), def: numeric(def,0), mdef: numeric(mdef,0),
     element: numeric(element,1), race: numeric(race,1), size: numeric(size,2),
@@ -119,6 +127,42 @@ export default function NativeCombatSimulatorPreview() {
         <label className="text-xs text-zinc-400">Character level<input type="number" min="1" max="200" value={level} onChange={(e)=>setLevel(e.target.value)} className={inputClass}/></label>
         {statNames.map((name,i)=><label key={name} className="text-xs text-zinc-400">{name}<input type="number" min="1" max="99" value={stats[i]} onChange={(e)=>setStats((old)=>old.map((v,j)=>j===i?e.target.value:v))} className={inputClass}/></label>)}
       </div>
+    </section>
+    <section className="rounded-xl border border-white/10 bg-zinc-900/70 p-4">
+      <h2 className="text-sm font-semibold text-white">Equipment &amp; cards</h2>
+      <p className="mt-1 text-xs text-zinc-500">Catalogs and slot rules are sourced from exported simulator data. Gear defaults to midpoint rolls with no affixes or stunts.</p>
+      <details className="mt-3" open><summary className="cursor-pointer text-xs font-medium text-zinc-300">Equipment slots (7)</summary>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          {EQUIPMENT_GRIDS.map((grid,index)=>{
+            const choices=(engine.equipmentCatalog?.equipment ?? []).filter((item)=>grid.parts.includes(item.part)&&item.levelRequired<=numeric(level,100));
+            return <div key={grid.index} className="rounded-lg bg-black/20 p-3"><label className="block text-xs text-zinc-400">{grid.name}
+              <select value={equipment.gear[index]?.id ?? 0} onChange={(e)=>setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===index?{...slot,id:Number(e.target.value)}:slot)}))} className={inputClass}>
+                <option value="0">Empty</option>{choices.map((item)=><option key={item.id} value={item.id}>{item.name} · T{item.tier} · Lv {item.levelRequired}</option>)}
+              </select></label>
+              {equipment.gear[index]?.id!==0&&<div className="mt-2 grid grid-cols-2 gap-2">
+                <label className="text-[11px] text-zinc-500">Refine<input type="number" min="0" max="99" value={equipment.gear[index]?.refine??0} onChange={(e)=>setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===index?{...slot,refine:numeric(e.target.value,0)}:slot)}))} className={inputClass}/></label>
+                <label className="text-[11px] text-zinc-500">Enhance<input type="number" min="0" max="999" value={equipment.gear[index]?.enhance??0} onChange={(e)=>setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===index?{...slot,enhance:numeric(e.target.value,0)}:slot)}))} className={inputClass}/></label>
+              </div>}
+            </div>;
+          })}
+        </div>
+      </details>
+      <details className="mt-3"><summary className="cursor-pointer text-xs font-medium text-zinc-300">Card sockets (18)</summary>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {CARD_SOCKETS.map((socket,index)=>{
+            const choices=(engine.equipmentCatalog?.cards ?? []).filter((card)=>card.part===socket.part);
+            return <label key={socket.index} className="text-xs text-zinc-400">{socket.name} · Lv {socket.levelRequired}
+              <select value={equipment.cards[index]?.id??0} onChange={(e)=>setEquipment((old)=>({...old,cards:old.cards.map((slot,i)=>i===index?{...slot,id:Number(e.target.value)}:slot)}))} className={inputClass}>
+                <option value="0">Empty</option>{choices.map((card)=><option key={card.id} value={card.id}>{card.name} · Q{card.quality}</option>)}
+              </select>
+            </label>;
+          })}
+        </div>
+      </details>
+      {characterSheet&&<div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6">
+        {([["P.ATK",103],["M.ATK",104],["P.DEF",105],["M.DEF",106],["HIT",109],["CRIT",111]] as [string,number][]).map(([name,id])=><div key={id} className="rounded-lg bg-black/30 px-3 py-2"><p className="text-[10px] uppercase text-zinc-500">{name}</p><p className="mt-1 text-sm font-semibold text-white">{Number(characterSheet[id]??0).toLocaleString()}</p></div>)}
+      </div>}
+      <p className="mt-2 text-[11px] text-zinc-500">Selected gear and cards feed both the native character sheet and damage simulation. Affix/stunt editing, collection versions and other build sources remain outstanding.</p>
     </section>
     <section className="rounded-xl border border-white/10 bg-zinc-900/70 p-4">
       <h2 className="text-sm font-semibold text-white">Defender configuration</h2>
