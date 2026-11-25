@@ -16,7 +16,7 @@ By default, the CSV is written to `ro3-scoring-cohort.csv` and the baseline JSON
 RO3_SCORING_EXPORT_PATH=/absolute/path/to/ro3-scoring-cohort.csv npx tsx scripts/export-ro3-scoring-cohort.ts
 ```
 
-The query includes active, eligible members belonging to RO3 guilds whose job is Archbishop, Royal Guard (Tank), or Rune Knight (Tank), with a non-null `ro3Stats` snapshot. DPS-labelled Royal Guard and Rune Knight characters are excluded. It exports only the stored job label and numeric values for the canonical RO3 stat fields. It does not select or export member IDs, Discord IDs, character names, guild IDs, or guild names.
+The query includes active members belonging to RO3 guilds whose job is Archbishop, Royal Guard (Tank), or Rune Knight (Tank), with a non-null `ro3Stats` snapshot. DPS-labelled Royal Guard and Rune Knight characters are excluded. It exports only the stored job label and numeric values for the canonical RO3 stat fields. It does not select or export member IDs, Discord IDs, character names, guild IDs, or guild names.
 
 ## Handling
 
