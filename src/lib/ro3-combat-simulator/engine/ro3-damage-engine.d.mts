@@ -31,3 +31,5 @@ export declare function simulateRotation(
   sampleTimeline: unknown[];
   castLog: unknown[];
 };
+
+export declare function buildCharacterStats(build: Record<string, any>, data?: Ro3MemoryDataStore, skipTotemOp10?: boolean): { data: Record<number, number>; base: Record<number, number>; [key: number]: any };
