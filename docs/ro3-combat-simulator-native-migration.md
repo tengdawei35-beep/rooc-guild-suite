@@ -126,6 +126,8 @@ The importer validates the source digest and every referenced buff, updates only
 
 The import must still be run with the current upstream HTML before the talent editor can be considered data-complete. The importer and its tests are now part of the migration branch; this commit does not fabricate or claim to have populated the live digest.
 
+**Data-handling restriction:** the upstream simulator README explicitly says its client-derived game data should remain in a private repository and not be redistributed outside the community. Heimdall's repository is currently public. Therefore, do not run this importer and commit the resulting client-derived digest/buff rows to this public repository unless the upstream maintainer grants permission or the repository is made private. The importer is implemented and tested, but the data import is intentionally held pending an appropriate private/authorized destination.
+
 ### Native saved builds (local preview)
 
 The native React preview now supports a versioned, browser-local saved-build collection (up to eight entries). It stores the editable native inputs for the Royal Guard build: base stats, equipment/cards, pets, enchantments, emblems/totems, resonance, talents/passives, defender settings and skill rotation. Loading a saved build restores those inputs and clears the previous simulation report so stale results are not mistaken for the newly loaded setup.
