@@ -23,6 +23,11 @@ const numeric = (value: string, fallback: number) => {
 };
 const inputClass = "mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white";
 const statNames = ["STR", "AGI", "VIT", "INT", "DEX", "LUK"];
+const parseTalentSkillLevels = (value: string): Record<string, number> => Object.fromEntries(
+  value.split(/[ ,]+/).map((entry) => entry.split(":")).filter((parts) => parts.length === 2)
+    .map(([group, level]) => [String(Number(group)), Number(level)])
+    .filter(([group, level]) => Number(group) > 0 && Number.isInteger(Number(level)) && Number(level) >= 0),
+);
 
 function ProfileCard({ title, kind, value, onChange, members }: {
   title: string; kind: "attacker" | "defender"; value: string; onChange: (v: string) => void; members: Member[];
@@ -61,6 +66,7 @@ export default function NativeCombatSimulatorPreview() {
   const [talentProf, setTalentProf] = useState("0");
   const [talentPicks, setTalentPicks] = useState<Record<string, [number, number]>>({});
   const [passiveSkillIds, setPassiveSkillIds] = useState("");
+  const [talentSkillLevels, setTalentSkillLevels] = useState("");
   const [def, setDef] = useState("5000");
   const [mdef, setMdef] = useState("3000");
   const [targetLevel, setTargetLevel] = useState("100");
@@ -88,13 +94,13 @@ export default function NativeCombatSimulatorPreview() {
   const attacker = useMemo<CombatBuild>(() => ({
     career: 1410, level: numeric(level,100), stats: stats.map((v) => numeric(v,1)) as CombatBuild["stats"],
     enchantAttrs, resonance: { refine: numeric(resonanceRefine,0), enhance: numeric(resonanceEnhance,0) }, pets, assistPets,
-    talents: { lv: numeric(talentLevel,0), prof: numeric(talentProf,0), picks: talentPicks, skills: {} },
+    talents: { lv: numeric(talentLevel,0), prof: numeric(talentProf,0), picks: talentPicks, skills: parseTalentSkillLevels(talentSkillLevels) },
     passiveSkills: passiveSkillIds.split(/[ ,]+/).map(Number).filter((id)=>Number.isInteger(id)&&id>0),
-  }), [level, stats, enchantAttrs, resonanceRefine, resonanceEnhance, pets, assistPets, talentLevel, talentProf, talentPicks, passiveSkillIds]);
+  }), [level, stats, enchantAttrs, resonanceRefine, resonanceEnhance, pets, assistPets, talentLevel, talentProf, talentPicks, passiveSkillIds, talentSkillLevels]);
   const engineEquipment = useMemo(() => engine.equipmentCatalog ? toEngineEquipment(equipment, engine.equipmentCatalog.equipment, engine.equipmentCatalog.cards, numeric(level,100), engine.getGearLevelCaps(numeric(level,100))) : { gear: [], cards: [] }, [equipment, engine.equipmentCatalog, engine.getGearLevelCaps, level]);
   const talentConfiguration = useMemo(() => engine.getTalentConfiguration(1410, numeric(level,100), numeric(talentProf,0), {
-    lv: numeric(talentLevel,0), prof: numeric(talentProf,0), picks: talentPicks, skills: {},
-  }), [engine.getTalentConfiguration, level, talentProf, talentLevel, talentPicks]);
+    lv: numeric(talentLevel,0), prof: numeric(talentProf,0), picks: talentPicks, skills: parseTalentSkillLevels(talentSkillLevels),
+  }), [engine.getTalentConfiguration, level, talentProf, talentLevel, talentPicks, talentSkillLevels]);
   const characterSheet = useMemo(() => {
     if (!engine.ready) return null;
     try { return engine.getCharacterSheet(attacker, equipment); } catch { return null; }
@@ -149,11 +155,12 @@ export default function NativeCombatSimulatorPreview() {
     </section>
     <section className="rounded-xl border border-white/10 bg-zinc-900/70 p-4">
       <h2 className="text-sm font-semibold text-white">Season talents &amp; passive skills</h2>
-      <p className="mt-1 text-xs text-zinc-500">Talent allocation and class choices use the exported TalentDigest and existing talentWalk/talentEffects functions. Passive skill IDs are forwarded to the engine's existing passive attribute pipeline.</p>
+      <p className="mt-1 text-xs text-zinc-500">Talent allocation, prerequisite skill levels and class choices use the exported TalentDigest and existing talentWalk/talentEffects functions. Passive skill IDs are forwarded to the engine's existing passive attribute pipeline.</p>
       <div className="mt-3 grid gap-3 sm:grid-cols-3">
         <label className="text-xs text-zinc-400">Total talent level<input type="number" min="0" max="999" value={talentLevel} onChange={(e)=>setTalentLevel(e.target.value)} className={inputClass}/></label>
         <label className="text-xs text-zinc-400">Profession ID<input type="number" min="0" value={talentProf} onChange={(e)=>setTalentProf(e.target.value)} className={inputClass}/></label>
         <label className="text-xs text-zinc-400">Passive SkillConfig IDs<input value={passiveSkillIds} onChange={(e)=>setPassiveSkillIds(e.target.value)} placeholder="Comma-separated IDs" className={inputClass}/></label>
+        <label className="text-xs text-zinc-400 sm:col-span-3">Talent prerequisite skill levels<input value={talentSkillLevels} onChange={(e)=>setTalentSkillLevels(e.target.value)} placeholder="Skill group ID:level, e.g. 120:5, 121:3" className={inputClass}/></label>
       </div>
       {talentConfiguration.branches.length>0 ? <div className="mt-3 grid gap-3 sm:grid-cols-2">
         {talentConfiguration.branches.map((branch)=>{const current=talentPicks[branch.id]??[0,0];const cluster=branch.options.find((option)=>option.id===current[0])??branch.options[0];return <div key={branch.id} className="rounded-lg bg-black/20 p-3">
