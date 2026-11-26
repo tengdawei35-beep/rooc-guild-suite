@@ -12,6 +12,8 @@ export type NativeBuildDraft = {
   enchantAttrs: Array<[number, number]>;
   extraAttrInput: string;
   petCollectionAttrInput: string;
+  attackerElement: string;
+  bondBonusBp: string;
   emblemAttrInput: string;
   totemLoadoutInput: string;
   totemLevel: string;
@@ -80,7 +82,7 @@ export function isNativeBuildDraft(value: unknown): value is NativeBuildDraft {
     "activeBuffIds", "skillLevels", "periodicStartSeconds",
     "def", "mdef", "targetLevel", "element", "race", "size", "skillIds", "disabledRotationIds", "duration",
   ];
-  if (!stringFields.every((key) => isString(value[key])) || (value.extraAttrInput !== undefined && !isString(value.extraAttrInput)) || (value.petCollectionAttrInput !== undefined && !isString(value.petCollectionAttrInput)) || (value.totemLoadoutInput !== undefined && !isString(value.totemLoadoutInput)) || (value.totemLevel !== undefined && !isString(value.totemLevel))) return false;
+  if (!stringFields.every((key) => isString(value[key])) || (value.extraAttrInput !== undefined && !isString(value.extraAttrInput)) || (value.petCollectionAttrInput !== undefined && !isString(value.petCollectionAttrInput)) || (value.attackerElement !== undefined && !isString(value.attackerElement)) || (value.bondBonusBp !== undefined && !isString(value.bondBonusBp)) || (value.totemLoadoutInput !== undefined && !isString(value.totemLoadoutInput)) || (value.totemLevel !== undefined && !isString(value.totemLevel))) return false;
   if (!["rotationCycle", "cancelBackswing", "periodicOff", "ridden"].every((key) => typeof value[key] === "boolean")) return false;
   if (!petArray(value.pets, "id") || !petArray(value.assistPets, "g") || !isPairArray(value.enchantAttrs)) return false;
   if (!isRecord(value.talentPicks)) return false;
@@ -98,7 +100,7 @@ export function parseNativeSavedBuilds(raw: string | null): NativeSavedBuild[] {
         || !isString(entry.name) || !entry.name.trim() || !isString(entry.updatedAt)
         || !isNativeBuildDraft(entry.state)) return [];
       seen.add(entry.id);
-      return [{ id: entry.id, name: entry.name.slice(0, 40), updatedAt: entry.updatedAt, state: { ...entry.state, extraAttrInput: isString(entry.state.extraAttrInput) ? entry.state.extraAttrInput : "", petCollectionAttrInput: isString(entry.state.petCollectionAttrInput) ? entry.state.petCollectionAttrInput : "", totemLoadoutInput: isString(entry.state.totemLoadoutInput) ? entry.state.totemLoadoutInput : "", totemLevel: isString(entry.state.totemLevel) ? entry.state.totemLevel : "0" } }];
+      return [{ id: entry.id, name: entry.name.slice(0, 40), updatedAt: entry.updatedAt, state: { ...entry.state, extraAttrInput: isString(entry.state.extraAttrInput) ? entry.state.extraAttrInput : "", petCollectionAttrInput: isString(entry.state.petCollectionAttrInput) ? entry.state.petCollectionAttrInput : "", attackerElement: isString(entry.state.attackerElement) ? entry.state.attackerElement : "1", bondBonusBp: isString(entry.state.bondBonusBp) ? entry.state.bondBonusBp : "0", totemLoadoutInput: isString(entry.state.totemLoadoutInput) ? entry.state.totemLoadoutInput : "", totemLevel: isString(entry.state.totemLevel) ? entry.state.totemLevel : "0" } }];
     }).slice(0, MAX_NATIVE_SAVED_BUILDS);
   } catch {
     return [];
