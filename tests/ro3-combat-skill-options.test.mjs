@@ -57,3 +57,32 @@ test("skill tree options include passive and buff skills and derive learned effe
   assert.ok(rotationOptions.some((option) => option.groupId === 14103), "modeled short buffs belong in the rotation");
   assert.ok(!rotationOptions.some((option) => option.groupId === 14102), "long buffs are auto-applied, not rotation steps");
 });
+
+test("long-buff auto classification follows the legacy highest-rank group rule", () => {
+  const ui = {
+    jobs: [{ id: 1100 }, { id: 1410, parent: 1100 }],
+    trees: { "1410": [[14104, 14105]] },
+  };
+  const table = {
+    "1410401": { _iID: 1410401, _iSkillID: 14104, _iLevel: 1, _iBasicType: 1, _kBuff1: [[9003, 1, 10000], [9004, 1, 120000]], name: "Mixed duration buff" },
+    "1410501": { _iID: 1410501, _iSkillID: 14105, _iLevel: 1, _iBasicType: 1, _kBuff1: [[9005, 1, 120000]], name: "Lower-rank long buff" },
+    "1410502": { _iID: 1410502, _iSkillID: 14105, _iLevel: 2, _iBasicType: 1, _kBuff1: [[9006, 1, 10000]], name: "Higher-rank short buff" },
+  };
+  const buffTable = {
+    "9003": { _kChangeAttri: [[103, 100]] },
+    "9005": { _kChangeAttri: [[103, 200]] },
+    "9006": { _kChangeAttri: [[103, 300]] },
+  };
+  const options = getCombatSkillTreeOptions(ui, table, 1410, buffTable);
+  const mixed = options.find((option) => option.groupId === 14104);
+  const rankDependent = options.find((option) => option.groupId === 14105);
+  assert.equal(mixed?.autoBuff, true, "a modeled buff plus any long-duration buff makes the group auto, as in legacy");
+  assert.equal(mixed?.rotationUsable, false);
+  assert.equal(rankDependent?.autoBuff, false, "classification is based on the highest rank, not the selected lower rank");
+  assert.equal(rankDependent?.rotationUsable, true);
+  const effects = deriveLearnedSkillEffects(options, { "14104": 1, "14105": 1 }, buffTable);
+  assert.deepEqual(effects.autoBuffIds, [], "only modeled long buffs in a legacy-auto group are assumed active");
+  const rotation = getCombatSkillOptions(ui, table, 1410, buffTable);
+  assert.ok(!rotation.some((option) => option.groupId === 14104));
+  assert.ok(rotation.some((option) => option.groupId === 14105));
+});
