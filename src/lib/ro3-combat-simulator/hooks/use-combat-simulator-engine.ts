@@ -98,6 +98,11 @@ export function useCombatSimulatorEngine() {
     return { refine: cap("RefiningTable", "_iRefiningInterval"), enhance: cap("StrengthenTable", "_iStrengthenInterval") };
   }, [data]);
 
+  const getTotemEnhanceBp = useCallback((level: number) => {
+    if (!data) return 0;
+    return Number(data.row("TotemLvConfig", level)?._iAttributeEnhance ?? 0);
+  }, [data]);
+
   const getCardCustomization = useCallback((id: number, star: number) => {
     if (!data) return { maxLevel: [5, 10, 15, 15][Math.max(0, Math.min(3, star))], hasCollection: false };
     const parts = cardParts({ id, star, level: 0 }, data);
@@ -159,5 +164,5 @@ export function useCombatSimulatorEngine() {
     return simulateCombatRotation(attacker, defender, rotationSkillIds, durationMs, data);
   }, [data]);
 
-  return { status, error, ready: status === "ready", skillOptions, skillTreeOptions, deriveLearnedSkillEffectsForBuild, equipmentCatalog, attributeOptions, petOptions, getCharacterSheet, getGearCustomization, getGearLevelCaps, getCardCustomization, getTalentConfiguration, simulate };
+  return { status, error, ready: status === "ready", skillOptions, skillTreeOptions, deriveLearnedSkillEffectsForBuild, equipmentCatalog, attributeOptions, petOptions, getCharacterSheet, getGearCustomization, getGearLevelCaps, getCardCustomization, getTotemEnhanceBp, getTalentConfiguration, simulate };
 }
