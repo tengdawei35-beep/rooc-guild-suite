@@ -259,7 +259,7 @@ export default function NativeCombatSimulatorPreview() {
 
   function captureNativeBuildDraft(): NativeBuildDraft {
     return {
-      level, bonusStatPoints, stats: [...stats], equipment: JSON.parse(JSON.stringify(equipment)),
+      career, level, bonusStatPoints, stats: [...stats], equipment: JSON.parse(JSON.stringify(equipment)),
       pets: JSON.parse(JSON.stringify(pets)), assistPets: JSON.parse(JSON.stringify(assistPets)),
       enchantAttrs: JSON.parse(JSON.stringify(enchantAttrs)), extraAttrInput, petCollectionAttrInput, attackerElement, bondBonusBp, simulationRuns, simulationSeed, emblemAttrInput, totemSkillIds, totemAttrInput,
       totemEnhanceBp, totemLoadoutInput, totemLevel, resonanceRefine, resonanceEnhance, talentLevel, talentProf,
@@ -300,7 +300,7 @@ export default function NativeCombatSimulatorPreview() {
     const build = savedBuilds.find((item) => item.id === selectedSavedBuildId);
     if (!build) return;
     const state = build.state;
-    setLevel(state.level); setBonusStatPoints(state.bonusStatPoints ?? "0"); setStats([...state.stats]); setEquipment(JSON.parse(JSON.stringify(state.equipment)));
+    setCareer(state.career ?? "1410"); setLevel(state.level); setBonusStatPoints(state.bonusStatPoints ?? "0"); setStats([...state.stats]); setEquipment(JSON.parse(JSON.stringify(state.equipment)));
     setPets(JSON.parse(JSON.stringify(state.pets))); setAssistPets(JSON.parse(JSON.stringify(state.assistPets)));
     setEnchantAttrs(JSON.parse(JSON.stringify(state.enchantAttrs))); setExtraAttrInput(state.extraAttrInput); setPetCollectionAttrInput(state.petCollectionAttrInput ?? ""); setAttackerElement(state.attackerElement ?? "1"); setBondBonusBp(state.bondBonusBp ?? "0"); setSimulationRuns(state.simulationRuns ?? "3000"); setSimulationSeed(state.simulationSeed ?? "20260101"); setEmblemAttrInput(state.emblemAttrInput);
     setTotemSkillIds(state.totemSkillIds); setTotemAttrInput(state.totemAttrInput); setTotemEnhanceBp(state.totemEnhanceBp);
