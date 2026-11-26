@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { importLegacyRoyalGuardBuild, parseLegacyBuildBook } from "../src/lib/ro3-combat-simulator/legacy-build-import";
-import { buildCharacterStats, simulateDistribution } from "../src/lib/ro3-combat-simulator/engine/ro3-damage-engine.mjs";
+import { buildCharacterStats, simulateDistribution, gearParts, gearEffects, cardParts, cardEffects } from "../src/lib/ro3-combat-simulator/engine/ro3-damage-engine.mjs";
 import { createRo3CombatDataStore } from "../src/lib/ro3-combat-simulator/create-data-store.ts";
 import { loadRo3GameData } from "../src/lib/ro3-combat-simulator/data/ro3-game-data";
 import { getCombatEquipmentCatalog, CARD_SOCKETS } from "../src/lib/ro3-combat-simulator/equipment-options";
@@ -94,15 +94,33 @@ test("legacy import golden fixture preserves character sources and seeded damage
   };
   const exported=await loadRo3GameData();
   const catalog=getCombatEquipmentCatalog(exported.tables,exported.ui,1410);
-  const weapon=catalog.equipment.find((item)=>[1,2].includes(item.part)&&item.levelRequired<=150);
-  const cardSocket=CARD_SOCKETS[0];
-  const card=catalog.cards.find((item)=>item.part===cardSocket.part);
+  const gearSlots=[
+    {grid:1,parts:[1,2]},{grid:2,parts:[3]},{grid:3,parts:[4]},
+    {grid:4,parts:[5]},{grid:5,parts:[6]},{grid:6,parts:[7]},
+  ];
+  const selectedGear=gearSlots.flatMap(({grid,parts})=>{
+    const item=catalog.equipment.find((candidate)=>parts.includes(candidate.part)&&candidate.levelRequired<=150);
+    if(!item)return [];
+    const probe=gearParts({grid,id:item.id,roll:7500,refine:3,enhance:2,affixes:[],stunts:[]},data);
+    const affix=probe?.pool.find((row)=>row._iAttriID>0);
+    const stuntIds=(probe?.pools??[]).map((pool)=>pool[0]).filter(Boolean);
+    return [{grid,id:item.id,roll:7500,refine:3,enh:2,aff:affix?[affix._iAttriID]:[],sp:stuntIds}];
+  });
+  const selectedCards=CARD_SOCKETS.flatMap((socket,index)=>{
+    if(index!==0&&index!==7)return [];
+    const item=catalog.cards.find((candidate)=>candidate.part===socket.part&&data.row("CardConfig",String(candidate.id)+":2"));
+    return item?[{id:item.id,star:2,lv:10,flash:false}]:[];
+  });
+  const weapon=selectedGear.find((item)=>item.grid===1);
+  const card=selectedCards[0];
   const pet=Object.values(exported.tables.PetDigest).find((item)=>Number(item._iID)>0&&Number(item.g)>0);
   assert.ok(weapon,"exported catalog should contain a Royal Guard weapon for the fixture");
+  assert.ok(selectedGear.length>=3,"fixture should cover multiple compatible equipment grids");
   assert.ok(card,"exported catalog should contain a card for the first socket");
+  assert.ok(selectedCards.length>=2,"fixture should cover multiple card sockets");
   assert.ok(pet,"exported catalog should contain a pet for the fixture");
-  state.gear=[{id:weapon.id,roll:7500,refine:3,enh:2,aff:[],sp:[]}];
-  state.cards=[{id:card.id,star:2,lv:10,flash:false}];
+  state.gear=selectedGear.map(({grid,id,roll,refine,enh,aff,sp})=>({id,roll,refine,enh,aff,sp}));
+  state.cards=selectedCards;
   state.pets=[{id:Number(pet._iID),lv:80,star:3,stage:1}];
   state.assist=[{g:Number(pet.g),lv:80,star:3,stage:1}];
   const skillOptions=[
@@ -120,7 +138,17 @@ test("legacy import golden fixture preserves character sources and seeded damage
   const totemEnhanceBp=Number(data.row("TotemLvConfig",Number(imported.draft.totemLevel))?._iAttributeEnhance ?? 0);
   const mappedEquipment=toEngineEquipment(imported.draft.equipment,catalog.equipment,catalog.cards,Number(imported.draft.level));
   assert.equal(mappedEquipment.gear[0]?.id,weapon.id,"legacy gear selection should map to an engine equipment row");
+  assert.ok(mappedEquipment.gear.length>=3,"native mapping should retain multiple occupied equipment grids");
+  assert.ok(mappedEquipment.gear.some((item)=>item.affixes.length>0),"native mapping should retain a real catalog affix");
+  assert.ok(mappedEquipment.gear.some((item)=>item.stunts.some(Boolean)),"native mapping should retain real catalog stunt selections");
   assert.equal(mappedEquipment.cards[0]?.id,card.id,"legacy card selection should map to an engine card row");
+  assert.ok(mappedEquipment.cards.length>=2,"native mapping should retain multiple occupied card sockets");
+  const mappedGearEffects=gearEffects(mappedEquipment.gear,data);
+  const mappedCardEffects=cardEffects(mappedEquipment.cards,data);
+  assert.ok(mappedGearEffects.attrs.length>0,"multi-slot gear should contribute engine attributes");
+  assert.ok(mappedGearEffects.stunts.length>0,"selected gear stunts should reach the engine stunt pipeline");
+  assert.ok(mappedCardEffects.attrs.length>0,"multiple cards should contribute engine attributes");
+  assert.ok(mappedEquipment.cards.some((item)=>cardParts(item,data)?.base.length>0),"card slots should resolve through CardConfig tiers");
   const nativeTotems=JSON.parse(imported.draft.totemLoadoutInput).map((totem)=>({...totem,enhanceBp:totemEnhanceBp}));
   for(const id of [1160805,1161105,1163605]) assert.ok(data.row("SkillConfig",id),`fixture skill ${id} should exist in exported simulator data`);
   const nativeBuild={
