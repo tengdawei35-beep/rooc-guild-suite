@@ -30,7 +30,7 @@ const nativeData = {
   ui: { jobs: [{ id: 1410, name: "Royal Guard" }] },
 };
 const encode = (value) => gzipSync(Buffer.from(JSON.stringify(value))).toString("base64");
-const nativeModule = (data) => `const RO3_GAME_DATA_GZIP_BASE64 =\\n  "${encode(data)}";\\nexport const RO3_GAME_DATA_COMPRESSED_BYTES = 1;\\n`;
+const nativeModule = (data) => `const RO3_GAME_DATA_GZIP_BASE64 =\n  "${encode(data)}";\nexport const RO3_GAME_DATA_COMPRESSED_BYTES = 1;\n`;
 const legacyHtml = (data) => `<!doctype html><script type="text/plain" id="ro3-data">${encode(data)}</script>`;
 
 test("reads the generated TalentDigest from the upstream simulator HTML payload", () => {
