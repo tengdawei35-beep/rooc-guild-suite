@@ -178,3 +178,36 @@ For every open issue:
 - A successful Vercel deployment status proves deployment completion; it does not prove every route is healthy.
 - The user confirmed the applicant watchlist works and its migrations were applied. Other production workflows in this document are not marked manually verified unless explicitly stated.
 - RO3 live-game formula validation remains blocked until the game is available and representative real gameplay data can be collected.
+
+
+## Audit follow-up — 2026-11-27
+
+### Completed repository and UX triage
+- **PR #158** — merged; canonical backlog reconciled.
+- **PR #159** — merged; complimentary guild access no longer overwrites Stripe-managed subscription history. Grants are blocked while a Stripe subscription remains non-canceled, and entitlement resolution now prefers a currently active subscription over canceled historical rows.
+- **PR #162** — merged; added the missing page-level authentication and `allocation.view` guard to `/guild/resources/history`, and refreshed the historical Phase 43/45 audit documents.
+- **PR #106** remains the merged page-sizing implementation baseline. Browser screenshot QA at desktop/tablet/mobile widths remains outstanding.
+- The legacy UX stack **#55–#74, #76–#91, and #93–#96** was closed as superseded by current `main` and later merged workspace/design-system work. These stale phase branches were not merged directly.
+- **#102 and #105** were replaced by the refreshed historical audit snapshots in PR #162 and closed.
+- **#75 and #92** remain open and were deliberately not audited in this pass because they include the member-stat/OCR workflow scope that was explicitly deferred.
+- Empty/no-op PR #161 was closed after confirming the Event Results action already uses the shared HMDL secondary button in current `main`.
+
+### Native RO3 simulator and scoring rebuild
+- Historical **PR #142** is being rebuilt against current `main` in **PR #160**; do not merge the historical stacked branch.
+- The rebuild keeps the composition model explicitly experimental (`RO3_MEMBER_V2_EXPERIMENTAL`). No final numeric DPS/Tank/PvP weights have been approved, and no score is wired into member rankings or persisted fields.
+- The embedded simulator remains authoritative for supported damage mechanics. Live-game validation is not a prerequisite for the current engineering work.
+- Only direct PATK/MATK inputs are eligible for offensive calibration until percentage-field source/aggregation semantics are verified. Penetration and incoming-damage mechanics remain excluded where the simulator does not model them.
+- Rotation evaluation refuses to substitute career-sheet attack defaults when the required persisted PATK/MATK value is missing. Royal Guard's simulator profile references a career ID without a matching `JobConfig` row; the evaluator reports this gap rather than falling back to another career.
+- The defensive baseline exporter is restricted to active **and eligible** Archbishop, Royal Guard (Tank), and Rune Knight (Tank) characters across all RO3 guilds, with independent average PDEF/MDEF. It has not been run because the current RO3 database does not contain a meaningful sample.
+
+### Admin permissions and billing audit
+- All nine current `/admin` page routes were inspected and use server-side `getPlatformAdmin()` checks before rendering platform data.
+- Sensitive admin APIs reviewed (guild access, impersonation, simulator access, affiliates, guild creators and Discord role mappings) enforce platform-admin authorization; impersonation also validates request origin and records audit activity.
+- Billing checkout/portal routes require a platform session and verify guild ownership where applicable; the Stripe webhook verifies the signature before processing events.
+- **PR #159** fixes a data-integrity defect in complimentary grants: Stripe subscription identifiers/history are preserved, unresolved Stripe subscriptions block a grant, and active entitlements take precedence over canceled historical rows.
+- **Issue #163** tracks a product decision: an active complimentary subscription currently blocks paid Stripe checkout. Decide whether complimentary guilds should be able to convert to paid plans before expiry.
+- Remaining validation is live Stripe lifecycle testing (checkout success/cancel/failure, portal, renewals, past-due recovery, cancellation, entitlement revocation and concurrent grant/checkout behavior). No live Stripe transaction was run in this audit.
+- Minor follow-up: `/admin/guild-creators` idempotently upserts Basic/Total plans on page render. Consider moving this seeding side effect to a controlled seed/migration or admin action rather than a GET request.
+
+### Deferred scope
+- OCR accuracy, member stat entry/self-service workflows and their related PRs/issues were not audited or changed in this continuation, as requested. Keep Issues #1/#8/#9 and PRs #75/#92 in their existing open state until that work is resumed.
