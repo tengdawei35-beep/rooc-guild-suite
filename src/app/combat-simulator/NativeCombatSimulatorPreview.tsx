@@ -106,6 +106,8 @@ export default function NativeCombatSimulatorPreview() {
   const [profilesError, setProfilesError] = useState<string | null>(null);
   const [attackerId, setAttackerId] = useState("");
   const [defenderId, setDefenderId] = useState("");
+  const [career, setCareer] = useState("1410");
+  const careerId = numeric(career, 1410);
   const [level, setLevel] = useState("100");
   const [bonusStatPoints, setBonusStatPoints] = useState("0");
   const [stats, setStats] = useState(["80","60","50","20","80","20"]);
@@ -197,9 +199,11 @@ export default function NativeCombatSimulatorPreview() {
     else setProfilesError('Selected defender profile has no usable P.DEF or M.DEF values. Enter them manually.');
   }, [defenderId, members]);
 
-  const talentConfiguration = useMemo(() => engine.getTalentConfiguration(1410, numeric(level,100), numeric(talentProf,0), {
+  useEffect(() => { if (engine.ready) engine.configureCareer(careerId); }, [engine.ready, engine.configureCareer, careerId]);
+
+  const talentConfiguration = useMemo(() => engine.getTalentConfiguration(careerId, numeric(level,100), numeric(talentProf,0), {
     lv: numeric(talentLevel,0), prof: numeric(talentProf,0), picks: talentPicks, skills: parseTalentSkillLevels(talentSkillLevels),
-  }), [engine.getTalentConfiguration, level, talentProf, talentLevel, talentPicks, talentSkillLevels]);
+  }), [engine.getTalentConfiguration, careerId, level, talentProf, talentLevel, talentPicks, talentSkillLevels]);
   const learnedSkillLevels = useMemo(() => parseTalentSkillLevels(skillLevels), [skillLevels]);
   const rotationEntries = useMemo(() => skillIds.trim() ? skillIds.trim().split(/[\s,;]+/).map(Number).filter((id)=>Number.isSafeInteger(id)&&id>0) : [], [skillIds]);
   const disabledRotationSet = useMemo(() => new Set(parseIdList(disabledRotationIds)), [disabledRotationIds]);
@@ -219,7 +223,7 @@ export default function NativeCombatSimulatorPreview() {
   }, [totemLoadoutInput, totemLevel, engine.getTotemEnhanceBp, totemSkillIds, totemAttrInput, totemEnhanceBp]);
 
   const attacker = useMemo<CombatBuild>(() => ({
-    career: 1410, level: numeric(level,100), bonusStatPoints: numeric(bonusStatPoints,0), element: numeric(attackerElement,1), bondBonusBp: numeric(bondBonusBp,0), stats: stats.map((v) => numeric(v,1)) as CombatBuild["stats"],
+    career: careerId, level: numeric(level,100), bonusStatPoints: numeric(bonusStatPoints,0), element: numeric(attackerElement,1), bondBonusBp: numeric(bondBonusBp,0), stats: stats.map((v) => numeric(v,1)) as CombatBuild["stats"],
     enchantAttrs, equipmentAttrs: parseAttributePairs(extraAttrInput), extraAttrs: parseAttributePairs(petCollectionAttrInput), emblemAttrs: parseAttributePairs(emblemAttrInput), totems: nativeTotems, resonance: { refine: numeric(resonanceRefine,0), enhance: numeric(resonanceEnhance,0) }, pets, assistPets,
     talents: { lv: numeric(talentLevel,0), prof: numeric(talentProf,0), picks: talentPicks, skills: parseTalentSkillLevels(talentSkillLevels) },
     passiveSkills: effectivePassiveSkills,
@@ -393,7 +397,7 @@ export default function NativeCombatSimulatorPreview() {
         element, race, size, durationMs: duration, skillIds,
       });
       const validatedAttacker: CombatBuild = {
-        career: 1410, level: validated.level, element: numeric(attackerElement,1), bondBonusBp: numeric(bondBonusBp,0), stats: validated.stats,
+        career: careerId, level: validated.level, element: numeric(attackerElement,1), bondBonusBp: numeric(bondBonusBp,0), stats: validated.stats,
         enchantAttrs, equipmentAttrs: parseAttributePairs(extraAttrInput), extraAttrs: parseAttributePairs(petCollectionAttrInput), emblemAttrs: parseAttributePairs(emblemAttrInput), totems: nativeTotems, resonance: { refine: numeric(resonanceRefine,0), enhance: numeric(resonanceEnhance,0) }, pets, assistPets,
         talents: { lv: numeric(talentLevel,0), prof: numeric(talentProf,0), picks: talentPicks, skills: parseTalentSkillLevels(talentSkillLevels) },
         passiveSkills: effectivePassiveSkills,
@@ -457,7 +461,7 @@ export default function NativeCombatSimulatorPreview() {
       <p className="mt-1 text-xs text-zinc-500">Talent allocation, prerequisite skill levels and class choices use the generated TalentDigest and existing talentWalk/talentEffects functions when that digest is available. Passive skill IDs are forwarded to the engine's existing passive attribute pipeline.</p>
       <div className="mt-3 grid gap-3 sm:grid-cols-3">
         <label className="text-xs text-zinc-400">Total talent level<input type="number" min="0" max="999" value={talentLevel} onChange={(e)=>setTalentLevel(e.target.value)} className={inputClass}/></label>
-        <label className="text-xs text-zinc-400">Profession ID<input type="number" min="0" value={talentProf} onChange={(e)=>setTalentProf(e.target.value)} className={inputClass}/></label>
+        <label className="text-xs text-zinc-400">Profession<select value={talentProf} onChange={(e)=>setTalentProf(e.target.value)} className={inputClass}><option value="0">Default</option>{engine.careerOptions.map((job)=><option key={job.id} value={job.id}>{job.name}</option>)}</select></label>
         <label className="text-xs text-zinc-400">Passive SkillConfig IDs<input value={passiveSkillIds} onChange={(e)=>setPassiveSkillIds(e.target.value)} placeholder="Comma-separated IDs" className={inputClass}/></label>
         <label className="text-xs text-zinc-400 sm:col-span-3">Talent prerequisite skill levels<input value={talentSkillLevels} onChange={(e)=>setTalentSkillLevels(e.target.value)} placeholder="Skill group ID:level, e.g. 120:5, 121:3" className={inputClass}/></label>
       </div>
@@ -476,10 +480,10 @@ export default function NativeCombatSimulatorPreview() {
     </section>
     <section className="rounded-xl border border-white/10 bg-zinc-900/70 p-4">
       <h2 className="text-sm font-semibold text-white">Emblems &amp; totem modifiers</h2>
-      <p className="mt-1 text-xs text-zinc-500">The legacy engine supports emblem attributes and deployed totem effects. Until their source catalogs are fully exposed in the native editor, enter the exact attribute IDs and values from your build. Totem skill IDs use TotemSkillConfig.</p>
+      <p className="mt-1 text-xs text-zinc-500">The legacy engine supports emblem attributes and deployed totem effects. Until their source catalogs are fully exposed in the native editor, enter the exact attribute IDs and values from your build. Totem skills are selected by name from the game data.</p>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <label className="text-xs text-zinc-400">Emblem attributes (ID:value)<input value={emblemAttrInput} onChange={(e)=>setEmblemAttrInput(e.target.value)} placeholder="103:120, 104:120" className={inputClass}/></label>
-        <label className="text-xs text-zinc-400">Totem skill IDs<input value={totemSkillIds} onChange={(e)=>setTotemSkillIds(e.target.value)} placeholder="Comma-separated TotemSkillConfig IDs" className={inputClass}/></label>
+        <label className="text-xs text-zinc-400">Totem skills<select multiple value={parseIdList(totemSkillIds).map(String)} onChange={(e)=>setTotemSkillIds(Array.from(e.currentTarget.selectedOptions).map((o)=>o.value).join(", "))} className={`${inputClass} min-h-24`}>{engine.namedOptions.totemSkills.map((o)=><option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
         <label className="block text-xs text-zinc-400 sm:col-span-2">Imported totem loadout (JSON)
           <textarea value={totemLoadoutInput} onChange={(e)=>setTotemLoadoutInput(e.target.value)} rows={3} placeholder="Legacy totem selections are imported here." className={inputClass}/>
         </label>
@@ -528,7 +532,7 @@ export default function NativeCombatSimulatorPreview() {
         <label className="text-xs text-zinc-400">Enhance resonance level<input type="number" min="0" max="999" value={resonanceEnhance} onChange={(e)=>setResonanceEnhance(e.target.value)} className={inputClass}/></label>
       </div>
       <div className="mt-3 grid grid-cols-2 gap-2">
-        <label className="block text-xs text-zinc-400">Attacker element ID<input type="number" min="1" value={attackerElement} onChange={(e)=>setAttackerElement(e.target.value)} className={inputClass}/></label>
+        <label className="block text-xs text-zinc-400">Attacker element<select value={attackerElement} onChange={(e)=>setAttackerElement(e.target.value)} className={inputClass}>{engine.namedOptions.elements.map((o)=><option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
         <label className="block text-xs text-zinc-400">Bond / boss bonus (BP)<input type="number" value={bondBonusBp} onChange={(e)=>setBondBonusBp(e.target.value)} className={inputClass}/></label>
       </div>
       <div className="mt-3 space-y-2">
@@ -620,9 +624,9 @@ export default function NativeCombatSimulatorPreview() {
         <label className="text-xs text-zinc-400">Level<input type="number" min="1" max="200" value={targetLevel} onChange={(e)=>setTargetLevel(e.target.value)} className={inputClass}/></label>
         <label className="text-xs text-zinc-400">P.DEF<input type="number" min="0" value={def} onChange={(e)=>setDef(e.target.value)} className={inputClass}/></label>
         <label className="text-xs text-zinc-400">M.DEF<input type="number" min="0" value={mdef} onChange={(e)=>setMdef(e.target.value)} className={inputClass}/></label>
-        <label className="text-xs text-zinc-400">Element ID<input type="number" min="0" value={element} onChange={(e)=>setElement(e.target.value)} className={inputClass}/></label>
-        <label className="text-xs text-zinc-400">Race ID<input type="number" min="0" value={race} onChange={(e)=>setRace(e.target.value)} className={inputClass}/></label>
-        <label className="text-xs text-zinc-400">Size ID<input type="number" min="0" value={size} onChange={(e)=>setSize(e.target.value)} className={inputClass}/></label>
+        <label className="text-xs text-zinc-400">Element<select value={element} onChange={(e)=>setElement(e.target.value)} className={inputClass}>{(engine.namedOptions.elements.length?engine.namedOptions.elements:[{id:1,name:"Neutral"},{id:2,name:"Wind"},{id:3,name:"Earth"},{id:4,name:"Fire"},{id:5,name:"Water"},{id:6,name:"Poison"},{id:7,name:"Holy"},{id:8,name:"Shadow"},{id:9,name:"Ghost"},{id:10,name:"Undead"}]).map((o)=><option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
+        <label className="text-xs text-zinc-400">Race<select value={race} onChange={(e)=>setRace(e.target.value)} className={inputClass}>{(engine.namedOptions.races.length?engine.namedOptions.races:[{id:1,name:"Formless"},{id:2,name:"Undead"},{id:3,name:"Brute"},{id:4,name:"Plant"},{id:5,name:"Insect"},{id:6,name:"Fish"},{id:7,name:"Demon"},{id:8,name:"Demi-Human"},{id:9,name:"Angel"},{id:10,name:"Dragon"}]).map((o)=><option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
+        <label className="text-xs text-zinc-400">Size<select value={size} onChange={(e)=>setSize(e.target.value)} className={inputClass}>{(engine.namedOptions.sizes.length?engine.namedOptions.sizes:[{id:1,name:"Small"},{id:2,name:"Medium"},{id:3,name:"Large"}]).map((o)=><option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
       </div>
     </section>
     <section className="rounded-xl border border-white/10 bg-zinc-900/70 p-4">
@@ -630,10 +634,10 @@ export default function NativeCombatSimulatorPreview() {
       <p className="mt-1 text-xs text-zinc-500">Enter simulator SkillConfig IDs in priority order. Repeated IDs are preserved for cycle mode; disabled IDs are skipped without deleting them from the saved priority list.</p>
       <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,1fr)_180px]">
         <div className="space-y-2">
-          <label className="block text-xs text-zinc-400">Add Royal Guard skill
+          <label className="block text-xs text-zinc-400">Add skill
             <select value={selectedSkillId} onChange={(e)=>setSelectedSkillId(e.target.value)} className={inputClass}>
               <option value="">Select a learnable damage or modeled buff skill…</option>
-              {engine.skillOptions.map((skill)=> <option key={skill.id} value={skill.id}>{skill.name} · Lv {skill.level} · ID {skill.id}</option>)}
+              {engine.skillOptions.map((skill)=> <option key={skill.id} value={skill.id}>{skill.name} · Lv {skill.level}</option>)}
             </select>
           </label>
           <button type="button" disabled={!selectedSkillId} onClick={()=>setSkillIds((current)=>current.trim() ? `${current.trim()}, ${selectedSkillId}` : selectedSkillId)} className="rounded-lg border border-white/15 px-3 py-2 text-xs font-medium text-zinc-200 hover:bg-white/5 disabled:opacity-40">Add to rotation</button>
@@ -671,7 +675,7 @@ export default function NativeCombatSimulatorPreview() {
         <div className="mt-2 grid max-h-80 gap-2 overflow-y-auto sm:grid-cols-2">
           {engine.skillTreeOptions.filter((skill)=>skill.kind!=="utility").map((skill)=>(
             <label key={skill.groupId} className="flex items-center justify-between gap-2 rounded-md border border-white/5 px-2 py-1.5 text-xs">
-              <span className="min-w-0"><span className="block truncate text-zinc-200">{skill.name}</span><span className="text-[10px] text-zinc-500">{skill.kind} · {skill.groupId}</span></span>
+              <span className="min-w-0"><span className="block truncate text-zinc-200">{skill.name}</span><span className="text-[10px] text-zinc-500">{skill.kind}</span></span>
               <select aria-label={skill.name+" learned level"} value={learnedSkillLevels[String(skill.groupId)]??0} onChange={(e)=>setLearnedSkillLevel(skill.groupId,Number(e.target.value))} className="rounded border border-zinc-700 bg-zinc-900 px-2 py-1 text-zinc-100">
                 <option value={0}>Not learned</option>
                 {skill.levels.map((row)=><option key={row.level} value={row.level}>Lv {row.level}</option>)}
@@ -682,7 +686,7 @@ export default function NativeCombatSimulatorPreview() {
         <p className="mt-2 text-[10px] text-zinc-500">Derived passive skills: {learnedSkillEffects.passiveSkillIds.length} · Derived long buffs: {learnedSkillEffects.autoBuffIds.length} · Talent buffs: {talentConfiguration.effects.buffs.length}</p>
       </div>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        <label className="text-xs text-zinc-400">Always-on buff IDs<input value={activeBuffIds} onChange={(e)=>setActiveBuffIds(e.target.value)} placeholder="BuffConfig IDs, comma-separated" className={inputClass}/></label>
+        <label className="text-xs text-zinc-400">Additional always-on buffs<select multiple value={parseIdList(activeBuffIds).map(String)} onChange={(e)=>setActiveBuffIds(Array.from(e.currentTarget.selectedOptions).map((o)=>o.value).join(", "))} className={`${inputClass} min-h-24`}>{engine.namedOptions.buffs.map((o)=><option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
       </div>
       <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs text-zinc-300">
         <label className="flex items-center gap-2"><input type="checkbox" checked={rotationCycle} onChange={(e)=>setRotationCycle(e.target.checked)}/>Cycle rotation priority</label>
