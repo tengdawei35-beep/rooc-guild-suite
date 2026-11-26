@@ -115,20 +115,43 @@ export function importLegacyRoyalGuardBuild(
   draft.race = numberString(state.target?.race,1);
   draft.size = numberString(state.target?.size,2);
 
-  if (state.ex && typeof state.ex === "object" && !Array.isArray(state.ex)) {
-    draft.extraAttrInput = Object.entries(state.ex)
-      .map(([id, value]) => [Number(id), Number(value)] as [number, number])
-      .filter(([id, value]) => Number.isInteger(id) && id > 0 && Number.isFinite(value))
-      .sort(([a], [b]) => a - b)
-      .map(([id, value]) => `${id}:${value}`)
-      .join(", ");
+  const toAttributeInput = (pairs: unknown): string => (Array.isArray(pairs) ? pairs : [])
+    .flatMap((pair) => Array.isArray(pair) && pair.length >= 2
+      ? [[Number(pair[0]), Number(pair[1])] as [number, number]] : [])
+    .filter(([id, value]) => Number.isInteger(id) && id > 0 && Number.isFinite(value))
+    .sort(([a], [b]) => a - b)
+    .map(([id, value]) => `${id}:${value}`)
+    .join(", ");
+  const extraPairs = state.ex && typeof state.ex === "object" && !Array.isArray(state.ex)
+    ? Object.entries(state.ex).map(([id, value]) => [Number(id), Number(value)])
+        .filter(([id, value]) => Number.isInteger(id) && Number(id) > 0 && Number.isFinite(value))
+    : [];
+  const collectionPairs = Array.isArray(state.petCollect) ? state.petCollect : [];
+  draft.extraAttrInput = toAttributeInput([...extraPairs, ...collectionPairs]);
+  const echoPairs = state.echoUseEntries === false
+    ? (Array.isArray(state.echoAttrs) ? state.echoAttrs : [])
+    : (Array.isArray(state.echoes) ? state.echoes.flatMap((echo: any) =>
+        echo && Number(echo.id) !== 0 && Array.isArray(echo.stats)
+          ? echo.stats.map((entry: any) => [entry?.a, entry?.v]) : []) : []);
+  draft.emblemAttrInput = toAttributeInput(echoPairs);
+  if (Array.isArray(state.totems)) {
+    const totems = state.totems.filter((totem: any) => totem && typeof totem === "object").slice(0, 3)
+      .map((totem: any, index: number) => ({
+        guid: index + 1, id: Number(totem.id) || 0,
+        attrs: Array.isArray(totem.attrs) ? totem.attrs : [],
+        skills: Array.isArray(totem.skills) ? totem.skills : [],
+        enhanceBp: 0,
+      }));
+    draft.totemLoadoutInput = JSON.stringify(totems);
+    draft.totemLevel = numberString(state.totemLv, 0);
+    if (state.totems.length > 3) unsupported.push("Totem slots beyond the three supported native slots were omitted.");
+    if (totems.some((totem: any) => totem.skills.length)) warnings.push("Totem selections and supported skill effects were imported; dynamic totem procs are not fully modeled.");
   }
   if (state.hold && typeof state.hold === "object" && Object.keys(state.hold).length) {
     warnings.push("Legacy held/final stat targets are not retained as editable targets; their current solved flat bonuses (ex) are imported into native extra attributes.");
   }
-  if (state.echoes?.length || state.echoAttrs?.length) unsupported.push("Legacy Echo/emblem attribute state is not mapped.");
-  if (state.totems?.length || Number(state.totemLv)>0) unsupported.push("Legacy totem selections and levels are not mapped.");
-  if (state.petCollect?.length) unsupported.push("Legacy pet collection bonuses are not mapped.");
+  if (state.echoes?.some((echo: any) => echo?.colors?.some(Boolean))) warnings.push("Soul Echo mark colors were not imported; mark and proc effects are not modeled by the native preview.");
+  if (state.echoes?.some((echo: any) => echo?.id && echo?.stats?.length > 4)) warnings.push("Echo attribute entries beyond the native editable slots are preserved in the aggregate attribute input.");
   if (state.bonus?.boss) warnings.push("Legacy boss-damage bonus is not currently represented in the native draft.");
   if (state.talents?.lv) warnings.push("Talent picks and levels were imported, but talent effects remain inactive when the authorized TalentDigest data is unavailable.");
   warnings.push("Only current v15 Royal Guard states are accepted. Legacy versions must first be opened and saved by the iframe so its own migrations run.");
