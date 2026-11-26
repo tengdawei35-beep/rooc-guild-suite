@@ -64,7 +64,7 @@ test("long-buff auto classification follows the legacy highest-rank group rule",
     trees: { "1410": [[14104, 14105]] },
   };
   const table = {
-    "1410401": { _iID: 1410401, _iSkillID: 14104, _iLevel: 1, _iBasicType: 1, _kBuff1: [[9003, 1, 10000], [9004, 1, 120000]], name: "Mixed duration buff" },
+    "1410401": { _iID: 1410401, _iSkillID: 14104, _iLevel: 1, _iBasicType: 1, _kBuff1: [[9003, 1, 10000], [0, 1, 120000]], name: "Mixed duration buff" },
     "1410501": { _iID: 1410501, _iSkillID: 14105, _iLevel: 1, _iBasicType: 1, _kBuff1: [[9005, 1, 120000]], name: "Lower-rank long buff" },
     "1410502": { _iID: 1410502, _iSkillID: 14105, _iLevel: 2, _iBasicType: 1, _kBuff1: [[9006, 1, 10000]], name: "Higher-rank short buff" },
   };

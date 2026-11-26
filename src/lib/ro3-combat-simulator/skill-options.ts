@@ -94,7 +94,8 @@ export function getCombatSkillTreeOptions(
     // Match the legacy UI's group-level classification: `auto` is based on
     // whether the highest learned row has any modeled effect and its longest
     // buff duration, even if that longest buff is not itself modeled.
-    const longestTopBuffMs = topBuffs.reduce((longest, buff) => Math.max(longest, buff.durationMs), 0);
+    const topBuffEntries = Array.isArray(top._kBuff1) ? top._kBuff1.filter(Array.isArray) as unknown[][] : [];
+    const longestTopBuffMs = topBuffEntries.reduce((longest, buff) => Math.max(longest, Number(buff[2]) > 0 ? Number(buff[2]) : 60000), 0);
     const autoBuff = kind === "buff" && hasModeledBuff && longestTopBuffMs >= 60000;
     return {
       groupId, name: String(top.name ?? rows[0].name ?? `Skill ${groupId}`),
