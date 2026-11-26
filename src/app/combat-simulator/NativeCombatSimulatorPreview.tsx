@@ -52,6 +52,8 @@ export default function NativeCombatSimulatorPreview() {
   const [level, setLevel] = useState("100");
   const [stats, setStats] = useState(["80","60","50","20","80","20"]);
   const [equipment, setEquipment] = useState<NativeEquipmentSelection>(() => emptyNativeEquipmentSelection());
+  const [pets, setPets] = useState<Array<{ id: number; lv: number; star: number; stage: number } | null>>([null, null, null, null]);
+  const [assistPets, setAssistPets] = useState<Array<{ g: number; lv: number; star: number; stage: number } | null>>([null, null, null]);
   const [enchantAttrs, setEnchantAttrs] = useState<Array<[number, number]>>([]);
   const [resonanceRefine, setResonanceRefine] = useState("0");
   const [resonanceEnhance, setResonanceEnhance] = useState("0");
@@ -81,8 +83,8 @@ export default function NativeCombatSimulatorPreview() {
 
   const attacker = useMemo<CombatBuild>(() => ({
     career: 1410, level: numeric(level,100), stats: stats.map((v) => numeric(v,1)) as CombatBuild["stats"],
-    enchantAttrs, resonance: { refine: numeric(resonanceRefine,0), enhance: numeric(resonanceEnhance,0) },
-  }), [level, stats, enchantAttrs, resonanceRefine, resonanceEnhance]);
+    enchantAttrs, resonance: { refine: numeric(resonanceRefine,0), enhance: numeric(resonanceEnhance,0) }, pets, assistPets, pets, assistPets,
+  }), [level, stats, enchantAttrs, resonanceRefine, resonanceEnhance, pets, assistPets]);
   const engineEquipment = useMemo(() => engine.equipmentCatalog ? toEngineEquipment(equipment, engine.equipmentCatalog.equipment, engine.equipmentCatalog.cards, numeric(level,100), engine.getGearLevelCaps(numeric(level,100))) : { gear: [], cards: [] }, [equipment, engine.equipmentCatalog, engine.getGearLevelCaps, level]);
   const characterSheet = useMemo(() => {
     if (!engine.ready) return null;
@@ -133,6 +135,38 @@ export default function NativeCombatSimulatorPreview() {
         <label className="text-xs text-zinc-400">Character level<input type="number" min="1" max="200" value={level} onChange={(e)=>setLevel(e.target.value)} className={inputClass}/></label>
         {statNames.map((name,i)=><label key={name} className="text-xs text-zinc-400">{name}<input type="number" min="1" max="99" value={stats[i]} onChange={(e)=>setStats((old)=>old.map((v,j)=>j===i?e.target.value:v))} className={inputClass}/></label>)}
       </div>
+    </section>
+    <section className="rounded-xl border border-white/10 bg-zinc-900/70 p-4">
+      <h2 className="text-sm font-semibold text-white">Pets &amp; support pets</h2>
+      <p className="mt-1 text-xs text-zinc-500">Uses the simulator's PetDigest, PetGrowth and PetRules data. The first deployed pet is the primary combat pet; the remaining deployed slots supply supported passives. Support pets contribute shared attributes.</p>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        {pets.map((pet,index)=><div key={index} className="rounded-lg bg-black/20 p-3">
+          <p className="text-xs font-medium text-zinc-300">Deployed pet {index+1}{index===0?" · Primary":""}</p>
+          <select value={pet?.id??0} onChange={(e)=>{const option=engine.petOptions.find((item)=>item.id===Number(e.target.value));setPets((old)=>old.map((slot,i)=>i===index?(option?{id:option.id,lv:slot?.lv??1,star:slot?.star??1,stage:slot?.stage??0}:null):slot));}} className={inputClass}>
+            <option value="0">Empty</option>{engine.petOptions.map((option)=><option key={option.id} value={option.id}>{option.name}</option>)}
+          </select>
+          {pet&&<div className="mt-2 grid grid-cols-3 gap-2">
+            <label className="text-[10px] text-zinc-500">Level<input type="number" min="1" max={engine.petOptions.find((item)=>item.id===pet.id)?.maxLevel??100} value={pet.lv} onChange={(e)=>setPets((old)=>old.map((slot,i)=>i===index&&slot?{...slot,lv:numeric(e.target.value,1)}:slot))} className={inputClass}/></label>
+            <label className="text-[10px] text-zinc-500">Star<select value={pet.star} onChange={(e)=>setPets((old)=>old.map((slot,i)=>i===index&&slot?{...slot,star:Number(e.target.value)}:slot))} className={inputClass}>{[1,2,3,4,5,6].map((n)=><option key={n} value={n}>{n}</option>)}</select></label>
+            <label className="text-[10px] text-zinc-500">Stage<select value={pet.stage} disabled={pet.star===6} onChange={(e)=>setPets((old)=>old.map((slot,i)=>i===index&&slot?{...slot,stage:Number(e.target.value)}:slot))} className={inputClass}>{[0,1,2,3].map((n)=><option key={n} value={n}>{n}</option>)}</select></label>
+          </div>}
+        </div>)}
+      </div>
+      <details className="mt-3"><summary className="cursor-pointer text-xs font-medium text-zinc-300">Support pets (3)</summary>
+        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+          {assistPets.map((pet,index)=><div key={index} className="rounded-lg bg-black/20 p-3">
+            <p className="text-xs font-medium text-zinc-300">Support slot {index+1}</p>
+            <select value={pet?.g??0} onChange={(e)=>{const option=engine.petOptions.find((item)=>item.growthId===Number(e.target.value));setAssistPets((old)=>old.map((slot,i)=>i===index?(option?{g:option.growthId,lv:slot?.lv??1,star:slot?.star??1,stage:slot?.stage??0}:null):slot));}} className={inputClass}>
+              <option value="0">Empty</option>{Array.from(new Map(engine.petOptions.map((option)=>[option.growthId,option])).values()).map((option)=><option key={option.growthId} value={option.growthId}>{option.growthName}</option>)}
+            </select>
+            {pet&&<div className="mt-2 grid grid-cols-3 gap-2">
+              <label className="text-[10px] text-zinc-500">Level<input type="number" min="1" max={engine.petOptions.find((item)=>item.growthId===pet.g)?.maxLevel??100} value={pet.lv} onChange={(e)=>setAssistPets((old)=>old.map((slot,i)=>i===index&&slot?{...slot,lv:numeric(e.target.value,1)}:slot))} className={inputClass}/></label>
+              <label className="text-[10px] text-zinc-500">Star<select value={pet.star} onChange={(e)=>setAssistPets((old)=>old.map((slot,i)=>i===index&&slot?{...slot,star:Number(e.target.value)}:slot))} className={inputClass}>{[1,2,3,4,5,6].map((n)=><option key={n} value={n}>{n}</option>)}</select></label>
+              <label className="text-[10px] text-zinc-500">Stage<select value={pet.stage} disabled={pet.star===6} onChange={(e)=>setAssistPets((old)=>old.map((slot,i)=>i===index&&slot?{...slot,stage:Number(e.target.value)}:slot))} className={inputClass}>{[0,1,2,3].map((n)=><option key={n} value={n}>{n}</option>)}</select></label>
+            </div>}
+          </div>)}
+        </div>
+      </details>
     </section>
     <section className="rounded-xl border border-white/10 bg-zinc-900/70 p-4">
       <h2 className="text-sm font-semibold text-white">Enchantments &amp; resonance</h2>
