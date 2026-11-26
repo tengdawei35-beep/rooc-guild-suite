@@ -119,3 +119,21 @@ export function importLegacyRoyalGuardBuild(
   warnings.push("Only current v15 Royal Guard states are accepted. Legacy versions must first be opened and saved by the iframe so its own migrations run.");
   return { draft, warnings, unsupported };
 }
+
+export function parseLegacyBuildBook(raw: string | null): Array<{ id: number; name: string; state: unknown }> {
+  if (!raw) return [];
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return [];
+    const book = parsed as Record<string, any>;
+    if (book.v !== 1 || !Array.isArray(book.builds)) return [];
+    const seen = new Set<number>();
+    return book.builds.flatMap((entry: any) => {
+      if (!entry || !Number.isInteger(entry.id) || seen.has(entry.id) || !entry.state || typeof entry.state !== "object") return [];
+      seen.add(entry.id);
+      return [{ id: entry.id, name: String(entry.name || `Legacy Build ${entry.id}`).slice(0, 28), state: entry.state }];
+    }).slice(0,8);
+  } catch {
+    return [];
+  }
+}
