@@ -127,13 +127,14 @@ Cover management and member experiences at desktop, tablet and mobile widths; lo
 
 ## Pull-request disposition
 
-The GitHub repository currently has a large open-PR backlog. Several older PRs are based on historical commit SHAs rather than the current `main` commit. Open status does not mean work is missing from production.
+The historical PR sequence is now closed except for #75 and #92, which remain open by explicit scope deferral. Open status does not mean work is missing from production.
 
 | PR | Subject | Audit disposition |
 |---|---|---|
 | #147 | Native simulator named controls / job selector | Closed as superseded by current native React implementation |
 | #146 | Simulator profile stat fallback | Closed as superseded by current main API implementation |
-| #142 | RO3 Tank/PvP scoring composition | Closed; rebuilt and superseded by merged PR #160 |\n| #160 | Rebuilt experimental RO3 scoring framework | Merged after full CI passed; no production score integration |
+| #142 | RO3 Tank/PvP scoring composition | Closed; rebuilt and superseded by merged PR #160 |
+| #160 | Rebuilt experimental RO3 scoring framework | Merged after full CI passed; no production score integration |
 | #137 | Wallet extension errors in iframe | Closed; legacy iframe is not the production simulator UI |
 | #136 | Legacy iframe profile import rendering | Closed; current legacy asset already uses `refresh()` |
 | #132 | Discord role backfill diagnostics | Merged after CI and Vercel preview success |
@@ -143,7 +144,9 @@ The GitHub repository currently has a large open-PR backlog. Several older PRs a
 | #102 | Application UX audit documentation | Closed; refreshed historical snapshot merged in PR #162 |
 | #96 | Screenshot-led visual corrections | Closed; all remaining styles were already present in current `main` |
 | #95–#55 | Sequential UX/workspace phase PRs | Closed as superseded, except #75 and #92 which remain open and deferred because they overlap the OCR/member-stat scope |
-| #30 | Discord-linked members in Call To Arms | Closed on 2026-11-26 |\n| #75 | Member Stat Update Workspace | Open; intentionally deferred with OCR/member-stat audit scope |\n| #92 | Member workflow and billing confirmation consistency | Open; intentionally deferred because it includes OCR/member-stat workflow changes |
+| #30 | Discord-linked members in Call To Arms | Closed on 2026-11-26 |
+| #75 | Member Stat Update Workspace | Open; intentionally deferred with OCR/member-stat audit scope |
+| #92 | Member workflow and billing confirmation consistency | Open; intentionally deferred because it includes OCR/member-stat workflow changes |
 
 The legacy UX sequence has been triaged against current routes/components and later merged design-system work. The obsolete stacked PRs were closed rather than merged directly; #75 and #92 remain open for the deferred member-stat/OCR pass.
 
