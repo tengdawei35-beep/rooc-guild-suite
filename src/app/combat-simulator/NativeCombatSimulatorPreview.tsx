@@ -233,7 +233,6 @@ export default function NativeCombatSimulatorPreview() {
     setEnchantAttrs(JSON.parse(JSON.stringify(state.enchantAttrs))); setExtraAttrInput(state.extraAttrInput); setEmblemAttrInput(state.emblemAttrInput);
     setTotemSkillIds(state.totemSkillIds); setTotemAttrInput(state.totemAttrInput); setTotemEnhanceBp(state.totemEnhanceBp);
     setTotemLoadoutInput(state.totemLoadoutInput ?? ""); setTotemLevel(state.totemLevel ?? "0");
-    setTotemLoadoutInput(state.totemLoadoutInput ?? ""); setTotemLevel(state.totemLevel ?? "0");
     setResonanceRefine(state.resonanceRefine); setResonanceEnhance(state.resonanceEnhance);
     setTalentLevel(state.talentLevel); setTalentProf(state.talentProf); setTalentPicks(JSON.parse(JSON.stringify(state.talentPicks)));
     setPassiveSkillIds(state.passiveSkillIds); setTalentSkillLevels(state.talentSkillLevels);
