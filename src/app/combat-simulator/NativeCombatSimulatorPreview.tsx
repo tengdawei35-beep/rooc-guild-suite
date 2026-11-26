@@ -83,7 +83,7 @@ export default function NativeCombatSimulatorPreview() {
 
   const attacker = useMemo<CombatBuild>(() => ({
     career: 1410, level: numeric(level,100), stats: stats.map((v) => numeric(v,1)) as CombatBuild["stats"],
-    enchantAttrs, resonance: { refine: numeric(resonanceRefine,0), enhance: numeric(resonanceEnhance,0) }, pets, assistPets, pets, assistPets,
+    enchantAttrs, resonance: { refine: numeric(resonanceRefine,0), enhance: numeric(resonanceEnhance,0) }, pets, assistPets,
   }), [level, stats, enchantAttrs, resonanceRefine, resonanceEnhance, pets, assistPets]);
   const engineEquipment = useMemo(() => engine.equipmentCatalog ? toEngineEquipment(equipment, engine.equipmentCatalog.equipment, engine.equipmentCatalog.cards, numeric(level,100), engine.getGearLevelCaps(numeric(level,100))) : { gear: [], cards: [] }, [equipment, engine.equipmentCatalog, engine.getGearLevelCaps, level]);
   const characterSheet = useMemo(() => {
@@ -104,7 +104,7 @@ export default function NativeCombatSimulatorPreview() {
       });
       const validatedAttacker: CombatBuild = {
         career: 1410, level: validated.level, stats: validated.stats,
-        enchantAttrs, resonance: { refine: numeric(resonanceRefine,0), enhance: numeric(resonanceEnhance,0) },
+        enchantAttrs, resonance: { refine: numeric(resonanceRefine,0), enhance: numeric(resonanceEnhance,0) }, pets, assistPets,
         ...engineEquipment,
       };
       const validatedDefender: CombatDefender = {
