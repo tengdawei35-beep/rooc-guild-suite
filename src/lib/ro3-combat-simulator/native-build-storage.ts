@@ -79,7 +79,7 @@ export function isNativeBuildDraft(value: unknown): value is NativeBuildDraft {
     "activeBuffIds", "skillLevels", "periodicStartSeconds",
     "def", "mdef", "targetLevel", "element", "race", "size", "skillIds", "disabledRotationIds", "duration",
   ];
-  if (!stringFields.every((key) => isString(value[key])) || (value.extraAttrInput !== undefined && !isString(value.extraAttrInput)) || (value.totemLoadoutInput !== undefined && !isString(value.totemLoadoutInput))) return false;
+  if (!stringFields.every((key) => isString(value[key])) || (value.extraAttrInput !== undefined && !isString(value.extraAttrInput)) || (value.totemLoadoutInput !== undefined && !isString(value.totemLoadoutInput)) || (value.totemLevel !== undefined && !isString(value.totemLevel))) return false;
   if (!["rotationCycle", "cancelBackswing", "periodicOff", "ridden"].every((key) => typeof value[key] === "boolean")) return false;
   if (!petArray(value.pets, "id") || !petArray(value.assistPets, "g") || !isPairArray(value.enchantAttrs)) return false;
   if (!isRecord(value.talentPicks)) return false;
