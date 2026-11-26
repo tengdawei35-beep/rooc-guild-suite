@@ -28,7 +28,7 @@ This document is the current engineering backlog snapshot. It separates reposito
 | Applicant watchlist | Green / Yellow / Red labels and applicant filtering were merged in PR #154. | Production confirmed working |
 | Applicant watchlist presets | Admin/Manager preset page, guild-scoped IGN records and automatic case-insensitive matching for RO3/ROOC submissions were merged in PR #155. | Production confirmed working; migrations applied by user |
 | Admin workspaces | Admin dashboard, guilds, users, subscriptions, affiliates, creator management, impersonation and Discord settings routes exist. | Implemented surfaces; audit workflows/permissions |
-| OCR/stat entry | Member OCR API and page, applicant OCR API, RO3 and ROOC parsers exist; RO3 jobs and the separate RO3 stat schema are present. | Implemented foundation; extraction accuracy and member self-service discoverability need review |
+| OCR/stat entry | Member OCR API/page, applicant OCR API, RO3/ROOC parsers and separate RO3 stat schema exist. | Foundation implemented; #8 self-service entry/identity prefill and Vercel protection remain unresolved; #1/#9 screenshot accuracy and hybrid-role end-to-end verification remain open |
 | Combat simulator | Authenticated, entitlement-gated `/combat-simulator` currently renders `NativeCombatSimulatorPreview`; native engine, data adapters, profile API and tests exist. | Native route in production; parity/regression audit required |
 | Simulator entitlement/billing | Personal and guild simulator subscription routes and admin access controls exist. | Implemented surfaces; verify Stripe configuration and lifecycle |
 
@@ -61,12 +61,12 @@ This document is the current engineering backlog snapshot. It separates reposito
 5. Preserve the existing rule: the simulator is the current engineering reference, not independently validated live-game truth. Do not change formulas as part of UI migration.
 6. Update `docs/ro3-combat-simulator-native-migration.md` so its production-path and phase-status statements agree with the code.
 
-**Related open PRs**
-- #147 — name-based controls and job-selectable attacker. Its changes are relevant to the native React component and should be reviewed against current `main`, then either ported cleanly or closed as superseded.
-- #146 — guild profile stats fallback. The same fallback logic is already present in the current `main` API route; confirm commit history, then close as superseded if no unique changes remain.
-- #136 — legacy iframe profile-import rendering fix. Reassess because the production route now renders native React.
-- #137 — browser wallet-extension error isolation in legacy iframe. Reassess whether any remaining production path uses that iframe.
-- #149 — job/totem label fixes and level-99 default are already merged; retain those as the current baseline.
+**Related PR disposition**
+- #147 and #146 are closed as superseded; no further porting is planned unless a regression is found.
+- #136 is closed; the retained legacy HTML already uses `refresh()` for both attacker and defender profile imports.
+- #137 is closed as obsolete for the production UI; the legacy source endpoint is retained only as a compatibility/calculation asset.
+- #132 is merged with actionable Discord role-backfill diagnostics.
+- #129 is closed and replaced by #157, which is merged. #149's job/totem label fixes and Level 99 default remain part of the current baseline.
 
 ### P1 — RO3 scoring: separate composition from calibration
 
@@ -103,7 +103,7 @@ These issues are older than the current applicant and OCR implementations. Recon
 
 ### P1 — Discord integration and role synchronization
 
-- Review PR #132 (actionable Discord role-backfill diagnostics) against the current Discord role mapping/backfill implementation.
+- PR #132's actionable Discord role-backfill diagnostics are merged. Remaining work is integration QA: test bot permissions, role hierarchy, missing-member handling, assign/remove operations, and retry behavior.
 - Test bot permissions, role hierarchy, missing-member handling, assign/remove operations, and retry behavior.
 - Verify event reminders and attendance interactions in a real test guild, including the bot's permission to mention everyone.
 - Never expose bot tokens, webhook secrets, or private Discord identifiers in logs or diagnostics.
@@ -168,10 +168,9 @@ For every open issue:
 1. Finish PR and issue triage; update this document with final dispositions.
 2. Complete native combat simulator regression and documentation reconciliation.
 3. Rebuild/review RO3 scoring work from current `main`, without claiming live-game calibration.
-4. Audit OCR and applicant/member stat workflows end to end.
-5. Audit Discord role synchronization and event interactions.
-6. Audit admin/billing permissions and lifecycle.
-7. Run the current-production UX/accessibility regression pass.
+4. Audit Discord role synchronization and event interactions.
+5. Audit admin/billing permissions and lifecycle.
+6. Run the current-production UX/accessibility regression pass.
 
 ## Validation boundaries
 
