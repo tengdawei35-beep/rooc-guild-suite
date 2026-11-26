@@ -94,3 +94,12 @@ test("legacy import golden fixture preserves legacy character-sheet attribute so
     simulateRotation(legacyReference,defender,[],3000,data),
   );
 });
+
+test("imports legacy any-profession talent mode as profession zero",()=>{
+  const result=importLegacyRoyalGuardBuild({
+    v:15,job:1410,level:100,stats:[1,1,1,1,1,1],prof:4,
+    talents:{lv:1,any:true,picks:{}},
+  },defaults,[]);
+  assert.ok(result.draft);
+  assert.equal(result.draft.talentProf,"0");
+});
