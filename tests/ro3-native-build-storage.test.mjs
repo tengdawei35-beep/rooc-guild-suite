@@ -41,6 +41,16 @@ test("serializes and parses versioned saved builds without losing inputs", () =>
   assert.equal(parsed[0].name, "Build one");
 });
 
+test("restores pre-budget native saved builds with a safe optimizer-budget default", () => {
+  const { bonusStatPoints: _legacyField, ...olderDraft } = draft;
+  const raw = JSON.stringify({ version: 1, builds: [build("older", "2026-11-25T00:00:00.000Z")] }).replace(
+    JSON.stringify(draft), JSON.stringify(olderDraft),
+  );
+  const restored = parseNativeSavedBuilds(raw);
+  assert.equal(restored.length, 1);
+  assert.equal(restored[0].state.bonusStatPoints, "0");
+});
+
 test("deduplicates IDs, skips invalid entries and limits restored builds", () => {
   const entries = Array.from({ length: MAX_NATIVE_SAVED_BUILDS + 2 }, (_, i) => build(String(i), new Date(2026, 0, i + 1).toISOString()));
   const raw = serializeNativeSavedBuilds(entries);
