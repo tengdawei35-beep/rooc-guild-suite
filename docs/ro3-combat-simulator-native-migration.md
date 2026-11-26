@@ -105,3 +105,7 @@ Card advancement now follows the legacy `CARD_CAP` values (star 0–3: levels 5,
 - Enchantment attributes and refine/enhance resonance are included in both the sheet and damage build inputs.
 
 These inputs remain part of the gated native preview. They do not change the production iframe or imply live-game verification.
+
+- Emblem attribute pairs and deployed totem inputs are now wired into the existing engine. The native preview accepts exact attribute ID/value pairs, totem skill IDs and enhancement basis points; this is intentionally a manual bridge until the full emblem/totem catalogs and editor UX are migrated.
+- A regression test verifies emblem attributes and enhanced totem attributes flow through the existing character sheet pipeline without changing formulas.
+- Talent configuration depends on the generated `TalentDigest` data row. If that row is absent from the exported dataset, the current talent controls correctly show no available branches; generating the digest from the season talent source tables remains a required parity task before treating the talent editor as complete.
