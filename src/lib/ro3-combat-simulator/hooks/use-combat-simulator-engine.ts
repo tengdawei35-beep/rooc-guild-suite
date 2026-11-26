@@ -30,6 +30,7 @@ export function useCombatSimulatorEngine() {
   const [data, setData] = useState<Ro3MemoryDataStore | null>(null);
   const [skillOptions, setSkillOptions] = useState<CombatSkillOption[]>([]);
   const [equipmentCatalog, setEquipmentCatalog] = useState<ReturnType<typeof getCombatEquipmentCatalog> | null>(null);
+  const [attributeOptions, setAttributeOptions] = useState<Array<{ id: number; name: string }>>([]);
   const [status, setStatus] = useState<CombatEngineStatus>("loading");
   const [error, setError] = useState<string | null>(null);
 
@@ -39,6 +40,7 @@ export function useCombatSimulatorEngine() {
       .then(([store, exported]) => {
         if (!active) return;
         setData(store);
+        setAttributeOptions(Object.values(store.table("AttributeConfig")).map((row) => ({ id: Number(row._iID), name: String(row.name ?? `Attribute ${row._iID}`) })).filter((row) => Number.isFinite(row.id)).sort((a, b) => a.id - b.id));
         setEquipmentCatalog(getCombatEquipmentCatalog(
           exported.tables as Parameters<typeof getCombatEquipmentCatalog>[0],
           exported.ui as Parameters<typeof getCombatEquipmentCatalog>[1],
@@ -120,5 +122,5 @@ export function useCombatSimulatorEngine() {
     return simulateCombatRotation(attacker, defender, rotationSkillIds, durationMs, data);
   }, [data]);
 
-  return { status, error, ready: status === "ready", skillOptions, equipmentCatalog, getCharacterSheet, getGearCustomization, getGearLevelCaps, getCardCustomization, simulate };
+  return { status, error, ready: status === "ready", skillOptions, equipmentCatalog, attributeOptions, getCharacterSheet, getGearCustomization, getGearLevelCaps, getCardCustomization, simulate };
 }
