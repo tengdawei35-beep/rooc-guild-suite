@@ -38,18 +38,22 @@ test("full exported dataset produces Royal Guard career skill options", async ()
 test("skill tree options include passive and buff skills and derive learned effects", () => {
   const ui = {
     jobs: [{ id: 1100 }, { id: 1410, parent: 1100 }],
-    trees: { "1100": [[11001]], "1410": [[14101, 14102, 14103]] },
+    trees: { "1100": [[11001]], "1410": [[14101, 14102, 14103, 13311]] },
   };
   const table = {
     "1100101": { _iID: 1100101, _iSkillID: 11001, _iLevel: 1, _iBasicType: 1, _kDamageParam1: [100], name: "Bash" },
     "1410101": { _iID: 1410101, _iSkillID: 14101, _iLevel: 1, _iBasicType: 0, _kAttri: [[103, 50]], name: "Royal Guard Passive" },
     "1410102": { _iID: 1410102, _iSkillID: 14102, _iLevel: 1, _iBasicType: 1, _kBuff1: [[9001, 1, 120000]], name: "Long Blessing" },
     "1410103": { _iID: 1410103, _iSkillID: 14103, _iLevel: 1, _iBasicType: 1, _kBuff1: [[9002, 1, 10000]], name: "Short Buff" },
+    "1331101": { _iID: 1331101, _iSkillID: 13311, _iLevel: 1, _iBasicType: 0, _kAttri: [[103, 50]], name: "Riding Passive" },
   };
   const buffTable = { "9001": { _kChangeAttri: [[103, 500]] }, "9002": { _kChangeAttri: [[103, 100]] } };
   const options = getCombatSkillTreeOptions(ui, table, 1410, buffTable);
-  assert.deepEqual(options.map((option) => option.kind).sort(), ["buff", "buff", "damage", "passive"]);
-  const effects = deriveLearnedSkillEffects(options, { "14101": 1, "14102": 1, "14103": 1 }, buffTable, true);
+  assert.deepEqual(options.map((option) => option.kind).sort(), ["buff", "buff", "damage", "passive", "passive"]);
+  const effects = deriveLearnedSkillEffects(options, { "14101": 1, "14102": 1, "14103": 1, "13311": 1 }, buffTable, true);
   assert.deepEqual(effects.passiveSkillIds, [1410101]);
-  assert.deepEqual(effects.autoBuffIds, [9001]);
+  assert.deepEqual(effects.autoBuffIds.sort((a,b)=>a-b), [9001, 1331201].sort((a,b)=>a-b));
+  const rotationOptions = getCombatSkillOptions(ui, table, 1410, buffTable);
+  assert.ok(rotationOptions.some((option) => option.groupId === 14103), "modeled short buffs belong in the rotation");
+  assert.ok(!rotationOptions.some((option) => option.groupId === 14102), "long buffs are auto-applied, not rotation steps");
 });
