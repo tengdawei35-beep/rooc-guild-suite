@@ -165,7 +165,7 @@ export default function NativeCombatSimulatorPreview() {
     </section>
     <section className="rounded-xl border border-white/10 bg-zinc-900/70 p-4">
       <h2 className="text-sm font-semibold text-white">Season talents &amp; passive skills</h2>
-      <p className="mt-1 text-xs text-zinc-500">Talent allocation, prerequisite skill levels and class choices use the exported TalentDigest and existing talentWalk/talentEffects functions. Passive skill IDs are forwarded to the engine's existing passive attribute pipeline.</p>
+      <p className="mt-1 text-xs text-zinc-500">Talent allocation, prerequisite skill levels and class choices use the generated TalentDigest and existing talentWalk/talentEffects functions when that digest is available. Passive skill IDs are forwarded to the engine's existing passive attribute pipeline.</p>
       <div className="mt-3 grid gap-3 sm:grid-cols-3">
         <label className="text-xs text-zinc-400">Total talent level<input type="number" min="0" max="999" value={talentLevel} onChange={(e)=>setTalentLevel(e.target.value)} className={inputClass}/></label>
         <label className="text-xs text-zinc-400">Profession ID<input type="number" min="0" value={talentProf} onChange={(e)=>setTalentProf(e.target.value)} className={inputClass}/></label>
@@ -182,7 +182,7 @@ export default function NativeCombatSimulatorPreview() {
             {(cluster?.kids??[]).map((option)=><option key={option.id} value={option.id}>{option.name}</option>)}
           </select>
         </div>;})}
-      </div> : <p className="mt-3 text-xs text-zinc-500">No talent branches are available in the exported data for this career/profession selection.</p>}
+      </div> : <p className="mt-3 text-xs text-zinc-500">{talentConfiguration.available ? "No talent branches are available for this career/profession selection." : "Season talent options are not present in the current exported dataset. Talent inputs will not affect the result until the TalentDigest is generated and included."}</p>}
       {talentConfiguration.walk&&<p className="mt-3 text-xs text-zinc-400">Allocated talent levels: {talentConfiguration.walk.total} · Unspent: {talentConfiguration.walk.spare} · Active branch choices: {talentConfiguration.walk.reached.length}</p>}
     </section>
     <section className="rounded-xl border border-white/10 bg-zinc-900/70 p-4">
