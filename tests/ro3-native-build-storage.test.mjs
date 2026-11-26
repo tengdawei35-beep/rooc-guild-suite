@@ -7,11 +7,9 @@ import {
   removeNativeSavedBuild,
   serializeNativeSavedBuilds,
   upsertNativeSavedBuild,
-  type NativeBuildDraft,
-  type NativeSavedBuild,
 } from "../src/lib/ro3-combat-simulator/native-build-storage";
 
-const draft: NativeBuildDraft = {
+const draft = {
   level: "100", stats: ["80", "60", "50", "20", "80", "20"],
   equipment: {
     gear: Array.from({ length: 7 }, () => ({ id: 0, roll: 5000, refine: 0, enhance: 0, affixes: [], stunts: [], offRefine: 0, offEnhance: 0 })),
@@ -23,7 +21,7 @@ const draft: NativeBuildDraft = {
   passiveSkillIds: "", talentSkillLevels: "", def: "5000", mdef: "3000", targetLevel: "100",
   element: "1", race: "1", size: "2", skillIds: "", duration: "30000",
 };
-const build = (id: string, updatedAt: string): NativeSavedBuild => ({
+const build = (id, updatedAt) => ({
   id, name: `Build ${id}`, updatedAt, state: structuredClone(draft),
 });
 
