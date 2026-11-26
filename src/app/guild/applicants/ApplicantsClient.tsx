@@ -87,7 +87,14 @@ export default function ApplicantsClient({ canManage }: { canManage: boolean }) 
     finally { setBusy(false); }
   }
 
-  async function updateWatchlist(id: string, watchlist: "GREEN" | "YELLOW" | "RED" | null) {\n    setBusy(true); setError("");\n    try { const response = await fetch("/api/guild/applicants", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, watchlist }) }); const data = await response.json(); if (!response.ok) throw new Error(data.error ?? "Failed to update watchlist."); await load(); }\n    catch (err) { setError(err instanceof Error ? err.message : "Failed to update watchlist."); }\n    finally { setBusy(false); }\n  }\n\n  async function decide(id: string, decision: "ACCEPTED" | "DENIED") {
+  async function updateWatchlist(id: string, watchlist: "GREEN" | "YELLOW" | "RED" | null) {
+    setBusy(true); setError("");
+    try { const response = await fetch("/api/guild/applicants", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, watchlist }) }); const data = await response.json(); if (!response.ok) throw new Error(data.error ?? "Failed to update watchlist."); await load(); }
+    catch (err) { setError(err instanceof Error ? err.message : "Failed to update watchlist."); }
+    finally { setBusy(false); }
+  }
+
+  async function decide(id: string, decision: "ACCEPTED" | "DENIED") {
     const applicant = applicants.find(item => item.id === id);
     const action = decision === "ACCEPTED" ? "accept" : "deny";
     const name = applicant?.characterName || applicant?.discordUsername || "this applicant";
@@ -169,7 +176,8 @@ export default function ApplicantsClient({ canManage }: { canManage: boolean }) 
             <div className="hmdl-applicant-summary">
               <button type="button" onClick={() => setExpandedApplicantId(expandedApplicantId === applicant.id ? null : applicant.id)} className="hmdl-applicant-toggle" aria-expanded={expandedApplicantId === applicant.id}>
                 <span className="hmdl-applicant-identity"><strong>{applicant.characterName}</strong><span>{applicant.job ?? "Job not specified"} · {applicant.discordUsername} · {applicant.discordUserId}</span><time dateTime={applicant.createdAt}>{new Date(applicant.createdAt).toLocaleDateString()}</time></span>
-                <span className={`hmdl-badge ${applicant.status === "PENDING" ? "hmdl-badge-warning" : applicant.status === "ACCEPTED" ? "hmdl-badge-success" : "hmdl-badge-danger"}`}>{applicant.status}</span>\n                {applicant.watchlist && <span className={`hmdl-applicant-watchlist-badge is-${applicant.watchlist.toLowerCase()}`}>{applicant.watchlist === "GREEN" ? "Green · Prioritise" : applicant.watchlist === "YELLOW" ? "Yellow · Review" : "Red · Reject"}</span>}
+                <span className={`hmdl-badge ${applicant.status === "PENDING" ? "hmdl-badge-warning" : applicant.status === "ACCEPTED" ? "hmdl-badge-success" : "hmdl-badge-danger"}`}>{applicant.status}</span>
+                {applicant.watchlist && <span className={`hmdl-applicant-watchlist-badge is-${applicant.watchlist.toLowerCase()}`}>{applicant.watchlist === "GREEN" ? "Green · Prioritise" : applicant.watchlist === "YELLOW" ? "Yellow · Review" : "Red · Reject"}</span>}
                 <span className="hmdl-applicant-expand">{expandedApplicantId === applicant.id ? "Hide details ↑" : "View details ↓"}</span>
               </button>
               {canManage && applicant.status === "PENDING" && <div className="hmdl-applicant-actions">{canManage && <select aria-label={`Watchlist for ${applicant.characterName}`} className="hmdl-field hmdl-applicant-watchlist-select" value={applicant.watchlist ?? ""} onChange={(event) => void updateWatchlist(applicant.id, (event.target.value || null) as "GREEN" | "YELLOW" | "RED" | null)} disabled={busy}><option value="">No watchlist</option><option value="GREEN">🟢 Green — Prioritise</option><option value="YELLOW">🟡 Yellow — Review</option><option value="RED">🔴 Red — Reject</option></select>}<button type="button" onClick={() => decide(applicant.id, "ACCEPTED")} disabled={busy} className="hmdl-btn hmdl-btn-primary">{processingApplicantId === applicant.id ? "Processing…" : "Accept"}</button><button type="button" onClick={() => decide(applicant.id, "DENIED")} disabled={busy} className="hmdl-btn hmdl-btn-danger">{processingApplicantId === applicant.id ? "Processing…" : "Deny"}</button></div>}
