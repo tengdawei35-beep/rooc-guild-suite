@@ -37,6 +37,9 @@ export function importLegacyRoyalGuardBuild(
   };
 
   draft.level = numberString(state.level, 100);
+  draft.attackerElement = numberString(state.element, 1);
+  draft.bondBonusBp = numberString(Math.round(Number(state.bonus?.boss || 0) * 100), 0);
+  if (Number(state.bonusPoints) > 0) warnings.push("Legacy bonus stat points are not used by the native preview because its stat optimizer has not yet been migrated.");
   if (Array.isArray(state.stats) && state.stats.length === 6) draft.stats = state.stats.map((v: unknown)=>numberString(v,0));
   else warnings.push("Base stats were left at native defaults because the legacy stat array was invalid.");
 
@@ -153,7 +156,7 @@ export function importLegacyRoyalGuardBuild(
   }
   if (Array.isArray(state.echoes) && state.echoes.some((echo: any) => echo?.colors?.some(Boolean))) warnings.push("Soul Echo mark colors were not imported; mark and proc effects are not modeled by the native preview.");
   if (state.echoes?.some((echo: any) => echo?.id && echo?.stats?.length > 4)) warnings.push("Echo attribute entries beyond the native editable slots are preserved in the aggregate attribute input.");
-  if (state.bonus?.boss) warnings.push("Legacy boss-damage bonus is not currently represented in the native draft.");
+
   if (state.talents?.lv) warnings.push("Talent picks and levels were imported, but talent effects remain inactive when the authorized TalentDigest data is unavailable.");
   warnings.push("Only current v15 Royal Guard states are accepted. Legacy versions must first be opened and saved by the iframe so its own migrations run.");
   return { draft, warnings, unsupported };
