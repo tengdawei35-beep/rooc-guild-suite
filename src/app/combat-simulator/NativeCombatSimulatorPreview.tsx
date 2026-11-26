@@ -233,6 +233,7 @@ export default function NativeCombatSimulatorPreview() {
     setEnchantAttrs(JSON.parse(JSON.stringify(state.enchantAttrs))); setExtraAttrInput(state.extraAttrInput); setEmblemAttrInput(state.emblemAttrInput);
     setTotemSkillIds(state.totemSkillIds); setTotemAttrInput(state.totemAttrInput); setTotemEnhanceBp(state.totemEnhanceBp);
     setTotemLoadoutInput(state.totemLoadoutInput ?? ""); setTotemLevel(state.totemLevel ?? "0");
+    setTotemLoadoutInput(state.totemLoadoutInput ?? ""); setTotemLevel(state.totemLevel ?? "0");
     setResonanceRefine(state.resonanceRefine); setResonanceEnhance(state.resonanceEnhance);
     setTalentLevel(state.talentLevel); setTalentProf(state.talentProf); setTalentPicks(JSON.parse(JSON.stringify(state.talentPicks)));
     setPassiveSkillIds(state.passiveSkillIds); setTalentSkillLevels(state.talentSkillLevels);
@@ -426,6 +427,10 @@ export default function NativeCombatSimulatorPreview() {
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <label className="text-xs text-zinc-400">Emblem attributes (ID:value)<input value={emblemAttrInput} onChange={(e)=>setEmblemAttrInput(e.target.value)} placeholder="103:120, 104:120" className={inputClass}/></label>
         <label className="text-xs text-zinc-400">Totem skill IDs<input value={totemSkillIds} onChange={(e)=>setTotemSkillIds(e.target.value)} placeholder="Comma-separated TotemSkillConfig IDs" className={inputClass}/></label>
+        <label className="block text-xs text-zinc-400 sm:col-span-2">Imported totem loadout (JSON)
+          <textarea value={totemLoadoutInput} onChange={(e)=>setTotemLoadoutInput(e.target.value)} rows={3} placeholder="Legacy totem selections are imported here." className={inputClass}/>
+        </label>
+        <label className="text-xs text-zinc-400">Legacy totem system level<input type="number" min="0" value={totemLevel} onChange={(e)=>setTotemLevel(e.target.value)} className={inputClass}/></label>
         <label className="text-xs text-zinc-400">Totem attributes (ID:value)<input value={totemAttrInput} onChange={(e)=>setTotemAttrInput(e.target.value)} placeholder="103:50, 104:50" className={inputClass}/></label>
         <label className="text-xs text-zinc-400">Totem enhancement (basis points)<input type="number" min="0" value={totemEnhanceBp} onChange={(e)=>setTotemEnhanceBp(e.target.value)} className={inputClass}/></label>
       </div>
