@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useCombatSimulatorEngine } from "@/lib/ro3-combat-simulator/hooks/use-combat-simulator-engine";
-import type { CombatBuild, CombatDefender, CombatRotationResult } from "@/lib/ro3-combat-simulator/types";
+import type { CombatBuild, CombatDefender, CombatDistributionResult } from "@/lib/ro3-combat-simulator/types";
 import { validateCombatInput } from "@/lib/ro3-combat-simulator/validate-input.mjs";
 import { emptyNativeEquipmentSelection, moveUniqueCardSelection, toEngineEquipment, type NativeEquipmentSelection } from "@/lib/ro3-combat-simulator/build-input";
 import { EQUIPMENT_GRIDS, CARD_SOCKETS } from "@/lib/ro3-combat-simulator/equipment-options";
@@ -26,6 +26,25 @@ const numeric = (value: string, fallback: number) => {
 };
 const inputClass = "mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white";
 const statNames = ["STR", "AGI", "VIT", "INT", "DEX", "LUK"];
+function analyzeCombatDistribution(result: CombatDistributionResult) {
+  const sorted = Array.from(result.totals).sort((a, b) => a - b);
+  const n = sorted.length;
+  const mean = n ? sorted.reduce((sum, value) => sum + value, 0) / n : 0;
+  const variance = n ? sorted.reduce((sum, value) => sum + (value - mean) ** 2, 0) / n : 0;
+  const quantile = (p: number) => {
+    if (!n) return 0;
+    const at = p * (n - 1), lo = Math.floor(at), hi = Math.min(n - 1, lo + 1);
+    return sorted[lo] + (sorted[hi] - sorted[lo]) * (at - lo);
+  };
+  const skills = result.skills.map((skill) => {
+    const landed = skill.hits + skill.crits;
+    const attempts = landed + skill.misses;
+    return { ...skill, landed, attempts, hitPct: attempts ? landed / attempts : 1, critPct: landed ? skill.crits / landed : 0, share: mean ? skill.total / mean : 0 };
+  }).sort((a, b) => b.total - a.total);
+  const landed = skills.reduce((sum, skill) => sum + skill.landed, 0);
+  const crits = skills.reduce((sum, skill) => sum + skill.crits, 0);
+  return { mean, sd: Math.sqrt(variance), p5: quantile(0.05), p50: quantile(0.5), p95: quantile(0.95), skills, critPct: landed ? crits / landed : 0 };
+}
 const parseAttributePairs = (value: string): Array<[number, number]> => value.split(/[ ,]+/)
   .map((entry) => entry.split(":"))
   .filter((parts) => parts.length === 2)
@@ -120,7 +139,9 @@ export default function NativeCombatSimulatorPreview() {
   const [disabledRotationIds, setDisabledRotationIds] = useState("");
   const [selectedSkillId, setSelectedSkillId] = useState("");
   const [duration, setDuration] = useState("30000");
-  const [result, setResult] = useState<CombatRotationResult | null>(null);
+  const [simulationRuns, setSimulationRuns] = useState("3000");
+  const [simulationSeed, setSimulationSeed] = useState("20260101");
+  const [result, setResult] = useState<CombatDistributionResult | null>(null);
   const [simulationError, setSimulationError] = useState<string | null>(null);
   const [runCount, setRunCount] = useState(0);
   const [savedBuilds, setSavedBuilds] = useState<NativeSavedBuild[]>([]);
@@ -192,7 +213,7 @@ export default function NativeCombatSimulatorPreview() {
     return {
       level, stats: [...stats], equipment: JSON.parse(JSON.stringify(equipment)),
       pets: JSON.parse(JSON.stringify(pets)), assistPets: JSON.parse(JSON.stringify(assistPets)),
-      enchantAttrs: JSON.parse(JSON.stringify(enchantAttrs)), extraAttrInput, petCollectionAttrInput, attackerElement, bondBonusBp, emblemAttrInput, totemSkillIds, totemAttrInput,
+      enchantAttrs: JSON.parse(JSON.stringify(enchantAttrs)), extraAttrInput, petCollectionAttrInput, attackerElement, bondBonusBp, simulationRuns, simulationSeed, emblemAttrInput, totemSkillIds, totemAttrInput,
       totemEnhanceBp, totemLoadoutInput, totemLevel, resonanceRefine, resonanceEnhance, talentLevel, talentProf,
       talentPicks: JSON.parse(JSON.stringify(talentPicks)), passiveSkillIds, talentSkillLevels,
       activeBuffIds, skillLevels, rotationCycle, cancelBackswing, periodicOff, periodicStartSeconds, ridden,
@@ -233,7 +254,7 @@ export default function NativeCombatSimulatorPreview() {
     const state = build.state;
     setLevel(state.level); setStats([...state.stats]); setEquipment(JSON.parse(JSON.stringify(state.equipment)));
     setPets(JSON.parse(JSON.stringify(state.pets))); setAssistPets(JSON.parse(JSON.stringify(state.assistPets)));
-    setEnchantAttrs(JSON.parse(JSON.stringify(state.enchantAttrs))); setExtraAttrInput(state.extraAttrInput); setPetCollectionAttrInput(state.petCollectionAttrInput ?? ""); setAttackerElement(state.attackerElement ?? "1"); setBondBonusBp(state.bondBonusBp ?? "0"); setEmblemAttrInput(state.emblemAttrInput);
+    setEnchantAttrs(JSON.parse(JSON.stringify(state.enchantAttrs))); setExtraAttrInput(state.extraAttrInput); setPetCollectionAttrInput(state.petCollectionAttrInput ?? ""); setAttackerElement(state.attackerElement ?? "1"); setBondBonusBp(state.bondBonusBp ?? "0"); setSimulationRuns(state.simulationRuns ?? "3000"); setSimulationSeed(state.simulationSeed ?? "20260101"); setEmblemAttrInput(state.emblemAttrInput);
     setTotemSkillIds(state.totemSkillIds); setTotemAttrInput(state.totemAttrInput); setTotemEnhanceBp(state.totemEnhanceBp);
     setTotemLoadoutInput(state.totemLoadoutInput ?? ""); setTotemLevel(state.totemLevel ?? "0");
     setResonanceRefine(state.resonanceRefine); setResonanceEnhance(state.resonanceEnhance);
@@ -358,12 +379,15 @@ export default function NativeCombatSimulatorPreview() {
         def: validated.pdef, mdef: validated.mdef, element: validated.element,
         race: validated.race, size: validated.size,
       };
-      const output = engine.simulate(
+      const output = engine.simulateDistribution(
         validatedAttacker, validatedDefender, validated.skillIds.filter((id) => !new Set(parseIdList(disabledRotationIds)).has(id)), validated.durationMs,
+        { runs: Math.max(100, Math.min(10000, Math.round(numeric(simulationRuns,3000)))), seed: Math.max(0, Math.round(numeric(simulationSeed,20260101))), bins: 72, bucketMs: Math.max(1000, Math.ceil((validated.durationMs / 1000) / 60) * 1000), captureRun: true },
       );
       setResult(output); setRunCount((n) => n + 1);
     } catch (e) { setSimulationError(e instanceof Error ? e.message : String(e)); }
   }
+
+  const distributionSummary = result ? analyzeCombatDistribution(result) : null;
 
   return <div className="space-y-5">
     <section className="rounded-xl border border-white/10 bg-zinc-900/70 p-4">
