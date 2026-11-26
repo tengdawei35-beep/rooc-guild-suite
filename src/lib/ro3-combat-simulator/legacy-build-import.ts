@@ -115,8 +115,16 @@ export function importLegacyRoyalGuardBuild(
   draft.race = numberString(state.target?.race,1);
   draft.size = numberString(state.target?.size,2);
 
-  if (state.ex && Object.keys(state.ex).length) unsupported.push("Legacy typed/aggregated attribute bonuses (ex) are not mapped because the native preview does not yet have a semantically equivalent general equipment-attribute input.");
-  if (state.hold && Object.keys(state.hold).length) unsupported.push("Legacy held/final stat values are not mapped.");
+  if (state.ex && typeof state.ex === "object" && !Array.isArray(state.ex)) {
+    draft.extraAttrInput = Object.entries(state.ex)
+      .map(([id, value]) => [Number(id), Number(value)] as [number, number])
+      .filter(([id, value]) => Number.isInteger(id) && id > 0 && Number.isFinite(value))
+      .map(([id, value]) => `${id}:${value}`)
+      .join(", ");
+  }
+  if (state.hold && typeof state.hold === "object" && Object.keys(state.hold).length) {
+    warnings.push("Legacy held/final stat targets are not retained as editable targets; their current solved flat bonuses (ex) are imported into native extra attributes.");
+  }
   if (state.echoes?.length || state.echoAttrs?.length) unsupported.push("Legacy Echo/emblem attribute state is not mapped.");
   if (state.totems?.length || Number(state.totemLv)>0) unsupported.push("Legacy totem selections and levels are not mapped.");
   if (state.petCollect?.length) unsupported.push("Legacy pet collection bonuses are not mapped.");
