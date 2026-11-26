@@ -8,7 +8,7 @@ const defaults = {
     gear:Array.from({length:7},()=>({id:0,roll:5000,refine:0,enhance:0,affixes:[],stunts:[],offRefine:0,offEnhance:0})),
     cards:Array.from({length:18},()=>({id:0,star:3,level:15,flash:false})),
   },
-  pets:[null,null,null,null],assistPets:[null,null,null],enchantAttrs:[],extraAttrInput:"",emblemAttrInput:"",totemLoadoutInput:"",totemLevel:"0",
+  pets:[null,null,null,null],assistPets:[null,null,null],enchantAttrs:[],extraAttrInput:"",petCollectionAttrInput:"",emblemAttrInput:"",totemLoadoutInput:"",totemLevel:"0",
   totemSkillIds:"",totemAttrInput:"",totemEnhanceBp:"0",resonanceRefine:"0",resonanceEnhance:"0",
   talentLevel:"0",talentProf:"0",talentPicks:{},passiveSkillIds:"",talentSkillLevels:"",
   activeBuffIds:"",skillLevels:"",rotationCycle:false,cancelBackswing:false,periodicOff:false,
@@ -38,7 +38,8 @@ test("imports current Royal Guard legacy state and maps supported inputs",()=>{
   assert.equal(result.draft.periodicOff,true);
   assert.equal(result.draft.ridden,true);
   assert.equal(result.draft.def,"1980");
-  assert.equal(result.draft.extraAttrInput,"1:12, 103:100, 1031:450, 104:50");
+  assert.equal(result.draft.extraAttrInput,"1:12, 103:100, 1031:450");
+  assert.equal(result.draft.petCollectionAttrInput,"104:50");
   assert.equal(result.draft.emblemAttrInput,"105:25");
   assert.equal(result.draft.totemLevel,"4");
   assert.deepEqual(JSON.parse(result.draft.totemLoadoutInput),[{guid:1,id:7001,attrs:[[103,30]],skills:[9001],enhanceBp:0}]);
