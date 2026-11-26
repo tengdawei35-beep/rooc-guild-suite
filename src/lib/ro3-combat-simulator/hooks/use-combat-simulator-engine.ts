@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { createRo3CombatDataStore } from "../create-data-store";
 import { loadRo3GameData } from "../data/ro3-game-data";
 import { getCombatSkillOptions, getCombatSkillTreeOptions, deriveLearnedSkillEffects, type CombatSkillOption, type CombatSkillTreeOption } from "../skill-options";
-import { simulateCombatRotation } from "../simulate";
+import { simulateCombatRotation, simulateCombatDistribution, type CombatDistributionOptions } from "../simulate";
 import { buildCharacterStats, gearParts, cardParts, talentOptions, talentWalk, talentEffects } from "../engine/ro3-damage-engine.mjs";
 import { getCombatEquipmentCatalog } from "../equipment-options";
 import type { NativeEquipmentSelection, GearLevelCaps } from "../build-input";
@@ -159,6 +159,17 @@ export function useCombatSimulatorEngine() {
     return deriveLearnedSkillEffects(skillTreeOptions, levels, data.table("BuffConfig"), ridden);
   }, [data, skillTreeOptions]);
 
+  const simulateDistribution = useCallback((
+    attacker: CombatBuild,
+    defender: CombatDefender,
+    rotationSkillIds: number[],
+    durationMs = 30000,
+    options: CombatDistributionOptions = { runs: 3000, seed: 20260101, bins: 72, captureRun: true },
+  ) => {
+    if (!data) throw new Error("Combat engine is not ready yet.");
+    return simulateCombatDistribution(attacker, defender, rotationSkillIds, durationMs, options, data);
+  }, [data]);
+
   const simulate = useCallback((
     attacker: CombatBuild,
     defender: CombatDefender,
@@ -169,5 +180,5 @@ export function useCombatSimulatorEngine() {
     return simulateCombatRotation(attacker, defender, rotationSkillIds, durationMs, data);
   }, [data]);
 
-  return { status, error, ready: status === "ready", skillOptions, skillTreeOptions, deriveLearnedSkillEffectsForBuild, equipmentCatalog, attributeOptions, petOptions, getCharacterSheet, getGearCustomization, getGearLevelCaps, getCardCustomization, getTotemEnhanceBp, getTotemLevelForEnhanceBp, getTalentConfiguration, simulate };
+  return { status, error, ready: status === "ready", skillOptions, skillTreeOptions, deriveLearnedSkillEffectsForBuild, equipmentCatalog, attributeOptions, petOptions, getCharacterSheet, getGearCustomization, getGearLevelCaps, getCardCustomization, getTotemEnhanceBp, getTotemLevelForEnhanceBp, getTalentConfiguration, simulate, simulateDistribution };
 }
