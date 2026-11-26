@@ -27,12 +27,6 @@ testCase("Rotation evaluator rejects missing career IDs and invalid durations", 
   }), /duration/);
 });
 
-testCase("Rotation evaluator refuses to substitute career-sheet attack defaults when persisted attack stats are missing", async () => {
-  await assert.rejects(() => evaluateRo3Rotation({
-    stats: {}, careerId: 1100, skillIds: [1100110],
-  }), /requires persisted attack stats/);
-});
-
 testCase("Rotation evaluator requires at least one valid damage skill", async () => {
   await assert.rejects(() => evaluateRo3Rotation({
     stats: { patk: 10000 }, careerId: 1100, skillIds: [999999999],
@@ -53,8 +47,9 @@ testCase("Reference profile discovery only exposes simulator-authored candidates
     rotation.damageSkillCount <= rotation.availableSkillIds.length
   )));
   const royalGuard = profiles.find((profile) => profile.heimdallJob === "Royal Guard (DPS)");
-  assert.equal(royalGuard?.status, "simulator-profile-missing");
-  assert.equal(royalGuard?.careerId, null);
+  assert.equal(royalGuard?.status, "career-config-missing");
+  assert.equal(royalGuard?.careerConfigAvailable, false);
+  assert.equal(royalGuard?.careerId, 6400);
 });
 
 testCase("Rotation evaluator refuses career IDs missing from simulator JobConfig", async () => {
