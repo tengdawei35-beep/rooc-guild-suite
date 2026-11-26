@@ -32,8 +32,8 @@ export function importLegacyRoyalGuardBuild(
   const numberString = (value: unknown, fallback: number) => Number.isFinite(Number(value)) ? String(Number(value)) : String(fallback);
   const skillIdFor = (group: number, level: number) => {
     const candidates = skillOptions.filter((item) => item.groupId === group);
-    return candidates.filter((item) => item.level <= level).sort((a,b)=>b.level-a.level)[0]?.id
-      ?? candidates.sort((a,b)=>b.level-a.level)[0]?.id;
+    if (level <= 0) return undefined;
+    return candidates.filter((item) => item.level <= level).sort((a,b)=>b.level-a.level)[0]?.id;
   };
 
   draft.level = numberString(state.level, 100);
@@ -70,19 +70,25 @@ export function importLegacyRoyalGuardBuild(
     const source=state.pets[index];
     return source && typeof source==="object" ? { id:Number(source.id)||0, lv:Number(source.lv)||0, star:Number(source.star)||1, stage:Number(source.stage)||0 } : null;
   });
-  if (Array.isArray(state.assist)) draft.assistPets = draft.assistPets.map((slot,index) => {
-    const source=state.assist[index];
-    return source && typeof source==="object" ? { g:Number(source.g)||0, lv:Number(source.lv)||0, star:Number(source.star)||1, stage:Number(source.stage)||0 } : null;
-  });
+  if (Array.isArray(state.assist)) {
+    draft.assistPets = draft.assistPets.map((slot,index) => {
+      const source=state.assist[index];
+      return source && typeof source==="object" ? { g:Number(source.g)||0, lv:Number(source.lv)||0, star:Number(source.star)||1, stage:Number(source.stage)||0 } : null;
+    });
+    if (state.assist.slice(draft.assistPets.length).some((slot: any)=>slot && Number(slot.g)>0)) unsupported.push("Additional legacy support-pet slots beyond the three native slots are not mapped.");
+  }
 
   const skills = state.skills && typeof state.skills==="object" ? state.skills as Record<string,unknown> : {};
   draft.skillLevels = Object.entries(skills).map(([group,level])=>`${group}:${Number(level)||0}`).join(", ");
   draft.talentSkillLevels = draft.skillLevels;
   const rotation = Array.isArray(state.rotation) ? state.rotation : [];
+  const unmappedRotation: number[] = [];
   draft.skillIds = rotation.flatMap((group: unknown) => {
     const id=skillIdFor(Number(group),Number(skills[String(group)]||0));
+    if (!id && Number(skills[String(group)]||0) > 0) unmappedRotation.push(Number(group));
     return id ? [id] : [];
   }).join(", ");
+  if (unmappedRotation.length) unsupported.push(`Rotation skills could not be mapped to native supported skill rows: ${[...new Set(unmappedRotation)].join(", ")}.`);
   const disabled = Array.isArray(state.disabledRotation) ? state.disabledRotation : [];
   draft.disabledRotationIds = disabled.flatMap((group: unknown) => {
     const id=skillIdFor(Number(group),Number(skills[String(group)]||0));
