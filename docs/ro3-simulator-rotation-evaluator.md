@@ -51,7 +51,7 @@ It reports each candidate's simulator career ID, whether a corresponding `JobCon
 
 ### Gaps surfaced rather than guessed
 
-- Royal Guard (DPS) has a matching simulator-authored `CLASS_PROFILES` entry, but its referenced career ID has no corresponding `JobConfig` row. It is surfaced with `status: career-config-missing`; the evaluator refuses to use a fallback career sheet.
+- Royal Guard (DPS) has a matching simulator-authored `CLASS_PROFILES` entry, but its referenced career ID `1410` has no corresponding `JobConfig` row. It is surfaced with `status: career-config-missing`; the evaluator refuses to use a fallback career sheet.
 - The current simulator data's `JobConfig` table does not contain the 4th-job career IDs referenced by those profiles. The evaluator now rejects a missing career row instead of silently allowing the engine's Novice fallback sheet to contaminate the result.
 - A profile is marked `ready-for-review` only if its career row exists, all listed skill rows exist, and at least one candidate rotation has a valid damage skill. Even then, it is not executable until human review; no profile is currently auto-approved.
 
