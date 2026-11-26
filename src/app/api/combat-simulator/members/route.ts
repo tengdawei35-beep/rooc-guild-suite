@@ -31,12 +31,23 @@ export async function GET() {
         const parsed = Number(value);
         return Number.isFinite(parsed) ? parsed : null;
       };
+      // RO3 character statistics are stored in GuildMember.ro3Stats, not
+      // the legacy scalar columns. Prefer populated scalar columns for
+      // backwards compatibility, then fall back to the canonical RO3 keys.
+      const ro3Stats = member.ro3Stats && typeof member.ro3Stats === "object" && !Array.isArray(member.ro3Stats)
+        ? member.ro3Stats as Record<string, unknown>
+        : null;
+      const stat = (column: unknown, key: string) => nullableNumber(column) ?? nullableNumber(ro3Stats?.[key]);
       return {
         ...member,
-        hp: nullableNumber(member.hp), patk: nullableNumber(member.patk), matk: nullableNumber(member.matk),
-        pdef: nullableNumber(member.pdef), mdef: nullableNumber(member.mdef),
-        ro3Stats: member.ro3Stats && typeof member.ro3Stats === "object" && !Array.isArray(member.ro3Stats) ? member.ro3Stats : null,
+        hp: stat(member.hp, "hp"),
+        patk: stat(member.patk, "patk"),
+        matk: stat(member.matk, "matk"),
+        pdef: stat(member.pdef, "pdef"),
+        mdef: stat(member.mdef, "mdef"),
+        ro3Stats,
       };
     }),
+
   }, { headers: { "Cache-Control": "private, no-store" } });
 }
