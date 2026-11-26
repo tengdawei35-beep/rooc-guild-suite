@@ -475,7 +475,6 @@ export default function NativeCombatSimulatorPreview() {
         <p className="mt-2 text-[10px] text-zinc-500">Derived passive skills: {learnedSkillEffects.passiveSkillIds.length} · Derived long buffs: {learnedSkillEffects.autoBuffIds.length} · Talent buffs: {talentConfiguration.effects.buffs.length}</p>
       </div>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        <label className="text-xs text-zinc-400">Learned skill levels (groupId:level)<input value={skillLevels} onChange={(e)=>setSkillLevels(e.target.value)} placeholder="groupId:level, groupId:level" className={inputClass}/></label>
         <label className="text-xs text-zinc-400">Always-on buff IDs<input value={activeBuffIds} onChange={(e)=>setActiveBuffIds(e.target.value)} placeholder="BuffConfig IDs, comma-separated" className={inputClass}/></label>
       </div>
       <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs text-zinc-300">
