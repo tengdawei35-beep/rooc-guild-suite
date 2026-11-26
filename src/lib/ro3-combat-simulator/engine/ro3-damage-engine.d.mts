@@ -1,5 +1,17 @@
 /** Type surface for the extracted calculation engine's browser-safe in-memory adapter. */
 export type Ro3DataRow = Record<string, unknown>;
+
+export declare const BUFF_PROCS: Record<number, { tag: number; name: string }>;
+export declare const RIDING_PASSIVES: Record<number, number>;
+export declare const CLASS_PROFILES: Record<string, {
+  name: string;
+  career: number;
+  equipmentAttrs: Array<[number, number]>;
+  weaponRefine: number;
+  weaponStrengthen: number;
+  totemCastStackBuffId: number;
+  candidateRotations: Array<{ name: string; skills: number[] }>;
+}>;
 export type Ro3GameTables = Record<string, Record<string, Ro3DataRow>>;
 
 export declare class Ro3MemoryDataStore {
