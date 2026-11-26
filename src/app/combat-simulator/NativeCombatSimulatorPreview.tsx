@@ -124,13 +124,23 @@ export default function NativeCombatSimulatorPreview() {
     return () => { active = false; };
   }, []);
 
+  const learnedSkillLevels = useMemo(() => parseTalentSkillLevels(skillLevels), [skillLevels]);
+  const learnedSkillEffects = useMemo(() => engine.deriveLearnedSkillEffectsForBuild(learnedSkillLevels), [engine.deriveLearnedSkillEffectsForBuild, learnedSkillLevels]);
+  const effectivePassiveSkills = useMemo(() => [...new Set([...passiveSkillIds.split(/[ ,]+/).map(Number).filter((id)=>Number.isInteger(id)&&id>0), ...learnedSkillEffects.passiveSkillIds])], [passiveSkillIds, learnedSkillEffects]);
+  const effectiveBuffIds = useMemo(() => [...new Set([...parseIdList(activeBuffIds), ...learnedSkillEffects.autoBuffIds, ...talentConfiguration.effects.buffs])], [activeBuffIds, learnedSkillEffects, talentConfiguration.effects.buffs]);
+  const setLearnedSkillLevel = (groupId: number, value: number) => {
+    const next = { ...learnedSkillLevels };
+    if (value > 0) next[String(groupId)] = value; else delete next[String(groupId)];
+    setSkillLevels(Object.entries(next).map(([id, level])=>`${id}:${level}`).join(", "));
+  };
+
   const attacker = useMemo<CombatBuild>(() => ({
     career: 1410, level: numeric(level,100), stats: stats.map((v) => numeric(v,1)) as CombatBuild["stats"],
     enchantAttrs, emblemAttrs: parseAttributePairs(emblemAttrInput), totems: [{ guid: 1, skills: parseIdList(totemSkillIds), attrs: parseAttributePairs(totemAttrInput), enhanceBp: numeric(totemEnhanceBp,0) }], resonance: { refine: numeric(resonanceRefine,0), enhance: numeric(resonanceEnhance,0) }, pets, assistPets,
     talents: { lv: numeric(talentLevel,0), prof: numeric(talentProf,0), picks: talentPicks, skills: parseTalentSkillLevels(talentSkillLevels) },
-    passiveSkills: passiveSkillIds.split(/[ ,]+/).map(Number).filter((id)=>Number.isInteger(id)&&id>0),
-    activeBuffs: parseIdList(activeBuffIds), skillLevels: parseTalentSkillLevels(skillLevels), rotationCycle, cancelBackswing, periodicOff, periodicStartMs: numeric(periodicStartSeconds,0)*1000, ridden,
-  }), [level, stats, enchantAttrs, emblemAttrInput, totemSkillIds, totemAttrInput, totemEnhanceBp, resonanceRefine, resonanceEnhance, pets, assistPets, talentLevel, talentProf, talentPicks, passiveSkillIds, talentSkillLevels, activeBuffIds, skillLevels, rotationCycle, cancelBackswing, periodicOff, periodicStartSeconds, ridden]);
+    passiveSkills: effectivePassiveSkills,
+    activeBuffs: effectiveBuffIds, skillLevels: learnedSkillLevels, rotationCycle, cancelBackswing, periodicOff, periodicStartMs: numeric(periodicStartSeconds,0)*1000, ridden,
+  }), [level, stats, enchantAttrs, emblemAttrInput, totemSkillIds, totemAttrInput, totemEnhanceBp, resonanceRefine, resonanceEnhance, pets, assistPets, talentLevel, talentProf, talentPicks, passiveSkillIds, talentSkillLevels, activeBuffIds, skillLevels, rotationCycle, cancelBackswing, periodicOff, periodicStartSeconds, ridden, effectivePassiveSkills, effectiveBuffIds, learnedSkillLevels]);
   const engineEquipment = useMemo(() => engine.equipmentCatalog ? toEngineEquipment(equipment, engine.equipmentCatalog.equipment, engine.equipmentCatalog.cards, numeric(level,100), engine.getGearLevelCaps(numeric(level,100))) : { gear: [], cards: [] }, [equipment, engine.equipmentCatalog, engine.getGearLevelCaps, level]);
   const talentConfiguration = useMemo(() => engine.getTalentConfiguration(1410, numeric(level,100), numeric(talentProf,0), {
     lv: numeric(talentLevel,0), prof: numeric(talentProf,0), picks: talentPicks, skills: parseTalentSkillLevels(talentSkillLevels),
@@ -447,6 +457,22 @@ export default function NativeCombatSimulatorPreview() {
           </label>
         </div>
         <label className="text-xs text-zinc-400">Duration (ms)<input type="number" min="1000" max="300000" step="1000" value={duration} onChange={(e)=>setDuration(e.target.value)} className={inputClass}/></label>
+      </div>
+      <div className="mt-3 rounded-lg border border-white/10 bg-zinc-950/50 p-3">
+        <div className="flex items-center justify-between gap-2"><h3 className="text-xs font-semibold text-zinc-200">Learned skill tree</h3><span className="text-[10px] text-zinc-500">{engine.skillTreeOptions.length} career skills</span></div>
+        <p className="mt-1 text-[11px] text-zinc-500">Set learned levels. Passive attributes and supported long-duration buffs are derived automatically from the selected skill rows.</p>
+        <div className="mt-2 grid max-h-80 gap-2 overflow-y-auto sm:grid-cols-2">
+          {engine.skillTreeOptions.filter((skill)=>skill.kind!=="utility").map((skill)=>(
+            <label key={skill.groupId} className="flex items-center justify-between gap-2 rounded-md border border-white/5 px-2 py-1.5 text-xs">
+              <span className="min-w-0"><span className="block truncate text-zinc-200">{skill.name}</span><span className="text-[10px] text-zinc-500">{skill.kind} · {skill.groupId}</span></span>
+              <select aria-label={skill.name+" learned level"} value={learnedSkillLevels[String(skill.groupId)]??0} onChange={(e)=>setLearnedSkillLevel(skill.groupId,Number(e.target.value))} className="rounded border border-zinc-700 bg-zinc-900 px-2 py-1 text-zinc-100">
+                <option value={0}>Not learned</option>
+                {skill.levels.map((row)=><option key={row.level} value={row.level}>Lv {row.level}</option>)}
+              </select>
+            </label>
+          ))}
+        </div>
+        <p className="mt-2 text-[10px] text-zinc-500">Derived passive skills: {learnedSkillEffects.passiveSkillIds.length} · Derived long buffs: {learnedSkillEffects.autoBuffIds.length} · Talent buffs: {talentConfiguration.effects.buffs.length}</p>
       </div>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <label className="text-xs text-zinc-400">Learned skill levels (groupId:level)<input value={skillLevels} onChange={(e)=>setSkillLevels(e.target.value)} placeholder="groupId:level, groupId:level" className={inputClass}/></label>
