@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { emptyNativeEquipmentSelection, toEngineEquipment } from "../src/lib/ro3-combat-simulator/build-input.ts";
+import { emptyNativeEquipmentSelection, moveUniqueCardSelection, toEngineEquipment } from "../src/lib/ro3-combat-simulator/build-input.ts";
 import { CARD_SOCKETS, EQUIPMENT_GRIDS } from "../src/lib/ro3-combat-simulator/equipment-options.ts";
 import { createRo3CombatDataStore } from "../src/lib/ro3-combat-simulator/create-data-store.ts";
 import { gearParts } from "../src/lib/ro3-combat-simulator/engine/ro3-damage-engine.mjs";
@@ -57,4 +57,17 @@ test("full exported data exposes the same affix and stunt pools consumed by gear
   assert.ok(parts.slots >= 0);
   assert.ok(Array.isArray(parts.pool));
   assert.ok(Array.isArray(parts.pools));
+});
+
+test("unique cards move to the newly selected socket like the legacy UI", () => {
+  const cards = emptyNativeEquipmentSelection().cards;
+  cards[0] = { id: 9001, star: 3, level: 15, flash: true };
+  cards[4] = { id: 9001, star: 2, level: 10, flash: true };
+  const moved = moveUniqueCardSelection(cards, 4, 9001, true);
+  assert.equal(moved[0].id, 0);
+  assert.equal(moved[0].flash, false);
+  assert.equal(moved[4].id, 9001);
+  assert.equal(moved[4].star, 2);
+  const ordinary = moveUniqueCardSelection(cards, 4, 9001, false);
+  assert.equal(ordinary[0].id, 9001);
 });
