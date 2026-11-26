@@ -123,8 +123,8 @@ export function useCombatSimulatorEngine() {
     };
   }, [data]);
 
-  const getTalentConfiguration = useCallback((career: number, level: number, prof: number, talents: Record<string, any>): { branches: Array<{ id: string; options: NativeTalentChoice[] }>; walk: Record<string, any> | null; effects: { attrs: Array<[number, number]>; buffs: number[] } } => {
-    if (!data) return { branches: [], walk: null, effects: { attrs: [], buffs: [] } };
+  const getTalentConfiguration = useCallback((career: number, level: number, prof: number, talents: Record<string, any> ): { available: boolean; branches: Array<{ id: string; options: NativeTalentChoice[] }>; walk: Record<string, any> | null; effects: { attrs: Array<[number, number]>; buffs: number[] } } => {
+    if (!data) return { available: false, branches: [], walk: null, effects: { attrs: [], buffs: [] } };
     const digest = data.row("TalentDigest", 1);
     const branches: Array<{ id: string; options: NativeTalentChoice[] }> = digest?.branches && typeof digest.branches === "object"
       ? Object.keys(digest.branches as Record<string, unknown>).map((id) => ({
@@ -133,7 +133,7 @@ export function useCombatSimulatorEngine() {
         })).filter((branch) => branch.options.length > 0)
       : [];
     const build = { career, level, talents };
-    return { branches, walk: talentWalk(build, data), effects: talentEffects(build, data) as { attrs: Array<[number, number]>; buffs: number[] } };
+    return { available: !!digest, branches, walk: talentWalk(build, data), effects: talentEffects(build, data) as { attrs: Array<[number, number]>; buffs: number[] } };
   }, [data]);
 
   const simulate = useCallback((
