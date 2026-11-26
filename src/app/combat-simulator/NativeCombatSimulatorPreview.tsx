@@ -708,7 +708,7 @@ export default function NativeCombatSimulatorPreview() {
     </section>}
     <div className="rounded-xl border border-white/10 bg-zinc-900/50 p-4 text-xs leading-5 text-zinc-500">
       {profilesLoading ? "Loading active guild profiles…" : profilesError ? profilesError : `${members.length} active guild profiles available.`}
-      <p className="mt-1">Selected guild profiles are currently reference-only. Legacy iframe build-tab import and complete advanced-system parity remain outstanding. Native saved builds are local to this browser. The production iframe is untouched.</p>
+      <p className="mt-1">Selected guild profiles are currently reference-only. Legacy import supports v15 Royal Guard tabs and reports unsupported fields; complete advanced-system parity remains outstanding. Native saved builds are local to this browser. The production iframe is untouched.</p>
     </div>
   </div>;
 }
