@@ -35,6 +35,7 @@ export type NativeBuildDraft = {
   race: string;
   size: string;
   skillIds: string;
+  disabledRotationIds: string;
   duration: string;
 };
 
@@ -73,7 +74,7 @@ export function isNativeBuildDraft(value: unknown): value is NativeBuildDraft {
     "emblemAttrInput", "totemSkillIds", "totemAttrInput", "totemEnhanceBp", "resonanceRefine",
     "resonanceEnhance", "talentLevel", "talentProf", "passiveSkillIds", "talentSkillLevels",
     "activeBuffIds", "skillLevels", "periodicStartSeconds",
-    "def", "mdef", "targetLevel", "element", "race", "size", "skillIds", "duration",
+    "def", "mdef", "targetLevel", "element", "race", "size", "skillIds", "disabledRotationIds", "duration",
   ];
   if (!stringFields.every((key) => isString(value[key]))) return false;
   if (!["rotationCycle", "cancelBackswing", "periodicOff", "ridden"].every((key) => typeof value[key] === "boolean")) return false;
