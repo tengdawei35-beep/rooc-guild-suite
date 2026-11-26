@@ -347,11 +347,25 @@ export default function NativeCombatSimulatorPreview() {
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {([["Expected damage",result.totalExpectedDamage],["Sustained DPS",result.sustainedDps],["Burst 5s DPS",result.burst5sDps],["Skill casts",result.casts],["Auto swings",result.autoSwings],["Ground ticks",result.groundTicks]] as [string,number][]).map(([k,v])=><div key={k} className="rounded-lg bg-zinc-950/70 p-3"><p className="text-[10px] uppercase tracking-wide text-zinc-500">{k}</p><p className="mt-1 text-lg font-semibold tabular-nums text-white">{Number(v).toLocaleString(undefined,{maximumFractionDigits:2})}</p></div>)}
       </div>
-      <details className="mt-4"><summary className="cursor-pointer text-xs font-medium text-zinc-300">Cast timeline ({result.castLog.length} entries)</summary><div className="mt-2 max-h-72 overflow-auto rounded-lg bg-zinc-950/70 p-3"><pre className="whitespace-pre-wrap break-all text-[11px] text-zinc-400">{JSON.stringify(result.castLog,null,2)}</pre></div></details>
+      <details className="mt-4"><summary className="cursor-pointer text-xs font-medium text-zinc-300">Cast timeline ({result.castLog.length} entries)</summary>
+        <div className="mt-2 max-h-80 overflow-auto rounded-lg bg-zinc-950/70 p-2">
+          {result.castLog.length ? <div className="divide-y divide-white/5">{result.castLog.map((entry,index)=>{const event=entry as Record<string,unknown>;const time=Number(event.t??0);const hits=Array.isArray(event.hits)?event.hits as number[]:[];const lock=Number(event.lockMs??event.durMs??0);return <div key={index} className="grid grid-cols-[64px_70px_minmax(0,1fr)_auto] items-center gap-2 px-2 py-2 text-[11px]">
+            <span className="font-mono tabular-nums text-zinc-500">{(time/1000).toFixed(2)}s</span>
+            <span className="rounded bg-white/5 px-1.5 py-1 text-center text-zinc-400">{String(event.kind??"event")}</span>
+            <span className="min-w-0 truncate text-zinc-200">{String(event.name??"Combat event")}{hits.length>0?" · "+hits.length+" hit"+(hits.length===1?"":"s"):""}</span>
+            <span className="text-right tabular-nums text-zinc-500">{lock>0?(lock/1000).toFixed(2)+"s":"—"}</span>
+          </div>;})}</div> : <p className="p-3 text-xs text-zinc-500">No cast events recorded.</p>}
+        </div>
+      </details>
+      <details className="mt-2"><summary className="cursor-pointer text-xs font-medium text-zinc-300">Sample damage events ({result.sampleTimeline.length})</summary>
+        <div className="mt-2 max-h-56 overflow-auto rounded-lg bg-zinc-950/70 p-2">
+          {result.sampleTimeline.length ? <div className="divide-y divide-white/5">{result.sampleTimeline.map((entry,index)=>{const event=entry as Record<string,unknown>;return <div key={index} className="grid grid-cols-[64px_minmax(0,1fr)_auto] gap-2 px-2 py-2 text-[11px]"><span className="font-mono text-zinc-500">{(Number(event.timeMs??0)/1000).toFixed(2)}s</span><span className="truncate text-zinc-300">{String(event.skill??"Damage event")}</span><span className="tabular-nums text-zinc-100">{Number(event.expectedDmg??0).toLocaleString()}</span></div>;})}</div> : <p className="p-3 text-xs text-zinc-500">No sample damage events recorded.</p>}
+        </div>
+      </details>
     </section>}
     <div className="rounded-xl border border-white/10 bg-zinc-900/50 p-4 text-xs leading-5 text-zinc-500">
       {profilesLoading ? "Loading active guild profiles…" : profilesError ? profilesError : `${members.length} active guild profiles available.`}
-      <p className="mt-1">Selected guild profiles are currently reference-only. Full profile-to-build mapping, pets/talents/resonance and saved-build migration remain separate tasks. The production iframe is untouched.</p>
+      <p className="mt-1">Selected guild profiles are currently reference-only. Profile-to-build mapping, TalentDigest generation, complete advanced-system parity and saved-build migration remain outstanding. The production iframe is untouched.</p>
     </div>
   </div>;
 }
