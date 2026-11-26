@@ -1,7 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { importLegacyRoyalGuardBuild, parseLegacyBuildBook } from "../src/lib/ro3-combat-simulator/legacy-build-import";
-import { buildCharacterStats, Ro3DataStore, simulateRotation } from "../src/lib/ro3-combat-simulator/engine/ro3-damage-engine.mjs";
+import { buildCharacterStats, simulateDistribution } from "../src/lib/ro3-combat-simulator/engine/ro3-damage-engine.mjs";
+import { createRo3CombatDataStore } from "../src/lib/ro3-combat-simulator/create-data-store.ts";
 
 const defaults = {
   level:"100",bonusStatPoints:"0",stats:["1","1","1","1","1","1"],
@@ -65,39 +66,58 @@ test("parses legacy tab books defensively",()=>{
   assert.deepEqual(parseLegacyBuildBook("bad-json"),[]);
 });
 
-test("legacy import golden fixture preserves legacy character-sheet attribute sources",()=>{
+test("legacy import golden fixture preserves character sources and seeded damage-report parity",async()=>{
   const state={
     v:15,job:1410,level:150,element:4,bonus:{boss:125},stats:[90,80,70,20,60,10],
+    skills:{11608:5,11611:5,11636:5},rotation:[11608,11611,11636],
+    sim:{seconds:10,runs:128,seed:20261126,cycle:0,cancel:0,howl:0},
     ex:{103:100,1:12,1031:450},petCollect:[[104,50]],
     echoUseEntries:true,echoes:[{id:501,stats:[{a:105,v:25}],colors:["red"]}],
     totemLv:4,totems:[{id:7001,attrs:[[103,30]],skills:[9001]}],
   };
-  const imported=importLegacyRoyalGuardBuild(state,defaults,[]);
+  const skillOptions=[
+    {groupId:11608,id:1160805,level:5},
+    {groupId:11611,id:1161105,level:5},
+    {groupId:11636,id:1163605,level:5},
+  ];
+  const imported=importLegacyRoyalGuardBuild(state,defaults,skillOptions);
   assert.ok(imported.draft);
   assert.equal(imported.draft.bonusStatPoints,"-48");
   const pairs=(value)=>value.split(",").filter(Boolean).map((entry)=>entry.trim().split(":").map(Number));
+  const skillLevels=Object.fromEntries(imported.draft.skillLevels.split(",").filter(Boolean).map((entry)=>entry.trim().split(":").map(Number)));
+  const rotationIds=imported.draft.skillIds.split(",").filter(Boolean).map(Number);
   const nativeBuild={
     career:1410,level:Number(imported.draft.level),element:Number(imported.draft.attackerElement),bondBonusBp:Number(imported.draft.bondBonusBp),stats:imported.draft.stats.map(Number),
     equipmentAttrs:pairs(imported.draft.extraAttrInput),
     extraAttrs:pairs(imported.draft.petCollectionAttrInput),
     emblemAttrs:pairs(imported.draft.emblemAttrInput),
     totems:JSON.parse(imported.draft.totemLoadoutInput),
+    skillLevels,rotationCycle:imported.draft.rotationCycle,cancelBackswing:imported.draft.cancelBackswing,
+    periodicOff:imported.draft.periodicOff,periodicStartMs:Number(imported.draft.periodicStartSeconds)*1000,ridden:imported.draft.ridden,
   };
   // Reference shape follows the upstream currentBuild() mapping: ex -> equipmentAttrs,
-  // petCollect -> extraAttrs, Echo rolls -> emblemAttrs, and deployed Totems -> totems.
+  // petCollect -> extraAttrs, Echo rolls -> emblemAttrs, deployed Totems -> totems,
+  // and learned levels / rotation groups -> the same supported SkillConfig rows.
   const legacyReference={
     career:1410,level:150,element:4,bondBonusBp:12500,stats:[90,80,70,20,60,10],
     equipmentAttrs:[[1,12],[103,100],[1031,450]],
     extraAttrs:[[104,50]],emblemAttrs:[[105,25]],
     totems:[{guid:1,id:7001,attrs:[[103,30]],skills:[9001],enhanceBp:0}],
+    skillLevels:{11608:5,11611:5,11636:5},rotationCycle:false,cancelBackswing:false,
+    periodicOff:false,periodicStartMs:0,ridden:false,
   };
-  const data=new Ro3DataStore();
+  const data=await createRo3CombatDataStore();
   assert.deepEqual(buildCharacterStats(nativeBuild,data),buildCharacterStats(legacyReference,data));
   const defender={level:100,def:0,mdef:0,element:1,race:1,size:2};
-  assert.deepEqual(
-    simulateRotation(nativeBuild,defender,[],3000,data),
-    simulateRotation(legacyReference,defender,[],3000,data),
-  );
+  const options={runs:128,seed:20261126,bins:72,bucketMs:1000,captureRun:true};
+  const nativeReport=simulateDistribution(nativeBuild,defender,rotationIds,10000,options,data);
+  const legacyReport=simulateDistribution(legacyReference,defender,[1160805,1161105,1163605],10000,options,data);
+  assert.deepEqual(nativeReport.deterministic.castLog,legacyReport.deterministic.castLog);
+  assert.deepEqual(nativeReport.deterministic.sampleTimeline,legacyReport.deterministic.sampleTimeline);
+  assert.deepEqual(Array.from(nativeReport.totals),Array.from(legacyReport.totals));
+  assert.deepEqual(nativeReport.skills.map((skill)=>[skill.id,skill.total,skill.hits,skill.crits,skill.misses,Array.from(skill.normalBins),Array.from(skill.critBins)]),
+    legacyReport.skills.map((skill)=>[skill.id,skill.total,skill.hits,skill.crits,skill.misses,Array.from(skill.normalBins),Array.from(skill.critBins)]));
+  assert.deepEqual(nativeReport.sampleRun,legacyReport.sampleRun);
 });
 
 test("imports legacy any-profession talent mode as profession zero",()=>{
