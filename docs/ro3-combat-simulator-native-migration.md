@@ -47,12 +47,12 @@ been migrated in this phase.
 | Architecture audit | Complete |
 | Extract calculation engine | Initial extraction complete; smoke tests added |
 | Extract embedded game data | Complete; compressed payload module and in-memory store factory added |
-| Define typed engine inputs/outputs and expand coverage | Initial models/rotation result defined; broader engine typings pending |
+| Define typed engine inputs/outputs and expand coverage | Initial typed build/defender/rotation boundaries; broader engine typings and report contracts still pending |
 | Typed workspace models and calculation adapter | Initial boundary complete |
 | React engine lifecycle hook | Initial hook complete; not connected to production route |
-| Build native React component architecture | Isolated preview route, native attacker/defender profile panels, build inputs and simulation report added; full feature parity pending |
-| Connect React state to extracted engine | Native Royal Guard baseline build and defender inputs now call the extracted rotation engine; equipment/card/talent and guild-profile mapping pending |
-| Migrate profile import and reports | Native preview reads the existing guild profile API and displays selected attacker/defender values; applying profiles to simulator builds and report migration pending |
+| Build native React component architecture | Isolated React preview, attacker/defender panels, editable Royal Guard build, local saved builds and structured report added; full feature parity pending |
+| Connect React state to extracted engine | Royal Guard base stats, equipment/cards, affixes/stunts, pets, enchantments, manual emblem/totem inputs, resonance, talent/passive inputs and defender configuration are wired; authoritative TalentDigest and full build-source parity pending |
+| Migrate profile import and reports | Guild profiles remain reference-only; native cast timeline and sampled damage events are displayed, while legacy report/timeline equivalence and profile-to-build mapping remain pending |
 | Regression/equivalence tests against current iframe | Not started |
 | Remove iframe and legacy message bridge | Blocked until equivalence passes |
 
@@ -61,7 +61,7 @@ The authenticated iframe route remains the production path throughout this work.
 
 ## Native preview checkpoint
 
-An authenticated, subscription-gated preview is available at `/combat-simulator/native-preview` on the migration branch. It loads the extracted engine/data through the React lifecycle hook and reads the same active-guild member profile API as the legacy workspace. Attacker and defender selections are displayed in native panels for profile-contract verification. This is intentionally an isolated preview: `/combat-simulator` continues to use the existing iframe, and the preview does not yet run a damage calculation or claim parity.
+An authenticated, subscription-gated preview is available at `/combat-simulator/native-preview` on the migration branch. It loads the extracted engine/data through the React lifecycle hook and reads the same active-guild member profile API as the legacy workspace. Attacker and defender selections are displayed in native panels for profile-contract verification. The preview also runs an isolated Royal Guard simulation using editable native inputs. `/combat-simulator` continues to use the existing iframe; the preview is not a full feature-parity or equivalence claim.
 
 
 ### Native baseline simulation checkpoint
@@ -70,13 +70,13 @@ The isolated preview now exposes a deliberately small, explicit baseline build: 
 
 ### Career-aware equipment and card catalog foundation
 
-Added `equipment-options.ts` as a data-only adapter over the exported `ItemConfig` and `EquipConfig` tables. It mirrors the legacy simulator's seven equipment grids, career ancestry restrictions, equipment part/tier mapping, card part/quality ordering, and all 18 card sockets with their unlock levels. The adapter exposes catalog metadata only; it does not yet mutate a combat build or claim that equipment/card effects are represented in the native report. Synthetic regression tests cover job filtering, tier lookup, card naming, and socket definitions. The next step is to connect these catalog entries to a typed native build state and validate the resulting attribute sheet against the legacy implementation before expanding report parity.
+Added `equipment-options.ts` as a data-only adapter over the exported `ItemConfig` and `EquipConfig` tables. It mirrors the legacy simulator's seven equipment grids, career ancestry restrictions, equipment part/tier mapping, card part/quality ordering, and all 18 card sockets with their unlock levels. The adapter exposes catalog metadata and feeds the typed native build state. Regression tests cover job filtering, tier lookup, card naming, socket definitions and native-to-engine mapping. Full data-backed legacy equivalence fixtures remain outstanding.
 
 ### Native equipment and card build integration
 
 The isolated React preview now exposes the seven equipment grids and all 18 card sockets using the exported game-data catalogs. Equipment choices are filtered by Royal Guard's career ancestry, slot compatibility and the character's current level. The native selection adapter maps chosen items to the existing engine's `gear` and `cards` inputs; no damage formulas were changed. Basic refine/enhance levels, gear roll position (0–10000), card star/level, and the Collection/flash toggle are editable. Equipment and card socket level restrictions are enforced in both the UI and the native-to-engine adapter. The resulting character sheet displays P.ATK, M.ATK, P.DEF, M.DEF, HIT and CRIT. Selected equipment and cards are passed into both `buildCharacterStats` and the native damage simulation.
 
-Current limitations are explicit: affix selection and random/fixed stunt selection are not yet exposed; two-handed off-hand grid handling is incomplete. The Collection/flash toggle is wired to the engine card input but still needs data-backed equivalence fixtures. No parity claim is made for the full build. Regression tests cover the catalog and native-to-engine mapping. Production remains on the iframe until full build and report equivalence are demonstrated.
+The native preview now supports gear affix selection, random stunt selection, fixed-stunt display, two-handed off-hand grid levels, and the Collection/flash input. The remaining gap is full data-backed equivalence coverage for these combinations and other legacy build sources. No parity claim is made for the full build. Production remains on the iframe until full build and report equivalence are demonstrated.
 
 
 ### Native gear affixes, stunts and two-handed weapon handling
