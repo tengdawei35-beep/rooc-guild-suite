@@ -690,6 +690,29 @@ export default function NativeCombatSimulatorPreview() {
         <section className="rounded-lg bg-zinc-950/70 p-3"><h3 className="text-xs font-semibold text-zinc-300">Damage over time · mean DPS</h3><div className="mt-3 flex h-28 items-end gap-1" role="img" aria-label="Mean damage per second over time">{distributionSummary.timeBuckets.map((bucket,index)=><div key={index} title={(bucket.startMs/1000).toFixed(1)+"s · "+bucket.dps.toLocaleString(undefined,{maximumFractionDigits:0})+" DPS"} className="min-w-0 flex-1 rounded-t-sm bg-sky-400/70" style={{height:(bucket.dps/Math.max(1,...distributionSummary.timeBuckets.map((item)=>item.dps))*100)+"%"}} />)}</div><div className="mt-2 flex justify-between text-[10px] text-zinc-500"><span>0s</span><span>{(result.durationMs/2000).toFixed(0)}s</span><span>{(result.durationMs/1000).toFixed(0)}s</span></div></section>
       </div>
       <details open className="mt-4"><summary className="cursor-pointer text-xs font-medium text-zinc-300">Skill breakdown ({distributionSummary.skills.length})</summary><div className="mt-2 overflow-x-auto rounded-lg bg-zinc-950/70"><table className="w-full min-w-[620px] text-left text-[11px]"><thead className="text-zinc-500"><tr><th className="px-3 py-2">Skill</th><th className="px-3 py-2 text-right">Hits / fight</th><th className="px-3 py-2 text-right">Avg / hit</th><th className="px-3 py-2 text-right">Hit</th><th className="px-3 py-2 text-right">Crit</th><th className="px-3 py-2 text-right">Damage share</th></tr></thead><tbody className="divide-y divide-white/5">{distributionSummary.skills.map((skill)=><tr key={skill.id}><td className="px-3 py-2 text-zinc-200">{skill.name}</td><td className="px-3 py-2 text-right tabular-nums">{(skill.landed/result.runs).toFixed(1)}</td><td className="px-3 py-2 text-right tabular-nums">{skill.landed?(skill.total*result.runs/skill.landed).toLocaleString(undefined,{maximumFractionDigits:1}):"—"}</td><td className="px-3 py-2 text-right tabular-nums">{(skill.hitPct*100).toFixed(1)}%</td><td className="px-3 py-2 text-right tabular-nums">{skill.magic?"—":(skill.critPct*100).toFixed(1)+"%"}</td><td className="px-3 py-2 text-right tabular-nums">{(skill.share*100).toFixed(1)}%</td></tr>)}</tbody></table></div></details>
+            <details className="mt-3"><summary className="cursor-pointer text-xs font-medium text-zinc-300">Per-skill hit histograms (top 6)</summary>
+              <div className="mt-2 grid gap-3 lg:grid-cols-2">
+                {distributionSummary.skills.slice(0,6).map((skill)=>{
+                  const normal=Array.from(skill.normalBins);
+                  const critical=Array.from(skill.critBins);
+                  const peak=Math.max(1,...normal,...critical);
+                  return <section key={skill.id} className="rounded-lg bg-zinc-950/70 p-3">
+                    <div className="flex items-center justify-between gap-2"><h4 className="truncate text-[11px] font-medium text-zinc-200">{skill.name}</h4><span className="shrink-0 text-[10px] tabular-nums text-zinc-500">{skill.lo.toLocaleString(undefined,{maximumFractionDigits:0})}–{skill.hi.toLocaleString(undefined,{maximumFractionDigits:0})}</span></div>
+                    <div className="mt-3 flex h-20 items-end gap-px" role="img" aria-label={skill.name+" damage histogram: normal and critical hit counts by damage range"}>
+                      {normal.map((count,index)=>{
+                        const crit=critical[index]??0;
+                        return <div key={index} className="flex h-full min-w-0 flex-1 items-end justify-center gap-px">
+                          <div title={"Normal: "+count} className="w-1/2 rounded-t-sm bg-cyan-400/75" style={{height:(count/peak*100)+"%"}} />
+                          <div title={"Critical: "+crit} className="w-1/2 rounded-t-sm bg-rose-400/75" style={{height:(crit/peak*100)+"%"}} />
+                        </div>;
+                      })}
+                    </div>
+                    <div className="mt-2 flex items-center justify-between text-[10px] text-zinc-500"><span>Normal {skill.hits.toLocaleString()}</span><span>Crit {skill.crits.toLocaleString()}</span></div>
+                  </section>;
+                })}
+              </div>
+              <div className="mt-2 flex gap-4 text-[10px] text-zinc-500"><span><span className="mr-1 inline-block h-2 w-2 rounded-sm bg-cyan-400/75"/>Normal hit</span><span><span className="mr-1 inline-block h-2 w-2 rounded-sm bg-rose-400/75"/>Critical hit</span></div>
+            </details>
             <details className="mt-4"><summary className="cursor-pointer text-xs font-medium text-zinc-300">Cast timeline ({result.deterministic.castLog.length} entries)</summary>
         <div className="mt-2 max-h-80 overflow-auto rounded-lg bg-zinc-950/70 p-2">
           {result.deterministic.castLog.length ? <div className="divide-y divide-white/5">{result.deterministic.castLog.map((entry,index)=>{const event=entry as Record<string,unknown>;const time=Number(event.t??0);const hits=Array.isArray(event.hits)?event.hits as number[]:[];const lock=Number(event.lockMs??event.durMs??0);return <div key={index} className="grid grid-cols-[64px_70px_minmax(0,1fr)_auto] items-center gap-2 px-2 py-2 text-[11px]">
