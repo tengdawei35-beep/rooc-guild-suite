@@ -84,4 +84,4 @@ At the start of a new implementation session:
 
 - **2026-11-26:** Initial project-wide status and handoff file created from the latest available implementation context and PR #144 summary.
 - **2026-11-26:** Updated after auditing legacy v15 build fields and preserving the stat-optimizer bonus-point budget; CI passed on `f990735`.
-- **2026-11-26:** Added per-skill damage histograms and count-reconciliation regression coverage; latest CI run pending.
+- **2026-11-26:** Added per-skill damage histograms and count-reconciliation regression coverage; CI passed on implementation/test commit `1878394`.
