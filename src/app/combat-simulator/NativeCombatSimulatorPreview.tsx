@@ -23,6 +23,12 @@ const numeric = (value: string, fallback: number) => {
 };
 const inputClass = "mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white";
 const statNames = ["STR", "AGI", "VIT", "INT", "DEX", "LUK"];
+const parseAttributePairs = (value: string): Array<[number, number]> => value.split(/[ ,]+/)
+  .map((entry) => entry.split(":"))
+  .filter((parts) => parts.length === 2)
+  .map(([id, amount]) => [Number(id), Number(amount)] as [number, number])
+  .filter(([id, amount]) => Number.isInteger(id) && id > 0 && Number.isFinite(amount));
+const parseIdList = (value: string): number[] => value.split(/[ ,]+/).map(Number).filter((id) => Number.isInteger(id) && id > 0);
 const parseTalentSkillLevels = (value: string): Record<string, number> => Object.fromEntries(
   value.split(/[ ,]+/).map((entry) => entry.split(":")).filter((parts) => parts.length === 2)
     .map(([group, level]) => [String(Number(group)), Number(level)])
@@ -60,6 +66,10 @@ export default function NativeCombatSimulatorPreview() {
   const [pets, setPets] = useState<Array<{ id: number; lv: number; star: number; stage: number } | null>>([null, null, null, null]);
   const [assistPets, setAssistPets] = useState<Array<{ g: number; lv: number; star: number; stage: number } | null>>([null, null, null]);
   const [enchantAttrs, setEnchantAttrs] = useState<Array<[number, number]>>([]);
+  const [emblemAttrInput, setEmblemAttrInput] = useState("");
+  const [totemSkillIds, setTotemSkillIds] = useState("");
+  const [totemAttrInput, setTotemAttrInput] = useState("");
+  const [totemEnhanceBp, setTotemEnhanceBp] = useState("0");
   const [resonanceRefine, setResonanceRefine] = useState("0");
   const [resonanceEnhance, setResonanceEnhance] = useState("0");
   const [talentLevel, setTalentLevel] = useState("0");
@@ -93,10 +103,10 @@ export default function NativeCombatSimulatorPreview() {
 
   const attacker = useMemo<CombatBuild>(() => ({
     career: 1410, level: numeric(level,100), stats: stats.map((v) => numeric(v,1)) as CombatBuild["stats"],
-    enchantAttrs, resonance: { refine: numeric(resonanceRefine,0), enhance: numeric(resonanceEnhance,0) }, pets, assistPets,
+    enchantAttrs, emblemAttrs: parseAttributePairs(emblemAttrInput), totems: [{ guid: 1, skills: parseIdList(totemSkillIds), attrs: parseAttributePairs(totemAttrInput), enhanceBp: numeric(totemEnhanceBp,0) }], resonance: { refine: numeric(resonanceRefine,0), enhance: numeric(resonanceEnhance,0) }, pets, assistPets,
     talents: { lv: numeric(talentLevel,0), prof: numeric(talentProf,0), picks: talentPicks, skills: parseTalentSkillLevels(talentSkillLevels) },
     passiveSkills: passiveSkillIds.split(/[ ,]+/).map(Number).filter((id)=>Number.isInteger(id)&&id>0),
-  }), [level, stats, enchantAttrs, resonanceRefine, resonanceEnhance, pets, assistPets, talentLevel, talentProf, talentPicks, passiveSkillIds, talentSkillLevels]);
+  }), [level, stats, enchantAttrs, emblemAttrInput, totemSkillIds, totemAttrInput, totemEnhanceBp, resonanceRefine, resonanceEnhance, pets, assistPets, talentLevel, talentProf, talentPicks, passiveSkillIds, talentSkillLevels]);
   const engineEquipment = useMemo(() => engine.equipmentCatalog ? toEngineEquipment(equipment, engine.equipmentCatalog.equipment, engine.equipmentCatalog.cards, numeric(level,100), engine.getGearLevelCaps(numeric(level,100))) : { gear: [], cards: [] }, [equipment, engine.equipmentCatalog, engine.getGearLevelCaps, level]);
   const talentConfiguration = useMemo(() => engine.getTalentConfiguration(1410, numeric(level,100), numeric(talentProf,0), {
     lv: numeric(talentLevel,0), prof: numeric(talentProf,0), picks: talentPicks, skills: parseTalentSkillLevels(talentSkillLevels),
@@ -119,7 +129,7 @@ export default function NativeCombatSimulatorPreview() {
       });
       const validatedAttacker: CombatBuild = {
         career: 1410, level: validated.level, stats: validated.stats,
-        enchantAttrs, resonance: { refine: numeric(resonanceRefine,0), enhance: numeric(resonanceEnhance,0) }, pets, assistPets,
+        enchantAttrs, emblemAttrs: parseAttributePairs(emblemAttrInput), totems: [{ guid: 1, skills: parseIdList(totemSkillIds), attrs: parseAttributePairs(totemAttrInput), enhanceBp: numeric(totemEnhanceBp,0) }], resonance: { refine: numeric(resonanceRefine,0), enhance: numeric(resonanceEnhance,0) }, pets, assistPets,
         talents: { lv: numeric(talentLevel,0), prof: numeric(talentProf,0), picks: talentPicks, skills: parseTalentSkillLevels(talentSkillLevels) },
         passiveSkills: passiveSkillIds.split(/[ ,]+/).map(Number).filter((id)=>Number.isInteger(id)&&id>0),
         ...engineEquipment,
@@ -174,6 +184,16 @@ export default function NativeCombatSimulatorPreview() {
         </div>;})}
       </div> : <p className="mt-3 text-xs text-zinc-500">No talent branches are available in the exported data for this career/profession selection.</p>}
       {talentConfiguration.walk&&<p className="mt-3 text-xs text-zinc-400">Allocated talent levels: {talentConfiguration.walk.total} · Unspent: {talentConfiguration.walk.spare} · Active branch choices: {talentConfiguration.walk.reached.length}</p>}
+    </section>
+    <section className="rounded-xl border border-white/10 bg-zinc-900/70 p-4">
+      <h2 className="text-sm font-semibold text-white">Emblems &amp; totem modifiers</h2>
+      <p className="mt-1 text-xs text-zinc-500">The legacy engine supports emblem attributes and deployed totem effects. Until their source catalogs are fully exposed in the native editor, enter the exact attribute IDs and values from your build. Totem skill IDs use TotemSkillConfig.</p>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        <label className="text-xs text-zinc-400">Emblem attributes (ID:value)<input value={emblemAttrInput} onChange={(e)=>setEmblemAttrInput(e.target.value)} placeholder="103:120, 104:120" className={inputClass}/></label>
+        <label className="text-xs text-zinc-400">Totem skill IDs<input value={totemSkillIds} onChange={(e)=>setTotemSkillIds(e.target.value)} placeholder="Comma-separated TotemSkillConfig IDs" className={inputClass}/></label>
+        <label className="text-xs text-zinc-400">Totem attributes (ID:value)<input value={totemAttrInput} onChange={(e)=>setTotemAttrInput(e.target.value)} placeholder="103:50, 104:50" className={inputClass}/></label>
+        <label className="text-xs text-zinc-400">Totem enhancement (basis points)<input type="number" min="0" value={totemEnhanceBp} onChange={(e)=>setTotemEnhanceBp(e.target.value)} className={inputClass}/></label>
+      </div>
     </section>
     <section className="rounded-xl border border-white/10 bg-zinc-900/70 p-4">
       <h2 className="text-sm font-semibold text-white">Pets &amp; support pets</h2>
