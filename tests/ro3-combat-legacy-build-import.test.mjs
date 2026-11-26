@@ -86,12 +86,16 @@ test("legacy import golden fixture preserves character sources and seeded damage
   const pairs=(value)=>value.split(",").filter(Boolean).map((entry)=>entry.trim().split(":").map(Number));
   const skillLevels=Object.fromEntries(imported.draft.skillLevels.split(",").filter(Boolean).map((entry)=>entry.trim().split(":").map(Number)));
   const rotationIds=imported.draft.skillIds.split(",").filter(Boolean).map(Number);
+  const data=await createRo3CombatDataStore();
+  const totemEnhanceBp=Number(data.row("TotemLvConfig",Number(imported.draft.totemLevel))?._iAttributeEnhance ?? 0);
+  const nativeTotems=JSON.parse(imported.draft.totemLoadoutInput).map((totem)=>({...totem,enhanceBp:totemEnhanceBp}));
+  for(const id of [1160805,1161105,1163605]) assert.ok(data.row("SkillConfig",id),`fixture skill ${id} should exist in exported simulator data`);
   const nativeBuild={
     career:1410,level:Number(imported.draft.level),element:Number(imported.draft.attackerElement),bondBonusBp:Number(imported.draft.bondBonusBp),stats:imported.draft.stats.map(Number),
     equipmentAttrs:pairs(imported.draft.extraAttrInput),
     extraAttrs:pairs(imported.draft.petCollectionAttrInput),
     emblemAttrs:pairs(imported.draft.emblemAttrInput),
-    totems:JSON.parse(imported.draft.totemLoadoutInput),
+    totems:nativeTotems,
     skillLevels,rotationCycle:imported.draft.rotationCycle,cancelBackswing:imported.draft.cancelBackswing,
     periodicOff:imported.draft.periodicOff,periodicStartMs:Number(imported.draft.periodicStartSeconds)*1000,ridden:imported.draft.ridden,
   };
@@ -102,11 +106,10 @@ test("legacy import golden fixture preserves character sources and seeded damage
     career:1410,level:150,element:4,bondBonusBp:12500,stats:[90,80,70,20,60,10],
     equipmentAttrs:[[1,12],[103,100],[1031,450]],
     extraAttrs:[[104,50]],emblemAttrs:[[105,25]],
-    totems:[{guid:1,id:7001,attrs:[[103,30]],skills:[9001],enhanceBp:0}],
+    totems:[{guid:1,id:7001,attrs:[[103,30]],skills:[9001],enhanceBp:totemEnhanceBp}],
     skillLevels:{11608:5,11611:5,11636:5},rotationCycle:false,cancelBackswing:false,
     periodicOff:false,periodicStartMs:0,ridden:false,
   };
-  const data=await createRo3CombatDataStore();
   assert.deepEqual(buildCharacterStats(nativeBuild,data),buildCharacterStats(legacyReference,data));
   const defender={level:100,def:0,mdef:0,element:1,race:1,size:2};
   const options={runs:128,seed:20261126,bins:72,bucketMs:1000,captureRun:true};
