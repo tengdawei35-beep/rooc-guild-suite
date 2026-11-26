@@ -79,6 +79,32 @@ The isolated React preview now exposes the seven equipment grids and all 18 card
 The native preview now supports gear affix selection, random stunt selection, fixed-stunt display, two-handed off-hand grid levels, and the Collection/flash input. The remaining gap is full data-backed equivalence coverage for these combinations and other legacy build sources. No parity claim is made for the full build. Production remains on the iframe until full build and report equivalence are demonstrated.
 
 
+### Legacy build import field coverage (v15)
+
+The legacy simulator's `currentBuild()` adapter exposes the following calculation inputs. The native importer maps the supported values without re-deriving formulas:
+
+| Legacy source | Native destination | Status / limitation |
+| --- | --- | --- |
+| `job`, `level`, `stats`, `element` | Royal Guard gate, `level`, `stats`, `attackerElement` | Imported; only career 1410 is accepted. |
+| `bonusPoints` | `bonusStatPoints` on native draft and engine build | Preserved exactly for the future stat optimizer; it does not alter the current fixed-stat damage simulation. |
+| `ex` | `extraAttrInput` → `equipmentAttrs` | Imported as flat/pre-conversion attributes. |
+| `bonus.boss` | `bondBonusBp` | Imported using the legacy percent-to-basis-point conversion. |
+| `res` | `resonanceRefine`, `resonanceEnhance` | Imported. |
+| `gear`, `cards`, `pets`, `assist` | Native equipment, deployed pets and three support slots | Imported within native slot limits; overflow support-pet slots are reported. |
+| `petCollect` | `petCollectionAttrInput` → `extraAttrs` | Imported. |
+| `echoes[].stats` / `echoAttrs` | `emblemAttrInput` → `emblemAttrs` | Rolled/manual attributes imported; Echo item/level/color mark effects are not modeled. |
+| `totems`, `totemLv` | `totemLoadoutInput`, `totemLevel` | Up to three totems and supported attributes/skills imported; dynamic totem procs remain incomplete. |
+| `skills`, `rotation`, `disabledRotation` | learned skill levels, rotation row IDs and disabled row IDs | Mapped only where a supported SkillConfig row exists. |
+| `talents.lv`, `talents.picks`, profession / any-profession | Native talent controls | Values retained; effects are inactive while authorized TalentDigest data is unavailable. |
+| `sim.seconds`, `runs`, `seed`, `cycle`, `cancel`, `howl` | Duration, Monte Carlo settings, cycle, backswing, periodic-buff and mounted controls | Imported through the native control mapping. |
+| `target` | Defender level, P.DEF, M.DEF, element, race and size | Imported. |
+| `hold`, `holdSrc` | No direct native control | Current solved flat values in `ex` are imported; editable hold/final-stat targets are not preserved as active native optimizer targets. |
+| `echoes[].colors` | No native destination | Explicitly unsupported: Echo mark/proc effects are not modeled. Original legacy tabs remain in legacy local storage. |
+| `totems[].snapshotRef`, dynamic proc state | No native destination | Snapshot references and dynamic proc scheduling are not migrated. |
+| Additional totem/support slots | No native destination | Overflow is reported, never silently treated as supported. |
+
+This inventory describes the source adapter's exposed build shape, not a claim that every legacy UI display field is a simulator input. Fields not listed as supported remain outside native calculations until separately verified.
+
 ### Native gear affixes, stunts and two-handed weapon handling
 
 The native preview now reads each selected item's affix pool, slot count, fixed stunts, random stunt pools and roll chances through the extracted engine's existing `gearParts()` breakdown. The UI exposes up to the available number of affix slots (maximum two in the current interface), each item's own stunt pools and the fixed stunts as read-only metadata. Selected affix and stunt IDs are passed unchanged to `buildCharacterStats()` through the existing gear input contract; the engine retains its original roll-value and effect calculations.
