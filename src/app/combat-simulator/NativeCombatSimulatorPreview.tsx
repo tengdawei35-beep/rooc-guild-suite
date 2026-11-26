@@ -222,9 +222,20 @@ export default function NativeCombatSimulatorPreview() {
   function importLegacyBuilds() {
     if (!savedBuildsReady || !engine.ready) return;
     let raw: string | null = null;
-    try { raw = window.localStorage.getItem("ro3sim.builds.v1"); }
-    catch { setSavedBuildMessage("Cannot access legacy simulator storage in this browser context."); return; }
+    let singleRaw: string | null = null;
+    try {
+      raw = window.localStorage.getItem("ro3sim.builds.v1");
+      singleRaw = window.localStorage.getItem("ro3sim.v1");
+    } catch { setSavedBuildMessage("Cannot access legacy simulator storage in this browser context."); return; }
     const tabs = parseLegacyBuildBook(raw);
+    if (!tabs.length && singleRaw) {
+      try {
+        const state: unknown = JSON.parse(singleRaw);
+        if (state && typeof state === "object" && !Array.isArray(state)) {
+          tabs.push({ id: 1, name: "Legacy saved build", state });
+        }
+      } catch { /* malformed single-build storage is ignored */ }
+    }
     if (!tabs.length) {
       setSavedBuildMessage("No legacy saved tabs found. Open and save your builds in the legacy simulator first.");
       return;
