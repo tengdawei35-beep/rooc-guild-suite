@@ -96,6 +96,42 @@ export async function sendEventAttendanceReminder(eventId: string) {
   return { sent: true, messageId: message.id };
 }
 
+export async function sendEventTimeReminder(eventId: string, minutesBefore: 60 | 15) {
+  const event = await prisma.event.findFirst({
+    where: { id: eventId },
+    include: { guild: { select: { name: true } } },
+  });
+  if (!event) return { sent: false, reason: "event_not_found" };
+  const alreadySent = minutesBefore === 60 ? event.reminder1hMessageId : event.reminder15mMessageId;
+  if (alreadySent) return { sent: false, reason: "already_sent" };
+  const channelId = event.attendanceChannelId || await getEventChannelId(event.guildId);
+  if (!channelId || !process.env.DISCORD_BOT_TOKEN) return { sent: false, reason: "discord_not_configured" };
+  const date = new Intl.DateTimeFormat("en-GB", {
+    timeZone: event.scheduleTimeZone || "Asia/Bangkok",
+    dateStyle: "full",
+    timeStyle: "short",
+  }).format(event.date);
+  const label = minutesBefore === 60 ? "1-hour" : "15-minute";
+  const response = await discordRequest("/channels/" + channelId + "/messages", "POST", {
+    content: "@everyone ⏰ **" + label + " event reminder**\n" + eventTitle(event) + " — " + event.guild.name +
+      "\nEvent time: **" + date + "**\n\nThe event starts in " + minutesBefore +
+      " minutes. Please get ready and make sure your attendance status is up to date.",
+    components: attendanceComponents(event.id),
+    allowed_mentions: { parse: ["everyone"] },
+  });
+  if (!response.ok) {
+    const detail = await response.text().catch(() => "");
+    throw new Error("Discord " + label + " reminder failed (" + response.status + "): " + detail.slice(0, 300));
+  }
+  const message = await response.json() as { id: string };
+  if (minutesBefore === 60) {
+    await prisma.event.update({ where: { id: event.id }, data: { reminder1hMessageId: message.id } });
+  } else {
+    await prisma.event.update({ where: { id: event.id }, data: { reminder15mMessageId: message.id } });
+  }
+  return { sent: true, messageId: message.id };
+}
+
 export async function updateDiscordAttendanceMessage(eventId: string, channelId: string, messageId: string) {
   const counts = await prisma.eventAttendance.groupBy({
     by: ["status"],
