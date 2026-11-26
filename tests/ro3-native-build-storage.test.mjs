@@ -42,7 +42,8 @@ test("serializes and parses versioned saved builds without losing inputs", () =>
 });
 
 test("restores pre-budget native saved builds with a safe optimizer-budget default", () => {
-  const { bonusStatPoints: _legacyField, ...olderDraft } = draft;
+  const olderDraft = { ...draft };
+  delete olderDraft.bonusStatPoints;
   const raw = JSON.stringify({ version: 1, builds: [build("older", "2026-11-25T00:00:00.000Z")] }).replace(
     JSON.stringify(draft), JSON.stringify(olderDraft),
   );
