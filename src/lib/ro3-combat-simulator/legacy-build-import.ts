@@ -99,7 +99,7 @@ export function importLegacyRoyalGuardBuild(
   }).join(", ");
 
   draft.talentLevel = numberString(state.talents?.lv,0);
-  draft.talentProf = numberString(state.talents?.prof ?? state.prof,0);
+  draft.talentProf = numberString(state.talents?.any ? 0 : (state.prof ?? state.talents?.prof),0);
   draft.talentPicks = state.talents?.picks && typeof state.talents.picks==="object"
     ? Object.fromEntries(Object.entries(state.talents.picks).map(([key,value])=>[key,Array.isArray(value)?[Number(value[0])||0,Number(value[1])||0]:[0,0]]))
     : {};
