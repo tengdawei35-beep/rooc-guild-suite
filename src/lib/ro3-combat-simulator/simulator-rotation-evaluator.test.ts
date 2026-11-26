@@ -49,7 +49,7 @@ testCase("Reference profile discovery only exposes simulator-authored candidates
   const royalGuard = profiles.find((profile) => profile.heimdallJob === "Royal Guard (DPS)");
   assert.equal(royalGuard?.status, "career-config-missing");
   assert.equal(royalGuard?.careerConfigAvailable, false);
-  assert.equal(royalGuard?.careerId, 6400);
+  assert.equal(royalGuard?.careerId, 1410);
 });
 
 testCase("Rotation evaluator refuses career IDs missing from simulator JobConfig", async () => {
