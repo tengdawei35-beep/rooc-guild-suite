@@ -13,6 +13,7 @@ export type NativeBuildDraft = {
   extraAttrInput: string;
   emblemAttrInput: string;
   totemLoadoutInput: string;
+  totemLevel: string;
   totemSkillIds: string;
   totemAttrInput: string;
   totemEnhanceBp: string;
@@ -73,7 +74,7 @@ export function isNativeBuildDraft(value: unknown): value is NativeBuildDraft {
   const petArray = (v: unknown, key: "id" | "g") => Array.isArray(v) && v.every((slot) => slot === null || (isRecord(slot)
     && isNumber(slot[key]) && isNumber(slot.lv) && isNumber(slot.star) && isNumber(slot.stage)));
   const stringFields = [
-    "emblemAttrInput", "totemLoadoutInput", "totemSkillIds", "totemAttrInput", "totemEnhanceBp", "resonanceRefine",
+    "emblemAttrInput", "totemLoadoutInput", "totemLevel", "totemSkillIds", "totemAttrInput", "totemEnhanceBp", "resonanceRefine",
     "resonanceEnhance", "talentLevel", "talentProf", "passiveSkillIds", "talentSkillLevels",
     "activeBuffIds", "skillLevels", "periodicStartSeconds",
     "def", "mdef", "targetLevel", "element", "race", "size", "skillIds", "disabledRotationIds", "duration",
@@ -96,7 +97,7 @@ export function parseNativeSavedBuilds(raw: string | null): NativeSavedBuild[] {
         || !isString(entry.name) || !entry.name.trim() || !isString(entry.updatedAt)
         || !isNativeBuildDraft(entry.state)) return [];
       seen.add(entry.id);
-      return [{ id: entry.id, name: entry.name.slice(0, 40), updatedAt: entry.updatedAt, state: { ...entry.state, extraAttrInput: isString(entry.state.extraAttrInput) ? entry.state.extraAttrInput : "", totemLoadoutInput: isString(entry.state.totemLoadoutInput) ? entry.state.totemLoadoutInput : "" } }];
+      return [{ id: entry.id, name: entry.name.slice(0, 40), updatedAt: entry.updatedAt, state: { ...entry.state, extraAttrInput: isString(entry.state.extraAttrInput) ? entry.state.extraAttrInput : "", totemLoadoutInput: isString(entry.state.totemLoadoutInput) ? entry.state.totemLoadoutInput : "", totemLevel: isString(entry.state.totemLevel) ? entry.state.totemLevel : "0" } }];
     }).slice(0, MAX_NATIVE_SAVED_BUILDS);
   } catch {
     return [];
