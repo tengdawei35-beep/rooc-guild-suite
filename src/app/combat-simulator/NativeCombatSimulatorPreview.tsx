@@ -6,6 +6,7 @@ import type { CombatBuild, CombatDefender, CombatRotationResult } from "@/lib/ro
 import { validateCombatInput } from "@/lib/ro3-combat-simulator/validate-input.mjs";
 import { emptyNativeEquipmentSelection, toEngineEquipment, type NativeEquipmentSelection } from "@/lib/ro3-combat-simulator/build-input";
 import { EQUIPMENT_GRIDS, CARD_SOCKETS } from "@/lib/ro3-combat-simulator/equipment-options";
+import { NATIVE_BUILD_STORAGE_KEY, parseNativeSavedBuilds, removeNativeSavedBuild, serializeNativeSavedBuilds, upsertNativeSavedBuild, type NativeBuildDraft, type NativeSavedBuild } from "@/lib/ro3-combat-simulator/native-build-storage";
 
 type Member = {
   id: string; characterName: string | null; discordUsername: string | null; job: string | null;
@@ -89,6 +90,21 @@ export default function NativeCombatSimulatorPreview() {
   const [result, setResult] = useState<CombatRotationResult | null>(null);
   const [simulationError, setSimulationError] = useState<string | null>(null);
   const [runCount, setRunCount] = useState(0);
+  const [savedBuilds, setSavedBuilds] = useState<NativeSavedBuild[]>([]);
+  const [savedBuildsReady, setSavedBuildsReady] = useState(false);
+  const [savedBuildName, setSavedBuildName] = useState("Royal Guard Build");
+  const [selectedSavedBuildId, setSelectedSavedBuildId] = useState("");
+  const [savedBuildMessage, setSavedBuildMessage] = useState("");
+
+  useEffect(() => {
+    try {
+      setSavedBuilds(parseNativeSavedBuilds(window.localStorage.getItem(NATIVE_BUILD_STORAGE_KEY)));
+    } catch {
+      setSavedBuildMessage("Saved builds are unavailable in this browser session.");
+    } finally {
+      setSavedBuildsReady(true);
+    }
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -120,6 +136,70 @@ export default function NativeCombatSimulatorPreview() {
     element: numeric(element,1), race: numeric(race,1), size: numeric(size,2),
   }), [targetLevel,def,mdef,element,race,size]);
 
+  function captureNativeBuildDraft(): NativeBuildDraft {
+    return {
+      level, stats: [...stats], equipment: JSON.parse(JSON.stringify(equipment)),
+      pets: JSON.parse(JSON.stringify(pets)), assistPets: JSON.parse(JSON.stringify(assistPets)),
+      enchantAttrs: JSON.parse(JSON.stringify(enchantAttrs)), emblemAttrInput, totemSkillIds, totemAttrInput,
+      totemEnhanceBp, resonanceRefine, resonanceEnhance, talentLevel, talentProf,
+      talentPicks: JSON.parse(JSON.stringify(talentPicks)), passiveSkillIds, talentSkillLevels,
+      def, mdef, targetLevel, element, race, size, skillIds, duration,
+    };
+  }
+
+  function persistNativeBuilds(next: NativeSavedBuild[]) {
+    try {
+      window.localStorage.setItem(NATIVE_BUILD_STORAGE_KEY, serializeNativeSavedBuilds(next));
+      setSavedBuilds(next);
+      return true;
+    } catch {
+      setSavedBuildMessage("Unable to save builds. Browser storage may be full or disabled.");
+      return false;
+    }
+  }
+
+  function saveNativeBuild() {
+    if (!savedBuildsReady) return;
+    const name = savedBuildName.trim().slice(0, 40) || "Royal Guard Build";
+    const build: NativeSavedBuild = {
+      id: `${Date.now()}-${savedBuilds.length}`,
+      name,
+      updatedAt: new Date().toISOString(),
+      state: captureNativeBuildDraft(),
+    };
+    if (persistNativeBuilds(upsertNativeSavedBuild(savedBuilds, build))) {
+      setSelectedSavedBuildId(build.id);
+      setSavedBuildName(name);
+      setSavedBuildMessage("Build saved in this browser.");
+    }
+  }
+
+  function loadNativeBuild() {
+    const build = savedBuilds.find((item) => item.id === selectedSavedBuildId);
+    if (!build) return;
+    const state = build.state;
+    setLevel(state.level); setStats([...state.stats]); setEquipment(JSON.parse(JSON.stringify(state.equipment)));
+    setPets(JSON.parse(JSON.stringify(state.pets))); setAssistPets(JSON.parse(JSON.stringify(state.assistPets)));
+    setEnchantAttrs(JSON.parse(JSON.stringify(state.enchantAttrs))); setEmblemAttrInput(state.emblemAttrInput);
+    setTotemSkillIds(state.totemSkillIds); setTotemAttrInput(state.totemAttrInput); setTotemEnhanceBp(state.totemEnhanceBp);
+    setResonanceRefine(state.resonanceRefine); setResonanceEnhance(state.resonanceEnhance);
+    setTalentLevel(state.talentLevel); setTalentProf(state.talentProf); setTalentPicks(JSON.parse(JSON.stringify(state.talentPicks)));
+    setPassiveSkillIds(state.passiveSkillIds); setTalentSkillLevels(state.talentSkillLevels);
+    setDef(state.def); setMdef(state.mdef); setTargetLevel(state.targetLevel); setElement(state.element);
+    setRace(state.race); setSize(state.size); setSkillIds(state.skillIds); setDuration(state.duration);
+    setSavedBuildName(build.name); setResult(null); setSimulationError(null); setSelectedSkillId("");
+    setSavedBuildMessage(`Loaded "${build.name}".`);
+  }
+
+  function deleteNativeBuild() {
+    if (!selectedSavedBuildId) return;
+    const next = removeNativeSavedBuild(savedBuilds, selectedSavedBuildId);
+    if (persistNativeBuilds(next)) {
+      setSelectedSavedBuildId(next[0]?.id ?? "");
+      setSavedBuildMessage("Saved build deleted.");
+    }
+  }
+
   function runSimulation() {
     setSimulationError(null); setResult(null);
     try {
@@ -147,6 +227,24 @@ export default function NativeCombatSimulatorPreview() {
   }
 
   return <div className="space-y-5">
+    <section className="rounded-xl border border-white/10 bg-zinc-900/70 p-4">
+      <div className="flex flex-wrap items-end gap-3">
+        <label className="min-w-[180px] flex-1 text-xs text-zinc-400">Build name
+          <input value={savedBuildName} maxLength={40} onChange={(e)=>setSavedBuildName(e.target.value)} className={inputClass} placeholder="Royal Guard Build"/>
+        </label>
+        <label className="min-w-[180px] flex-1 text-xs text-zinc-400">Saved builds
+          <select value={selectedSavedBuildId} onChange={(e)=>setSelectedSavedBuildId(e.target.value)} className={inputClass}>
+            <option value="">Select a saved build</option>
+            {savedBuilds.map((build)=><option key={build.id} value={build.id}>{build.name}</option>)}
+          </select>
+        </label>
+        <button type="button" disabled={!savedBuildsReady} onClick={saveNativeBuild} className="rounded-lg bg-cyan-400 px-4 py-2.5 text-sm font-semibold text-zinc-950 disabled:opacity-40">Save build</button>
+        <button type="button" disabled={!selectedSavedBuildId} onClick={loadNativeBuild} className="rounded-lg border border-white/15 px-4 py-2.5 text-sm font-medium text-zinc-200 disabled:opacity-40">Load</button>
+        <button type="button" disabled={!selectedSavedBuildId} onClick={deleteNativeBuild} className="rounded-lg border border-rose-400/30 px-4 py-2.5 text-sm font-medium text-rose-200 disabled:opacity-40">Delete</button>
+      </div>
+      <p className="mt-2 text-[11px] text-zinc-500">Up to 8 native builds, stored locally in this browser. Guild profile selections and simulation results are not saved.</p>
+      {savedBuildMessage && <p aria-live="polite" className="mt-2 text-xs text-zinc-300">{savedBuildMessage}</p>}
+    </section>
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-zinc-900/70 p-4">
       <div><p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Native engine</p><p className="mt-1 text-sm text-zinc-200">{engine.ready ? "Full exported game data loaded" : engine.status === "error" ? "Engine initialisation failed" : "Loading exported game data…"}</p>{engine.error && <p className="mt-1 text-xs text-rose-300">{engine.error}</p>}</div>
       <span className={`rounded-full px-3 py-1.5 text-xs font-medium ${engine.ready ? "bg-emerald-400/10 text-emerald-300" : "bg-amber-400/10 text-amber-300"}`}>{engine.status}</span>
@@ -365,7 +463,7 @@ export default function NativeCombatSimulatorPreview() {
     </section>}
     <div className="rounded-xl border border-white/10 bg-zinc-900/50 p-4 text-xs leading-5 text-zinc-500">
       {profilesLoading ? "Loading active guild profiles…" : profilesError ? profilesError : `${members.length} active guild profiles available.`}
-      <p className="mt-1">Selected guild profiles are currently reference-only. Profile-to-build mapping, TalentDigest generation, complete advanced-system parity and saved-build migration remain outstanding. The production iframe is untouched.</p>
+      <p className="mt-1">Selected guild profiles are currently reference-only. Legacy iframe build-tab import and complete advanced-system parity remain outstanding. Native saved builds are local to this browser. The production iframe is untouched.</p>
     </div>
   </div>;
 }
