@@ -484,8 +484,8 @@ export default function NativeCombatSimulatorPreview() {
         <p className="text-[11px] text-zinc-500 sm:col-span-3">Set prerequisite levels in the named learned skill tree below.</p>
       </div>
       {talentConfiguration.branches.length>0 ? <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        {talentConfiguration.branches.map((branch)=>{const current=talentPicks[branch.id]??[0,0];const cluster=branch.options.find((option)=>option.id===current[0])??branch.options[0];return <div key={branch.id} className="rounded-lg bg-black/20 p-3">
-          <p className="text-xs font-medium text-zinc-300">Talent branch {branch.id}</p>
+        {talentConfiguration.branches.map((branch,branchIndex)=>{const current=talentPicks[branch.id]??[0,0];const cluster=branch.options.find((option)=>option.id===current[0])??branch.options[0];return <div key={branch.id} className="rounded-lg bg-black/20 p-3">
+          <p className="text-xs font-medium text-zinc-300">Talent branch {branchIndex+1}</p>
           <select value={cluster?.id??0} onChange={(e)=>{const option=branch.options.find((item)=>item.id===Number(e.target.value));setTalentPicks((old)=>({...old,[branch.id]:[Number(e.target.value),option?.kids?.[0]?.id??0]}));}} className={inputClass}>
             {branch.options.map((option)=><option key={option.id} value={option.id}>{option.name}</option>)}
           </select>
