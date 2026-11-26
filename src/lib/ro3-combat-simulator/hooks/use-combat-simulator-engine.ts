@@ -48,11 +48,24 @@ export function useCombatSimulatorEngine() {
         if (!active) return;
         setData(store);
         setExportedData(exported);
-        const tableOptions = (tableName: string, nameKeys = ["name", "tx", "_sName"]) => Object.values(exported.tables[tableName] ?? {}).map((row: any) => ({ id: Number(row._iID), name: String(nameKeys.map((key)=>row[key]).find((value)=>typeof value === "string" && value.trim()) ?? `${tableName} ${row._iID}`) })).filter((row)=>Number.isFinite(row.id)).sort((a,b)=>a.name.localeCompare(b.name));
-        setCareerOptions(Object.values(exported.tables.JobConfig ?? {}).map((row: any)=>({id:Number(row._iID),name:String(row.name ?? `Job ${row._iID}`)})).filter((row)=>Number.isFinite(row.id)).sort((a,b)=>a.name.localeCompare(b.name)));
+        const rawOptions = (tableName: string) => Object.values(exported.tables[tableName] ?? {}).map((row: any) => ({ row, id: Number(row._iID) })).filter((entry)=>Number.isFinite(entry.id)).sort((a,b)=>a.id-b.id);
+        const explicitName = (row: any) => [row.name, row.tx, row._sName, row._sDesc].find((value)=>typeof value === "string" && value.trim()) as string | undefined;
+        const raceNames: Record<number,string> = {1:"Formless",2:"Undead",3:"Brute",4:"Plant",5:"Insect",6:"Fish",7:"Demon",8:"Demi-Human",9:"Angel",10:"Dragon"};
+        const sizeNames: Record<number,string> = {1:"Small",2:"Medium",3:"Large"};
+        setCareerOptions(Object.values(exported.tables.JobConfig ?? {}).map((row: any)=>({id:Number(row._iID),name:String(explicitName(row) ?? "Unnamed job")})).filter((row)=>Number.isFinite(row.id)).sort((a,b)=>a.name.localeCompare(b.name)));
+        const buffSourceNames = new Map<number,string>();
+        for (const skill of Object.values(exported.tables.SkillConfig ?? {}) as any[]) {
+          const skillName = explicitName(skill);
+          if (!skillName || !Array.isArray(skill._kBuff1)) continue;
+          for (const entry of skill._kBuff1) if (Array.isArray(entry) && Number(entry[0]) > 0 && !buffSourceNames.has(Number(entry[0]))) buffSourceNames.set(Number(entry[0]), skillName + " effect");
+        }
+        const namedTable = (tableName: string, fallback: (id:number,index:number)=>string) => rawOptions(tableName).map(({row,id},index)=>({id,name:explicitName(row) ?? fallback(id,index)}));
         setNamedOptions({
-          elements: [{id:0,name:"Neutral"}, ...Object.values(exported.tables.EleConfig ?? {}).map((row:any)=>({id:Number(row._iID),name:String(row.name ?? ["","Wind","Earth","Fire","Water","Poison","Holy","Shadow","Ghost","Undead"][Number(row._iID)] ?? `Element ${row._iID}`)}))].filter((row)=>Number.isFinite(row.id)),
-          races: tableOptions("RaceConfig"), sizes: tableOptions("SizeConfig"), buffs: tableOptions("BuffConfig"), totemSkills: tableOptions("TotemSkillConfig"),
+          elements: [{id:0,name:"Neutral"}, ...rawOptions("EleConfig").map(({row,id})=>({id,name:explicitName(row) ?? (["","Neutral","Wind","Earth","Fire","Water","Poison","Holy","Shadow","Ghost","Undead"][id] ?? "Element")}))],
+          races: namedTable("RaceConfig",(id,index)=>raceNames[id] ?? `Race ${index+1}`),
+          sizes: namedTable("SizeConfig",(id,index)=>sizeNames[id] ?? `Size ${index+1}`),
+          buffs: namedTable("BuffConfig",(id,index)=>buffSourceNames.get(id) ?? `Combat buff ${index+1}`),
+          totemSkills: namedTable("TotemSkillConfig",(_id,index)=>`Totem effect ${index+1}`),
         });
         setPetOptions(Object.values(store.table("PetDigest")).map((row) => {
           const id = Number(row._iID);
