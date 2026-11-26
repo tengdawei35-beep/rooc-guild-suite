@@ -38,9 +38,17 @@ This is the project-wide handoff file. Update it whenever implementation work ad
 - Replaced the raw cast-log dump with structured report events and sample damage events.
 - Native Monte Carlo report uses the simulator's seeded distribution engine and includes distribution KPIs, per-skill hit/crit/share, total-damage histogram, mean-DPS-over-time chart, cast timeline, a sample trial and pinned-snapshot DPS comparisons (as described in PR #144).
 
+### Latest progress — 2026-11-26
+
+- Inspected the current v15 legacy simulator `currentBuild()` adapter and added a field-by-field source-to-native import inventory in `docs/ro3-combat-simulator-native-migration.md` on PR #144.
+- Preserved legacy `bonusPoints` as `bonusStatPoints` through import, native draft storage/load, and the engine build object. It is retained for future optimizer parity but does not affect the current fixed-stat damage simulation.
+- Added importer regression coverage for explicit bonus-point values and the legacy default adjustment, plus backward compatibility coverage for older browser-local native saved builds that predate this field.
+- Latest implementation commit: `f9907357092b13ee3f4524e320a20a907edca704` on `feat/combat-simulator-native-react-migration`.
+- CI run [#45782943763](https://github.com/tengdawei35-beep/rooc-guild-suite/actions/runs/45782943763) was still running at the last check; Vercel preview status was successful. Do not mark the implementation validated until CI completes.
+
 ### Remaining work — ordered next steps
 
-1. **Finish legacy build import parity.** Build a field-by-field inventory of every legacy attacker/defender tab field and map each field to: native destination, intentionally unsupported, or requires source evidence. Add representative import fixtures. Remaining known gaps include Echo mark colors/procs, dynamic totem procs, additional totem slots, bonus stat points for the native optimizer, and any other state exposed by representative legacy imports.
+1. **Finish legacy build import parity.** Field inventory is now documented; continue with representative full legacy-vs-native fixtures and investigate remaining source state. Known gaps include Echo mark colors/procs, dynamic totem procs, and explicitly reported unsupported/overflow state.
 2. **Complete native skill/buff behavior parity.** Review remaining special-trigger effects and short-duration buff scheduling. Keep unsupported behavior explicit; do not infer mechanics.
 3. **Strengthen equivalence fixtures.** Add saved-build-to-saved-build comparisons, per-skill hit histograms, and representative full legacy-vs-native report/timeline fixtures using identical inputs. Include seeded Monte Carlo determinism and compare event ordering, cast counts, damage distribution and DPS summaries.
 4. **Complete report/timeline parity.** Align the native report and timeline with the legacy simulator for the supported input surface; document intentional differences.
@@ -73,4 +81,5 @@ At the start of a new implementation session:
 
 ## Update log
 
-- **2026-11-26:** Initial project-wide status and handoff file created from the latest available implementation context and PR #144 summary. Current PR head/CI status must be checked live at the next implementation step.
+- **2026-11-26:** Initial project-wide status and handoff file created from the latest available implementation context and PR #144 summary.
+- **2026-11-26:** Updated after auditing legacy v15 build fields and preserving the stat-optimizer bonus-point budget; CI result pending.
