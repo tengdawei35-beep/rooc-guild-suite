@@ -91,7 +91,11 @@ export function getCombatSkillTreeOptions(
     }));
     const topBuffs = levels[levels.length - 1]?.buffs ?? [];
     const hasModeledBuff = topBuffs.some((buff) => buff.modeled);
-    const autoBuff = kind === "buff" && hasModeledBuff && topBuffs.some((buff) => buff.durationMs >= 60000);
+    // Match the legacy UI's group-level classification: `auto` is based on
+    // whether the highest learned row has any modeled effect and its longest
+    // buff duration, even if that longest buff is not itself modeled.
+    const longestTopBuffMs = topBuffs.reduce((longest, buff) => Math.max(longest, buff.durationMs), 0);
+    const autoBuff = kind === "buff" && hasModeledBuff && longestTopBuffMs >= 60000;
     return {
       groupId, name: String(top.name ?? rows[0].name ?? `Skill ${groupId}`),
       jobId: groupJob.get(groupId)!, maxLevel: Number(top._iLevel), kind, levels,
@@ -117,7 +121,9 @@ export function deriveLearnedSkillEffects(
     if (row.passive) passiveSkillIds.push(row.rowId);
     const ridingFamily = Number(RIDING_PASSIVES[option.groupId as keyof typeof RIDING_PASSIVES] ?? 0);
     if (ridden && ridingFamily > 0) autoBuffIds.add(ridingFamily * 100 + level);
-    if (option.kind !== "buff") continue;
+    // The legacy simulator only applies learned buffs automatically for
+    // groups classified as `info.auto` from their highest-rank row.
+    if (option.kind !== "buff" || !option.autoBuff) continue;
     for (const buff of row.buffs) {
       if (buff.durationMs >= 60000 && buff.modeled) autoBuffIds.add(buff.id);
     }
