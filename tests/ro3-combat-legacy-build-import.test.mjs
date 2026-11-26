@@ -23,7 +23,7 @@ test("imports current Royal Guard legacy state and maps supported inputs",()=>{
     cards:[{id:7001,star:2,lv:10,flash:true}],pets:[{id:10,lv:99,star:4,stage:1}],
     assist:[{g:12,lv:80,star:3,stage:0}],res:{refine:15,enhance:20},
     talents:{lv:30,prof:4,picks:{"1":[11,12]}},sim:{seconds:45,cycle:1,cancel:1,howl:-1},
-    target:{def:1980,mdef:1200,level:200,element:2,race:3,size:1},ex:{103:100},
+    target:{def:1980,mdef:1200,level:200,element:2,race:3,size:1},ex:{103:100,1:12,1031:450},
   };
   const result=importLegacyRoyalGuardBuild(state,defaults,[{groupId:11608,id:1160805,level:5},{groupId:11611,id:1161103,level:3}]);
   assert.ok(result.draft);
@@ -38,7 +38,8 @@ test("imports current Royal Guard legacy state and maps supported inputs",()=>{
   assert.equal(result.draft.periodicOff,true);
   assert.equal(result.draft.ridden,true);
   assert.equal(result.draft.def,"1980");
-  assert.ok(result.unsupported.some((item)=>item.includes("typed/aggregated")));
+  assert.equal(result.draft.extraAttrInput,"1:12, 103:100, 1031:450");
+  assert.ok(!result.unsupported.some((item)=>item.includes("typed/aggregated")));
 });
 
 test("rejects non-Royal Guard and unmigrated legacy versions",()=>{
