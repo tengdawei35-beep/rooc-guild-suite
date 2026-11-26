@@ -31,6 +31,22 @@ const parseAttributePairs = (value: string): Array<[number, number]> => value.sp
   .filter((parts) => parts.length === 2)
   .map(([id, amount]) => [Number(id), Number(amount)] as [number, number])
   .filter(([id, amount]) => Number.isInteger(id) && id > 0 && Number.isFinite(amount));
+const parseTotemLoadout = (value: string, enhanceBp: number): Array<{guid:number;id:number;attrs:Array<[number,number]>;skills:number[];enhanceBp:number}> => {
+  if (!value.trim()) return [];
+  try {
+    const parsed: unknown = JSON.parse(value);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.slice(0,3).flatMap((entry, index) => {
+      if (!entry || typeof entry !== "object") return [];
+      const item = entry as Record<string, unknown>;
+      const attrs = Array.isArray(item.attrs) ? item.attrs.flatMap((pair) =>
+        Array.isArray(pair) && pair.length >= 2 && Number.isFinite(Number(pair[0])) && Number.isFinite(Number(pair[1]))
+          ? [[Number(pair[0]), Number(pair[1])] as [number,number]] : []) : [];
+      const skills = Array.isArray(item.skills) ? item.skills.map(Number).filter((id) => Number.isInteger(id) && id > 0) : [];
+      return [{ guid: Number(item.guid) || index + 1, id: Number(item.id) || 0, attrs, skills, enhanceBp }];
+    });
+  } catch { return []; }
+};
 const parseIdList = (value: string): number[] => value.split(/[ ,]+/).map(Number).filter((id) => Number.isInteger(id) && id > 0);
 const parseTalentSkillLevels = (value: string): Record<string, number> => Object.fromEntries(
   value.split(/[ ,]+/).map((entry) => entry.split(":")).filter((parts) => parts.length === 2)
@@ -74,6 +90,8 @@ export default function NativeCombatSimulatorPreview() {
   const [totemSkillIds, setTotemSkillIds] = useState("");
   const [totemAttrInput, setTotemAttrInput] = useState("");
   const [totemEnhanceBp, setTotemEnhanceBp] = useState("0");
+  const [totemLoadoutInput, setTotemLoadoutInput] = useState("");
+  const [totemLevel, setTotemLevel] = useState("0");
   const [resonanceRefine, setResonanceRefine] = useState("0");
   const [resonanceEnhance, setResonanceEnhance] = useState("0");
   const [talentLevel, setTalentLevel] = useState("0");
@@ -145,13 +163,18 @@ export default function NativeCombatSimulatorPreview() {
     setSkillLevels(Object.entries(next).map(([id, level])=>`${id}:${level}`).join(", "));
   };
 
+  const nativeTotems = useMemo(() => {
+    const imported = parseTotemLoadout(totemLoadoutInput, engine.getTotemEnhanceBp(numeric(totemLevel,0)));
+    return imported.length ? imported : [{ guid: 1, id: 0, skills: parseIdList(totemSkillIds), attrs: parseAttributePairs(totemAttrInput), enhanceBp: numeric(totemEnhanceBp,0) }];
+  }, [totemLoadoutInput, totemLevel, engine.getTotemEnhanceBp, totemSkillIds, totemAttrInput, totemEnhanceBp]);
+
   const attacker = useMemo<CombatBuild>(() => ({
     career: 1410, level: numeric(level,100), stats: stats.map((v) => numeric(v,1)) as CombatBuild["stats"],
-    enchantAttrs, extraAttrs: parseAttributePairs(extraAttrInput), emblemAttrs: parseAttributePairs(emblemAttrInput), totems: [{ guid: 1, skills: parseIdList(totemSkillIds), attrs: parseAttributePairs(totemAttrInput), enhanceBp: numeric(totemEnhanceBp,0) }], resonance: { refine: numeric(resonanceRefine,0), enhance: numeric(resonanceEnhance,0) }, pets, assistPets,
+    enchantAttrs, extraAttrs: parseAttributePairs(extraAttrInput), emblemAttrs: parseAttributePairs(emblemAttrInput), totems: nativeTotems, resonance: { refine: numeric(resonanceRefine,0), enhance: numeric(resonanceEnhance,0) }, pets, assistPets,
     talents: { lv: numeric(talentLevel,0), prof: numeric(talentProf,0), picks: talentPicks, skills: parseTalentSkillLevels(talentSkillLevels) },
     passiveSkills: effectivePassiveSkills,
     activeBuffs: effectiveBuffIds, skillLevels: learnedSkillLevels, rotationCycle, cancelBackswing, periodicOff, periodicStartMs: numeric(periodicStartSeconds,0)*1000, ridden,
-  }), [level, stats, enchantAttrs, extraAttrInput, emblemAttrInput, totemSkillIds, totemAttrInput, totemEnhanceBp, resonanceRefine, resonanceEnhance, pets, assistPets, talentLevel, talentProf, talentPicks, passiveSkillIds, talentSkillLevels, activeBuffIds, skillLevels, rotationCycle, cancelBackswing, periodicOff, periodicStartSeconds, ridden, effectivePassiveSkills, effectiveBuffIds, learnedSkillLevels]);
+  }), [level, stats, enchantAttrs, extraAttrInput, emblemAttrInput, nativeTotems, resonanceRefine, resonanceEnhance, pets, assistPets, talentLevel, talentProf, talentPicks, passiveSkillIds, talentSkillLevels, activeBuffIds, skillLevels, rotationCycle, cancelBackswing, periodicOff, periodicStartSeconds, ridden, effectivePassiveSkills, effectiveBuffIds, learnedSkillLevels]);
   const engineEquipment = useMemo(() => engine.equipmentCatalog ? toEngineEquipment(equipment, engine.equipmentCatalog.equipment, engine.equipmentCatalog.cards, numeric(level,100), engine.getGearLevelCaps(numeric(level,100))) : { gear: [], cards: [] }, [equipment, engine.equipmentCatalog, engine.getGearLevelCaps, level]);
   const characterSheet = useMemo(() => {
     if (!engine.ready) return null;
@@ -167,7 +190,7 @@ export default function NativeCombatSimulatorPreview() {
       level, stats: [...stats], equipment: JSON.parse(JSON.stringify(equipment)),
       pets: JSON.parse(JSON.stringify(pets)), assistPets: JSON.parse(JSON.stringify(assistPets)),
       enchantAttrs: JSON.parse(JSON.stringify(enchantAttrs)), extraAttrInput, emblemAttrInput, totemSkillIds, totemAttrInput,
-      totemEnhanceBp, resonanceRefine, resonanceEnhance, talentLevel, talentProf,
+      totemEnhanceBp, totemLoadoutInput, totemLevel, resonanceRefine, resonanceEnhance, talentLevel, talentProf,
       talentPicks: JSON.parse(JSON.stringify(talentPicks)), passiveSkillIds, talentSkillLevels,
       activeBuffIds, skillLevels, rotationCycle, cancelBackswing, periodicOff, periodicStartSeconds, ridden,
       def, mdef, targetLevel, element, race, size, skillIds, disabledRotationIds, duration,
@@ -209,6 +232,7 @@ export default function NativeCombatSimulatorPreview() {
     setPets(JSON.parse(JSON.stringify(state.pets))); setAssistPets(JSON.parse(JSON.stringify(state.assistPets)));
     setEnchantAttrs(JSON.parse(JSON.stringify(state.enchantAttrs))); setExtraAttrInput(state.extraAttrInput); setEmblemAttrInput(state.emblemAttrInput);
     setTotemSkillIds(state.totemSkillIds); setTotemAttrInput(state.totemAttrInput); setTotemEnhanceBp(state.totemEnhanceBp);
+    setTotemLoadoutInput(state.totemLoadoutInput ?? ""); setTotemLevel(state.totemLevel ?? "0");
     setResonanceRefine(state.resonanceRefine); setResonanceEnhance(state.resonanceEnhance);
     setTalentLevel(state.talentLevel); setTalentProf(state.talentProf); setTalentPicks(JSON.parse(JSON.stringify(state.talentPicks)));
     setPassiveSkillIds(state.passiveSkillIds); setTalentSkillLevels(state.talentSkillLevels);
@@ -320,7 +344,7 @@ export default function NativeCombatSimulatorPreview() {
       });
       const validatedAttacker: CombatBuild = {
         career: 1410, level: validated.level, stats: validated.stats,
-        enchantAttrs, extraAttrs: parseAttributePairs(extraAttrInput), emblemAttrs: parseAttributePairs(emblemAttrInput), totems: [{ guid: 1, skills: parseIdList(totemSkillIds), attrs: parseAttributePairs(totemAttrInput), enhanceBp: numeric(totemEnhanceBp,0) }], resonance: { refine: numeric(resonanceRefine,0), enhance: numeric(resonanceEnhance,0) }, pets, assistPets,
+        enchantAttrs, extraAttrs: parseAttributePairs(extraAttrInput), emblemAttrs: parseAttributePairs(emblemAttrInput), totems: nativeTotems, resonance: { refine: numeric(resonanceRefine,0), enhance: numeric(resonanceEnhance,0) }, pets, assistPets,
         talents: { lv: numeric(talentLevel,0), prof: numeric(talentProf,0), picks: talentPicks, skills: parseTalentSkillLevels(talentSkillLevels) },
         passiveSkills: effectivePassiveSkills,
         activeBuffs: effectiveBuffIds, skillLevels: learnedSkillLevels, rotationCycle, cancelBackswing, periodicOff, periodicStartMs: numeric(periodicStartSeconds,0)*1000, ridden,
