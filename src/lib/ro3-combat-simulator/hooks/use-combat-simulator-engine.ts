@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { createRo3CombatDataStore } from "../create-data-store";
 import { loadRo3GameData } from "../data/ro3-game-data";
-import { getCombatSkillOptions, type CombatSkillOption } from "../skill-options";
+import { getCombatSkillOptions, getCombatSkillTreeOptions, type CombatSkillOption, type CombatSkillTreeOption } from "../skill-options";
 import { simulateCombatRotation } from "../simulate";
 import { buildCharacterStats, gearParts, cardParts, talentOptions, talentWalk, talentEffects } from "../engine/ro3-damage-engine.mjs";
 import { getCombatEquipmentCatalog } from "../equipment-options";
@@ -31,6 +31,7 @@ export type NativeTalentChoice = { id: number; name: string; text?: string; sim?
 export function useCombatSimulatorEngine() {
   const [data, setData] = useState<Ro3MemoryDataStore | null>(null);
   const [skillOptions, setSkillOptions] = useState<CombatSkillOption[]>([]);
+  const [skillTreeOptions, setSkillTreeOptions] = useState<CombatSkillTreeOption[]>([]);
   const [equipmentCatalog, setEquipmentCatalog] = useState<ReturnType<typeof getCombatEquipmentCatalog> | null>(null);
   const [attributeOptions, setAttributeOptions] = useState<Array<{ id: number; name: string }>>([]);
   const [petOptions, setPetOptions] = useState<NativePetOption[]>([]);
@@ -55,6 +56,11 @@ export function useCombatSimulatorEngine() {
         setEquipmentCatalog(getCombatEquipmentCatalog(
           exported.tables as Parameters<typeof getCombatEquipmentCatalog>[0],
           exported.ui as Parameters<typeof getCombatEquipmentCatalog>[1],
+          1410,
+        ));
+        setSkillTreeOptions(getCombatSkillTreeOptions(
+          exported.ui as { jobs: Array<{ id: number; parent?: number }>; trees: Record<string, Array<Array<number | null>>> },
+          exported.tables.SkillConfig as Record<string, Record<string, unknown>>,
           1410,
         ));
         setSkillOptions(getCombatSkillOptions(
@@ -146,5 +152,5 @@ export function useCombatSimulatorEngine() {
     return simulateCombatRotation(attacker, defender, rotationSkillIds, durationMs, data);
   }, [data]);
 
-  return { status, error, ready: status === "ready", skillOptions, equipmentCatalog, attributeOptions, petOptions, getCharacterSheet, getGearCustomization, getGearLevelCaps, getCardCustomization, getTalentConfiguration, simulate };
+  return { status, error, ready: status === "ready", skillOptions, skillTreeOptions, equipmentCatalog, attributeOptions, petOptions, getCharacterSheet, getGearCustomization, getGearLevelCaps, getCardCustomization, getTalentConfiguration, simulate };
 }
