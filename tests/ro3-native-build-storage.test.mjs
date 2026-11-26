@@ -20,7 +20,7 @@ const draft = {
   resonanceRefine: "0", resonanceEnhance: "0", talentLevel: "0", talentProf: "0", talentPicks: {},
   passiveSkillIds: "", talentSkillLevels: "", activeBuffIds: "", skillLevels: "", rotationCycle: false,
   cancelBackswing: false, periodicOff: false, periodicStartSeconds: "0", ridden: false, def: "5000", mdef: "3000", targetLevel: "100",
-  element: "1", race: "1", size: "2", skillIds: "", duration: "30000",
+  element: "1", race: "1", size: "2", skillIds: "", disabledRotationIds: "", duration: "30000",
 };
 const build = (id, updatedAt) => ({
   id, name: `Build ${id}`, updatedAt, state: structuredClone(draft),
