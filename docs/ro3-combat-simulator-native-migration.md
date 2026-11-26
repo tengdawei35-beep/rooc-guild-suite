@@ -136,6 +136,12 @@ The storage format is versioned at `hmdl.ro3.native-builds.v1`, validates restor
 
 This is the first native persistence layer, not a complete legacy-tab migration. The legacy iframe uses its own `ro3sim.builds.v1` state with broader class, skill, target and simulation settings. Importing those tabs remains gated on full field-by-field mapping and explicit reporting of any unsupported values; the migration must not silently discard typed attributes, rotations or advanced systems.
 
+### Native learned-skill tree checkpoint
+
+The Royal Guard native preview now builds a learned-skill catalog from the selected career ancestry and exposes level selectors for learnable damage, buff and passive skills. Selected passive rows are converted into the engine's passive skill row IDs. Learned buff skills are inspected at their selected rank; supported buffs with at least 60 seconds' duration and relevant attribute/skill modifiers are automatically included as always-on buffs. Talent-granted buffs are also included automatically.
+
+This reproduces a defined subset of the legacy iframe's skill-state derivation. The legacy's full FX whitelist, special triggered-buff classification, mounted/passive family rules, short-duration buff scheduling, and class-specific skill UI/rotation logic still need parity coverage. Manual buff IDs remain available as an override. The feature is not yet evidence of complete legacy skill-tree parity.
+
 ### Native combat-option coverage checkpoint
 
 The preview now exposes additional simulation controls already supported by the extracted engine: learned skill levels keyed by SkillConfig group ID, explicit always-on BuffConfig IDs, cycle-priority rotation, backswing cancellation, periodic-buff enable/disable and start timing, and mounted state. These are passed to the actual simulation build and are persisted in native saved builds.
