@@ -54,6 +54,7 @@ export default async function ApplicantApplyPage({ params }: { params: Promise<{
   return <ApplicantApplyClient
     token={token}
     guildId={invite.guildId}
+    guildName={guild?.name ?? "this guild"}
     gameType={guild?.gameType === "RO3" ? "RO3" : "ROOC"}
     discordUserId={user.discordId}
     discordUsername={user.username}
