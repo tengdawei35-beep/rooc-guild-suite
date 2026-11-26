@@ -92,6 +92,7 @@ export default function NativeCombatSimulatorPreview() {
   const [race, setRace] = useState("1");
   const [size, setSize] = useState("2");
   const [skillIds, setSkillIds] = useState("");
+  const [disabledRotationIds, setDisabledRotationIds] = useState("");
   const [selectedSkillId, setSelectedSkillId] = useState("");
   const [duration, setDuration] = useState("30000");
   const [result, setResult] = useState<CombatRotationResult | null>(null);
@@ -162,7 +163,7 @@ export default function NativeCombatSimulatorPreview() {
       totemEnhanceBp, resonanceRefine, resonanceEnhance, talentLevel, talentProf,
       talentPicks: JSON.parse(JSON.stringify(talentPicks)), passiveSkillIds, talentSkillLevels,
       activeBuffIds, skillLevels, rotationCycle, cancelBackswing, periodicOff, periodicStartSeconds, ridden,
-      def, mdef, targetLevel, element, race, size, skillIds, duration,
+      def, mdef, targetLevel, element, race, size, skillIds, disabledRotationIds, duration,
     };
   }
 
@@ -207,7 +208,7 @@ export default function NativeCombatSimulatorPreview() {
     setActiveBuffIds(state.activeBuffIds); setSkillLevels(state.skillLevels); setRotationCycle(state.rotationCycle);
     setCancelBackswing(state.cancelBackswing); setPeriodicOff(state.periodicOff); setPeriodicStartSeconds(state.periodicStartSeconds); setRidden(state.ridden);
     setDef(state.def); setMdef(state.mdef); setTargetLevel(state.targetLevel); setElement(state.element);
-    setRace(state.race); setSize(state.size); setSkillIds(state.skillIds); setDuration(state.duration);
+    setRace(state.race); setSize(state.size); setSkillIds(state.skillIds); setDisabledRotationIds(state.disabledRotationIds); setDuration(state.duration);
     setSavedBuildName(build.name); setResult(null); setSimulationError(null); setSelectedSkillId("");
     setSavedBuildMessage(`Loaded "${build.name}".`);
   }
@@ -242,7 +243,7 @@ export default function NativeCombatSimulatorPreview() {
         race: validated.race, size: validated.size,
       };
       const output = engine.simulate(
-        validatedAttacker, validatedDefender, validated.skillIds, validated.durationMs,
+        validatedAttacker, validatedDefender, validated.skillIds.filter((id) => !new Set(parseIdList(disabledRotationIds)).has(id)), validated.durationMs,
       );
       setResult(output); setRunCount((n) => n + 1);
     } catch (e) { setSimulationError(e instanceof Error ? e.message : String(e)); }
@@ -442,7 +443,7 @@ export default function NativeCombatSimulatorPreview() {
     </section>
     <section className="rounded-xl border border-white/10 bg-zinc-900/70 p-4">
       <h2 className="text-sm font-semibold text-white">Skill rotation</h2>
-      <p className="mt-1 text-xs text-zinc-500">Enter simulator SkillConfig IDs in cast order. Leave empty to simulate the character's normal attack only.</p>
+      <p className="mt-1 text-xs text-zinc-500">Enter simulator SkillConfig IDs in priority order. Repeated IDs are preserved for cycle mode; disabled IDs are skipped without deleting them from the saved priority list.</p>
       <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,1fr)_180px]">
         <div className="space-y-2">
           <label className="block text-xs text-zinc-400">Add Royal Guard skill
@@ -452,9 +453,10 @@ export default function NativeCombatSimulatorPreview() {
             </select>
           </label>
           <button type="button" disabled={!selectedSkillId} onClick={()=>setSkillIds((current)=>current.trim() ? `${current.trim()}, ${selectedSkillId}` : selectedSkillId)} className="rounded-lg border border-white/15 px-3 py-2 text-xs font-medium text-zinc-200 hover:bg-white/5 disabled:opacity-40">Add to rotation</button>
-          <label className="block text-xs text-zinc-400">Rotation SkillConfig IDs (cast order)
+          <label className="block text-xs text-zinc-400">Rotation SkillConfig IDs (priority order; duplicates allowed)
             <input value={skillIds} onChange={(e)=>setSkillIds(e.target.value)} placeholder="Select skills above or enter IDs manually" className={inputClass}/>
           </label>
+          <label className="block text-xs text-zinc-400">Disabled rotation SkillConfig IDs<input value={disabledRotationIds} onChange={(e)=>setDisabledRotationIds(e.target.value)} placeholder="IDs to skip, comma-separated" className={inputClass}/></label>
         </div>
         <label className="text-xs text-zinc-400">Duration (ms)<input type="number" min="1000" max="300000" step="1000" value={duration} onChange={(e)=>setDuration(e.target.value)} className={inputClass}/></label>
       </div>
