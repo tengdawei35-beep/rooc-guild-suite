@@ -25,9 +25,18 @@ export async function GET() {
   });
 
   return NextResponse.json({
-    members: members.map((member) => ({
-      ...member,
-      ro3Stats: member.ro3Stats && typeof member.ro3Stats === "object" && !Array.isArray(member.ro3Stats) ? member.ro3Stats : null,
-    })),
+    members: members.map((member) => {
+      const nullableNumber = (value: unknown): number | null => {
+        if (value === null || value === undefined || value === "") return null;
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : null;
+      };
+      return {
+        ...member,
+        hp: nullableNumber(member.hp), patk: nullableNumber(member.patk), matk: nullableNumber(member.matk),
+        pdef: nullableNumber(member.pdef), mdef: nullableNumber(member.mdef),
+        ro3Stats: member.ro3Stats && typeof member.ro3Stats === "object" && !Array.isArray(member.ro3Stats) ? member.ro3Stats : null,
+      };
+    }),
   }, { headers: { "Cache-Control": "private, no-store" } });
 }
