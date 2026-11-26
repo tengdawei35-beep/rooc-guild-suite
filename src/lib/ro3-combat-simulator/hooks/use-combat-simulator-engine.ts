@@ -12,6 +12,13 @@ import { toEngineEquipment } from "../build-input";
 import type { Ro3MemoryDataStore } from "../engine/ro3-damage-engine.mjs";
 import type { CombatBuild, CombatDefender, CombatRotationResult } from "../types";
 
+export type GearCustomization = {
+  affixes: Array<{ id: number; name: string; min: number; max: number }>;
+  affixSlots: number;
+  stuntPools: Array<{ chance: number; options: Array<{ id: number; name: string }> }>;
+  fixedStunts: Array<{ id: number; name: string }>;
+};
+
 export type CombatEngineStatus = "loading" | "ready" | "error";
 
 /**
@@ -79,7 +86,7 @@ export function useCombatSimulatorEngine() {
     };
   }, [data]);
 
-  const getGearCustomization = useCallback((id: number, grid: number) => {
+  const getGearCustomization = useCallback((id: number, grid: number): GearCustomization | null => {
     if (!data) return null;
     const parts = gearParts({ id, grid, roll: 5000, affixes: [], stunts: [] }, data);
     if (!parts) return null;
