@@ -95,7 +95,7 @@ export function getCombatSkillTreeOptions(
       levels: rows.map(row => ({
         level: Number(row._iLevel), rowId: Number(row._iID),
         buffs: (Array.isArray(row._kBuff1) ? row._kBuff1 : []).filter((entry): entry is number[] => Array.isArray(entry))
-          .map(entry => ({id:Number(entry[0]),durationMs:Number(entry[2])>0?Number(entry[2]):60000})).filter(entry=>entry.id>0),
+          .map(entry => ({id:Number(entry[0]),durationMs:Number(entry[2])>0?Number(entry[2]):60000,modeled:hasModeledBuffEffect(Number(entry[0]),buffTable)})).filter(entry=>entry.id>0),
         passive: Number(row._iBasicType)===0 && Array.isArray(row._kAttri) && row._kAttri.length>0,
       })),
     } satisfies CombatSkillTreeOption;
