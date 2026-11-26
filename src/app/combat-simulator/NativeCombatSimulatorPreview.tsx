@@ -8,6 +8,7 @@ import { emptyNativeEquipmentSelection, moveUniqueCardSelection, toEngineEquipme
 import { EQUIPMENT_GRIDS, CARD_SOCKETS } from "@/lib/ro3-combat-simulator/equipment-options";
 import { NATIVE_BUILD_STORAGE_KEY, parseNativeSavedBuilds, removeNativeSavedBuild, serializeNativeSavedBuilds, upsertNativeSavedBuild, type NativeBuildDraft, type NativeSavedBuild } from "@/lib/ro3-combat-simulator/native-build-storage";
 import { CLASS_PROFILES } from "@/lib/ro3-combat-simulator/engine/ro3-damage-engine.mjs";
+import { importLegacyRoyalGuardBuild, parseLegacyBuildBook } from "@/lib/ro3-combat-simulator/legacy-build-import";
 
 type Member = {
   id: string; characterName: string | null; discordUsername: string | null; job: string | null;
@@ -218,6 +219,45 @@ export default function NativeCombatSimulatorPreview() {
     setSavedBuildMessage(`Loaded "${build.name}".`);
   }
 
+  function importLegacyBuilds() {
+    if (!savedBuildsReady || !engine.ready) return;
+    let raw: string | null = null;
+    try { raw = window.localStorage.getItem("ro3sim.builds.v1"); }
+    catch { setSavedBuildMessage("Cannot access legacy simulator storage in this browser context."); return; }
+    const tabs = parseLegacyBuildBook(raw);
+    if (!tabs.length) {
+      setSavedBuildMessage("No legacy saved tabs found. Open and save your builds in the legacy simulator first.");
+      return;
+    }
+    const imported: NativeSavedBuild[] = [];
+    const warnings: string[] = [];
+    const unsupported: string[] = [];
+    for (const tab of tabs) {
+      const mapped = importLegacyRoyalGuardBuild(tab.state, captureNativeBuildDraft(), engine.skillOptions);
+      warnings.push(...mapped.warnings);
+      unsupported.push(...mapped.unsupported);
+      if (!mapped.draft) continue;
+      imported.push({
+        id: `legacy-${tab.id}-${Date.now()}-${imported.length}`,
+        name: `Legacy · ${tab.name}`.slice(0,40),
+        updatedAt: new Date().toISOString(),
+        state: mapped.draft,
+      });
+    }
+    if (!imported.length) {
+      setSavedBuildMessage(`Found ${tabs.length} legacy tab(s), but none were importable. ${[...new Set(unsupported)].slice(0,2).join(" ")}`);
+      return;
+    }
+    let next = savedBuilds;
+    for (const build of imported) next = upsertNativeSavedBuild(next, build);
+    if (persistNativeBuilds(next)) {
+      setSelectedSavedBuildId(imported[0].id);
+      setSavedBuildName(imported[0].name);
+      const notes = [...new Set([...warnings, ...unsupported])];
+      setSavedBuildMessage(`Imported ${imported.length} Royal Guard tab(s). ${notes.length ? `Review limitations: ${notes.slice(0,2).join(" ")}` : "No unsupported fields detected."}`);
+    }
+  }
+
   function deleteNativeBuild() {
     if (!selectedSavedBuildId) return;
     const next = removeNativeSavedBuild(savedBuilds, selectedSavedBuildId);
@@ -299,6 +339,7 @@ export default function NativeCombatSimulatorPreview() {
           </select>
         </label>
         <button type="button" disabled={!savedBuildsReady} onClick={saveNativeBuild} className="rounded-lg bg-cyan-400 px-4 py-2.5 text-sm font-semibold text-zinc-950 disabled:opacity-40">Save build</button>
+        <button type="button" disabled={!savedBuildsReady || !engine.ready} onClick={importLegacyBuilds} className="rounded-lg border border-white/15 px-4 py-2.5 text-sm font-semibold text-zinc-200 disabled:opacity-40">Import legacy tabs</button>
         <button type="button" disabled={!selectedSavedBuildId} onClick={loadNativeBuild} className="rounded-lg border border-white/15 px-4 py-2.5 text-sm font-medium text-zinc-200 disabled:opacity-40">Load</button>
         <button type="button" disabled={!selectedSavedBuildId} onClick={deleteNativeBuild} className="rounded-lg border border-rose-400/30 px-4 py-2.5 text-sm font-medium text-rose-200 disabled:opacity-40">Delete</button>
       </div>
