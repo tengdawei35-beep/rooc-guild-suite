@@ -46,6 +46,26 @@ type Applicant = {
 type Invite = { id: string; token: string; active: boolean; createdAt: string; revokedAt: string | null };
 type ComparisonScores = NonNullable<Applicant["comparison"]>["scores"];
 
+async function readApiJson<T>(response: Response, label: string): Promise<T> {
+  const text = await response.text();
+  if (!text.trim()) {
+    throw new Error(`${label} returned an empty response (HTTP ${response.status}). Please refresh and try again.`);
+  }
+  let data: T;
+  try {
+    data = JSON.parse(text) as T;
+  } catch {
+    throw new Error(`${label} returned an invalid response (HTTP ${response.status}). Please refresh and try again.`);
+  }
+  if (!response.ok) {
+    const message = data && typeof data === "object" && "error" in data
+      ? String((data as { error: unknown }).error)
+      : `${label} failed (HTTP ${response.status}).`;
+    throw new Error(message);
+  }
+  return data;
+}
+
 export default function ApplicantsClient({ canManage }: { canManage: boolean }) {
   const [applicants, setApplicants] = useState<Applicant[]>([]);
   const [gameType, setGameType] = useState<"ROOC" | "RO3">("ROOC");
@@ -60,10 +80,8 @@ export default function ApplicantsClient({ canManage }: { canManage: boolean }) 
     setLoading(true); setError("");
     try {
       const [applicationsResponse, invitesResponse] = await Promise.all([fetch("/api/guild/applicants"), fetch("/api/guild/applicants/invite")]);
-      const applications = await applicationsResponse.json();
-      const inviteData = await invitesResponse.json();
-      if (!applicationsResponse.ok) throw new Error(applications.error ?? "Failed to load applicants.");
-      if (!invitesResponse.ok) throw new Error(inviteData.error ?? "Failed to load application links.");
+      const applications = await readApiJson<{ gameType?: string; applicants?: Applicant[] }>(applicationsResponse, "Applicants API");
+      const inviteData = await readApiJson<{ invites?: Invite[] }>(invitesResponse, "Application links API");
       setGameType(applications.gameType === "RO3" ? "RO3" : "ROOC");
       setApplicants(applications.applicants ?? []); setInvites(inviteData.invites ?? []);
     } catch (err) { setError(err instanceof Error ? err.message : "Failed to load applicants."); }
@@ -74,7 +92,7 @@ export default function ApplicantsClient({ canManage }: { canManage: boolean }) 
 
   async function generateInvite() {
     setBusy(true); setError("");
-    try { const response = await fetch("/api/guild/applicants/invite", { method: "POST" }); const data = await response.json(); if (!response.ok) throw new Error(data.error ?? "Failed to generate link."); await load(); }
+    try { const response = await fetch("/api/guild/applicants/invite", { method: "POST" }); const data = await readApiJson<{ error?: string }>(response, "Generate application link"); await load(); }
     catch (err) { setError(err instanceof Error ? err.message : "Failed to generate link."); }
     finally { setBusy(false); }
   }
@@ -82,14 +100,14 @@ export default function ApplicantsClient({ canManage }: { canManage: boolean }) 
   async function revokeInvite(id: string) {
     if (!window.confirm("Revoke this application link? Existing applications remain available.")) return;
     setBusy(true); setError("");
-    try { const response = await fetch(`/api/guild/applicants/invite?id=${encodeURIComponent(id)}`, { method: "DELETE" }); const data = await response.json(); if (!response.ok) throw new Error(data.error ?? "Failed to revoke link."); await load(); }
+    try { const response = await fetch(`/api/guild/applicants/invite?id=${encodeURIComponent(id)}`, { method: "DELETE" }); await readApiJson<{ success?: boolean }>(response, "Revoke application link"); await load(); }
     catch (err) { setError(err instanceof Error ? err.message : "Failed to revoke link."); }
     finally { setBusy(false); }
   }
 
   async function updateWatchlist(id: string, watchlist: "GREEN" | "YELLOW" | "RED" | null) {
     setBusy(true); setError("");
-    try { const response = await fetch("/api/guild/applicants", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, watchlist }) }); const data = await response.json(); if (!response.ok) throw new Error(data.error ?? "Failed to update watchlist."); await load(); }
+    try { const response = await fetch("/api/guild/applicants", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, watchlist }) }); await readApiJson<{ applicant?: { id: string } }>(response, "Update applicant watchlist"); await load(); }
     catch (err) { setError(err instanceof Error ? err.message : "Failed to update watchlist."); }
     finally { setBusy(false); }
   }
@@ -107,8 +125,7 @@ export default function ApplicantsClient({ canManage }: { canManage: boolean }) 
     setError("");
     try {
       const response = await fetch("/api/guild/applicants", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, decision }) });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error ?? `Failed to ${action} applicant.`);
+      await readApiJson<{ success?: boolean }>(response, `${action === "accept" ? "Accept" : "Deny"} applicant`);
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : `Failed to ${action} applicant.`);
