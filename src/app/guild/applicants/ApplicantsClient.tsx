@@ -92,7 +92,7 @@ export default function ApplicantsClient({ canManage }: { canManage: boolean }) 
 
   async function generateInvite() {
     setBusy(true); setError("");
-    try { const response = await fetch("/api/guild/applicants/invite", { method: "POST" }); const data = await readApiJson<{ error?: string }>(response, "Generate application link"); await load(); }
+    try { const response = await fetch("/api/guild/applicants/invite", { method: "POST" }); await readApiJson<{ error?: string }>(response, "Generate application link"); await load(); }
     catch (err) { setError(err instanceof Error ? err.message : "Failed to generate link."); }
     finally { setBusy(false); }
   }
