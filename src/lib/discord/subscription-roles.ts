@@ -21,7 +21,15 @@ async function setMemberRole(discordId: string, roleId: string, shouldHaveRole: 
   if (response.status === 404) return;
   if (!response.ok) {
     const detail = await response.text().catch(() => "");
-    throw new Error(`Discord role sync failed (${response.status}): ${detail.slice(0, 300)}`);
+    let reason = detail;
+    try {
+      const payload = JSON.parse(detail) as { message?: string; code?: number };
+      reason = [payload.message, payload.code ? `Discord code ${payload.code}` : ""].filter(Boolean).join(" — ");
+    } catch {
+      // Keep a short response excerpt for non-JSON proxy/API errors.
+      reason = detail.slice(0, 160);
+    }
+    throw new Error(`HTTP ${response.status}${reason ? `: ${reason}` : ""}`);
   }
 }
 
@@ -72,7 +80,6 @@ export async function syncGuildSubscriptionDiscordRoles(guildId: string) {
   ]);
 
   if (!guild) return;
-  const allMappedRoleIds = mappings.map((mapping: DiscordRoleMapping) => mapping.discordRoleId);
   const uniqueUsers = new Map<string, { desiredRoleIds: Set<string> }>();
 
   for (const membership of guild.memberships) {
@@ -88,17 +95,26 @@ export async function syncGuildSubscriptionDiscordRoles(guildId: string) {
     uniqueUsers.set(user.discordId, { desiredRoleIds });
   }
 
-  const operations: Promise<void>[] = [];
+  const operations: Array<{ label: string; promise: Promise<void> }> = [];
   for (const [discordId, { desiredRoleIds }] of uniqueUsers) {
     for (const mapping of mappings) {
       const shouldHaveRole = mapping.enabled && desiredRoleIds.has(mapping.discordRoleId);
-      operations.push(setMemberRole(discordId, mapping.discordRoleId, shouldHaveRole));
+      operations.push({
+        label: `role ${mapping.discordRoleId} (${shouldHaveRole ? "assign" : "remove"})`,
+        promise: setMemberRole(discordId, mapping.discordRoleId, shouldHaveRole),
+      });
     }
   }
-  const results = await Promise.allSettled(operations);
-  const failures = results.filter((result) => result.status === "rejected");
+
+  const results = await Promise.allSettled(operations.map((operation) => operation.promise));
+  const failures = results.flatMap((result, index) =>
+    result.status === "rejected"
+      ? [`${operations[index].label}: ${result.reason instanceof Error ? result.reason.message : "Unknown Discord API error"}`]
+      : [],
+  );
+
   if (failures.length) {
-    console.error("[DISCORD SUBSCRIPTION ROLE SYNC] Failed role operations", failures);
-    throw new Error(`Discord subscription role sync had ${failures.length} failed operation(s).`);
+    console.error("[DISCORD SUBSCRIPTION ROLE SYNC] Failed role operations", { guildId, failures });
+    throw new Error(`Discord role sync failed for ${failures.length} operation(s): ${failures.slice(0, 5).join("; ")}`);
   }
 }
