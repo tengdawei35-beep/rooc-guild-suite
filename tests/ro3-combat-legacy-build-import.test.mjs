@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { importLegacyRoyalGuardBuild, parseLegacyBuildBook } from "../src/lib/ro3-combat-simulator/legacy-build-import";
+import { buildCharacterStats, Ro3DataStore } from "../src/lib/ro3-combat-simulator/engine/ro3-damage-engine.mjs";
 
 const defaults = {
   level:"100",stats:["1","1","1","1","1","1"],
@@ -56,4 +57,33 @@ test("parses legacy tab books defensively",()=>{
   const book={v:1,active:2,builds:[{id:1,name:"RG",state:{v:15,job:1410}},{id:1,name:"duplicate",state:{}},{id:"2",name:"bad",state:{}}]};
   assert.deepEqual(parseLegacyBuildBook(JSON.stringify(book)),[{id:1,name:"RG",state:{v:15,job:1410}}]);
   assert.deepEqual(parseLegacyBuildBook("bad-json"),[]);
+});
+
+test("legacy import golden fixture preserves legacy character-sheet attribute sources",()=>{
+  const state={
+    v:15,job:1410,level:150,stats:[90,80,70,20,60,10],
+    ex:{103:100,1:12,1031:450},petCollect:[[104,50]],
+    echoUseEntries:true,echoes:[{id:501,stats:[{a:105,v:25}],colors:["red"]}],
+    totemLv:4,totems:[{id:7001,attrs:[[103,30]],skills:[9001]}],
+  };
+  const imported=importLegacyRoyalGuardBuild(state,defaults,[]);
+  assert.ok(imported.draft);
+  const pairs=(value)=>value.split(",").filter(Boolean).map((entry)=>entry.trim().split(":").map(Number));
+  const nativeBuild={
+    career:1410,level:Number(imported.draft.level),stats:imported.draft.stats.map(Number),
+    equipmentAttrs:pairs(imported.draft.extraAttrInput),
+    extraAttrs:pairs(imported.draft.petCollectionAttrInput),
+    emblemAttrs:pairs(imported.draft.emblemAttrInput),
+    totems:JSON.parse(imported.draft.totemLoadoutInput),
+  };
+  // Reference shape follows the upstream currentBuild() mapping: ex -> equipmentAttrs,
+  // petCollect -> extraAttrs, Echo rolls -> emblemAttrs, and deployed Totems -> totems.
+  const legacyReference={
+    career:1410,level:150,stats:[90,80,70,20,60,10],
+    equipmentAttrs:[[1,12],[103,100],[1031,450]],
+    extraAttrs:[[104,50]],emblemAttrs:[[105,25]],
+    totems:[{guid:1,id:7001,attrs:[[103,30]],skills:[9001],enhanceBp:0}],
+  };
+  const data=new Ro3DataStore();
+  assert.deepEqual(buildCharacterStats(nativeBuild,data),buildCharacterStats(legacyReference,data));
 });
