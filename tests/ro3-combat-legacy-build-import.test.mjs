@@ -113,21 +113,27 @@ test("legacy import golden fixture preserves character sources and seeded damage
   });
   const selectedCards=CARD_SOCKETS.flatMap((socket,index)=>{
     if(index!==0&&index!==7)return [];
-    const item=catalog.cards.find((candidate)=>candidate.part===socket.part&&Object.values(data.table("CardConfig")).some((row)=>Number(row._iCardID)===candidate.id&&Number(row._iTier)===2));
-    return item?[{id:item.id,star:2,lv:10,flash:false}]:[];
+    const candidates=catalog.cards.filter((candidate)=>candidate.part===socket.part&&Object.values(data.table("CardConfig")).some((row)=>Number(row._iCardID)===candidate.id&&Number(row._iTier)===2));
+    const item=index===0
+      ? candidates.find((candidate)=>cardParts({id:candidate.id,star:2,level:10,flash:true},data)?.collectionAttrs.length>0)??candidates[0]
+      : candidates[0];
+    return item?[{id:item.id,star:2,lv:10,flash:index===0&&cardParts({id:item.id,star:2,level:10,flash:true},data)?.collectionAttrs.length>0}]:[];
   });
   const weapon=selectedGear.find((item)=>item.grid===1);
   const card=selectedCards[0];
-  const pet=Object.values(exported.tables.PetDigest).find((item)=>Number(item._iID)>0&&Number(item.g)>0);
+  const petRows=Object.values(exported.tables.PetDigest).filter((item)=>Number(item._iID)>0&&Number(item.g)>0);
+  const pets=petRows.slice(0,2);
+  const pet=pets[0];
   assert.ok(weapon,"exported catalog should contain a Royal Guard weapon for the fixture");
   assert.ok(selectedGear.length>=3,"fixture should cover multiple compatible equipment grids");
   assert.ok(card,"exported catalog should contain a card for the first socket");
   assert.ok(selectedCards.length>=2,"fixture should cover multiple card sockets");
   assert.ok(pet,"exported catalog should contain a pet for the fixture");
+  assert.ok(pets.length>=2,"exported catalog should contain multiple pet/assist combinations");
   state.gear=selectedGear.map(({grid,id,roll,refine,enh,aff,sp})=>({id,roll,refine,enh,aff,sp}));
   state.cards=selectedCards;
-  state.pets=[{id:Number(pet._iID),lv:80,star:3,stage:1}];
-  state.assist=[{g:Number(pet.g),lv:80,star:3,stage:1}];
+  state.pets=pets.map((row)=>({id:Number(row._iID),lv:80,star:3,stage:1}));
+  state.assist=pets.map((row)=>({g:Number(row.g),lv:80,star:3,stage:1}));
   const skillOptions=[
     {groupId:11608,id:1160805,level:5},
     {groupId:11611,id:1161105,level:5},
@@ -153,6 +159,12 @@ test("legacy import golden fixture preserves character sources and seeded damage
   assert.ok(mappedGearEffects.stunts.length>0,"selected gear stunts should reach the engine stunt pipeline");
   assert.ok(mappedCardEffects.attrs.length>0,"multiple cards should contribute engine attributes");
   assert.ok(mappedEquipment.cards.some((item)=>cardParts(item,data)?.base.length>0),"card slots should resolve through CardConfig tiers");
+  const flashedCard=mappedEquipment.cards.find((item)=>item.flash);
+  const flashedParts=flashedCard&&cardParts(flashedCard,data);
+  assert.ok(flashedParts?.collectionAttrs.length>0,"a real Collection card should exercise flash attributes");
+  for(const [attr,value] of flashedParts.collectionAttrs) assert.ok(mappedCardEffects.attrs.some((pair)=>pair[0]===attr&&pair[1]===value),"Collection flash attributes should reach cardEffects");
+  assert.ok(imported.draft.pets.filter(Boolean).length>=2,"multiple deployed pets should survive import");
+  assert.ok(imported.draft.assistPets.filter(Boolean).length>=2,"multiple assist pets should survive import");
   const nativeTotems=JSON.parse(imported.draft.totemLoadoutInput).map((totem)=>({...totem,enhanceBp:totemEnhanceBp}));
   for(const id of [1160805,1161105,1163605]) assert.ok(data.row("SkillConfig",id),`fixture skill ${id} should exist in exported simulator data`);
   const nativeBuild={
