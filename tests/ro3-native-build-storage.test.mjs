@@ -16,7 +16,7 @@ const draft = {
     cards: Array.from({ length: 18 }, () => ({ id: 0, star: 3, level: 15, flash: false })),
   },
   pets: [null, null, null, null], assistPets: [null, null, null],
-  enchantAttrs: [], extraAttrInput: "", emblemAttrInput: "", totemLoadoutInput: "", totemLevel: "0", totemSkillIds: "", totemAttrInput: "", totemEnhanceBp: "0",
+  enchantAttrs: [], extraAttrInput: "", petCollectionAttrInput: "", emblemAttrInput: "", totemLoadoutInput: "", totemLevel: "0", totemSkillIds: "", totemAttrInput: "", totemEnhanceBp: "0",
   resonanceRefine: "0", resonanceEnhance: "0", talentLevel: "0", talentProf: "0", talentPicks: {},
   passiveSkillIds: "", talentSkillLevels: "", activeBuffIds: "", skillLevels: "", rotationCycle: false,
   cancelBackswing: false, periodicOff: false, periodicStartSeconds: "0", ridden: false, def: "5000", mdef: "3000", targetLevel: "100",
