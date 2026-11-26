@@ -52,6 +52,9 @@ export default function NativeCombatSimulatorPreview() {
   const [level, setLevel] = useState("100");
   const [stats, setStats] = useState(["80","60","50","20","80","20"]);
   const [equipment, setEquipment] = useState<NativeEquipmentSelection>(() => emptyNativeEquipmentSelection());
+  const [enchantAttrs, setEnchantAttrs] = useState<Array<[number, number]>>([]);
+  const [resonanceRefine, setResonanceRefine] = useState("0");
+  const [resonanceEnhance, setResonanceEnhance] = useState("0");
   const [def, setDef] = useState("5000");
   const [mdef, setMdef] = useState("3000");
   const [targetLevel, setTargetLevel] = useState("100");
@@ -78,7 +81,8 @@ export default function NativeCombatSimulatorPreview() {
 
   const attacker = useMemo<CombatBuild>(() => ({
     career: 1410, level: numeric(level,100), stats: stats.map((v) => numeric(v,1)) as CombatBuild["stats"],
-  }), [level, stats]);
+    enchantAttrs, resonance: { refine: numeric(resonanceRefine,0), enhance: numeric(resonanceEnhance,0) },
+  }), [level, stats, enchantAttrs, resonanceRefine, resonanceEnhance]);
   const engineEquipment = useMemo(() => engine.equipmentCatalog ? toEngineEquipment(equipment, engine.equipmentCatalog.equipment, engine.equipmentCatalog.cards, numeric(level,100), engine.getGearLevelCaps(numeric(level,100))) : { gear: [], cards: [] }, [equipment, engine.equipmentCatalog, engine.getGearLevelCaps, level]);
   const characterSheet = useMemo(() => {
     if (!engine.ready) return null;
@@ -98,6 +102,7 @@ export default function NativeCombatSimulatorPreview() {
       });
       const validatedAttacker: CombatBuild = {
         career: 1410, level: validated.level, stats: validated.stats,
+        enchantAttrs, resonance: { refine: numeric(resonanceRefine,0), enhance: numeric(resonanceEnhance,0) },
         ...engineEquipment,
       };
       const validatedDefender: CombatDefender = {
@@ -127,6 +132,25 @@ export default function NativeCombatSimulatorPreview() {
         <label className="text-xs text-zinc-400">Career<select disabled value="1410" className={inputClass}><option value="1410">Royal Guard</option></select></label>
         <label className="text-xs text-zinc-400">Character level<input type="number" min="1" max="200" value={level} onChange={(e)=>setLevel(e.target.value)} className={inputClass}/></label>
         {statNames.map((name,i)=><label key={name} className="text-xs text-zinc-400">{name}<input type="number" min="1" max="99" value={stats[i]} onChange={(e)=>setStats((old)=>old.map((v,j)=>j===i?e.target.value:v))} className={inputClass}/></label>)}
+      </div>
+    </section>
+    <section className="rounded-xl border border-white/10 bg-zinc-900/70 p-4">
+      <h2 className="text-sm font-semibold text-white">Enchantments &amp; resonance</h2>
+      <p className="mt-1 text-xs text-zinc-500">Enchantment attributes are passed directly to the legacy character-sheet calculation. Resonance uses the existing RefiningEffectTable and StrengthenEffectTable thresholds.</p>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        <label className="text-xs text-zinc-400">Refine resonance level<input type="number" min="0" max="99" value={resonanceRefine} onChange={(e)=>setResonanceRefine(e.target.value)} className={inputClass}/></label>
+        <label className="text-xs text-zinc-400">Enhance resonance level<input type="number" min="0" max="999" value={resonanceEnhance} onChange={(e)=>setResonanceEnhance(e.target.value)} className={inputClass}/></label>
+      </div>
+      <div className="mt-3 space-y-2">
+        <p className="text-xs font-medium text-zinc-300">Enchantment attributes</p>
+        {enchantAttrs.map(([attribute, amount], index)=><div key={index} className="grid grid-cols-[1fr_110px_auto] gap-2">
+          <select value={attribute} onChange={(e)=>setEnchantAttrs((old)=>old.map((entry,i)=>i===index?[Number(e.target.value),entry[1]]:entry))} className={inputClass}>
+            {engine.attributeOptions.map((option)=><option key={option.id} value={option.id}>{option.name} · {option.id}</option>)}
+          </select>
+          <input type="number" value={amount} onChange={(e)=>setEnchantAttrs((old)=>old.map((entry,i)=>i===index?[entry[0],numeric(e.target.value,0)]:entry))} className={inputClass} aria-label="Enchantment amount"/>
+          <button type="button" onClick={()=>setEnchantAttrs((old)=>old.filter((_,i)=>i!==index))} className="rounded-lg border border-white/10 px-3 text-xs text-zinc-300">Remove</button>
+        </div>)}
+        <button type="button" onClick={()=>setEnchantAttrs((old)=>[...old,[engine.attributeOptions[0]?.id??1,0]])} disabled={!engine.attributeOptions.length} className="rounded-lg border border-white/10 px-3 py-2 text-xs text-zinc-300 disabled:opacity-40">Add enchant attribute</button>
       </div>
     </section>
     <section className="rounded-xl border border-white/10 bg-zinc-900/70 p-4">
