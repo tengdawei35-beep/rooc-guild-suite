@@ -49,8 +49,7 @@ test("skill tree options include passive and buff skills and derive learned effe
   const buffTable = { "9001": { _kChangeAttri: [[103, 500]] }, "9002": { _kChangeAttri: [[103, 100]] } };
   const options = getCombatSkillTreeOptions(ui, table, 1410, buffTable);
   assert.deepEqual(options.map((option) => option.kind).sort(), ["buff", "buff", "damage", "passive"]);
-  const effects = deriveLearnedSkillEffects(options, { "14101": 1, "14102": 1, "14103": 1 }, {
-  }, true);
+  const effects = deriveLearnedSkillEffects(options, { "14101": 1, "14102": 1, "14103": 1 }, buffTable, true);
   assert.deepEqual(effects.passiveSkillIds, [1410101]);
   assert.deepEqual(effects.autoBuffIds, [9001]);
 });
