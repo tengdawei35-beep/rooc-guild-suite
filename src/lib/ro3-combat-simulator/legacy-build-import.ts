@@ -150,7 +150,7 @@ export function importLegacyRoyalGuardBuild(
   if (state.hold && typeof state.hold === "object" && Object.keys(state.hold).length) {
     warnings.push("Legacy held/final stat targets are not retained as editable targets; their current solved flat bonuses (ex) are imported into native extra attributes.");
   }
-  if (state.echoes?.some((echo: any) => echo?.colors?.some(Boolean))) warnings.push("Soul Echo mark colors were not imported; mark and proc effects are not modeled by the native preview.");
+  if (Array.isArray(state.echoes) && state.echoes.some((echo: any) => echo?.colors?.some(Boolean))) warnings.push("Soul Echo mark colors were not imported; mark and proc effects are not modeled by the native preview.");
   if (state.echoes?.some((echo: any) => echo?.id && echo?.stats?.length > 4)) warnings.push("Echo attribute entries beyond the native editable slots are preserved in the aggregate attribute input.");
   if (state.bonus?.boss) warnings.push("Legacy boss-damage bonus is not currently represented in the native draft.");
   if (state.talents?.lv) warnings.push("Talent picks and levels were imported, but talent effects remain inactive when the authorized TalentDigest data is unavailable.");
