@@ -18,7 +18,8 @@ const draft = {
   pets: [null, null, null, null], assistPets: [null, null, null],
   enchantAttrs: [], emblemAttrInput: "", totemSkillIds: "", totemAttrInput: "", totemEnhanceBp: "0",
   resonanceRefine: "0", resonanceEnhance: "0", talentLevel: "0", talentProf: "0", talentPicks: {},
-  passiveSkillIds: "", talentSkillLevels: "", def: "5000", mdef: "3000", targetLevel: "100",
+  passiveSkillIds: "", talentSkillLevels: "", activeBuffIds: "", skillLevels: "", rotationCycle: false,
+  cancelBackswing: false, periodicOff: false, periodicStartSeconds: "0", ridden: false, def: "5000", mdef: "3000", targetLevel: "100",
   element: "1", race: "1", size: "2", skillIds: "", duration: "30000",
 };
 const build = (id, updatedAt) => ({
