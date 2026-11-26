@@ -127,7 +127,8 @@ export function importLegacyRoyalGuardBuild(
         .filter(([id, value]) => Number.isInteger(id) && Number(id) > 0 && Number.isFinite(value))
     : [];
   const collectionPairs = Array.isArray(state.petCollect) ? state.petCollect : [];
-  draft.extraAttrInput = toAttributeInput([...extraPairs, ...collectionPairs]);
+  draft.extraAttrInput = toAttributeInput(extraPairs);
+  draft.petCollectionAttrInput = toAttributeInput(collectionPairs);
   const echoPairs = state.echoUseEntries === false
     ? (Array.isArray(state.echoAttrs) ? state.echoAttrs : [])
     : (Array.isArray(state.echoes) ? state.echoes.flatMap((echo: any) =>
