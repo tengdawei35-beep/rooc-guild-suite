@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useCombatSimulatorEngine } from "@/lib/ro3-combat-simulator/hooks/use-combat-simulator-engine";
 import type { CombatBuild, CombatDefender, CombatRotationResult } from "@/lib/ro3-combat-simulator/types";
 import { validateCombatInput } from "@/lib/ro3-combat-simulator/validate-input.mjs";
-import { emptyNativeEquipmentSelection, toEngineEquipment, type NativeEquipmentSelection } from "@/lib/ro3-combat-simulator/build-input";
+import { emptyNativeEquipmentSelection, moveUniqueCardSelection, toEngineEquipment, type NativeEquipmentSelection } from "@/lib/ro3-combat-simulator/build-input";
 import { EQUIPMENT_GRIDS, CARD_SOCKETS } from "@/lib/ro3-combat-simulator/equipment-options";
 import { NATIVE_BUILD_STORAGE_KEY, parseNativeSavedBuilds, removeNativeSavedBuild, serializeNativeSavedBuilds, upsertNativeSavedBuild, type NativeBuildDraft, type NativeSavedBuild } from "@/lib/ro3-combat-simulator/native-build-storage";
 
@@ -390,7 +390,7 @@ export default function NativeCombatSimulatorPreview() {
             const selectedCard=choices.find((card)=>card.id===equipment.cards[index]?.id);
             const cardOptions=selectedCard ? engine.getCardCustomization(selectedCard.id,equipment.cards[index]?.star??3) : null;
             return <label key={socket.index} className="text-xs text-zinc-400">{socket.name} · Lv {socket.levelRequired}
-              <select value={equipment.cards[index]?.id??0} onChange={(e)=>setEquipment((old)=>{const id=Number(e.target.value);const selected=engine.equipmentCatalog?.cards.find((card)=>card.id===id);return {...old,cards:old.cards.map((slot,i)=>i===index?{...slot,id}:selected?.unique&&slot.id===id?{...slot,id:0,flash:false}:slot)};})} className={inputClass}>
+              <select value={equipment.cards[index]?.id??0} onChange={(e)=>setEquipment((old)=>{const id=Number(e.target.value);const selected=engine.equipmentCatalog?.cards.find((card)=>card.id===id);return {...old,cards:moveUniqueCardSelection(old.cards,index,id,!!selected?.unique)};})} className={inputClass}>
                 <option value="0">Empty</option>{choices.map((card)=><option key={card.id} value={card.id}>{card.name} · Q{card.quality}</option>)}
               </select>
               {selectedCard&&cardOptions&&<div className="mt-2 grid grid-cols-3 gap-2">
