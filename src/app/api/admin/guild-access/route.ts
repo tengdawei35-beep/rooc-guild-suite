@@ -28,22 +28,25 @@ export async function POST(request: Request) {
     if (!guildId || !planId) return NextResponse.json({ error: "Guild and plan are required." }, { status: 400 });
     if (durationMonths === undefined) return NextResponse.json({ error: "Duration must be a positive number of months or permanent." }, { status: 400 });
 
-    const [guild, plan, latestSubscription] = await Promise.all([
+    const [guild, plan, latestSubscription, unresolvedStripeSubscription] = await Promise.all([
       prisma.guild.findUnique({ where: { id: guildId }, select: { id: true, name: true } }),
       prisma.plan.findUnique({ where: { id: planId }, include: { modules: true } }),
       prisma.guildSubscription.findFirst({ where: { guildId }, orderBy: { createdAt: "desc" }, include: { plan: true } }),
+      prisma.guildSubscription.findFirst({
+        where: { guildId, provider: "stripe", status: { not: "CANCELED" } },
+        orderBy: { createdAt: "desc" },
+        select: { id: true, status: true },
+      }),
     ]);
 
     if (!guild) return NextResponse.json({ error: "Guild not found." }, { status: 404 });
     if (!plan?.active) return NextResponse.json({ error: "Selected plan is not active." }, { status: 400 });
 
-    const latestIsPaidActive = latestSubscription
-      && (latestSubscription.status === "ACTIVE" || latestSubscription.status === "TRIALING")
-      && latestSubscription.provider !== "complimentary"
-      && (!latestSubscription.currentPeriodEnd || latestSubscription.currentPeriodEnd > new Date());
-
-    if (latestIsPaidActive) {
-      return NextResponse.json({ error: "This guild has an active paid subscription. Cancel or replace it through billing before granting complimentary access." }, { status: 409 });
+    if (unresolvedStripeSubscription) {
+      return NextResponse.json({
+        error: "This guild still has a Stripe-managed subscription. Cancel it through billing before granting complimentary access.",
+        subscriptionStatus: unresolvedStripeSubscription.status,
+      }, { status: 409 });
     }
 
     const now = new Date();
@@ -57,15 +60,12 @@ export async function POST(request: Request) {
     }
 
     const subscription = await prisma.$transaction(async (tx) => {
-      const savedSubscription = latestSubscription
+      const savedSubscription = latestSubscription?.provider === "complimentary"
         ? await tx.guildSubscription.update({
             where: { id: latestSubscription.id },
             data: {
               planId: plan.id,
               status: "ACTIVE",
-              provider: "complimentary",
-              providerCustomerId: null,
-              providerSubscriptionId: null,
               currentPeriodStart: now,
               currentPeriodEnd,
               cancelAtPeriodEnd: false,
