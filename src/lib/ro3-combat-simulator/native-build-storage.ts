@@ -47,7 +47,7 @@ const isPairArray = (value: unknown): value is Array<[number, number]> =>
   Array.isArray(value) && value.every((pair) => Array.isArray(pair) && pair.length === 2 && isNumber(pair[0]) && isNumber(pair[1]));
 
 function isEquipment(value: unknown): value is NativeEquipmentSelection {
-  if (!isRecord(value) || !Array.isArray(value.gear) || !Array.isArray(value.cards)) return false;
+  if (!isRecord(value) || !Array.isArray(value.gear) || value.gear.length !== 7 || !Array.isArray(value.cards) || value.cards.length !== 18) return false;
   const gearValid = value.gear.every((slot) => isRecord(slot)
     && ["id", "roll", "refine", "enhance", "offRefine", "offEnhance"].every((key) => isNumber(slot[key]))
     && Array.isArray(slot.affixes) && slot.affixes.every(isNumber)
