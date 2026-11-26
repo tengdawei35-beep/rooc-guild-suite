@@ -1,3 +1,32 @@
+# Production status correction — 2026-11-27
+
+> **This current-status section supersedes the historical checkpoint statements below wherever they conflict.** The later sections preserve the migration history and detailed parity inventory; they should not be read as the current production routing status.
+
+- The production `/combat-simulator` page now renders `NativeCombatSimulatorPreview` from `src/app/combat-simulator/page.tsx`.
+- The production route is authenticated, subscription-gated and restricted to RO3 guild workspaces.
+- `/combat-simulator/native-preview` remains as a separate preview route and currently renders the same native React workspace.
+- `CombatSimulatorProfiles.tsx` and the legacy iframe message bridge remain in the repository as legacy integration code; their presence does not mean the production route uses the iframe.
+- The native workspace uses the extracted simulator engine and exported data adapters. The upstream/legacy HTML remains in the repository as a source/reference for the embedded engine and game-data payload.
+- The current implementation includes native profile selection/import, build editing, equipment/cards, pets, talents/passives, totems/emblems, rotations, saved builds, legacy tab import, Monte Carlo reports and comparison features. Exact parity is still bounded by the explicitly unsupported/inactive fields documented below.
+- The simulator remains a community-derived estimate. Software regression/equivalence fixtures do not constitute live-game validation. No damage formula change is authorized by this status correction.
+
+## Current status table
+
+| Area | Status as of 2026-11-27 |
+| --- | --- |
+| Production route | Native React workspace is active at `/combat-simulator`. |
+| Extracted calculation engine and game-data adapters | Present and used by the native workspace. |
+| Attacker/defender member profiles | Native profile workflow is present; validate against current production member data. |
+| Native build editing and saved builds | Implemented for supported fields; browser-local storage. |
+| Legacy build/tab import | Implemented for supported v15 Royal Guard inputs; unsupported fields are reported or remain inactive. |
+| Native report and comparisons | Implemented for the documented report surface; complete legacy UI parity is not claimed. |
+| Regression tests | Multiple engine, data, import, build-input, distribution and seeded fixture tests are present. |
+| Full feature parity | Not claimed; inspect unsupported fields and remaining class-specific behavior. |
+| Live-game formula validation | Not possible until the game is live and representative gameplay evidence exists. |
+| Iframe retirement | Production page no longer routes through the iframe; legacy HTML/bridge files remain as reference/compatibility assets and should only be removed after dependency audit. |
+
+---
+
 # RO3 Combat Simulator — native React migration
 
 ## Migration guardrails
