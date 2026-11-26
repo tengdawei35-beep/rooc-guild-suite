@@ -8,7 +8,7 @@ const defaults = {
     gear:Array.from({length:7},()=>({id:0,roll:5000,refine:0,enhance:0,affixes:[],stunts:[],offRefine:0,offEnhance:0})),
     cards:Array.from({length:18},()=>({id:0,star:3,level:15,flash:false})),
   },
-  pets:[null,null,null,null],assistPets:[null,null,null],enchantAttrs:[],emblemAttrInput:"",
+  pets:[null,null,null,null],assistPets:[null,null,null],enchantAttrs:[],extraAttrInput:"",emblemAttrInput:"",
   totemSkillIds:"",totemAttrInput:"",totemEnhanceBp:"0",resonanceRefine:"0",resonanceEnhance:"0",
   talentLevel:"0",talentProf:"0",talentPicks:{},passiveSkillIds:"",talentSkillLevels:"",
   activeBuffIds:"",skillLevels:"",rotationCycle:false,cancelBackswing:false,periodicOff:false,
