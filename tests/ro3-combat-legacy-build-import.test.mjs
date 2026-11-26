@@ -85,7 +85,7 @@ test("legacy import golden fixture preserves character sources and seeded damage
   const state={
     v:15,job:1410,level:150,element:4,bonus:{boss:125},stats:[90,80,70,20,60,10],
     skills:{11608:5,11611:5,11636:5},rotation:[11608,11611,11636],
-    sim:{seconds:10,runs:128,seed:20261126,cycle:0,cancel:0,howl:0},
+    sim:{seconds:10,runs:128,seed:20261126,cycle:1,cancel:1,howl:0},
     target:{def:1980,mdef:1200,level:200,element:2,race:3,size:1},
     ex:{103:100,1:12,1031:450},petCollect:[[104,50]],
     res:{refine:12,enhance:18},talents:{lv:20,prof:0,picks:{}},
@@ -192,7 +192,7 @@ test("legacy import golden fixture preserves character sources and seeded damage
     resonance:{refine:12,enhance:18},
     pets:imported.draft.pets,assistPets:imported.draft.assistPets,
     talents:{lv:20,prof:0,picks:{},skills:{11608:5,11611:5,11636:5}},
-    skillLevels:{11608:5,11611:5,11636:5},rotationCycle:false,cancelBackswing:false,
+    skillLevels:{11608:5,11611:5,11636:5},rotationCycle:true,cancelBackswing:true,
     periodicOff:false,periodicStartMs:0,ridden:false,
   };
   assert.deepEqual(buildCharacterStats(nativeBuild,data),buildCharacterStats(legacyReference,data));
