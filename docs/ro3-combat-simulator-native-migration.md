@@ -207,3 +207,12 @@ The native report now visualizes the simulator distribution engine's existing pe
 The native report supports a sequential saved-build comparison using the existing pinned baseline control: run a saved Build A, pin its result, load and run Build B, then compare mean, p5 and p95 DPS. The report identifies the baseline by its build name and displays its trial count and simulation duration. The pinned result exists only in the current browser session; it is not a persisted saved-build comparison record or a batch runner.
 
 A seeded legacy-import regression fixture now loads the full exported simulator tables and compares a supported imported Royal Guard build with a legacy-reference build using the same attacker inputs, learned skill levels, rotation, totem system enhancement, defender, duration and random seed. It compares deterministic cast logs, sample damage timelines, Monte Carlo total-damage trials, per-skill normal/critical histograms and the captured sample trial. This is software equivalence coverage for the explicitly mapped fixture surface, not independent live-game validation or proof of full legacy UI parity.
+
+
+### Expanded full-build import fixture (2026-11-26)
+
+The seeded legacy-import fixture now selects a real Royal Guard-compatible equipment row and card from the exported catalogs, then imports non-default roll/refine/enhance and card star/level values through the v15 importer. It also includes a real PetDigest entry and its growth ID for the active pet and assist-pet selections, plus non-zero resonance and talent-level settings.
+
+The test asserts that the imported native draft retains the source equipment/card IDs and values, then maps those selections through the same catalog adapter used by the React preview. It compares the resulting native build and legacy-reference build character sheets and seeded simulation reports. CI run [#45788003755](https://github.com/tengdawei35-beep/rooc-guild-suite/actions/runs/45788003755) passed the combat regression suite, Prisma generation/migrations, TypeScript, ESLint and production build; the Vercel preview also succeeded.
+
+This broadens the tested surface but does not yet establish parity for all seven gear slots, affix/stunt combinations, card collection effects, non-empty talent picks, all pet combinations, special procs or independently captured legacy outputs.
