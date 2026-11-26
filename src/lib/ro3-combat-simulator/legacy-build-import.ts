@@ -101,7 +101,7 @@ export function importLegacyRoyalGuardBuild(
   draft.periodicOff = Number(state.sim?.howl) < 0;
   draft.periodicStartSeconds = numberString(Math.max(0,Number(state.sim?.howl)||0),0);
   draft.ridden = Number(state.sim?.howl) < 0;
-  draft.duration = numberString(state.sim?.seconds,30);
+  draft.duration = numberString((Number(state.sim?.seconds) || 30) * 1000,30000);
   draft.def = numberString(state.target?.def,0);
   draft.mdef = numberString(state.target?.mdef,0);
   draft.targetLevel = numberString(state.target?.level,100);
