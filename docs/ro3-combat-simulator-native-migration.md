@@ -109,3 +109,10 @@ These inputs remain part of the gated native preview. They do not change the pro
 - Emblem attribute pairs and deployed totem inputs are now wired into the existing engine. The native preview accepts exact attribute ID/value pairs, totem skill IDs and enhancement basis points; this is intentionally a manual bridge until the full emblem/totem catalogs and editor UX are migrated.
 - A regression test verifies emblem attributes and enhanced totem attributes flow through the existing character sheet pipeline without changing formulas.
 - Talent configuration depends on the generated `TalentDigest` data row. If that row is absent from the exported dataset, the current talent controls correctly show no available branches; generating the digest from the season talent source tables remains a required parity task before treating the talent editor as complete.
+
+### Native report presentation checkpoint
+
+- Replaced the raw JSON cast-log dump with a structured, collapsible event list showing time, event type, name, hit count and lock/duration where supplied by the engine.
+- Added a separate sample-damage-events list from the engine's sampled timeline, showing impact time, skill and expected damage.
+- The engine's sample timeline is intentionally bounded by its existing sampling behaviour; the full cast log remains available in the native report.
+- The preview now explicitly reports when the generated `TalentDigest` is absent. In that case, talent picks do not affect the result; the source-table digest generation is still outstanding.
