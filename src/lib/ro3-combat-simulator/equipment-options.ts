@@ -1,7 +1,7 @@
 export type EquipmentGrid = { index: number; name: string; parts: number[] };
 export type EquipmentOption = { id: number; name: string; part: number; quality: number; levelRequired: number; tier: number; rank: number };
 export type CardSocket = { index: number; part: number; name: string; levelRequired: number };
-export type CardOption = { id: number; name: string; part: number; quality: number };
+export type CardOption = { id: number; name: string; part: number; quality: number; unique: boolean };
 
 export const EQUIPMENT_GRIDS: EquipmentGrid[] = [
   { index: 0, name: "Weapon", parts: [1, 2] },
@@ -63,7 +63,7 @@ export function getCombatEquipmentCatalog(tables: Tables, ui: Ui, career: number
     .sort((a,b)=>a.name.localeCompare(b.name) || a.id-b.id);
   const cards: CardOption[] = items.flatMap((item) => item._iCardPart && Number.isInteger(item._iID) ? [{
     id: Number(item._iID), name: String(item.name ?? `Card ${item._iID}`).replace(/^Card: /,""),
-    part: Number(item._iCardPart), quality: Number(item._iQuality ?? 0),
+    part: Number(item._iCardPart), quality: Number(item._iQuality ?? 0), unique: !!item._iIfSameCard,
   }] : []).sort((a,b)=>b.quality-a.quality || a.name.localeCompare(b.name));
   return {
     grids: EQUIPMENT_GRIDS,
