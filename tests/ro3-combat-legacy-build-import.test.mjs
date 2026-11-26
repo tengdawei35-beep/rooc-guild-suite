@@ -63,7 +63,7 @@ test("parses legacy tab books defensively",()=>{
 
 test("legacy import golden fixture preserves legacy character-sheet attribute sources",()=>{
   const state={
-    v:15,job:1410,level:150,stats:[90,80,70,20,60,10],
+    v:15,job:1410,level:150,element:4,bonus:{boss:125},stats:[90,80,70,20,60,10],
     ex:{103:100,1:12,1031:450},petCollect:[[104,50]],
     echoUseEntries:true,echoes:[{id:501,stats:[{a:105,v:25}],colors:["red"]}],
     totemLv:4,totems:[{id:7001,attrs:[[103,30]],skills:[9001]}],
