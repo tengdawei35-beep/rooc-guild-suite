@@ -3,6 +3,9 @@ import assert from "node:assert/strict";
 import { importLegacyRoyalGuardBuild, parseLegacyBuildBook } from "../src/lib/ro3-combat-simulator/legacy-build-import";
 import { buildCharacterStats, simulateDistribution } from "../src/lib/ro3-combat-simulator/engine/ro3-damage-engine.mjs";
 import { createRo3CombatDataStore } from "../src/lib/ro3-combat-simulator/create-data-store.ts";
+import { loadRo3GameData } from "../src/lib/ro3-combat-simulator/data/ro3-game-data";
+import { getCombatEquipmentCatalog, CARD_SOCKETS } from "../src/lib/ro3-combat-simulator/equipment-options";
+import { toEngineEquipment, emptyNativeEquipmentSelection } from "../src/lib/ro3-combat-simulator/build-input";
 
 const defaults = {
   level:"100",bonusStatPoints:"0",stats:["1","1","1","1","1","1"],
@@ -73,9 +76,23 @@ test("legacy import golden fixture preserves character sources and seeded damage
     sim:{seconds:10,runs:128,seed:20261126,cycle:0,cancel:0,howl:0},
     target:{def:1980,mdef:1200,level:200,element:2,race:3,size:1},
     ex:{103:100,1:12,1031:450},petCollect:[[104,50]],
+    res:{refine:12,enhance:18},talents:{lv:20,prof:0,picks:{}},
     echoUseEntries:true,echoes:[{id:501,stats:[{a:105,v:25}],colors:["red"]}],
     totemLv:4,totems:[{id:7001,attrs:[[103,30]],skills:[9001]}],
   };
+  const exported=await loadRo3GameData();
+  const catalog=getCombatEquipmentCatalog(exported.tables,exported.ui,1410);
+  const weapon=catalog.equipment.find((item)=>[1,2].includes(item.part)&&item.levelRequired<=150);
+  const cardSocket=CARD_SOCKETS[0];
+  const card=catalog.cards.find((item)=>item.part===cardSocket.part);
+  const pet=Object.values(exported.tables.PetDigest).find((item)=>Number(item._iID)>0&&Number(item.g)>0);
+  assert.ok(weapon,"exported catalog should contain a Royal Guard weapon for the fixture");
+  assert.ok(card,"exported catalog should contain a card for the first socket");
+  assert.ok(pet,"exported catalog should contain a pet for the fixture");
+  state.gear=[{id:weapon.id,roll:7500,refine:3,enh:2,aff:[],sp:[]}];
+  state.cards=[{id:card.id,star:2,lv:10,flash:false}];
+  state.pets=[{id:Number(pet._iID),lv:80,star:3,stage:1}];
+  state.assist=[{g:Number(pet.g),lv:80,star:3,stage:1}];
   const skillOptions=[
     {groupId:11608,id:1160805,level:5},
     {groupId:11611,id:1161105,level:5},
@@ -89,14 +106,21 @@ test("legacy import golden fixture preserves character sources and seeded damage
   const rotationIds=imported.draft.skillIds.split(",").filter(Boolean).map(Number);
   const data=await createRo3CombatDataStore();
   const totemEnhanceBp=Number(data.row("TotemLvConfig",Number(imported.draft.totemLevel))?._iAttributeEnhance ?? 0);
+  const mappedEquipment=toEngineEquipment(imported.draft.equipment,catalog.equipment,catalog.cards,Number(imported.draft.level));
+  assert.equal(mappedEquipment.gear[0]?.id,weapon.id,"legacy gear selection should map to an engine equipment row");
+  assert.equal(mappedEquipment.cards[0]?.id,card.id,"legacy card selection should map to an engine card row");
   const nativeTotems=JSON.parse(imported.draft.totemLoadoutInput).map((totem)=>({...totem,enhanceBp:totemEnhanceBp}));
   for(const id of [1160805,1161105,1163605]) assert.ok(data.row("SkillConfig",id),`fixture skill ${id} should exist in exported simulator data`);
   const nativeBuild={
     career:1410,level:Number(imported.draft.level),element:Number(imported.draft.attackerElement),bondBonusBp:Number(imported.draft.bondBonusBp),stats:imported.draft.stats.map(Number),
+    ...mappedEquipment,
     equipmentAttrs:pairs(imported.draft.extraAttrInput),
     extraAttrs:pairs(imported.draft.petCollectionAttrInput),
     emblemAttrs:pairs(imported.draft.emblemAttrInput),
     totems:nativeTotems,
+    resonance:{refine:Number(imported.draft.resonanceRefine),enhance:Number(imported.draft.resonanceEnhance)},
+    pets:imported.draft.pets,assistPets:imported.draft.assistPets,
+    talents:{lv:Number(imported.draft.talentLevel),prof:Number(imported.draft.talentProf),picks:imported.draft.talentPicks,skills:Object.fromEntries(imported.draft.talentSkillLevels.split(",").filter(Boolean).map((entry)=>entry.trim().split(":").map(Number)))},
     skillLevels,rotationCycle:imported.draft.rotationCycle,cancelBackswing:imported.draft.cancelBackswing,
     periodicOff:imported.draft.periodicOff,periodicStartMs:Number(imported.draft.periodicStartSeconds)*1000,ridden:imported.draft.ridden,
   };
@@ -105,9 +129,13 @@ test("legacy import golden fixture preserves character sources and seeded damage
   // and learned levels / rotation groups -> the same supported SkillConfig rows.
   const legacyReference={
     career:1410,level:150,element:4,bondBonusBp:12500,stats:[90,80,70,20,60,10],
+    ...mappedEquipment,
     equipmentAttrs:[[1,12],[103,100],[1031,450]],
     extraAttrs:[[104,50]],emblemAttrs:[[105,25]],
     totems:[{guid:1,id:7001,attrs:[[103,30]],skills:[9001],enhanceBp:totemEnhanceBp}],
+    resonance:{refine:12,enhance:18},
+    pets:imported.draft.pets,assistPets:imported.draft.assistPets,
+    talents:{lv:20,prof:0,picks:{},skills:{11608:5,11611:5,11636:5}},
     skillLevels:{11608:5,11611:5,11636:5},rotationCycle:false,cancelBackswing:false,
     periodicOff:false,periodicStartMs:0,ridden:false,
   };
