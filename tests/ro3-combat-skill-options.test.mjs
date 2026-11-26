@@ -51,7 +51,7 @@ test("skill tree options include passive and buff skills and derive learned effe
   const options = getCombatSkillTreeOptions(ui, table, 1410, buffTable);
   assert.deepEqual(options.map((option) => option.kind).sort(), ["buff", "buff", "damage", "passive", "passive"]);
   const effects = deriveLearnedSkillEffects(options, { "14101": 1, "14102": 1, "14103": 1, "13311": 1 }, buffTable, true);
-  assert.deepEqual(effects.passiveSkillIds, [1410101]);
+  assert.deepEqual(effects.passiveSkillIds.sort((a,b)=>a-b), [1331101, 1410101]);
   assert.deepEqual(effects.autoBuffIds.sort((a,b)=>a-b), [9001, 1331201].sort((a,b)=>a-b));
   const rotationOptions = getCombatSkillOptions(ui, table, 1410, buffTable);
   assert.ok(rotationOptions.some((option) => option.groupId === 14103), "modeled short buffs belong in the rotation");
