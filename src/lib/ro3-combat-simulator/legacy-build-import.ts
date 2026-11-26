@@ -18,6 +18,7 @@ export function importLegacyRoyalGuardBuild(
   raw: unknown,
   defaults: NativeBuildDraft,
   skillOptions: LegacySkillOption[],
+  totemLevelForEnhanceBp?: (enhanceBp: number) => number,
 ): LegacyImportResult {
   const warnings: string[] = [];
   const unsupported: string[] = [];
@@ -147,7 +148,11 @@ export function importLegacyRoyalGuardBuild(
         enhanceBp: 0,
       }));
     draft.totemLoadoutInput = JSON.stringify(totems);
-    draft.totemLevel = numberString(state.totemLv, 0);
+    const legacyTotemLevel = Number(state.totemLv);
+    const inferredTotemLevel = Number.isInteger(legacyTotemLevel) && legacyTotemLevel >= 0
+      ? legacyTotemLevel
+      : totemLevelForEnhanceBp?.(Number(state.totems[0]?.enhanceBp) || 0) ?? 0;
+    draft.totemLevel = numberString(inferredTotemLevel, 0);
     if (state.totems.length > 3) unsupported.push("Totem slots beyond the three supported native slots were omitted.");
     if (totems.some((totem: any) => totem.skills.length)) warnings.push("Totem selections and supported skill effects were imported; dynamic totem procs are not fully modeled.");
   }
