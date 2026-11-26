@@ -20,6 +20,7 @@ export type GearCustomization = {
 };
 
 export type CombatEngineStatus = "loading" | "ready" | "error";
+export type NativePetOption = { id: number; growthId: number; name: string; growthName: string; maxLevel: number };
 
 /**
  * Client-side lifecycle for the extracted combat engine.
@@ -31,6 +32,7 @@ export function useCombatSimulatorEngine() {
   const [skillOptions, setSkillOptions] = useState<CombatSkillOption[]>([]);
   const [equipmentCatalog, setEquipmentCatalog] = useState<ReturnType<typeof getCombatEquipmentCatalog> | null>(null);
   const [attributeOptions, setAttributeOptions] = useState<Array<{ id: number; name: string }>>([]);
+  const [petOptions, setPetOptions] = useState<NativePetOption[]>([]);
   const [status, setStatus] = useState<CombatEngineStatus>("loading");
   const [error, setError] = useState<string | null>(null);
 
@@ -40,6 +42,14 @@ export function useCombatSimulatorEngine() {
       .then(([store, exported]) => {
         if (!active) return;
         setData(store);
+        setPetOptions(Object.values(store.table("PetDigest")).map((row) => {
+          const id = Number(row._iID);
+          const growthId = Number(row.g);
+          const growth = store.row("PetGrowth", growthId);
+          const petName = row.main && typeof row.main === "object" ? String((row.main as Record<string, unknown>).name ?? "") : "";
+          const passiveName = row.pas && typeof row.pas === "object" ? String((row.pas as Record<string, unknown>).name ?? "") : "";
+          return { id, growthId, name: petName || passiveName || "Pet " + id, growthName: String(growth?.name ?? "Growth " + growthId), maxLevel: Number(store.row("PetRules", 1)?.maxLv ?? 100) };
+        }).filter((pet) => Number.isFinite(pet.id) && pet.id > 0 && Number.isFinite(pet.growthId) && pet.growthId > 0).sort((a, b) => a.name.localeCompare(b.name)));
         setAttributeOptions(Object.values(store.table("AttributeConfig")).map((row) => ({ id: Number(row._iID), name: String(row.name ?? `Attribute ${row._iID}`) })).filter((row) => Number.isFinite(row.id)).sort((a, b) => a.id - b.id));
         setEquipmentCatalog(getCombatEquipmentCatalog(
           exported.tables as Parameters<typeof getCombatEquipmentCatalog>[0],
@@ -122,5 +132,5 @@ export function useCombatSimulatorEngine() {
     return simulateCombatRotation(attacker, defender, rotationSkillIds, durationMs, data);
   }, [data]);
 
-  return { status, error, ready: status === "ready", skillOptions, equipmentCatalog, attributeOptions, getCharacterSheet, getGearCustomization, getGearLevelCaps, getCardCustomization, simulate };
+  return { status, error, ready: status === "ready", skillOptions, equipmentCatalog, attributeOptions, petOptions, getCharacterSheet, getGearCustomization, getGearLevelCaps, getCardCustomization, simulate };
 }
