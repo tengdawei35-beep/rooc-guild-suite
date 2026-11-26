@@ -272,7 +272,7 @@ export default function NativeCombatSimulatorPreview() {
     const warnings: string[] = [];
     const unsupported: string[] = [];
     for (const tab of tabs) {
-      const mapped = importLegacyRoyalGuardBuild(tab.state, captureNativeBuildDraft(), engine.skillOptions);
+      const mapped = importLegacyRoyalGuardBuild(tab.state, captureNativeBuildDraft(), engine.skillOptions, engine.getTotemLevelForEnhanceBp);
       warnings.push(...mapped.warnings);
       unsupported.push(...mapped.unsupported);
       if (!mapped.draft) continue;
