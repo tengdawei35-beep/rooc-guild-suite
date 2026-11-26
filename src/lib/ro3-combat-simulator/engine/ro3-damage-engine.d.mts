@@ -58,3 +58,22 @@ export declare function talentPick(talents: Record<string, any>, branch: string 
 export declare function talentWalk(build: Record<string, any>, data?: Ro3MemoryDataStore): Record<string, any>;
 export declare function talentEffects(build: Record<string, any>, data?: Ro3MemoryDataStore): Record<string, any>;
 export declare function talentMax(build: Record<string, any>, data?: Ro3MemoryDataStore): number;
+
+export declare function simulateDistribution(
+  build: Record<string, any>,
+  defender: Record<string, any>,
+  rotationSkillIds: number[],
+  durationMs?: number,
+  options?: { runs?: number; seed?: number; bins?: number; bucketMs?: number; captureRun?: boolean },
+  data?: Ro3MemoryDataStore,
+): {
+  runs: number; durationMs: number; bucketMs: number; nBuckets: number; bins: number;
+  expectedTotal: number; deterministic: ReturnType<typeof simulateRotation>;
+  totals: Float64Array; cumulative: Float64Array;
+  skills: Array<{
+    id: number; name: string; kind: string; magic: boolean; events: number; total: number;
+    hits: number; crits: number; misses: number; lo: number; hi: number;
+    perBucket: Float64Array; normalBins: Uint32Array; critBins: Uint32Array;
+  }>;
+  sampleRun?: Array<Record<string, unknown>>;
+};
