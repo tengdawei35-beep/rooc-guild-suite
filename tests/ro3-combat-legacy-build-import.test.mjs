@@ -103,3 +103,13 @@ test("imports legacy any-profession talent mode as profession zero",()=>{
   assert.ok(result.draft);
   assert.equal(result.draft.talentProf,"0");
 });
+
+test("infers missing legacy totem system level from its stored enhancement",()=>{
+  const state={
+    v:15,job:1410,level:100,stats:[1,1,1,1,1,1],
+    totems:[{id:7001,attrs:[[103,30]],skills:[],enhanceBp:7500}],
+  };
+  const result=importLegacyRoyalGuardBuild(state,defaults,[],(enhanceBp)=>enhanceBp===7500?3:0);
+  assert.ok(result.draft);
+  assert.equal(result.draft.totemLevel,"3");
+});
