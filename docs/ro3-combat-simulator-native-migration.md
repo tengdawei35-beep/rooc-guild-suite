@@ -110,6 +110,22 @@ These inputs remain part of the gated native preview. They do not change the pro
 - A regression test verifies emblem attributes and enhanced totem attributes flow through the existing character sheet pipeline without changing formulas.
 - Talent configuration depends on the generated `TalentDigest` data row. If that row is absent from the exported dataset, the current talent controls correctly show no available branches; generating the digest from the season talent source tables remains a required parity task before treating the talent editor as complete.
 
+### Authoritative Season TalentDigest import
+
+The authoritative digest-generation logic lives in the upstream [RO3 damage simulator](https://github.com/hksekai/ro3-damage-sim), in `build-ro3-sim.mjs`. It derives `TalentDigest` from the client's SeasonTalentTreeConfig, SeasonTalentConfig, SeasonTalentEffectConfig, LC_ConditionList, SpecialEffectConfig, BuffConfig, ItemConfig and localization tables.
+
+Heimdall now includes `scripts/import-ro3-talent-digest.mjs`. It imports the already-generated `TalentDigest` row from the upstream simulator's `ro3-damage-sim.html` data payload and copies any talent-referenced BuffConfig rows that are not already present. This deliberately reuses the upstream generator's output rather than maintaining a second implementation of the game-data transformation.
+
+Run it from the Heimdall repository root after obtaining the current source simulator HTML:
+
+```bash
+node scripts/import-ro3-talent-digest.mjs --source-html /path/to/ro3-damage-sim.html
+```
+
+The importer validates the source digest and every referenced buff, updates only the native compressed game-data payload, and preserves the other native tables and UI metadata. It fails closed if the source digest or a referenced buff is missing. Unit tests cover extraction, merging, buff completeness, compressed-payload round trips and invalid source data.
+
+The import must still be run with the current upstream HTML before the talent editor can be considered data-complete. The importer and its tests are now part of the migration branch; this commit does not fabricate or claim to have populated the live digest.
+
 ### Native report presentation checkpoint
 
 - Replaced the raw JSON cast-log dump with a structured, collapsible event list showing time, event type, name, hit count and lock/duration where supplied by the engine.
