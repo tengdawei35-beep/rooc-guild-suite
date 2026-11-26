@@ -21,6 +21,7 @@ export type GearCustomization = {
 
 export type CombatEngineStatus = "loading" | "ready" | "error";
 export type NativePetOption = { id: number; growthId: number; name: string; growthName: string; maxLevel: number };
+export type NativeTalentChoice = { id: number; name: string; text?: string; sim?: number; kids: Array<{ id: number; name: string; text?: string; sim?: number }> };
 
 /**
  * Client-side lifecycle for the extracted combat engine.
@@ -122,13 +123,13 @@ export function useCombatSimulatorEngine() {
     };
   }, [data]);
 
-  const getTalentConfiguration = useCallback((career: number, level: number, prof: number, talents: Record<string, any>) => {
+  const getTalentConfiguration = useCallback((career: number, level: number, prof: number, talents: Record<string, any>): { branches: Array<{ id: string; options: NativeTalentChoice[] }>; walk: Record<string, any> | null; effects: { attrs: Array<[number, number]>; buffs: number[] } } => {
     if (!data) return { branches: [] as Array<{ id: string; options: Array<Record<string, any>> }>, walk: null, effects: { attrs: [], buffs: [] } };
     const digest = data.row("TalentDigest", 1);
     const branches = digest?.branches && typeof digest.branches === "object"
       ? Object.keys(digest.branches as Record<string, unknown>).map((id) => ({
           id,
-          options: talentOptions(id, career, prof, data),
+          options: talentOptions(id, career, prof, data) as NativeTalentChoice[],
         })).filter((branch) => branch.options.length > 0)
       : [];
     const build = { career, level, talents };
