@@ -15,6 +15,12 @@ test("legacy Monte Carlo distribution is deterministic for a fixed seed", () => 
   assert.ok(first.expectedTotal > 0);
   assert.ok(first.deterministic.castLog.length > 0);
   assert.ok(first.sampleRun?.length);
+  for (const skill of first.skills) {
+    assert.ok(skill.normalBins instanceof Uint32Array);
+    assert.ok(skill.critBins instanceof Uint32Array);
+    assert.equal(Array.from(skill.normalBins).reduce((sum, count) => sum + count, 0), skill.hits);
+    assert.equal(Array.from(skill.critBins).reduce((sum, count) => sum + count, 0), skill.crits);
+  }
   assert.deepEqual(Array.from(first.totals), Array.from(second.totals));
   assert.deepEqual(first.skills.map((skill) => [skill.id, skill.total, skill.hits, skill.crits, skill.misses]), second.skills.map((skill) => [skill.id, skill.total, skill.hits, skill.crits, skill.misses]));
 });
