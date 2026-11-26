@@ -100,7 +100,11 @@ test("legacy import golden fixture preserves character sources and seeded damage
     {grid:4,parts:[5]},{grid:5,parts:[6]},{grid:6,parts:[7]},
   ];
   const selectedGear=gearSlots.flatMap(({grid,parts})=>{
-    const item=catalog.equipment.find((candidate)=>parts.includes(candidate.part)&&candidate.levelRequired<=150);
+    const candidates=catalog.equipment.filter((candidate)=>parts.includes(candidate.part)&&candidate.levelRequired<=150);
+    const item=candidates.find((candidate)=>{
+      const probe=gearParts({grid,id:candidate.id,roll:7500,refine:3,enhance:2,affixes:[],stunts:[]},data);
+      return (probe?.pool.length??0)>0||(probe?.pools??[]).some((pool)=>pool.length>0);
+    })??candidates[0];
     if(!item)return [];
     const probe=gearParts({grid,id:item.id,roll:7500,refine:3,enhance:2,affixes:[],stunts:[]},data);
     const affix=probe?.pool.find((row)=>row._iAttriID>0);
@@ -109,7 +113,7 @@ test("legacy import golden fixture preserves character sources and seeded damage
   });
   const selectedCards=CARD_SOCKETS.flatMap((socket,index)=>{
     if(index!==0&&index!==7)return [];
-    const item=catalog.cards.find((candidate)=>candidate.part===socket.part&&data.row("CardConfig",String(candidate.id)+":2"));
+    const item=catalog.cards.find((candidate)=>candidate.part===socket.part&&Object.values(data.table("CardConfig")).some((row)=>Number(row._iCardID)===candidate.id&&Number(row._iTier)===2));
     return item?[{id:item.id,star:2,lv:10,flash:false}]:[];
   });
   const weapon=selectedGear.find((item)=>item.grid===1);
