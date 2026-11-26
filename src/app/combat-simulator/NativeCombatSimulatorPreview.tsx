@@ -451,7 +451,7 @@ export default function NativeCombatSimulatorPreview() {
     <section className="rounded-xl border border-white/10 bg-zinc-900/70 p-4">
       <div className="flex flex-wrap items-start justify-between gap-3"><div><h2 className="text-sm font-semibold text-white">Attacker build · Royal Guard</h2><p className="mt-1 text-xs text-zinc-500">Uses the simulator's existing Royal Guard career record (1410). No separate DPS career is introduced.</p></div><span className="text-xs text-zinc-500">Native build inputs</span></div>
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <label className="text-xs text-zinc-400">Career<select disabled value="1410" className={inputClass}><option value="1410">Royal Guard</option></select></label>
+        <label className="text-xs text-zinc-400">Job<select value={career} onChange={(e)=>{setCareer(e.target.value);setEquipment(emptyNativeEquipmentSelection());setSkillIds("");setDisabledRotationIds("");setSelectedSkillId("");setRotationPreset("");setSkillLevels("");setPassiveSkillIds("");setActiveBuffIds("");setTalentPicks({});}} className={inputClass}>{engine.careerOptions.map((job)=><option key={job.id} value={job.id}>{job.name}</option>)}</select></label>
         <label className="text-xs text-zinc-400">Character level<input type="number" min="1" max="200" value={level} onChange={(e)=>setLevel(e.target.value)} className={inputClass}/></label>
         {statNames.map((name,i)=><label key={name} className="text-xs text-zinc-400">{name}<input type="number" min="1" max="99" value={stats[i]} onChange={(e)=>setStats((old)=>old.map((v,j)=>j===i?e.target.value:v))} className={inputClass}/></label>)}
       </div>
@@ -462,8 +462,8 @@ export default function NativeCombatSimulatorPreview() {
       <div className="mt-3 grid gap-3 sm:grid-cols-3">
         <label className="text-xs text-zinc-400">Total talent level<input type="number" min="0" max="999" value={talentLevel} onChange={(e)=>setTalentLevel(e.target.value)} className={inputClass}/></label>
         <label className="text-xs text-zinc-400">Profession<select value={talentProf} onChange={(e)=>setTalentProf(e.target.value)} className={inputClass}><option value="0">Default</option>{engine.careerOptions.map((job)=><option key={job.id} value={job.id}>{job.name}</option>)}</select></label>
-        <label className="text-xs text-zinc-400">Passive SkillConfig IDs<input value={passiveSkillIds} onChange={(e)=>setPassiveSkillIds(e.target.value)} placeholder="Comma-separated IDs" className={inputClass}/></label>
-        <label className="text-xs text-zinc-400 sm:col-span-3">Talent prerequisite skill levels<input value={talentSkillLevels} onChange={(e)=>setTalentSkillLevels(e.target.value)} placeholder="Skill group ID:level, e.g. 120:5, 121:3" className={inputClass}/></label>
+        <label className="text-xs text-zinc-400">Additional passive skills<select multiple value={parseIdList(passiveSkillIds).map(String)} onChange={(e)=>setPassiveSkillIds(Array.from(e.currentTarget.selectedOptions).map((o)=>o.value).join(", "))} className={`${inputClass} min-h-24`}>{engine.skillTreeOptions.filter((skill)=>skill.kind==="passive").flatMap((skill)=>skill.levels.map((row)=><option key={row.rowId} value={row.rowId}>{skill.name} · Lv {row.level}</option>))}</select></label>
+        <p className="text-[11px] text-zinc-500 sm:col-span-3">Set prerequisite levels in the named learned skill tree below.</p>
       </div>
       {talentConfiguration.branches.length>0 ? <div className="mt-3 grid gap-3 sm:grid-cols-2">
         {talentConfiguration.branches.map((branch)=>{const current=talentPicks[branch.id]??[0,0];const cluster=branch.options.find((option)=>option.id===current[0])??branch.options[0];return <div key={branch.id} className="rounded-lg bg-black/20 p-3">
@@ -484,9 +484,7 @@ export default function NativeCombatSimulatorPreview() {
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <label className="text-xs text-zinc-400">Emblem attributes (ID:value)<input value={emblemAttrInput} onChange={(e)=>setEmblemAttrInput(e.target.value)} placeholder="103:120, 104:120" className={inputClass}/></label>
         <label className="text-xs text-zinc-400">Totem skills<select multiple value={parseIdList(totemSkillIds).map(String)} onChange={(e)=>setTotemSkillIds(Array.from(e.currentTarget.selectedOptions).map((o)=>o.value).join(", "))} className={`${inputClass} min-h-24`}>{engine.namedOptions.totemSkills.map((o)=><option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
-        <label className="block text-xs text-zinc-400 sm:col-span-2">Imported totem loadout (JSON)
-          <textarea value={totemLoadoutInput} onChange={(e)=>setTotemLoadoutInput(e.target.value)} rows={3} placeholder="Legacy totem selections are imported here." className={inputClass}/>
-        </label>
+        <p className="text-[11px] text-zinc-500 sm:col-span-2">Totem loadouts imported from legacy builds are retained internally; their game-data identifiers are not exposed.</p>
         <label className="text-xs text-zinc-400">Legacy totem system level<input type="number" min="0" value={totemLevel} onChange={(e)=>setTotemLevel(e.target.value)} className={inputClass}/></label>
         <label className="text-xs text-zinc-400">Totem attributes (ID:value)<input value={totemAttrInput} onChange={(e)=>setTotemAttrInput(e.target.value)} placeholder="103:50, 104:50" className={inputClass}/></label>
         <label className="text-xs text-zinc-400">Totem enhancement (basis points)<input type="number" min="0" value={totemEnhanceBp} onChange={(e)=>setTotemEnhanceBp(e.target.value)} className={inputClass}/></label>
@@ -494,7 +492,7 @@ export default function NativeCombatSimulatorPreview() {
     </section>
     <section className="rounded-xl border border-white/10 bg-zinc-900/70 p-4">
       <h2 className="text-sm font-semibold text-white">Pets &amp; support pets</h2>
-      <p className="mt-1 text-xs text-zinc-500">Uses the simulator's PetDigest, PetGrowth and PetRules data. The first deployed pet is the primary combat pet; the remaining deployed slots supply supported passives. Support pets contribute shared attributes.</p>
+      <p className="mt-1 text-xs text-zinc-500">Choose pets by pet name. The first deployed pet is the primary combat pet; remaining deployed pets supply supported passives. Support pets contribute shared attributes.</p>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         {pets.map((pet,index)=><div key={index} className="rounded-lg bg-black/20 p-3">
           <p className="text-xs font-medium text-zinc-300">Deployed pet {index+1}{index===0?" · Primary":""}</p>
@@ -647,10 +645,7 @@ export default function NativeCombatSimulatorPreview() {
               {CLASS_PROFILES.royalguard.candidateRotations.map((preset: {name:string}, index: number)=><option key={preset.name} value={index}>{preset.name}</option>)}
             </select>
           </label>
-          <label className="block text-xs text-zinc-400">Rotation SkillConfig IDs (priority order; duplicates allowed)
-            <input value={skillIds} onChange={(e)=>{setSkillIds(e.target.value);setRotationPreset("");}} placeholder="Select skills above or enter IDs manually" className={inputClass}/>
-          </label>
-          <label className="block text-xs text-zinc-400">Disabled rotation SkillConfig IDs<input value={disabledRotationIds} onChange={(e)=>setDisabledRotationIds(e.target.value)} placeholder="IDs to skip, comma-separated" className={inputClass}/></label>
+          <p className="text-[11px] text-zinc-500">Rotation order is managed with the named skills and controls below.</p>
           {rotationEntries.length > 0 && <div className="space-y-1 rounded-lg border border-white/10 bg-zinc-950/40 p-2">
             <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Rotation priority</p>
             {rotationEntries.map((id, index) => {
@@ -658,7 +653,7 @@ export default function NativeCombatSimulatorPreview() {
               const disabled = disabledRotationSet.has(id);
               return <div key={`${id}-${index}`} className="flex items-center gap-2 rounded-md border border-white/5 px-2 py-1.5 text-xs">
                 <span className="w-4 text-zinc-500">{index + 1}.</span>
-                <span className={`min-w-0 flex-1 truncate ${disabled ? "text-zinc-600 line-through" : "text-zinc-200"}`}>{skill?.name ?? `Skill ${id}`} <span className="text-zinc-500">#{id}</span></span>
+                <span className={`min-w-0 flex-1 truncate ${disabled ? "text-zinc-600 line-through" : "text-zinc-200"}`}>{skill?.name ?? "Unknown skill"}</span>
                 <label className="flex items-center gap-1 text-[10px] text-zinc-400"><input type="checkbox" checked={disabled} onChange={(e)=>setRotationEntryDisabled(id,e.target.checked)}/>Off</label>
                 <button type="button" aria-label={`Move skill ${id} up`} disabled={index===0} onClick={()=>moveRotationEntry(index,-1)} className="rounded px-1 text-zinc-300 disabled:opacity-25">↑</button>
                 <button type="button" aria-label={`Move skill ${id} down`} disabled={index===rotationEntries.length-1} onClick={()=>moveRotationEntry(index,1)} className="rounded px-1 text-zinc-300 disabled:opacity-25">↓</button>
