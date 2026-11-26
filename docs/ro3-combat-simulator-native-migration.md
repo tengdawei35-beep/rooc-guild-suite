@@ -160,3 +160,12 @@ This is still an explicit-input bridge, not full legacy skill-state parity. The 
 - Added a separate sample-damage-events list from the engine's sampled timeline, showing impact time, skill and expected damage.
 - The engine's sample timeline is intentionally bounded by its existing sampling behaviour; the full cast log remains available in the native report.
 - The preview now explicitly reports when the generated `TalentDigest` is absent. In that case, talent picks do not affect the result; the source-table digest generation is still outstanding.
+
+
+### Legacy tab import checkpoint
+
+The native preview now includes an explicit **Import legacy tabs** action. It reads the iframe's same-origin `ro3sim.builds.v1` browser-local tab book, validates the book envelope, and imports only current schema v15 Royal Guard (career 1410) tabs. It maps base stats, supported gear/card slots, pets, support-pet growth, learned skill levels, rotation order/disabled skills, talent picks, resonance, simulation timing and defender fields into native saved builds.
+
+The importer intentionally rejects other careers and legacy state versions that have not first been upgraded by the iframe. It reports unsupported state rather than silently discarding it: aggregate typed attributes, held/final stat values, Echo/emblem state, totems and pet collection bonuses are not yet semantically mapped. Boss-damage bonus is reported as a warning. Talent selections can be imported, but remain ineffective when the authorized TalentDigest is unavailable. Imported builds are saved in the native browser-local collection; the original legacy tabs are not modified or deleted.
+
+This is a guarded first-pass migration path, not complete legacy parity. Broader field mapping and preservation of unsupported values remain required before iframe retirement.
