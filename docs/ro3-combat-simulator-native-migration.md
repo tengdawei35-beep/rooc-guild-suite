@@ -140,7 +140,7 @@ This is the first native persistence layer, not a complete legacy-tab migration.
 
 The native catalog now follows the legacy simulator's modeled-effect whitelist for always-on buffs: supported attribute changes, supported skill-parameter changes, and known modeled proc families. Learned long buffs are added only when the selected skill rank grants a modeled buff lasting at least 60 seconds. Short modeled buff skills are now included in the rotation picker rather than being treated as permanent buffs. Mounted riding-family passive buffs are derived from learned skill level when the mounted toggle is enabled.
 
-The rotation input preserves cast priority and repeated SkillConfig IDs (needed by cycle mode). A separate disabled-ID list skips selected skills without deleting them from the saved priority sequence. The full legacy reorder/disable UX and default class rotation presets remain outstanding; manual priority editing is currently the native control.
+The rotation input preserves cast priority and repeated SkillConfig IDs (needed by cycle mode). A separate disabled-ID list skips selected skills without deleting them from the saved priority sequence. The native preview now provides an ordered rotation editor with move-up/move-down controls, duplicate entries, per-skill enable/disable toggles and removal. Default class rotation presets and exact legacy ordering heuristics (including automatic placement of always-ready skills) remain outstanding.
 
 ### Native learned-skill tree checkpoint
 
