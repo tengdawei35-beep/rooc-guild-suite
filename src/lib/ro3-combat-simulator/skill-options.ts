@@ -37,13 +37,28 @@ export function getCombatSkillOptions(
   return [...groups.values()].sort((a, b) => a.name.localeCompare(b.name) || a.id - b.id);
 }
 
+import { BUFF_PROCS, RIDING_PASSIVES } from "./engine/ro3-damage-engine.mjs";
+
+const FX_ATTRS = new Set([1,2,3,4,5,6,102,103,104,109,111,114,115,209,211,213,215,227,229,235,1021,1022,1023,1031,1032,1033,1034,1041,1042,1043,1044,1091,1092,1093,1111,1112,1113,1141,1142,1211,1213,1215,1227,1229,1250,1252]);
+const SKILL_FX_TYPES = new Set([0,21,23,24,25,26,27,29,30]);
+
+function hasModeledBuffEffect(id: number, buffTable: Record<string, Record<string, unknown>>): boolean {
+  const config = buffTable[String(id)];
+  if (!config) return false;
+  if (Boolean(BUFF_PROCS[Math.floor(id / 100)])) return true;
+  const attrs = Array.isArray(config._kChangeAttri) ? config._kChangeAttri : [];
+  if (attrs.some((entry) => Array.isArray(entry) && FX_ATTRS.has(Number(entry[0])))) return true;
+  const skillAttrs = Array.isArray(config._kSkillAttributeList) ? config._kSkillAttributeList : [];
+  return skillAttrs.some((entry) => Array.isArray(entry) && (Number(entry[0]) === 0 || (Number(entry[0]) === 1 && Number(entry[1]) > 0)) && SKILL_FX_TYPES.has(Number(entry[2])));
+}
+
 export type CombatSkillTreeOption = {
   groupId: number;
   name: string;
   jobId: number;
   maxLevel: number;
   kind: "damage" | "buff" | "passive" | "utility";
-  levels: Array<{ level: number; rowId: number; buffs: Array<{ id: number; durationMs: number }>; passive: boolean }>;
+  levels: Array<{ level: number; rowId: number; buffs: Array<{ id: number; durationMs: number; modeled: boolean }>; passive: boolean }>;\n  autoBuff: boolean;\n  rotationUsable: boolean;
 };
 
 export function getCombatSkillTreeOptions(
