@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentAuth } from "@/lib/auth";
 import { hasCombatSimulatorAccess } from "@/lib/ro3-combat-simulator/entitlements";
-import CombatSimulatorProfiles from "./CombatSimulatorProfiles";
+import NativeCombatSimulatorPreview from "./NativeCombatSimulatorPreview";
 
 export const metadata = { title: "RO3 Combat Simulator" };
 
@@ -25,7 +25,7 @@ export default async function CombatSimulatorPage() {
         <div><p className="hmdl-page-eyebrow">RO3 TOOLS</p><h1 className="hmdl-page-title">Combat Simulator</h1><p className="hmdl-page-description">Model damage output, compare builds and test character profiles. Results may differ from live game outcomes.</p></div>
         <span className="rounded-full border border-[var(--hmdl-warning)]/30 bg-[var(--hmdl-warning)]/10 px-3 py-1.5 text-xs font-medium text-[var(--hmdl-warning)]">Community tool · Preliminary</span>
       </header>
-      <CombatSimulatorProfiles />
+      <NativeCombatSimulatorPreview />
       <p className="text-xs leading-5 text-zinc-500">Some PvP effects, healing, shields and selected skill interactions are not fully modeled. Results are estimates, not an official game calculator.</p>
     </section>
   </div>;
