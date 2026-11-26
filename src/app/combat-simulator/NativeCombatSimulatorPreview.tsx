@@ -78,6 +78,13 @@ export default function NativeCombatSimulatorPreview() {
   const [talentPicks, setTalentPicks] = useState<Record<string, [number, number]>>({});
   const [passiveSkillIds, setPassiveSkillIds] = useState("");
   const [talentSkillLevels, setTalentSkillLevels] = useState("");
+  const [activeBuffIds, setActiveBuffIds] = useState("");
+  const [skillLevels, setSkillLevels] = useState("");
+  const [rotationCycle, setRotationCycle] = useState(false);
+  const [cancelBackswing, setCancelBackswing] = useState(false);
+  const [periodicOff, setPeriodicOff] = useState(false);
+  const [periodicStartSeconds, setPeriodicStartSeconds] = useState("0");
+  const [ridden, setRidden] = useState(false);
   const [def, setDef] = useState("5000");
   const [mdef, setMdef] = useState("3000");
   const [targetLevel, setTargetLevel] = useState("100");
@@ -122,7 +129,9 @@ export default function NativeCombatSimulatorPreview() {
     enchantAttrs, emblemAttrs: parseAttributePairs(emblemAttrInput), totems: [{ guid: 1, skills: parseIdList(totemSkillIds), attrs: parseAttributePairs(totemAttrInput), enhanceBp: numeric(totemEnhanceBp,0) }], resonance: { refine: numeric(resonanceRefine,0), enhance: numeric(resonanceEnhance,0) }, pets, assistPets,
     talents: { lv: numeric(talentLevel,0), prof: numeric(talentProf,0), picks: talentPicks, skills: parseTalentSkillLevels(talentSkillLevels) },
     passiveSkills: passiveSkillIds.split(/[ ,]+/).map(Number).filter((id)=>Number.isInteger(id)&&id>0),
-  }), [level, stats, enchantAttrs, emblemAttrInput, totemSkillIds, totemAttrInput, totemEnhanceBp, resonanceRefine, resonanceEnhance, pets, assistPets, talentLevel, talentProf, talentPicks, passiveSkillIds, talentSkillLevels]);
+    activeBuffs: parseIdList(activeBuffIds), skillLevels: parseTalentSkillLevels(skillLevels), rotationCycle, cancelBackswing, periodicOff, periodicStartMs: numeric(periodicStartSeconds,0)*1000, ridden,
+    activeBuffs: parseIdList(activeBuffIds), skillLevels: parseTalentSkillLevels(skillLevels), rotationCycle, cancelBackswing, periodicOff, periodicStartMs: numeric(periodicStartSeconds,0)*1000, ridden,
+  }), [level, stats, enchantAttrs, emblemAttrInput, totemSkillIds, totemAttrInput, totemEnhanceBp, resonanceRefine, resonanceEnhance, pets, assistPets, talentLevel, talentProf, talentPicks, passiveSkillIds, talentSkillLevels, activeBuffIds, skillLevels, rotationCycle, cancelBackswing, periodicOff, periodicStartSeconds, ridden]);
   const engineEquipment = useMemo(() => engine.equipmentCatalog ? toEngineEquipment(equipment, engine.equipmentCatalog.equipment, engine.equipmentCatalog.cards, numeric(level,100), engine.getGearLevelCaps(numeric(level,100))) : { gear: [], cards: [] }, [equipment, engine.equipmentCatalog, engine.getGearLevelCaps, level]);
   const talentConfiguration = useMemo(() => engine.getTalentConfiguration(1410, numeric(level,100), numeric(talentProf,0), {
     lv: numeric(talentLevel,0), prof: numeric(talentProf,0), picks: talentPicks, skills: parseTalentSkillLevels(talentSkillLevels),
@@ -143,6 +152,7 @@ export default function NativeCombatSimulatorPreview() {
       enchantAttrs: JSON.parse(JSON.stringify(enchantAttrs)), emblemAttrInput, totemSkillIds, totemAttrInput,
       totemEnhanceBp, resonanceRefine, resonanceEnhance, talentLevel, talentProf,
       talentPicks: JSON.parse(JSON.stringify(talentPicks)), passiveSkillIds, talentSkillLevels,
+      activeBuffIds, skillLevels, rotationCycle, cancelBackswing, periodicOff, periodicStartSeconds, ridden,
       def, mdef, targetLevel, element, race, size, skillIds, duration,
     };
   }
@@ -185,6 +195,8 @@ export default function NativeCombatSimulatorPreview() {
     setResonanceRefine(state.resonanceRefine); setResonanceEnhance(state.resonanceEnhance);
     setTalentLevel(state.talentLevel); setTalentProf(state.talentProf); setTalentPicks(JSON.parse(JSON.stringify(state.talentPicks)));
     setPassiveSkillIds(state.passiveSkillIds); setTalentSkillLevels(state.talentSkillLevels);
+    setActiveBuffIds(state.activeBuffIds); setSkillLevels(state.skillLevels); setRotationCycle(state.rotationCycle);
+    setCancelBackswing(state.cancelBackswing); setPeriodicOff(state.periodicOff); setPeriodicStartSeconds(state.periodicStartSeconds); setRidden(state.ridden);
     setDef(state.def); setMdef(state.mdef); setTargetLevel(state.targetLevel); setElement(state.element);
     setRace(state.race); setSize(state.size); setSkillIds(state.skillIds); setDuration(state.duration);
     setSavedBuildName(build.name); setResult(null); setSimulationError(null); setSelectedSkillId("");
@@ -436,7 +448,18 @@ export default function NativeCombatSimulatorPreview() {
         </div>
         <label className="text-xs text-zinc-400">Duration (ms)<input type="number" min="1000" max="300000" step="1000" value={duration} onChange={(e)=>setDuration(e.target.value)} className={inputClass}/></label>
       </div>
-      <p className="mt-2 text-[11px] text-zinc-500">{engine.skillOptions.length} learnable damage skills found across Royal Guard's career progression. Empty rotation uses normal attacks only.</p>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        <label className="text-xs text-zinc-400">Learned skill levels (groupId:level)<input value={skillLevels} onChange={(e)=>setSkillLevels(e.target.value)} placeholder="groupId:level, groupId:level" className={inputClass}/></label>
+        <label className="text-xs text-zinc-400">Always-on buff IDs<input value={activeBuffIds} onChange={(e)=>setActiveBuffIds(e.target.value)} placeholder="BuffConfig IDs, comma-separated" className={inputClass}/></label>
+      </div>
+      <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs text-zinc-300">
+        <label className="flex items-center gap-2"><input type="checkbox" checked={rotationCycle} onChange={(e)=>setRotationCycle(e.target.checked)}/>Cycle rotation priority</label>
+        <label className="flex items-center gap-2"><input type="checkbox" checked={cancelBackswing} onChange={(e)=>setCancelBackswing(e.target.checked)}/>Cancel backswing</label>
+        <label className="flex items-center gap-2"><input type="checkbox" checked={periodicOff} onChange={(e)=>setPeriodicOff(e.target.checked)}/>Disable periodic buffs</label>
+        <label className="flex items-center gap-2"><input type="checkbox" checked={ridden} onChange={(e)=>setRidden(e.target.checked)}/>Mounted</label>
+      </div>
+      <label className="mt-3 block max-w-xs text-xs text-zinc-400">Periodic buff start (seconds)<input type="number" min="0" step="0.1" value={periodicStartSeconds} onChange={(e)=>setPeriodicStartSeconds(e.target.value)} className={inputClass}/></label>
+      <p className="mt-2 text-[11px] text-zinc-500">{engine.skillOptions.length} learnable damage skills found across Royal Guard's career progression. Empty rotation uses normal attacks only. Skill levels use group IDs, not SkillConfig row IDs.</p>
       <button type="button" disabled={!engine.ready} onClick={runSimulation} className="mt-4 rounded-lg bg-cyan-400 px-4 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-40">{engine.ready ? "Run native simulation" : "Engine loading…"}</button>
       {simulationError && <p role="alert" className="mt-3 text-sm text-rose-300">{simulationError}</p>}
     </section>
