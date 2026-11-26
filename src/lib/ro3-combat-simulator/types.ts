@@ -65,3 +65,34 @@ export interface CombatWorkspaceState {
   rotation: CombatRotation;
   durationMs: number;
 }
+
+export interface CombatDistributionSkill {
+  id: number;
+  name: string;
+  kind: string;
+  magic: boolean;
+  events: number;
+  total: number;
+  hits: number;
+  crits: number;
+  misses: number;
+  lo: number;
+  hi: number;
+  perBucket: Float64Array;
+  normalBins: Uint32Array;
+  critBins: Uint32Array;
+}
+
+export interface CombatDistributionResult {
+  runs: number;
+  durationMs: number;
+  bucketMs: number;
+  nBuckets: number;
+  bins: number;
+  expectedTotal: number;
+  deterministic: CombatRotationResult;
+  totals: Float64Array;
+  cumulative: Float64Array;
+  skills: CombatDistributionSkill[];
+  sampleRun?: Array<Record<string, unknown>>;
+}
