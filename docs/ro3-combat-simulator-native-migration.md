@@ -136,6 +136,12 @@ The storage format is versioned at `hmdl.ro3.native-builds.v1`, validates restor
 
 This is the first native persistence layer, not a complete legacy-tab migration. The legacy iframe uses its own `ro3sim.builds.v1` state with broader class, skill, target and simulation settings. Importing those tabs remains gated on full field-by-field mapping and explicit reporting of any unsupported values; the migration must not silently discard typed attributes, rotations or advanced systems.
 
+### Native combat-option coverage checkpoint
+
+The preview now exposes additional simulation controls already supported by the extracted engine: learned skill levels keyed by SkillConfig group ID, explicit always-on BuffConfig IDs, cycle-priority rotation, backswing cancellation, periodic-buff enable/disable and start timing, and mounted state. These are passed to the actual simulation build and are persisted in native saved builds.
+
+This is still an explicit-input bridge, not full legacy skill-state parity. The iframe derives learned levels, passive skills, auto-cast long buffs, talent-granted buffs, rotation ordering and mounted/howl behaviour from its complete skill-tree and simulation state. The native preview does not yet reproduce that entire derivation automatically. Until the native skill editor and auto-buff derivation are implemented, users must supply group levels and buff IDs explicitly; unsupported or omitted legacy state must not be treated as equivalent.
+
 ### Native report presentation checkpoint
 
 - Replaced the raw JSON cast-log dump with a structured, collapsible event list showing time, event type, name, hit count and lock/duration where supplied by the engine.
