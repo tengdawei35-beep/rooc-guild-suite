@@ -62,11 +62,13 @@ export function useCombatSimulatorEngine() {
           exported.ui as { jobs: Array<{ id: number; parent?: number }>; trees: Record<string, Array<Array<number | null>>> },
           exported.tables.SkillConfig as Record<string, Record<string, unknown>>,
           1410,
+          exported.tables.BuffConfig as Record<string, Record<string, unknown>>,
         ));
         setSkillOptions(getCombatSkillOptions(
           exported.ui as { jobs: Array<{ id: number; parent?: number }>; trees: Record<string, Array<Array<number | null>>> },
           exported.tables.SkillConfig as Record<string, Record<string, unknown>>,
           1410,
+          exported.tables.BuffConfig as Record<string, Record<string, unknown>>,
         ));
         setStatus("ready");
       })
