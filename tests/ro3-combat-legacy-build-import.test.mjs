@@ -71,6 +71,7 @@ test("legacy import golden fixture preserves character sources and seeded damage
     v:15,job:1410,level:150,element:4,bonus:{boss:125},stats:[90,80,70,20,60,10],
     skills:{11608:5,11611:5,11636:5},rotation:[11608,11611,11636],
     sim:{seconds:10,runs:128,seed:20261126,cycle:0,cancel:0,howl:0},
+    target:{def:1980,mdef:1200,level:200,element:2,race:3,size:1},
     ex:{103:100,1:12,1031:450},petCollect:[[104,50]],
     echoUseEntries:true,echoes:[{id:501,stats:[{a:105,v:25}],colors:["red"]}],
     totemLv:4,totems:[{id:7001,attrs:[[103,30]],skills:[9001]}],
@@ -111,10 +112,12 @@ test("legacy import golden fixture preserves character sources and seeded damage
     periodicOff:false,periodicStartMs:0,ridden:false,
   };
   assert.deepEqual(buildCharacterStats(nativeBuild,data),buildCharacterStats(legacyReference,data));
-  const defender={level:100,def:0,mdef:0,element:1,race:1,size:2};
-  const options={runs:128,seed:20261126,bins:72,bucketMs:1000,captureRun:true};
-  const nativeReport=simulateDistribution(nativeBuild,defender,rotationIds,10000,options,data);
-  const legacyReport=simulateDistribution(legacyReference,defender,[1160805,1161105,1163605],10000,options,data);
+  const defender={level:Number(imported.draft.targetLevel),def:Number(imported.draft.def),mdef:Number(imported.draft.mdef),element:Number(imported.draft.element),race:Number(imported.draft.race),size:Number(imported.draft.size)};
+  const durationMs=Number(imported.draft.duration);
+  const options={runs:Number(imported.draft.simulationRuns),seed:Number(imported.draft.simulationSeed),bins:72,bucketMs:1000,captureRun:true};
+  const legacyDefender={level:200,def:1980,mdef:1200,element:2,race:3,size:1};
+  const nativeReport=simulateDistribution(nativeBuild,defender,rotationIds,durationMs,options,data);
+  const legacyReport=simulateDistribution(legacyReference,legacyDefender,[1160805,1161105,1163605],durationMs,options,data);
   assert.deepEqual(nativeReport.deterministic.castLog,legacyReport.deterministic.castLog);
   assert.deepEqual(nativeReport.deterministic.sampleTimeline,legacyReport.deterministic.sampleTimeline);
   assert.deepEqual(Array.from(nativeReport.totals),Array.from(legacyReport.totals));
