@@ -4,7 +4,7 @@ import { importLegacyRoyalGuardBuild, parseLegacyBuildBook } from "../src/lib/ro
 import { buildCharacterStats, Ro3DataStore, simulateRotation } from "../src/lib/ro3-combat-simulator/engine/ro3-damage-engine.mjs";
 
 const defaults = {
-  level:"100",stats:["1","1","1","1","1","1"],
+  level:"100",bonusStatPoints:"0",stats:["1","1","1","1","1","1"],
   equipment:{
     gear:Array.from({length:7},()=>({id:0,roll:5000,refine:0,enhance:0,affixes:[],stunts:[],offRefine:0,offEnhance:0})),
     cards:Array.from({length:18},()=>({id:0,star:3,level:15,flash:false})),
@@ -19,7 +19,7 @@ const defaults = {
 
 test("imports current Royal Guard legacy state and maps supported inputs",()=>{
   const state={
-    v:15,job:1410,level:150,element:4,bonus:{boss:125},stats:[90,80,70,20,60,10],skills:{11608:5,11611:3},
+    v:15,job:1410,level:150,bonusPoints:12,element:4,bonus:{boss:125},stats:[90,80,70,20,60,10],skills:{11608:5,11611:3},
     rotation:[11608,11611],disabledRotation:[11611],gear:[{id:9001,roll:7500,refine:10,enh:8,aff:[1,2],sp:[3,4]}],
     cards:[{id:7001,star:2,lv:10,flash:true}],pets:[{id:10,lv:99,star:4,stage:1}],
     assist:[{g:12,lv:80,star:3,stage:0}],res:{refine:15,enhance:20},
@@ -29,6 +29,7 @@ test("imports current Royal Guard legacy state and maps supported inputs",()=>{
   const result=importLegacyRoyalGuardBuild(state,defaults,[{groupId:11608,id:1160805,level:5},{groupId:11611,id:1161103,level:3}]);
   assert.ok(result.draft);
   assert.equal(result.draft.level,"150");
+  assert.equal(result.draft.bonusStatPoints,"12");
   assert.equal(result.draft.attackerElement,"4");
   assert.equal(result.draft.bondBonusBp,"12500");
   assert.deepEqual(result.draft.stats,["90","80","70","20","60","10"]);
@@ -50,6 +51,7 @@ test("imports current Royal Guard legacy state and maps supported inputs",()=>{
   assert.deepEqual(JSON.parse(result.draft.totemLoadoutInput),[{guid:1,id:7001,attrs:[[103,30]],skills:[9001],enhanceBp:0}]);
   assert.ok(!result.unsupported.some((item)=>item.includes("Echo/emblem")||item.includes("totem")||item.includes("pet collection")||item.includes("typed/aggregated")));
   assert.ok(result.warnings.some((item)=>item.includes("mark and proc effects")));
+  assert.ok(result.warnings.some((item)=>item.includes("bonus stat points were preserved")));
 });
 
 test("rejects non-Royal Guard and unmigrated legacy versions",()=>{
@@ -72,6 +74,7 @@ test("legacy import golden fixture preserves legacy character-sheet attribute so
   };
   const imported=importLegacyRoyalGuardBuild(state,defaults,[]);
   assert.ok(imported.draft);
+  assert.equal(imported.draft.bonusStatPoints,"-48");
   const pairs=(value)=>value.split(",").filter(Boolean).map((entry)=>entry.trim().split(":").map(Number));
   const nativeBuild={
     career:1410,level:Number(imported.draft.level),element:Number(imported.draft.attackerElement),bondBonusBp:Number(imported.draft.bondBonusBp),stats:imported.draft.stats.map(Number),
