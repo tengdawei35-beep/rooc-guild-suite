@@ -20,6 +20,8 @@ Physical DPS and Magic DPS are separate categories. The default non-critical wei
 
 A critical-capable build can opt into the alternate 25/20/25/20/10 split, but critical output must not be enabled merely from the job name. The caller must establish that the selected build/skill supports critical hits and supply a normalized critical-output component.
 
+These are experimental placeholders only. Penetration is not implemented by the current simulator and must not be populated in any simulator-backed score; target-bonus and damage-amplification inputs also remain gated until their persisted source/aggregation semantics are verified. No final numeric DPS weights have been approved.
+
 Missing DPS components are excluded and the remaining available weights are proportionally rebalanced.
 
 ## Tank score
@@ -35,7 +37,7 @@ HP has a permanent 5% allocation. The remaining defensive components share 95%, 
 | Critical resilience | 19.00% |
 | **Total** | **100%** |
 
-HP is mandatory for a Tank score because its 5% allocation is permanent. If HP is missing, the Tank score is unavailable; its weight is not redistributed. Missing defensive components are excluded and the remaining defensive weights are normalized within the 95% defensive allocation.
+HP is mandatory for this experimental Tank composition because its 5% allocation is fixed. If HP is missing, the Tank score is unavailable; its weight is not redistributed. Missing defensive components are excluded and the remaining defensive weights are normalized within the 95% defensive allocation. The current simulator does not provide a complete incoming-damage model, so these Tank components are not currently calibratable or eligible for live scoring.
 
 ## PvP score
 
@@ -46,11 +48,11 @@ HP is mandatory for a Tank score because its 5% allocation is permanent. If HP i
 
 A DPS PvP score is unavailable unless both its DPS score and Tank score are available. Archbishop PvP uses Tank score only and does not require a DPS score.
 
-For PvP composition, DPS-labelled jobs use 60% DPS + 40% Tank, while Archbishop and Tank-labelled jobs use 100% Tank. The master RO3 job list separates Royal Guard (DPS), Royal Guard (Tank), Rune Knight (DPS), and Rune Knight (Tank), so the chosen role is explicit in the character's job value. Warlock defaults to Magic DPS; other DPS jobs default to Physical DPS. Callers may explicitly provide the DPS category where a build requires it.
+The 60/40 DPS/Tank PvP composition and Archbishop/Tank-only composition are unapproved proposals; no final PvP weights have been approved. The master RO3 job list separates Royal Guard (DPS), Royal Guard (Tank), Rune Knight (DPS), and Rune Knight (Tank), so the chosen role is explicit in the character's job value. Warlock defaults to Magic DPS; other DPS jobs default to Physical DPS. Callers may explicitly provide the DPS category where a build requires it.
 
 ## Live and scheduled calculation boundary
 
-The composition functions are pure and deterministic, so they can be called by a live update handler or a scheduled batch job without changing the score rules. Level 99 is fixed for both attacker and defender in reference scenarios. The global defensive reference population is all active Tank and Support characters across RO3 guilds in Heimdall: Archbishop, Royal Guard (Tank), and Rune Knight (Tank). PDEF and MDEF averages are calculated independently using only records with each value present. The export utility writes an anonymized stat CSV and a baseline JSON containing sample counts and averages. This baseline is intended to be versioned and deliberately recalibrated, not changed on every member-stat edit. However, this PR does not claim raw-stat-to-component normalization or database persistence is complete. That still requires validated handling for penetration, defensive reductions, and target bonuses. The stored stat snapshot and the visible outgoing-damage evaluator do not yet establish every defensive/PvP term needed for a defensible live score.
+The composition functions are pure and deterministic, but they must not be wired to a live update handler, scheduled batch job, member ranking, or persistence until numeric weights are approved and the raw-stat pipeline is validated. Level 99 is fixed for both attacker and defender in reference scenarios. The global defensive reference population is all active and eligible Tank and Support characters across RO3 guilds in Heimdall: Archbishop, Royal Guard (Tank), and Rune Knight (Tank). PDEF and MDEF averages are calculated independently using only records with each value present. The export utility writes an anonymized stat CSV and a baseline JSON containing sample counts and averages. This baseline is intended to be versioned and deliberately recalibrated, not changed on every member-stat edit. However, this PR does not claim raw-stat-to-component normalization or database persistence is complete. That still requires validated handling for penetration, defensive reductions, and target bonuses. The stored stat snapshot and the visible outgoing-damage evaluator do not yet establish every defensive/PvP term needed for a defensible live score.
 
 Do not substitute current guild percentiles or population-relative ranks for fixed reference scenarios: a member's score must not change merely because other members join or update their stats.
 
