@@ -2440,3 +2440,9 @@ body,
     padding: 1.25rem 1rem;
   }
 }
+
+.hmdl-applicant-watchlist-select { min-width:10.5rem; max-width:13rem; font-size:.72rem; }
+.hmdl-applicant-watchlist-badge { display:inline-flex; align-items:center; border:1px solid var(--hmdl-border); border-radius:999px; padding:.2rem .5rem; font-size:.65rem; font-weight:700; white-space:nowrap; }
+.hmdl-applicant-watchlist-badge.is-green { border-color:rgb(34 197 94 / .45); background:rgb(34 197 94 / .12); color:#4ade80; }
+.hmdl-applicant-watchlist-badge.is-yellow { border-color:rgb(234 179 8 / .45); background:rgb(234 179 8 / .12); color:#facc15; }
+.hmdl-applicant-watchlist-badge.is-red { border-color:rgb(239 68 68 / .45); background:rgb(239 68 68 / .12); color:#f87171; }
