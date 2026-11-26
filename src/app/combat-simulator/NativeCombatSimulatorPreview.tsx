@@ -126,7 +126,7 @@ export default function NativeCombatSimulatorPreview() {
   const [defenderId, setDefenderId] = useState("");
   const [career, setCareer] = useState("1410");
   const careerId = numeric(career, 1410);
-  const [level, setLevel] = useState("100");
+  const [level, setLevel] = useState("99");
   const [bonusStatPoints, setBonusStatPoints] = useState("0");
   const [stats, setStats] = useState(["80","60","50","20","80","20"]);
   const [equipment, setEquipment] = useState<NativeEquipmentSelection>(() => emptyNativeEquipmentSelection());
@@ -219,7 +219,7 @@ export default function NativeCombatSimulatorPreview() {
 
   useEffect(() => { if (engine.ready) engine.configureCareer(careerId); }, [engine.ready, engine.configureCareer, careerId]);
 
-  const talentConfiguration = useMemo(() => engine.getTalentConfiguration(careerId, numeric(level,100), numeric(talentProf,0), {
+  const talentConfiguration = useMemo(() => engine.getTalentConfiguration(careerId, numeric(level,99), numeric(talentProf,0), {
     lv: numeric(talentLevel,0), prof: numeric(talentProf,0), picks: talentPicks, skills: parseTalentSkillLevels(talentSkillLevels),
   }), [engine.getTalentConfiguration, careerId, level, talentProf, talentLevel, talentPicks, talentSkillLevels]);
   const learnedSkillLevels = useMemo(() => parseTalentSkillLevels(skillLevels), [skillLevels]);
@@ -241,13 +241,13 @@ export default function NativeCombatSimulatorPreview() {
   }, [totemLoadoutInput, totemLevel, engine.getTotemEnhanceBp, totemSkillIds, totemAttrInput, totemEnhanceBp]);
 
   const attacker = useMemo<CombatBuild>(() => ({
-    career: careerId, level: numeric(level,100), bonusStatPoints: numeric(bonusStatPoints,0), element: numeric(attackerElement,1), bondBonusBp: numeric(bondBonusBp,0), stats: stats.map((v) => numeric(v,1)) as CombatBuild["stats"],
+    career: careerId, level: numeric(level,99), bonusStatPoints: numeric(bonusStatPoints,0), element: numeric(attackerElement,1), bondBonusBp: numeric(bondBonusBp,0), stats: stats.map((v) => numeric(v,1)) as CombatBuild["stats"],
     enchantAttrs, equipmentAttrs: parseAttributePairs(extraAttrInput), extraAttrs: parseAttributePairs(petCollectionAttrInput), emblemAttrs: parseAttributePairs(emblemAttrInput), totems: nativeTotems, resonance: { refine: numeric(resonanceRefine,0), enhance: numeric(resonanceEnhance,0) }, pets, assistPets,
     talents: { lv: numeric(talentLevel,0), prof: numeric(talentProf,0), picks: talentPicks, skills: parseTalentSkillLevels(talentSkillLevels) },
     passiveSkills: effectivePassiveSkills,
     activeBuffs: effectiveBuffIds, skillLevels: learnedSkillLevels, rotationCycle, cancelBackswing, periodicOff, periodicStartMs: numeric(periodicStartSeconds,0)*1000, ridden,
   }), [careerId, level, bonusStatPoints, stats, enchantAttrs, extraAttrInput, petCollectionAttrInput, attackerElement, bondBonusBp, emblemAttrInput, nativeTotems, resonanceRefine, resonanceEnhance, pets, assistPets, talentLevel, talentProf, talentPicks, passiveSkillIds, talentSkillLevels, activeBuffIds, skillLevels, rotationCycle, cancelBackswing, periodicOff, periodicStartSeconds, ridden, effectivePassiveSkills, effectiveBuffIds, learnedSkillLevels]);
-  const engineEquipment = useMemo(() => engine.equipmentCatalog ? toEngineEquipment(equipment, engine.equipmentCatalog.equipment, engine.equipmentCatalog.cards, numeric(level,100), engine.getGearLevelCaps(numeric(level,100))) : { gear: [], cards: [] }, [equipment, engine.equipmentCatalog, engine.getGearLevelCaps, level]);
+  const engineEquipment = useMemo(() => engine.equipmentCatalog ? toEngineEquipment(equipment, engine.equipmentCatalog.equipment, engine.equipmentCatalog.cards, numeric(level,99), engine.getGearLevelCaps(numeric(level,99))) : { gear: [], cards: [] }, [equipment, engine.equipmentCatalog, engine.getGearLevelCaps, level]);
   const characterSheet = useMemo(() => {
     if (!engine.ready) return null;
     try { return engine.getCharacterSheet(attacker, equipment); } catch { return null; }
@@ -571,7 +571,7 @@ export default function NativeCombatSimulatorPreview() {
       <details className="mt-3" open><summary className="cursor-pointer text-xs font-medium text-zinc-300">Equipment slots (7)</summary>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           {EQUIPMENT_GRIDS.map((grid,index)=>{
-            const choices=(engine.equipmentCatalog?.equipment ?? []).filter((item)=>grid.parts.includes(item.part)&&item.levelRequired<=numeric(level,100)&&!(index===1&&equipment.gear[0]?.id&&engine.equipmentCatalog?.equipment.find((w)=>w.id===equipment.gear[0]?.id)?.part===1));
+            const choices=(engine.equipmentCatalog?.equipment ?? []).filter((item)=>grid.parts.includes(item.part)&&item.levelRequired<=numeric(level,99)&&!(index===1&&equipment.gear[0]?.id&&engine.equipmentCatalog?.equipment.find((w)=>w.id===equipment.gear[0]?.id)?.part===1));
             const selectedItem=choices.find((item)=>item.id===equipment.gear[index]?.id);
             const gearOptions=selectedItem ? engine.getGearCustomization(selectedItem.id,index+1) : null;
             return <div key={grid.index} className="rounded-lg bg-black/20 p-3"><label className="block text-xs text-zinc-400">{grid.name}
@@ -580,8 +580,8 @@ export default function NativeCombatSimulatorPreview() {
               </select></label>
               {equipment.gear[index]?.id!==0&&<div className="mt-2 grid grid-cols-2 gap-2">
                 <label className="text-[11px] text-zinc-500">Roll (0–10000)<input type="number" min="0" max="10000" value={equipment.gear[index]?.roll??5000} onChange={(e)=>setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===index?{...slot,roll:numeric(e.target.value,5000)}:slot)}))} className={inputClass}/></label>
-                <label className="text-[11px] text-zinc-500">Refine<input type="number" min="0" max={engine.getGearLevelCaps(numeric(level,100)).refine[index]??0} value={equipment.gear[index]?.refine??0} onChange={(e)=>setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===index?{...slot,refine:numeric(e.target.value,0)}:slot)}))} className={inputClass}/></label>
-                <label className="text-[11px] text-zinc-500">Enhance<input type="number" min="0" max={engine.getGearLevelCaps(numeric(level,100)).enhance[index]??0} value={equipment.gear[index]?.enhance??0} onChange={(e)=>setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===index?{...slot,enhance:numeric(e.target.value,0)}:slot)}))} className={inputClass}/></label>
+                <label className="text-[11px] text-zinc-500">Refine<input type="number" min="0" max={engine.getGearLevelCaps(numeric(level,99)).refine[index]??0} value={equipment.gear[index]?.refine??0} onChange={(e)=>setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===index?{...slot,refine:numeric(e.target.value,0)}:slot)}))} className={inputClass}/></label>
+                <label className="text-[11px] text-zinc-500">Enhance<input type="number" min="0" max={engine.getGearLevelCaps(numeric(level,99)).enhance[index]??0} value={equipment.gear[index]?.enhance??0} onChange={(e)=>setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===index?{...slot,enhance:numeric(e.target.value,0)}:slot)}))} className={inputClass}/></label>
               </div>}
               {selectedItem&&gearOptions&&<div className="mt-3 space-y-2 border-t border-white/10 pt-3">
                 {gearOptions.affixSlots>0&&<div><p className="mb-1 text-[10px] uppercase tracking-wide text-zinc-500">Random attributes · {gearOptions.affixSlots} available</p>
@@ -596,8 +596,8 @@ export default function NativeCombatSimulatorPreview() {
                   </select>
                 </label>)}
                 {index===0&&selectedItem.part===1&&<div className="grid grid-cols-2 gap-2 border-t border-white/10 pt-2">
-                  <label className="text-[10px] text-zinc-500">Off-hand Refine<input type="number" min="0" max={engine.getGearLevelCaps(numeric(level,100)).refine[1]??0} value={equipment.gear[0]?.offRefine??0} onChange={(e)=>setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===0?{...slot,offRefine:numeric(e.target.value,0)}:slot)}))} className={inputClass}/></label>
-                  <label className="text-[10px] text-zinc-500">Off-hand Enhance<input type="number" min="0" max={engine.getGearLevelCaps(numeric(level,100)).enhance[1]??0} value={equipment.gear[0]?.offEnhance??0} onChange={(e)=>setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===0?{...slot,offEnhance:numeric(e.target.value,0)}:slot)}))} className={inputClass}/></label>
+                  <label className="text-[10px] text-zinc-500">Off-hand Refine<input type="number" min="0" max={engine.getGearLevelCaps(numeric(level,99)).refine[1]??0} value={equipment.gear[0]?.offRefine??0} onChange={(e)=>setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===0?{...slot,offRefine:numeric(e.target.value,0)}:slot)}))} className={inputClass}/></label>
+                  <label className="text-[10px] text-zinc-500">Off-hand Enhance<input type="number" min="0" max={engine.getGearLevelCaps(numeric(level,99)).enhance[1]??0} value={equipment.gear[0]?.offEnhance??0} onChange={(e)=>setEquipment((old)=>({...old,gear:old.gear.map((slot,i)=>i===0?{...slot,offEnhance:numeric(e.target.value,0)}:slot)}))} className={inputClass}/></label>
                 </div>}
               </div>}
             </div>;
@@ -607,7 +607,7 @@ export default function NativeCombatSimulatorPreview() {
       <details className="mt-3"><summary className="cursor-pointer text-xs font-medium text-zinc-300">Card sockets (18)</summary>
         <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {CARD_SOCKETS.map((socket,index)=>{
-            const choices=(engine.equipmentCatalog?.cards ?? []).filter((card)=>card.part===socket.part && numeric(level,100)>=socket.levelRequired);
+            const choices=(engine.equipmentCatalog?.cards ?? []).filter((card)=>card.part===socket.part && numeric(level,99)>=socket.levelRequired);
             const selectedCard=choices.find((card)=>card.id===equipment.cards[index]?.id);
             const cardOptions=selectedCard ? engine.getCardCustomization(selectedCard.id,equipment.cards[index]?.star??3) : null;
             return <label key={socket.index} className="text-xs text-zinc-400">{socket.name} · Lv {socket.levelRequired}
