@@ -426,6 +426,8 @@ model Event {
   attendanceChannelId String?
   attendanceMessageId String?
   reminderMessageId String?
+  reminder1hMessageId String?
+  reminder15mMessageId String?
   ro3OptInsLockedAt DateTime?
   guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
   ro3EventType Ro3EventType? @relation(fields: [ro3EventTypeId], references: [id], onDelete: SetNull)
