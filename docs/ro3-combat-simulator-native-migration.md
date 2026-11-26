@@ -164,7 +164,7 @@ This is still an explicit-input bridge, not full legacy skill-state parity. The 
 
 ### Legacy tab import checkpoint
 
-The native preview now includes an explicit **Import legacy tabs** action. It reads the iframe's same-origin `ro3sim.builds.v1` browser-local tab book, validates the book envelope, and imports only current schema v15 Royal Guard (career 1410) tabs. It maps base stats, supported gear/card slots, pets, support-pet growth, learned skill levels, rotation order/disabled skills, talent picks, resonance, simulation timing and defender fields into native saved builds.
+The native preview now includes an explicit **Import legacy tabs** action. It reads the iframe's same-origin `ro3sim.builds.v1` browser-local tab book (or the older single-build `ro3sim.v1` key when no tab book exists), validates the source, and imports only current schema v15 Royal Guard (career 1410) tabs. It maps base stats, supported gear/card slots, pets, support-pet growth, learned skill levels, rotation order/disabled skills, talent picks, resonance, simulation timing and defender fields into native saved builds.
 
 The importer intentionally rejects other careers and legacy state versions that have not first been upgraded by the iframe. It reports unsupported state rather than silently discarding it: aggregate typed attributes, held/final stat values, Echo/emblem state, totems and pet collection bonuses are not yet semantically mapped. Boss-damage bonus is reported as a warning. Talent selections can be imported, but remain ineffective when the authorized TalentDigest is unavailable. Imported builds are saved in the native browser-local collection; the original legacy tabs are not modified or deleted.
 
