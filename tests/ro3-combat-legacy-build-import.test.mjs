@@ -8,7 +8,7 @@ const defaults = {
     gear:Array.from({length:7},()=>({id:0,roll:5000,refine:0,enhance:0,affixes:[],stunts:[],offRefine:0,offEnhance:0})),
     cards:Array.from({length:18},()=>({id:0,star:3,level:15,flash:false})),
   },
-  pets:[null,null,null,null],assistPets:[null,null,null],enchantAttrs:[],extraAttrInput:"",emblemAttrInput:"",
+  pets:[null,null,null,null],assistPets:[null,null,null],enchantAttrs:[],extraAttrInput:"",emblemAttrInput:"",totemLoadoutInput:"",totemLevel:"0",
   totemSkillIds:"",totemAttrInput:"",totemEnhanceBp:"0",resonanceRefine:"0",resonanceEnhance:"0",
   talentLevel:"0",talentProf:"0",talentPicks:{},passiveSkillIds:"",talentSkillLevels:"",
   activeBuffIds:"",skillLevels:"",rotationCycle:false,cancelBackswing:false,periodicOff:false,
@@ -23,7 +23,7 @@ test("imports current Royal Guard legacy state and maps supported inputs",()=>{
     cards:[{id:7001,star:2,lv:10,flash:true}],pets:[{id:10,lv:99,star:4,stage:1}],
     assist:[{g:12,lv:80,star:3,stage:0}],res:{refine:15,enhance:20},
     talents:{lv:30,prof:4,picks:{"1":[11,12]}},sim:{seconds:45,cycle:1,cancel:1,howl:-1},
-    target:{def:1980,mdef:1200,level:200,element:2,race:3,size:1},ex:{103:100,1:12,1031:450},
+    target:{def:1980,mdef:1200,level:200,element:2,race:3,size:1},ex:{103:100,1:12,1031:450},petCollect:[[104,50]],echoUseEntries:true,echoes:[{id:501,stats:[{a:105,v:25}],colors:["red"]}],totemLv:4,totems:[{id:7001,attrs:[[103,30]],skills:[9001]}],
   };
   const result=importLegacyRoyalGuardBuild(state,defaults,[{groupId:11608,id:1160805,level:5},{groupId:11611,id:1161103,level:3}]);
   assert.ok(result.draft);
@@ -38,8 +38,12 @@ test("imports current Royal Guard legacy state and maps supported inputs",()=>{
   assert.equal(result.draft.periodicOff,true);
   assert.equal(result.draft.ridden,true);
   assert.equal(result.draft.def,"1980");
-  assert.equal(result.draft.extraAttrInput,"1:12, 103:100, 1031:450");
-  assert.ok(!result.unsupported.some((item)=>item.includes("typed/aggregated")));
+  assert.equal(result.draft.extraAttrInput,"1:12, 103:100, 1031:450, 104:50");
+  assert.equal(result.draft.emblemAttrInput,"105:25");
+  assert.equal(result.draft.totemLevel,"4");
+  assert.deepEqual(JSON.parse(result.draft.totemLoadoutInput),[{guid:1,id:7001,attrs:[[103,30]],skills:[9001],enhanceBp:0}]);
+  assert.ok(!result.unsupported.some((item)=>item.includes("Echo/emblem")||item.includes("totem")||item.includes("pet collection")||item.includes("typed/aggregated")));
+  assert.ok(result.warnings.some((item)=>item.includes("mark and proc effects")));
 });
 
 test("rejects non-Royal Guard and unmigrated legacy versions",()=>{
