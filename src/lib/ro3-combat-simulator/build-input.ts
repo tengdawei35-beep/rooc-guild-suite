@@ -42,3 +42,12 @@ export function toEngineEquipment(selection: NativeEquipmentSelection, equipment
   });
   return { gear, cards: activeCards };
 }
+
+/** Mirrors the legacy socket behavior: a unique/MVP/shadow card moves to the newly selected socket. */
+export function moveUniqueCardSelection(cards: NativeCardSlot[], changedIndex: number, selectedId: number, unique: boolean): NativeCardSlot[] {
+  return cards.map((slot, index) => index === changedIndex
+    ? { ...slot, id: selectedId }
+    : unique && slot.id === selectedId
+      ? { ...slot, id: 0, flash: false }
+      : slot);
+}
