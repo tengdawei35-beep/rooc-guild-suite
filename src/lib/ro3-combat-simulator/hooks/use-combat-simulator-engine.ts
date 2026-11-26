@@ -37,6 +37,9 @@ export function useCombatSimulatorEngine() {
   const [petOptions, setPetOptions] = useState<NativePetOption[]>([]);
   const [status, setStatus] = useState<CombatEngineStatus>("loading");
   const [error, setError] = useState<string | null>(null);
+  const [exportedData, setExportedData] = useState<any>(null);
+  const [careerOptions, setCareerOptions] = useState<Array<{id:number;name:string}>>([]);
+  const [namedOptions, setNamedOptions] = useState<{elements:Array<{id:number;name:string}>;races:Array<{id:number;name:string}>;sizes:Array<{id:number;name:string}>;buffs:Array<{id:number;name:string}>;totemSkills:Array<{id:number;name:string}>}>(()=>({elements:[],races:[],sizes:[],buffs:[],totemSkills:[]}));
 
   useEffect(() => {
     let active = true;
@@ -44,6 +47,13 @@ export function useCombatSimulatorEngine() {
       .then(([store, exported]) => {
         if (!active) return;
         setData(store);
+        setExportedData(exported);
+        const tableOptions = (tableName: string, nameKeys = ["name", "tx", "_sName"]) => Object.values(exported.tables[tableName] ?? {}).map((row: any) => ({ id: Number(row._iID), name: String(nameKeys.map((key)=>row[key]).find((value)=>typeof value === "string" && value.trim()) ?? `${tableName} ${row._iID}`) })).filter((row)=>Number.isFinite(row.id)).sort((a,b)=>a.name.localeCompare(b.name));
+        setCareerOptions(Object.values(exported.tables.JobConfig ?? {}).map((row: any)=>({id:Number(row._iID),name:String(row.name ?? `Job ${row._iID}`)})).filter((row)=>Number.isFinite(row.id)).sort((a,b)=>a.name.localeCompare(b.name)));
+        setNamedOptions({
+          elements: [{id:0,name:"Neutral"}, ...Object.values(exported.tables.EleConfig ?? {}).map((row:any)=>({id:Number(row._iID),name:String(row.name ?? ["","Wind","Earth","Fire","Water","Poison","Holy","Shadow","Ghost","Undead"][Number(row._iID)] ?? `Element ${row._iID}`)}))].filter((row)=>Number.isFinite(row.id)),
+          races: tableOptions("RaceConfig"), sizes: tableOptions("SizeConfig"), buffs: tableOptions("BuffConfig"), totemSkills: tableOptions("TotemSkillConfig"),
+        });
         setPetOptions(Object.values(store.table("PetDigest")).map((row) => {
           const id = Number(row._iID);
           const growthId = Number(row.g);
@@ -81,6 +91,13 @@ export function useCombatSimulatorEngine() {
       active = false;
     };
   }, []);
+
+  const configureCareer = useCallback((career: number) => {
+    if (!exportedData) return;
+    setEquipmentCatalog(getCombatEquipmentCatalog(exportedData.tables, exportedData.ui, career));
+    setSkillTreeOptions(getCombatSkillTreeOptions(exportedData.ui, exportedData.tables.SkillConfig ?? {}, career, exportedData.tables.BuffConfig ?? {}));
+    setSkillOptions(getCombatSkillOptions(exportedData.ui, exportedData.tables.SkillConfig ?? {}, career, exportedData.tables.BuffConfig ?? {}));
+  }, [exportedData]);
 
   const getCharacterSheet = useCallback((attacker: CombatBuild, selection: NativeEquipmentSelection) => {
     if (!data || !equipmentCatalog) throw new Error("Combat engine is not ready yet.");
@@ -180,5 +197,5 @@ export function useCombatSimulatorEngine() {
     return simulateCombatRotation(attacker, defender, rotationSkillIds, durationMs, data);
   }, [data]);
 
-  return { status, error, ready: status === "ready", skillOptions, skillTreeOptions, deriveLearnedSkillEffectsForBuild, equipmentCatalog, attributeOptions, petOptions, getCharacterSheet, getGearCustomization, getGearLevelCaps, getCardCustomization, getTotemEnhanceBp, getTotemLevelForEnhanceBp, getTalentConfiguration, simulate, simulateDistribution };
+  return { status, error, ready: status === "ready", careerOptions, namedOptions, configureCareer, skillOptions, skillTreeOptions, deriveLearnedSkillEffectsForBuild, equipmentCatalog, attributeOptions, petOptions, getCharacterSheet, getGearCustomization, getGearLevelCaps, getCardCustomization, getTotemEnhanceBp, getTotemLevelForEnhanceBp, getTalentConfiguration, simulate, simulateDistribution };
 }
