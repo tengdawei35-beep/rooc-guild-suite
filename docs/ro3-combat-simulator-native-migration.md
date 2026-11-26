@@ -52,8 +52,8 @@ been migrated in this phase.
 | React engine lifecycle hook | Initial hook complete; not connected to production route |
 | Build native React component architecture | Isolated React preview, attacker/defender panels, editable Royal Guard build, local saved builds and structured report added; full feature parity pending |
 | Connect React state to extracted engine | Royal Guard base stats, equipment/cards, affixes/stunts, pets, enchantments, manual emblem/totem inputs, resonance, talent/passive inputs and defender configuration are wired; authoritative TalentDigest and full build-source parity pending |
-| Migrate profile import and reports | Guild profiles remain reference-only; native cast timeline and sampled damage events are displayed, while legacy report/timeline equivalence and profile-to-build mapping remain pending |
-| Regression/equivalence tests against current iframe | Initial legacy attribute-source golden fixture added; full damage/report/timeline parity remains outstanding |
+| Migrate profile import and reports | Guild profiles remain reference-only; native preview uses the legacy seeded Monte Carlo engine and shows distribution KPIs, per-skill breakdown and cast/sample timelines; charts, baseline comparisons and full report equivalence remain pending |
+| Regression/equivalence tests against current iframe | Legacy attribute-source/simulation fixture and seeded Monte Carlo determinism test added; full damage/report/timeline parity remains outstanding |
 | Remove iframe and legacy message bridge | Blocked until equivalence passes |
 
 The authenticated iframe route remains the production path throughout this work.
@@ -158,7 +158,7 @@ This is still an explicit-input bridge, not full legacy skill-state parity. The 
 
 - Replaced the raw JSON cast-log dump with a structured, collapsible event list showing time, event type, name, hit count and lock/duration where supplied by the engine.
 - Added a separate sample-damage-events list from the engine's sampled timeline, showing impact time, skill and expected damage.
-- The engine's sample timeline is intentionally bounded by its existing sampling behaviour; the full cast log remains available in the native report.
+- The native report now uses the engine's seeded `simulateDistribution` Monte Carlo path (default 3,000 trials, editable run count and seed), not just the deterministic expected-value rotation. It shows mean/median/p5/p95, standard deviation, mean DPS, expected damage, burst DPS, per-skill hit/crit/share breakdown, deterministic cast timeline and one rolled sample trial. This brings the core report statistics closer to the legacy report; full charts, baseline comparisons and distribution/timeline equivalence are still outstanding.
 - The preview now explicitly reports when the generated `TalentDigest` is absent. In that case, talent picks do not affect the result; the source-table digest generation is still outstanding.
 
 
