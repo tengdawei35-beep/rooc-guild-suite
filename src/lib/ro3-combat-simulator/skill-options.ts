@@ -49,7 +49,9 @@ function hasModeledBuffEffect(id: number, buffTable: Record<string, Record<strin
   const attrs = Array.isArray(config._kChangeAttri) ? config._kChangeAttri : [];
   if (attrs.some((entry) => Array.isArray(entry) && FX_ATTRS.has(Number(entry[0])))) return true;
   const skillAttrs = Array.isArray(config._kSkillAttributeList) ? config._kSkillAttributeList : [];
-  return skillAttrs.some((entry) => Array.isArray(entry) && (Number(entry[0]) === 0 || (Number(entry[0]) === 1 && Number(entry[1]) > 0)) && SKILL_FX_TYPES.has(Number(entry[2])));
+  return skillAttrs.some((entry) => Array.isArray(entry) &&
+    (Number(entry[0]) === 0 || (Number(entry[0]) === 1 && Number(entry[1]) > 0)) &&
+    SKILL_FX_TYPES.has(Number(entry[2])));
 }
 
 export type CombatSkillTreeOption = {
@@ -58,20 +60,26 @@ export type CombatSkillTreeOption = {
   jobId: number;
   maxLevel: number;
   kind: "damage" | "buff" | "passive" | "utility";
-  levels: Array<{ level: number; rowId: number; buffs: Array<{ id: number; durationMs: number; modeled: boolean }>; passive: boolean }>;\n  autoBuff: boolean;\n  rotationUsable: boolean;
+  levels: Array<{ level: number; rowId: number; buffs: Array<{ id: number; durationMs: number; modeled: boolean }>; passive: boolean }>;
+  autoBuff: boolean;
+  rotationUsable: boolean;
 };
 
+/** Builds the full learnable tree, excluding alternate rows that are engine follow-ups rather than user-learnable skills. */
 export function getCombatSkillTreeOptions(
   ui: { jobs: Array<{ id: number; parent?: number }>; trees: Record<string, Array<Array<number | null>>> },
   skillTable: Record<string, Record<string, unknown>>,
   career: number,
+  buffTable: Record<string, Record<string, unknown>> = {},
 ): CombatSkillTreeOption[] {
   const jobs = new Map(ui.jobs.map((job) => [Number(job.id), job]));
   const chain: number[] = [];
   for (let current = jobs.get(career); current; current = jobs.get(Number(current.parent))) chain.unshift(Number(current.id));
   const groupJob = new Map<number, number>();
-  for (const [job, rows] of Object.entries(ui.trees)) for (const row of rows) for (const group of row) {
-    if (group != null && Number(group) > 0) groupJob.set(Number(group), Number(job));
+  for (const [job, rows] of Object.entries(ui.trees)) {
+    for (const row of rows) for (const group of row) {
+      if (group != null && Number(group) > 0) groupJob.set(Number(group), Number(job));
+    }
   }
   const grouped = new Map<number, Record<string, unknown>[]>();
   for (const row of Object.values(skillTable)) {
@@ -89,15 +97,27 @@ export function getCombatSkillTreeOptions(
     const kind = basicType === 0 ? (Array.isArray(top._kAttri) && top._kAttri.length ? "passive" : "utility")
       : Array.isArray(top._kDamageParam1) && top._kDamageParam1.length ? "damage"
       : Array.isArray(top._kBuff1) && top._kBuff1.length ? "buff" : "utility";
+    const levels = rows.map((row) => ({
+      level: Number(row._iLevel),
+      rowId: Number(row._iID),
+      buffs: (Array.isArray(row._kBuff1) ? row._kBuff1 : [])
+        .filter((entry): entry is number[] => Array.isArray(entry))
+        .map((entry) => ({
+          id: Number(entry[0]),
+          durationMs: Number(entry[2]) > 0 ? Number(entry[2]) : 60000,
+          modeled: hasModeledBuffEffect(Number(entry[0]), buffTable),
+        }))
+        .filter((entry) => entry.id > 0),
+      passive: Number(row._iBasicType) === 0 && Array.isArray(row._kAttri) && row._kAttri.length > 0,
+    }));
+    const topBuffs = levels[levels.length - 1]?.buffs ?? [];
+    const hasModeledBuff = topBuffs.some((buff) => buff.modeled);
+    const autoBuff = kind === "buff" && hasModeledBuff && topBuffs.some((buff) => buff.durationMs >= 60000 && buff.modeled);
     return {
       groupId, name: String(top.name ?? rows[0].name ?? `Skill ${groupId}`),
-      jobId: groupJob.get(groupId)!, maxLevel: Number(top._iLevel), kind,
-      levels: rows.map(row => ({
-        level: Number(row._iLevel), rowId: Number(row._iID),
-        buffs: (Array.isArray(row._kBuff1) ? row._kBuff1 : []).filter((entry): entry is number[] => Array.isArray(entry))
-          .map(entry => ({id:Number(entry[0]),durationMs:Number(entry[2])>0?Number(entry[2]):60000,modeled:hasModeledBuffEffect(Number(entry[0]),buffTable)})).filter(entry=>entry.id>0),
-        passive: Number(row._iBasicType)===0 && Array.isArray(row._kAttri) && row._kAttri.length>0,
-      })),
+      jobId: groupJob.get(groupId)!, maxLevel: Number(top._iLevel), kind, levels,
+      autoBuff,
+      rotationUsable: kind === "damage" || (kind === "buff" && hasModeledBuff && !autoBuff),
     } satisfies CombatSkillTreeOption;
   }).sort((a,b)=>a.name.localeCompare(b.name)||a.groupId-b.groupId);
 }
@@ -105,25 +125,23 @@ export function getCombatSkillTreeOptions(
 export function deriveLearnedSkillEffects(
   options: CombatSkillTreeOption[],
   learnedLevels: Record<string, number>,
-  buffTable: Record<string, Record<string, unknown>>,
+  _buffTable: Record<string, Record<string, unknown>>,
+  ridden = false,
 ): { passiveSkillIds: number[]; autoBuffIds: number[] } {
   const passiveSkillIds: number[] = [];
   const autoBuffIds = new Set<number>();
   for (const option of options) {
     const level = Math.max(0, Math.min(option.maxLevel, Math.trunc(Number(learnedLevels[String(option.groupId)] ?? 0))));
     if (!level) continue;
-    const row = option.levels.find(item=>item.level===level);
+    const row = option.levels.find((item) => item.level === level);
     if (!row) continue;
     if (row.passive) passiveSkillIds.push(row.rowId);
+    const ridingFamily = Number(RIDING_PASSIVES[option.groupId as keyof typeof RIDING_PASSIVES] ?? 0);
+    if (ridden && ridingFamily > 0) autoBuffIds.add(ridingFamily * 100 + level);
     if (option.kind !== "buff") continue;
     for (const buff of row.buffs) {
-      if (buff.durationMs < 60000) continue;
-      const config = buffTable[String(buff.id)];
-      if (!config) continue;
-      const changes = Array.isArray(config._kChangeAttri) && config._kChangeAttri.length > 0;
-      const skillChanges = Array.isArray(config._kSkillAttributeList) && config._kSkillAttributeList.length > 0;
-      if (changes || skillChanges) autoBuffIds.add(buff.id);
+      if (buff.durationMs >= 60000 && buff.modeled) autoBuffIds.add(buff.id);
     }
   }
-  return {passiveSkillIds: [...new Set(passiveSkillIds)], autoBuffIds: [...autoBuffIds]};
+  return { passiveSkillIds: [...new Set(passiveSkillIds)], autoBuffIds: [...autoBuffIds] };
 }
