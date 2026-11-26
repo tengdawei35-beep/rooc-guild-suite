@@ -94,6 +94,7 @@ test("legacy import golden fixture preserves character sources and seeded damage
   };
   const exported=await loadRo3GameData();
   const catalog=getCombatEquipmentCatalog(exported.tables,exported.ui,1410);
+  const data=await createRo3CombatDataStore();
   const gearSlots=[
     {grid:1,parts:[1,2]},{grid:2,parts:[3]},{grid:3,parts:[4]},
     {grid:4,parts:[5]},{grid:5,parts:[6]},{grid:6,parts:[7]},
@@ -134,7 +135,6 @@ test("legacy import golden fixture preserves character sources and seeded damage
   const pairs=(value)=>value.split(",").filter(Boolean).map((entry)=>entry.trim().split(":").map(Number));
   const skillLevels=Object.fromEntries(imported.draft.skillLevels.split(",").filter(Boolean).map((entry)=>entry.trim().split(":").map(Number)));
   const rotationIds=imported.draft.skillIds.split(",").filter(Boolean).map(Number);
-  const data=await createRo3CombatDataStore();
   const totemEnhanceBp=Number(data.row("TotemLvConfig",Number(imported.draft.totemLevel))?._iAttributeEnhance ?? 0);
   const mappedEquipment=toEngineEquipment(imported.draft.equipment,catalog.equipment,catalog.cards,Number(imported.draft.level));
   assert.equal(mappedEquipment.gear[0]?.id,weapon.id,"legacy gear selection should map to an engine equipment row");
