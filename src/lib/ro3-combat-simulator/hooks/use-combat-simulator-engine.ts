@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { createRo3CombatDataStore } from "../create-data-store";
 import { loadRo3GameData } from "../data/ro3-game-data";
-import { getCombatSkillOptions, getCombatSkillTreeOptions, type CombatSkillOption, type CombatSkillTreeOption } from "../skill-options";
+import { getCombatSkillOptions, getCombatSkillTreeOptions, deriveLearnedSkillEffects, type CombatSkillOption, type CombatSkillTreeOption } from "../skill-options";
 import { simulateCombatRotation } from "../simulate";
 import { buildCharacterStats, gearParts, cardParts, talentOptions, talentWalk, talentEffects } from "../engine/ro3-damage-engine.mjs";
 import { getCombatEquipmentCatalog } from "../equipment-options";
@@ -142,6 +142,11 @@ export function useCombatSimulatorEngine() {
     return { available: !!digest, branches, walk: talentWalk(build, data), effects: talentEffects(build, data) as { attrs: Array<[number, number]>; buffs: number[] } };
   }, [data]);
 
+  const deriveLearnedSkillEffectsForBuild = useCallback((levels: Record<string, number>) => {
+    if (!data) return { passiveSkillIds: [] as number[], autoBuffIds: [] as number[] };
+    return deriveLearnedSkillEffects(skillTreeOptions, levels, data.table("BuffConfig"));
+  }, [data, skillTreeOptions]);
+
   const simulate = useCallback((
     attacker: CombatBuild,
     defender: CombatDefender,
@@ -152,5 +157,5 @@ export function useCombatSimulatorEngine() {
     return simulateCombatRotation(attacker, defender, rotationSkillIds, durationMs, data);
   }, [data]);
 
-  return { status, error, ready: status === "ready", skillOptions, skillTreeOptions, equipmentCatalog, attributeOptions, petOptions, getCharacterSheet, getGearCustomization, getGearLevelCaps, getCardCustomization, getTalentConfiguration, simulate };
+  return { status, error, ready: status === "ready", skillOptions, skillTreeOptions, deriveLearnedSkillEffectsForBuild, equipmentCatalog, attributeOptions, petOptions, getCharacterSheet, getGearCustomization, getGearLevelCaps, getCardCustomization, getTalentConfiguration, simulate };
 }
