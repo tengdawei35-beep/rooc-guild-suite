@@ -38,9 +38,12 @@ export function importLegacyRoyalGuardBuild(
   };
 
   draft.level = numberString(state.level, 100);
+  // The legacy optimizer's budget is STARTING_STAT_POINTS + bonusStatPoints + level grants.
+  // Preserve the source adjustment verbatim even though the native preview has no optimizer UI yet.
+  draft.bonusStatPoints = numberString(state.bonusPoints, -48);
   draft.attackerElement = numberString(state.element, 1);
   draft.bondBonusBp = numberString(Math.round(Number(state.bonus?.boss || 0) * 100), 0);
-  if (Number(state.bonusPoints) > 0) warnings.push("Legacy bonus stat points are not used by the native preview because its stat optimizer has not yet been migrated.");
+  if (Number(state.bonusPoints) > 0) warnings.push("Legacy bonus stat points were preserved for future native stat-optimizer parity; the optimizer is not yet migrated, so this value does not affect the current damage simulation.");
   if (Array.isArray(state.stats) && state.stats.length === 6) draft.stats = state.stats.map((v: unknown)=>numberString(v,0));
   else warnings.push("Base stats were left at native defaults because the legacy stat array was invalid.");
 
