@@ -129,7 +129,7 @@ export default function NativeCombatSimulatorPreview() {
     lv: numeric(talentLevel,0), prof: numeric(talentProf,0), picks: talentPicks, skills: parseTalentSkillLevels(talentSkillLevels),
   }), [engine.getTalentConfiguration, level, talentProf, talentLevel, talentPicks, talentSkillLevels]);
   const learnedSkillLevels = useMemo(() => parseTalentSkillLevels(skillLevels), [skillLevels]);
-  const rotationEntries = useMemo(() => skillIds.trim() ? skillIds.trim().split(/[\\s,;]+/).map(Number).filter((id)=>Number.isSafeInteger(id)&&id>0) : [], [skillIds]);
+  const rotationEntries = useMemo(() => skillIds.trim() ? skillIds.trim().split(/[\s,;]+/).map(Number).filter((id)=>Number.isSafeInteger(id)&&id>0) : [], [skillIds]);
   const disabledRotationSet = useMemo(() => new Set(parseIdList(disabledRotationIds)), [disabledRotationIds]);
 
   const learnedSkillEffects = useMemo(() => engine.deriveLearnedSkillEffectsForBuild(learnedSkillLevels, ridden), [engine.deriveLearnedSkillEffectsForBuild, learnedSkillLevels, ridden]);
