@@ -119,6 +119,7 @@ export function importLegacyRoyalGuardBuild(
     draft.extraAttrInput = Object.entries(state.ex)
       .map(([id, value]) => [Number(id), Number(value)] as [number, number])
       .filter(([id, value]) => Number.isInteger(id) && id > 0 && Number.isFinite(value))
+      .sort(([a], [b]) => a - b)
       .map(([id, value]) => `${id}:${value}`)
       .join(", ");
   }
