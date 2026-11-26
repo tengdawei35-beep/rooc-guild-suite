@@ -81,12 +81,12 @@ export function isNativeBuildDraft(value: unknown): value is NativeBuildDraft {
   const petArray = (v: unknown, key: "id" | "g") => Array.isArray(v) && v.every((slot) => slot === null || (isRecord(slot)
     && isNumber(slot[key]) && isNumber(slot.lv) && isNumber(slot.star) && isNumber(slot.stage)));
   const stringFields = [
-    "bonusStatPoints", "emblemAttrInput", "totemSkillIds", "totemAttrInput", "totemEnhanceBp", "resonanceRefine",
+    "emblemAttrInput", "totemSkillIds", "totemAttrInput", "totemEnhanceBp", "resonanceRefine",
     "resonanceEnhance", "talentLevel", "talentProf", "passiveSkillIds", "talentSkillLevels",
     "activeBuffIds", "skillLevels", "periodicStartSeconds",
     "def", "mdef", "targetLevel", "element", "race", "size", "skillIds", "disabledRotationIds", "duration",
   ];
-  if (!stringFields.every((key) => isString(value[key])) || (value.extraAttrInput !== undefined && !isString(value.extraAttrInput)) || (value.petCollectionAttrInput !== undefined && !isString(value.petCollectionAttrInput)) || (value.attackerElement !== undefined && !isString(value.attackerElement)) || (value.bondBonusBp !== undefined && !isString(value.bondBonusBp)) || (value.simulationRuns !== undefined && !isString(value.simulationRuns)) || (value.simulationSeed !== undefined && !isString(value.simulationSeed)) || (value.totemLoadoutInput !== undefined && !isString(value.totemLoadoutInput)) || (value.totemLevel !== undefined && !isString(value.totemLevel))) return false;
+  if (!stringFields.every((key) => isString(value[key])) || (value.bonusStatPoints !== undefined && !isString(value.bonusStatPoints)) || (value.extraAttrInput !== undefined && !isString(value.extraAttrInput)) || (value.petCollectionAttrInput !== undefined && !isString(value.petCollectionAttrInput)) || (value.attackerElement !== undefined && !isString(value.attackerElement)) || (value.bondBonusBp !== undefined && !isString(value.bondBonusBp)) || (value.simulationRuns !== undefined && !isString(value.simulationRuns)) || (value.simulationSeed !== undefined && !isString(value.simulationSeed)) || (value.totemLoadoutInput !== undefined && !isString(value.totemLoadoutInput)) || (value.totemLevel !== undefined && !isString(value.totemLevel))) return false;
   if (!["rotationCycle", "cancelBackswing", "periodicOff", "ridden"].every((key) => typeof value[key] === "boolean")) return false;
   if (!petArray(value.pets, "id") || !petArray(value.assistPets, "g") || !isPairArray(value.enchantAttrs)) return false;
   if (!isRecord(value.talentPicks)) return false;
