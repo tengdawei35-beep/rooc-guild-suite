@@ -136,6 +136,12 @@ The storage format is versioned at `hmdl.ro3.native-builds.v1`, validates restor
 
 This is the first native persistence layer, not a complete legacy-tab migration. The legacy iframe uses its own `ro3sim.builds.v1` state with broader class, skill, target and simulation settings. Importing those tabs remains gated on full field-by-field mapping and explicit reporting of any unsupported values; the migration must not silently discard typed attributes, rotations or advanced systems.
 
+### Rotation and automatic buff parity checkpoint
+
+The native catalog now follows the legacy simulator's modeled-effect whitelist for always-on buffs: supported attribute changes, supported skill-parameter changes, and known modeled proc families. Learned long buffs are added only when the selected skill rank grants a modeled buff lasting at least 60 seconds. Short modeled buff skills are now included in the rotation picker rather than being treated as permanent buffs. Mounted riding-family passive buffs are derived from learned skill level when the mounted toggle is enabled.
+
+The rotation input preserves cast priority and repeated SkillConfig IDs (needed by cycle mode). A separate disabled-ID list skips selected skills without deleting them from the saved priority sequence. The full legacy reorder/disable UX and default class rotation presets remain outstanding; manual priority editing is currently the native control.
+
 ### Native learned-skill tree checkpoint
 
 The Royal Guard native preview now builds a learned-skill catalog from the selected career ancestry and exposes level selectors for learnable damage, buff and passive skills. Selected passive rows are converted into the engine's passive skill row IDs. Learned buff skills are inspected at their selected rank; supported buffs with at least 60 seconds' duration and relevant attribute/skill modifiers are automatically included as always-on buffs. Talent-granted buffs are also included automatically.
