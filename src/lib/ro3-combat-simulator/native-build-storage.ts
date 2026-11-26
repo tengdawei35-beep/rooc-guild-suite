@@ -11,6 +11,7 @@ export type NativeBuildDraft = {
   assistPets: Array<{ g: number; lv: number; star: number; stage: number } | null>;
   enchantAttrs: Array<[number, number]>;
   extraAttrInput: string;
+  petCollectionAttrInput: string;
   emblemAttrInput: string;
   totemLoadoutInput: string;
   totemLevel: string;
