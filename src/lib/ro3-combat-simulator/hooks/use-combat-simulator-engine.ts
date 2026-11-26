@@ -52,7 +52,16 @@ export function useCombatSimulatorEngine() {
         const explicitName = (row: any) => [row.name, row.tx, row._sName, row._sDesc].find((value)=>typeof value === "string" && value.trim()) as string | undefined;
         const raceNames: Record<number,string> = {1:"Formless",2:"Undead",3:"Brute",4:"Plant",5:"Insect",6:"Fish",7:"Demon",8:"Demi-Human",9:"Angel",10:"Dragon"};
         const sizeNames: Record<number,string> = {1:"Small",2:"Medium",3:"Large"};
-        setCareerOptions(Object.values(exported.tables.JobConfig ?? {}).map((row: any)=>({id:Number(row._iID),name:String(explicitName(row) ?? "Unnamed job")})).filter((row)=>Number.isFinite(row.id)).sort((a,b)=>a.name.localeCompare(b.name)));
+        const uiJobs = Array.isArray(exported.ui?.jobs) ? exported.ui.jobs : [];
+        const tableJobs = Object.values(exported.tables.JobConfig ?? {}) as any[];
+        const jobRows = uiJobs.length ? uiJobs : tableJobs;
+        const tableJobById = new Map(tableJobs.map((row:any)=>[Number(row._iID ?? row.id),row]));
+        setCareerOptions(jobRows.map((row:any)=>{
+          const id = Number(row.id ?? row._iID);
+          const tableRow = tableJobById.get(id) as any;
+          const name = [row.name,row.label,row.title,explicitName(tableRow ?? {})].find((value)=>typeof value === "string" && value.trim());
+          return {id,name:String(name ?? `Job ${id}`)};
+        }).filter((row:any)=>Number.isFinite(row.id)).sort((a:any,b:any)=>a.name.localeCompare(b.name)));
         const buffSourceNames = new Map<number,string>();
         for (const skill of Object.values(exported.tables.SkillConfig ?? {}) as any[]) {
           const skillName = explicitName(skill);
@@ -65,7 +74,11 @@ export function useCombatSimulatorEngine() {
           races: namedTable("RaceConfig",(id,index)=>raceNames[id] ?? `Race ${index+1}`),
           sizes: namedTable("SizeConfig",(id,index)=>sizeNames[id] ?? `Size ${index+1}`),
           buffs: namedTable("BuffConfig",(id,index)=>buffSourceNames.get(id) ?? `Combat buff ${index+1}`),
-          totemSkills: namedTable("TotemSkillConfig",(_id,index)=>`Totem effect ${index+1}`),
+          totemSkills: rawOptions("TotemSkillConfig").map(({row,id},index)=>{
+            const uiSkill = exported.ui?.totemSkills?.[id] ?? exported.ui?.totemSkills?.[String(id)];
+            const name = [uiSkill?.name,uiSkill?.label,explicitName(row)].find((value)=>typeof value === "string" && value.trim());
+            return {id,name:String(name ?? `Totem skill ${index+1}`)};
+          }),
         });
         setPetOptions(Object.values(store.table("PetDigest")).map((row) => {
           const id = Number(row._iID);
