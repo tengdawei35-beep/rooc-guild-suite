@@ -36,27 +36,27 @@ This is the project-wide handoff file. Update it whenever implementation work ad
 - Added versioned browser-local native saved builds (up to eight).
 - Added three simulator-authored Royal Guard candidate rotation presets; manual rotations remain editable.
 - Replaced the raw cast-log dump with structured report events and sample damage events.
-- Native Monte Carlo report uses the simulator's seeded distribution engine and includes distribution KPIs, per-skill hit/crit/share, total-damage histogram, mean-DPS-over-time chart, cast timeline, a sample trial and pinned-snapshot DPS comparisons. The comparison flow now labels the pinned baseline with the build name and its trial/duration settings; load and run Build A, pin it, then load and run Build B to compare their DPS distributions. This is a sequential snapshot comparison, not an automatic batch runner or cross-device saved comparison.
+- Native Monte Carlo report uses the simulator's seeded distribution engine and includes distribution KPIs, per-skill hit/crit/share, total-damage histogram, mean-DPS-over-time chart, cast timeline, a sample trial, per-skill normal/critical histograms and a named pinned-baseline A/B comparison (sequential in-memory workflow).
 
 ### Latest progress — 2026-11-26
 
-- Inspected the current v15 legacy simulator `currentBuild()` adapter and added a field-by-field source-to-native import inventory in `docs/ro3-combat-simulator-native-migration.md` on PR #144.
-- Preserved legacy `bonusPoints` as `bonusStatPoints` through import, native draft storage/load, and the engine build object. It is retained for future optimizer parity but does not affect the current fixed-stat damage simulation.
-- Added importer regression coverage for explicit bonus-point values and the legacy default adjustment, plus backward compatibility coverage for older browser-local native saved builds that predate this field.
-- Latest implementation commit: `f9907357092b13ee3f4524e320a20a907edca704` on `feat/combat-simulator-native-react-migration`.
-- CI run [#45782943763](https://github.com/tengdawei35-beep/rooc-guild-suite/actions/runs/45782943763) completed successfully on commit `f990735`; combat tests, Prisma generation/migrations, TypeScript, ESLint and production build all passed. Vercel preview was successful.
-- Added per-skill normal-hit and critical-hit damage histograms for the top six damage skills, consuming the extracted engine's existing `normalBins` / `critBins` arrays. Added tests reconciling histogram counts to hit/crit totals. CI run [#45783407593](https://github.com/tengdawei35-beep/rooc-guild-suite/actions/runs/45783407593) completed successfully.
-- Added a named pinned-baseline comparison flow on PR #144: the report identifies the pinned build by its saved-build name and displays the baseline trial count and duration alongside mean/p5/p95 DPS changes. Implementation commit: `acc0e1c2e2e8db17b166f62933407e989f03ffa3`; validation is pending.
+- Audited the legacy v15 simulator currentBuild(), autoBuffs() and simBuild() behavior against the native skill-tree adapter.
+- Added a named saved-build A/B comparison flow to PR #144. Run Build A, pin it as the baseline, load and run Build B; the report labels the baseline build and shows its trial count/duration plus mean, p5 and p95 DPS changes. This is a sequential in-memory comparison, not a batch comparison or cross-device persistence.
+- Added a seeded legacy-import report/timeline fixture using the full exported game data. It checks supported attribute-source mappings, learned skill levels, rotation rows, totem system enhancement, imported defender values, duration and seed; it compares cast logs, sample timelines, Monte Carlo totals, per-skill normal/critical bins and the sample trial against a matching legacy-reference build.
+- Corrected long-buff classification to match the legacy UI's group-level info.auto rule: group classification is based on the highest-rank row's modeled-effect presence and longest buff tuple duration; only modeled long-duration buffs at the selected learned rank are automatically applied. Regression tests cover mixed modeled/unmodeled durations, zero-ID placeholders and lower-rank duration differences.
+- Synced feat/combat-simulator-native-react-migration with main. The four previously missing commits changed only PROJECT_STATUS.md; the branch now has no commits behind main.
+- Latest implementation commit: c2e7abc70f26f75a96e1317bd3803395d786d990.
+- CI run [#45786847701](https://github.com/tengdawei35-beep/rooc-guild-suite/actions/runs/45786847701) completed successfully on the latest code commit: combat regression tests, Prisma generation/migrations, TypeScript, ESLint and production build passed. Vercel preview status was successful.
+- PR #144 remains a draft and is not merged. Production continues to use the legacy iframe.
 
 ### Remaining work — ordered next steps
 
-1. **Finish legacy build import parity.** Field inventory is now documented; continue with representative full legacy-vs-native fixtures and investigate remaining source state. Known gaps include Echo mark colors/procs, dynamic totem procs, and explicitly reported unsupported/overflow state.
-2. **Complete native skill/buff behavior parity.** Review remaining special-trigger effects and short-duration buff scheduling. Keep unsupported behavior explicit; do not infer mechanics.
-3. **Strengthen equivalence fixtures.** Add representative full legacy-vs-native report/timeline fixtures using identical inputs. Include seeded Monte Carlo determinism and compare event ordering, cast counts, damage distribution and DPS summaries. The manual saved-build A/B snapshot flow and per-skill hit histograms are implemented; automated full-build comparison fixtures remain outstanding.
-4. **Complete report/timeline parity.** Align the native report and timeline with the legacy simulator for the supported input surface; document intentional differences.
-5. **Re-run full CI on the latest PR head.** Validate combat regression tests, Prisma generation/migrations, TypeScript, ESLint and production build. Earlier CI pass on commit `1eedd1b` is not sufficient evidence for later commits; PR #144 notes subsequent changes were being revalidated.
-6. **Manual preview QA.** Exercise import/export, saved builds, skill tree, Royal Guard presets, gear/cards/pets/totems, attacker/defender controls and report interactions at desktop and mobile widths.
-7. **Cutover review only after parity.** Present remaining known differences and test evidence; obtain explicit approval before replacing the production iframe.
+1. **Expand full-build equivalence fixtures.** The current seeded report fixture verifies the supported imported subset. Add representative gear/card/pet/resonance/passive/talent combinations and, where possible, compare against independently captured legacy outputs rather than only two engine inputs built to match.
+2. **Complete unsupported legacy import behavior or keep it explicitly reported.** Echo mark colors/procs, dynamic totem procs and overflow totem/support slots remain incomplete. Bonus stat points are preserved but the native stat optimizer is not migrated.
+3. **Complete skill/buff parity.** The legacy long-buff group classification now matches; review remaining special-trigger effects, short-duration buff timing and automatic rotation ordering (including always-ready skills). Do not infer unverified effects.
+4. **Complete report/timeline parity** across the full supported build surface; document intentional differences and ensure deterministic event ordering, cast counts and distribution summaries remain covered.
+5. **Manual preview QA.** Exercise import/export, saved-build A/B comparison, saved builds, skill tree, Royal Guard presets, gear/cards/pets/totems, attacker/defender controls and report interactions at desktop and mobile widths.
+6. **Cutover review only after parity.** Present remaining known differences and test evidence; obtain explicit approval before replacing the production iframe.
 
 ### Explicitly deferred / blocked
 
@@ -86,4 +86,4 @@ At the start of a new implementation session:
 - **2026-11-26:** Initial project-wide status and handoff file created from the latest available implementation context and PR #144 summary.
 - **2026-11-26:** Updated after auditing legacy v15 build fields and preserving the stat-optimizer bonus-point budget; CI passed on `f990735`.
 - **2026-11-26:** Added per-skill damage histograms and count-reconciliation regression coverage; CI passed on implementation/test commit `1878394`.
-- **2026-11-26:** Added named pinned-baseline A/B comparison metadata to the native report. PR branch is being synchronized with the four `main` commits that only update this tracker; latest code validation is pending.
+- **2026-11-26:** Added named saved-build A/B comparison metadata, a seeded legacy-import report/timeline parity fixture, and legacy-compatible long-buff group classification. CI passed on `c2e7abc`; see run [#45786847701](https://github.com/tengdawei35-beep/rooc-guild-suite/actions/runs/45786847701).
