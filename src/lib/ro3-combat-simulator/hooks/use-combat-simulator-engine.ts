@@ -142,9 +142,9 @@ export function useCombatSimulatorEngine() {
     return { available: !!digest, branches, walk: talentWalk(build, data), effects: talentEffects(build, data) as { attrs: Array<[number, number]>; buffs: number[] } };
   }, [data]);
 
-  const deriveLearnedSkillEffectsForBuild = useCallback((levels: Record<string, number>) => {
+  const deriveLearnedSkillEffectsForBuild = useCallback((levels: Record<string, number>, ridden = false) => {
     if (!data) return { passiveSkillIds: [] as number[], autoBuffIds: [] as number[] };
-    return deriveLearnedSkillEffects(skillTreeOptions, levels, data.table("BuffConfig"));
+    return deriveLearnedSkillEffects(skillTreeOptions, levels, data.table("BuffConfig"), ridden);
   }, [data, skillTreeOptions]);
 
   const simulate = useCallback((
