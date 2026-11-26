@@ -5,6 +5,8 @@ export const MAX_NATIVE_SAVED_BUILDS = 8;
 
 export type NativeBuildDraft = {
   level: string;
+  /** Legacy optimizer budget adjustment; retained for future native stat-optimizer parity. */
+  bonusStatPoints: string;
   stats: string[];
   equipment: NativeEquipmentSelection;
   pets: Array<{ id: number; lv: number; star: number; stage: number } | null>;
@@ -79,7 +81,7 @@ export function isNativeBuildDraft(value: unknown): value is NativeBuildDraft {
   const petArray = (v: unknown, key: "id" | "g") => Array.isArray(v) && v.every((slot) => slot === null || (isRecord(slot)
     && isNumber(slot[key]) && isNumber(slot.lv) && isNumber(slot.star) && isNumber(slot.stage)));
   const stringFields = [
-    "emblemAttrInput", "totemSkillIds", "totemAttrInput", "totemEnhanceBp", "resonanceRefine",
+    "bonusStatPoints", "emblemAttrInput", "totemSkillIds", "totemAttrInput", "totemEnhanceBp", "resonanceRefine",
     "resonanceEnhance", "talentLevel", "talentProf", "passiveSkillIds", "talentSkillLevels",
     "activeBuffIds", "skillLevels", "periodicStartSeconds",
     "def", "mdef", "targetLevel", "element", "race", "size", "skillIds", "disabledRotationIds", "duration",
@@ -102,7 +104,7 @@ export function parseNativeSavedBuilds(raw: string | null): NativeSavedBuild[] {
         || !isString(entry.name) || !entry.name.trim() || !isString(entry.updatedAt)
         || !isNativeBuildDraft(entry.state)) return [];
       seen.add(entry.id);
-      return [{ id: entry.id, name: entry.name.slice(0, 40), updatedAt: entry.updatedAt, state: { ...entry.state, extraAttrInput: isString(entry.state.extraAttrInput) ? entry.state.extraAttrInput : "", petCollectionAttrInput: isString(entry.state.petCollectionAttrInput) ? entry.state.petCollectionAttrInput : "", attackerElement: isString(entry.state.attackerElement) ? entry.state.attackerElement : "1", bondBonusBp: isString(entry.state.bondBonusBp) ? entry.state.bondBonusBp : "0", simulationRuns: isString(entry.state.simulationRuns) ? entry.state.simulationRuns : "3000", simulationSeed: isString(entry.state.simulationSeed) ? entry.state.simulationSeed : "20260101", totemLoadoutInput: isString(entry.state.totemLoadoutInput) ? entry.state.totemLoadoutInput : "", totemLevel: isString(entry.state.totemLevel) ? entry.state.totemLevel : "0" } }];
+      return [{ id: entry.id, name: entry.name.slice(0, 40), updatedAt: entry.updatedAt, state: { ...entry.state, bonusStatPoints: isString(entry.state.bonusStatPoints) ? entry.state.bonusStatPoints : "0", extraAttrInput: isString(entry.state.extraAttrInput) ? entry.state.extraAttrInput : "", petCollectionAttrInput: isString(entry.state.petCollectionAttrInput) ? entry.state.petCollectionAttrInput : "", attackerElement: isString(entry.state.attackerElement) ? entry.state.attackerElement : "1", bondBonusBp: isString(entry.state.bondBonusBp) ? entry.state.bondBonusBp : "0", simulationRuns: isString(entry.state.simulationRuns) ? entry.state.simulationRuns : "3000", simulationSeed: isString(entry.state.simulationSeed) ? entry.state.simulationSeed : "20260101", totemLoadoutInput: isString(entry.state.totemLoadoutInput) ? entry.state.totemLoadoutInput : "", totemLevel: isString(entry.state.totemLevel) ? entry.state.totemLevel : "0" } }];
     }).slice(0, MAX_NATIVE_SAVED_BUILDS);
   } catch {
     return [];
