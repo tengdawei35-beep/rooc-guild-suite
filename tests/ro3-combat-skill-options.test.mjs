@@ -1,0 +1,88 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { getCombatSkillOptions, getCombatSkillTreeOptions, deriveLearnedSkillEffects } from "../src/lib/ro3-combat-simulator/skill-options.ts";
+
+test("skill options mirror the selected career ancestry and choose highest learnable damage rank", () => {
+  const ui = {
+    jobs: [{ id: 1100 }, { id: 1400, parent: 1100 }, { id: 1410, parent: 1400 }, { id: 1200 }],
+    trees: { "1100": [[11001]], "1400": [[14001]], "1410": [[14101]], "1200": [[12001]] },
+  };
+  const table = {
+    "1100101": { _iID: 1100101, _iSkillID: 11001, _iLevel: 1, _iBasicType: 1, _kDamageParam1: [100], name: "Bash Lv1" },
+    "1100110": { _iID: 1100110, _iSkillID: 11001, _iLevel: 10, _iBasicType: 1, _kDamageParam1: [200], name: "Bash Lv10" },
+    "1400110": { _iID: 1400110, _iSkillID: 14001, _iLevel: 10, _iBasicType: 1, _kDamageParam1: [300], name: "Crusader Strike" },
+    "1410110": { _iID: 1410110, _iSkillID: 14101, _iLevel: 10, _iBasicType: 1, _kDamageParam1: [400], name: "Royal Guard Strike" },
+    "1200110": { _iID: 1200110, _iSkillID: 12001, _iLevel: 10, _iBasicType: 1, _kDamageParam1: [500], name: "Fire Bolt" },
+    "1410201": { _iID: 1410201, _iSkillID: 14102, _iLevel: 1, _iBasicType: 0, _kAttri: [[1, 2]], name: "Passive" },
+    "1410301": { _iID: 1410301, _iSkillID: 14103, _iLevel: 1, _iBasicType: 1, _kDamageParam1: [100], _bAlt: true, name: "Follow-up" },
+  };
+  const options = getCombatSkillOptions(ui, table, 1410);
+  assert.deepEqual(options.map((option) => option.id).sort((a,b)=>a-b), [1100110,1400110,1410110]);
+  assert.equal(options.find((option) => option.groupId === 11001)?.level, 10);
+});
+
+import { loadRo3GameData } from "../src/lib/ro3-combat-simulator/data/ro3-game-data";
+
+test("full exported dataset produces Royal Guard career skill options", async () => {
+  const exported = await loadRo3GameData();
+  const options = getCombatSkillOptions(
+    exported.ui,
+    exported.tables.SkillConfig,
+    1410,
+  );
+  assert.ok(options.length > 0, "Royal Guard career tree should expose learnable damage skills");
+  assert.equal(new Set(options.map((option) => option.groupId)).size, options.length);
+  assert.ok(options.every((option) => option.id > 0 && option.level > 0));
+});
+
+test("skill tree options include passive and buff skills and derive learned effects", () => {
+  const ui = {
+    jobs: [{ id: 1100 }, { id: 1410, parent: 1100 }],
+    trees: { "1100": [[11001]], "1410": [[14101, 14102, 14103, 13311]] },
+  };
+  const table = {
+    "1100101": { _iID: 1100101, _iSkillID: 11001, _iLevel: 1, _iBasicType: 1, _kDamageParam1: [100], name: "Bash" },
+    "1410101": { _iID: 1410101, _iSkillID: 14101, _iLevel: 1, _iBasicType: 0, _kAttri: [[103, 50]], name: "Royal Guard Passive" },
+    "1410102": { _iID: 1410102, _iSkillID: 14102, _iLevel: 1, _iBasicType: 1, _kBuff1: [[9001, 1, 120000]], name: "Long Blessing" },
+    "1410103": { _iID: 1410103, _iSkillID: 14103, _iLevel: 1, _iBasicType: 1, _kBuff1: [[9002, 1, 10000]], name: "Short Buff" },
+    "1331101": { _iID: 1331101, _iSkillID: 13311, _iLevel: 1, _iBasicType: 0, _kAttri: [[103, 50]], name: "Riding Passive" },
+  };
+  const buffTable = { "9001": { _kChangeAttri: [[103, 500]] }, "9002": { _kChangeAttri: [[103, 100]] } };
+  const options = getCombatSkillTreeOptions(ui, table, 1410, buffTable);
+  assert.deepEqual(options.map((option) => option.kind).sort(), ["buff", "buff", "damage", "passive", "passive"]);
+  const effects = deriveLearnedSkillEffects(options, { "14101": 1, "14102": 1, "14103": 1, "13311": 1 }, buffTable, true);
+  assert.deepEqual(effects.passiveSkillIds.sort((a,b)=>a-b), [1331101, 1410101]);
+  assert.deepEqual(effects.autoBuffIds.sort((a,b)=>a-b), [9001, 1331201].sort((a,b)=>a-b));
+  const rotationOptions = getCombatSkillOptions(ui, table, 1410, buffTable);
+  assert.ok(rotationOptions.some((option) => option.groupId === 14103), "modeled short buffs belong in the rotation");
+  assert.ok(!rotationOptions.some((option) => option.groupId === 14102), "long buffs are auto-applied, not rotation steps");
+});
+
+test("long-buff auto classification follows the legacy highest-rank group rule", () => {
+  const ui = {
+    jobs: [{ id: 1100 }, { id: 1410, parent: 1100 }],
+    trees: { "1410": [[14104, 14105]] },
+  };
+  const table = {
+    "1410401": { _iID: 1410401, _iSkillID: 14104, _iLevel: 1, _iBasicType: 1, _kBuff1: [[9003, 1, 10000], [0, 1, 120000]], name: "Mixed duration buff" },
+    "1410501": { _iID: 1410501, _iSkillID: 14105, _iLevel: 1, _iBasicType: 1, _kBuff1: [[9005, 1, 120000]], name: "Lower-rank long buff" },
+    "1410502": { _iID: 1410502, _iSkillID: 14105, _iLevel: 2, _iBasicType: 1, _kBuff1: [[9006, 1, 10000]], name: "Higher-rank short buff" },
+  };
+  const buffTable = {
+    "9003": { _kChangeAttri: [[103, 100]] },
+    "9005": { _kChangeAttri: [[103, 200]] },
+    "9006": { _kChangeAttri: [[103, 300]] },
+  };
+  const options = getCombatSkillTreeOptions(ui, table, 1410, buffTable);
+  const mixed = options.find((option) => option.groupId === 14104);
+  const rankDependent = options.find((option) => option.groupId === 14105);
+  assert.equal(mixed?.autoBuff, true, "a modeled buff plus any long-duration buff makes the group auto, as in legacy");
+  assert.equal(mixed?.rotationUsable, false);
+  assert.equal(rankDependent?.autoBuff, false, "classification is based on the highest rank, not the selected lower rank");
+  assert.equal(rankDependent?.rotationUsable, true);
+  const effects = deriveLearnedSkillEffects(options, { "14104": 1, "14105": 1 }, buffTable);
+  assert.deepEqual(effects.autoBuffIds, [], "only modeled long buffs in a legacy-auto group are assumed active");
+  const rotation = getCombatSkillOptions(ui, table, 1410, buffTable);
+  assert.ok(!rotation.some((option) => option.groupId === 14104));
+  assert.ok(rotation.some((option) => option.groupId === 14105));
+});

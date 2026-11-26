@@ -1,0 +1,53 @@
+import { CARD_SOCKETS, EQUIPMENT_GRIDS, type CardOption, type EquipmentOption } from "./equipment-options";
+
+export type NativeGearSlot = { id: number; roll: number; refine: number; enhance: number; affixes: number[]; stunts: number[]; offRefine: number; offEnhance: number };
+export type NativeCardSlot = { id: number; star: number; level: number; flash?: boolean };
+export type NativeEquipmentSelection = { gear: NativeGearSlot[]; cards: NativeCardSlot[] };
+export type GearLevelCaps = { refine: number[]; enhance: number[] };
+
+export const emptyNativeEquipmentSelection = (): NativeEquipmentSelection => ({
+  gear: EQUIPMENT_GRIDS.map(() => ({ id: 0, roll: 5000, refine: 0, enhance: 0, affixes: [], stunts: [], offRefine: 0, offEnhance: 0 })),
+  cards: CARD_SOCKETS.map(() => ({ id: 0, star: 3, level: 15, flash: false })),
+});
+
+/** Convert UI selections into the exact gear/card shape already consumed by buildCharacterStats. */
+export function toEngineEquipment(selection: NativeEquipmentSelection, equipment: EquipmentOption[], cards: CardOption[], baseLevel = 200, caps?: GearLevelCaps) {
+  const gear = selection.gear.flatMap((slot, index) => {
+    const item = equipment.find((candidate) => candidate.id === slot.id);
+    if (!item || item.levelRequired > baseLevel || !EQUIPMENT_GRIDS[index]?.parts.includes(item.part)) return [];
+    return [{
+      grid: index + 1,
+      id: item.id,
+      roll: Math.max(0, Math.min(10000, Math.round(slot.roll))),
+      affixes: slot.affixes.slice(0, 2),
+      stunts: slot.stunts.slice(0, 2),
+      refine: Math.max(0, Math.min(caps?.refine[index] ?? 99, Math.round(slot.refine))),
+      enhance: Math.max(0, Math.min(caps?.enhance[index] ?? 999, Math.round(slot.enhance))),
+      ...(index === 0 ? {
+        offRefine: Math.max(0, Math.min(caps?.refine[1] ?? 99, Math.round(slot.offRefine))),
+        offEnhance: Math.max(0, Math.min(caps?.enhance[1] ?? 999, Math.round(slot.offEnhance))),
+      } : {}),
+    }];
+  });
+  const activeCards = selection.cards.flatMap((slot, index) => {
+    const item = cards.find((candidate) => candidate.id === slot.id);
+    const socket = CARD_SOCKETS[index];
+    if (!item || !socket || baseLevel < socket.levelRequired || item.part !== socket.part) return [];
+    return [{
+      id: item.id,
+      star: Math.max(0, Math.min(3, Math.round(slot.star))),
+      level: Math.max(0, Math.min([5, 10, 15, 15][Math.max(0, Math.min(3, Math.round(slot.star)))], Math.round(slot.level))),
+      flash: !!slot.flash,
+    }];
+  });
+  return { gear, cards: activeCards };
+}
+
+/** Mirrors the legacy socket behavior: a unique/MVP/shadow card moves to the newly selected socket. */
+export function moveUniqueCardSelection(cards: NativeCardSlot[], changedIndex: number, selectedId: number, unique: boolean): NativeCardSlot[] {
+  return cards.map((slot, index) => index === changedIndex
+    ? { ...slot, id: selectedId }
+    : unique && slot.id === selectedId
+      ? { ...slot, id: 0, flash: false }
+      : slot);
+}
