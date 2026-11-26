@@ -405,7 +405,7 @@ export default function NativeCombatSimulatorPreview() {
       {characterSheet&&<div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6">
         {([["P.ATK",103],["M.ATK",104],["P.DEF",105],["M.DEF",106],["HIT",109],["CRIT",111]] as [string,number][]).map(([name,id])=><div key={id} className="rounded-lg bg-black/30 px-3 py-2"><p className="text-[10px] uppercase text-zinc-500">{name}</p><p className="mt-1 text-sm font-semibold text-white">{Number(characterSheet[id]??0).toLocaleString()}</p></div>)}
       </div>}
-      <p className="mt-2 text-[11px] text-zinc-500">Selected gear and cards feed both the native character sheet and damage simulation. Affix/stunt editing, collection versions and other build sources remain outstanding.</p>
+      <p className="mt-2 text-[11px] text-zinc-500">Selected gear, affixes, stunts and cards feed both the native character sheet and damage simulation. Full legacy equivalence coverage, collection variants and additional legacy build sources remain outstanding.</p>
     </section>
     <section className="rounded-xl border border-white/10 bg-zinc-900/70 p-4">
       <h2 className="text-sm font-semibold text-white">Defender configuration</h2>
