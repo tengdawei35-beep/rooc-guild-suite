@@ -162,6 +162,7 @@ model Guild {
   ownerUserId String?
   memberships GuildMembership[]
   members GuildMember[]
+  applicantWatchlistEntries GuildApplicantWatchlistEntry[]
   resources Resource[]
   reservedAllocations ReservedAllocation[]
   rotationStates RotationState[]
@@ -697,6 +698,21 @@ model ApplicantInvite {
   revokedAt DateTime?
   @@index([guildId, active])
   @@index([createdByUserId])
+}
+
+
+model GuildApplicantWatchlistEntry {
+  id String @id @default(cuid())
+  guildId String
+  characterName String
+  normalizedCharacterName String
+  watchlist ApplicantWatchlist
+  notes String?
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([guildId, normalizedCharacterName])
+  @@index([guildId, watchlist])
 }
 
 model GuildApplicant {

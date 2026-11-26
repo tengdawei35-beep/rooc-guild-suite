@@ -49,6 +49,11 @@ export async function POST(request: Request, context: { params: Promise<{ token:
   const body = (await request.json()) as Record<string, unknown>;
   const characterName = String(body.characterName ?? "").trim();
   const job = String(body.job ?? "").trim();
+  const normalizedCharacterName = characterName.toLocaleLowerCase();
+  const watchlistPreset = await prisma.guildApplicantWatchlistEntry.findUnique({
+    where: { guildId_normalizedCharacterName: { guildId: invite.guildId, normalizedCharacterName } },
+    select: { watchlist: true },
+  });
   if (!characterName) return NextResponse.json({ error: "Character Name is required." }, { status: 400 });
   if (!job) return NextResponse.json({ error: "Job is required." }, { status: 400 });
   const validJobs = isRO3 ? RO3_JOBS : ROOC_JOBS;
@@ -76,6 +81,7 @@ export async function POST(request: Request, context: { params: Promise<{ token:
     const payload = {
       inviteId: invite.id, discordUserId: user.discordId, discordUsername: user.username,
       userId: user.id, characterName, job, ro3Stats,
+      ...(watchlistPreset ? { watchlist: watchlistPreset.watchlist } : {}),
       // Clear any legacy ROOC scalar values if this applicant previously applied
       // while the guild was configured for ROOC.
       pdef: null, mdef: null, pvpDamageBonus: null, pvpDamageReduction: null,
@@ -135,6 +141,7 @@ export async function POST(request: Request, context: { params: Promise<{ token:
     characterName,
     job,
     ...applicantStats,
+    ...(watchlistPreset ? { watchlist: watchlistPreset.watchlist } : {}),
     dpsScore: applicant.dpsScore,
     tankScore: applicant.tankScore,
     pvpScore: applicant.pvpScore,

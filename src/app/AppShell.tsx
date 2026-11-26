@@ -109,6 +109,7 @@ export default function AppShell({
       items: [
         ...(roleCan("members.view") ? [{ label: "Members", href: "/guild/members", icon: "♧" }] : []),
         ...(roleCan("applicants.view") ? [{ label: "Recruitment", href: "/guild/applicants", icon: "＋" }] : []),
+        ...(["ADMIN", "MANAGER"].includes(role) ? [{ label: "Applicant watchlist", href: "/guild/applicant-watchlist", icon: "◉" }] : []),
         ...(roleCan("users.view") ? [{ label: "Users & roles", href: "/guild/users", icon: "◎" }] : []),
         ...(roleCan("leave.manageAny") ? [{ label: "Leave & availability", href: "/guild/members/leave/history", icon: "◷" }] : []),
       ],
