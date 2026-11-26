@@ -37,3 +37,12 @@ export declare function buildCharacterStats(build: Record<string, any>, data?: R
 export declare function gearParts(gear: Record<string, any>, data?: Ro3MemoryDataStore): any;
 
 export declare function cardParts(card: Record<string, any>, data?: Ro3MemoryDataStore): any;
+
+export declare function petSlotStats(slot: Record<string, any>, kind: "fight" | "assist", index: number, level: number, data?: Ro3MemoryDataStore): Array<[number, number]>;
+export declare function petStats(pets: Array<Record<string, any> | null>, assist: Array<Record<string, any> | null>, level: number, data?: Ro3MemoryDataStore): Array<[number, number]>;
+export declare function petEffects(pets: Array<Record<string, any> | null>, data?: Ro3MemoryDataStore): Record<string, any>;
+export declare function talentOptions(branch: string | number, career: number, prof: number, data?: Ro3MemoryDataStore): Array<Record<string, any>>;
+export declare function talentPick(talents: Record<string, any>, branch: string | number, career: number, data?: Ro3MemoryDataStore): [number, number];
+export declare function talentWalk(build: Record<string, any>, data?: Ro3MemoryDataStore): Record<string, any>;
+export declare function talentEffects(build: Record<string, any>, data?: Ro3MemoryDataStore): Record<string, any>;
+export declare function talentMax(build: Record<string, any>, data?: Ro3MemoryDataStore): number;
