@@ -108,6 +108,8 @@ export function importLegacyRoyalGuardBuild(
   draft.resonanceEnhance = numberString(state.res?.enhance,0);
   draft.rotationCycle = !!state.sim?.cycle;
   draft.cancelBackswing = !!state.sim?.cancel;
+  draft.simulationRuns = numberString(state.sim?.runs, 3000);
+  draft.simulationSeed = numberString(state.sim?.seed, 20260101);
   draft.periodicOff = Number(state.sim?.howl) < 0;
   draft.periodicStartSeconds = numberString(Math.max(0,Number(state.sim?.howl)||0),0);
   draft.ridden = Number(state.sim?.howl) < 0;
