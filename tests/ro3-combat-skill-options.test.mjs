@@ -46,12 +46,11 @@ test("skill tree options include passive and buff skills and derive learned effe
     "1410102": { _iID: 1410102, _iSkillID: 14102, _iLevel: 1, _iBasicType: 1, _kBuff1: [[9001, 1, 120000]], name: "Long Blessing" },
     "1410103": { _iID: 1410103, _iSkillID: 14103, _iLevel: 1, _iBasicType: 1, _kBuff1: [[9002, 1, 10000]], name: "Short Buff" },
   };
-  const options = getCombatSkillTreeOptions(ui, table, 1410);
+  const buffTable = { "9001": { _kChangeAttri: [[103, 500]] }, "9002": { _kChangeAttri: [[103, 100]] } };
+  const options = getCombatSkillTreeOptions(ui, table, 1410, buffTable);
   assert.deepEqual(options.map((option) => option.kind).sort(), ["buff", "buff", "damage", "passive"]);
   const effects = deriveLearnedSkillEffects(options, { "14101": 1, "14102": 1, "14103": 1 }, {
-    "9001": { _kChangeAttri: [[103, 500]] },
-    "9002": { _kChangeAttri: [[103, 100]] },
-  });
+  }, true);
   assert.deepEqual(effects.passiveSkillIds, [1410101]);
   assert.deepEqual(effects.autoBuffIds, [9001]);
 });
