@@ -98,7 +98,7 @@ export function parseNativeSavedBuilds(raw: string | null): NativeSavedBuild[] {
         || !isString(entry.name) || !entry.name.trim() || !isString(entry.updatedAt)
         || !isNativeBuildDraft(entry.state)) return [];
       seen.add(entry.id);
-      return [{ id: entry.id, name: entry.name.slice(0, 40), updatedAt: entry.updatedAt, state: { ...entry.state, extraAttrInput: isString(entry.state.extraAttrInput) ? entry.state.extraAttrInput : "", totemLoadoutInput: isString(entry.state.totemLoadoutInput) ? entry.state.totemLoadoutInput : "", totemLevel: isString(entry.state.totemLevel) ? entry.state.totemLevel : "0" } }];
+      return [{ id: entry.id, name: entry.name.slice(0, 40), updatedAt: entry.updatedAt, state: { ...entry.state, extraAttrInput: isString(entry.state.extraAttrInput) ? entry.state.extraAttrInput : "", petCollectionAttrInput: isString(entry.state.petCollectionAttrInput) ? entry.state.petCollectionAttrInput : "", totemLoadoutInput: isString(entry.state.totemLoadoutInput) ? entry.state.totemLoadoutInput : "", totemLevel: isString(entry.state.totemLevel) ? entry.state.totemLevel : "0" } }];
     }).slice(0, MAX_NATIVE_SAVED_BUILDS);
   } catch {
     return [];
