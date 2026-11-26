@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { importLegacyRoyalGuardBuild, parseLegacyBuildBook } from "../src/lib/ro3-combat-simulator/legacy-build-import";
-import { buildCharacterStats, Ro3DataStore } from "../src/lib/ro3-combat-simulator/engine/ro3-damage-engine.mjs";
+import { buildCharacterStats, Ro3DataStore, simulateRotation } from "../src/lib/ro3-combat-simulator/engine/ro3-damage-engine.mjs";
 
 const defaults = {
   level:"100",stats:["1","1","1","1","1","1"],
@@ -88,4 +88,9 @@ test("legacy import golden fixture preserves legacy character-sheet attribute so
   };
   const data=new Ro3DataStore();
   assert.deepEqual(buildCharacterStats(nativeBuild,data),buildCharacterStats(legacyReference,data));
+  const defender={level:100,def:0,mdef:0,element:1,race:1,size:2};
+  assert.deepEqual(
+    simulateRotation(nativeBuild,defender,[],3000,data),
+    simulateRotation(legacyReference,defender,[],3000,data),
+  );
 });
