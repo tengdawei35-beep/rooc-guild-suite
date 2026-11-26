@@ -7,6 +7,7 @@ import { validateCombatInput } from "@/lib/ro3-combat-simulator/validate-input.m
 import { emptyNativeEquipmentSelection, moveUniqueCardSelection, toEngineEquipment, type NativeEquipmentSelection } from "@/lib/ro3-combat-simulator/build-input";
 import { EQUIPMENT_GRIDS, CARD_SOCKETS } from "@/lib/ro3-combat-simulator/equipment-options";
 import { NATIVE_BUILD_STORAGE_KEY, parseNativeSavedBuilds, removeNativeSavedBuild, serializeNativeSavedBuilds, upsertNativeSavedBuild, type NativeBuildDraft, type NativeSavedBuild } from "@/lib/ro3-combat-simulator/native-build-storage";
+import { CLASS_PROFILES } from "@/lib/ro3-combat-simulator/engine/ro3-damage-engine.mjs";
 
 type Member = {
   id: string; characterName: string | null; discordUsername: string | null; job: string | null;
@@ -92,6 +93,7 @@ export default function NativeCombatSimulatorPreview() {
   const [race, setRace] = useState("1");
   const [size, setSize] = useState("2");
   const [skillIds, setSkillIds] = useState("");
+  const [rotationPreset, setRotationPreset] = useState("");
   const [disabledRotationIds, setDisabledRotationIds] = useState("");
   const [selectedSkillId, setSelectedSkillId] = useState("");
   const [duration, setDuration] = useState("30000");
@@ -223,6 +225,20 @@ export default function NativeCombatSimulatorPreview() {
       setSelectedSavedBuildId(next[0]?.id ?? "");
       setSavedBuildMessage("Saved build deleted.");
     }
+  }
+
+  function applyRotationPreset(index: number) {
+    const preset = CLASS_PROFILES.royalguard.candidateRotations[index];
+    if (!preset) return;
+    const ids = preset.skills.map((sourceId: number) => {
+      const groupId = Math.floor(sourceId / 100);
+      return engine.skillOptions.find((option) => option.groupId === groupId)?.id ?? sourceId;
+    });
+    setSkillIds(ids.join(", "));
+    setDisabledRotationIds("");
+    setRotationPreset(String(index));
+    setResult(null);
+    setSimulationError(null);
   }
 
   function moveRotationEntry(index: number, offset: number) {
@@ -474,8 +490,14 @@ export default function NativeCombatSimulatorPreview() {
             </select>
           </label>
           <button type="button" disabled={!selectedSkillId} onClick={()=>setSkillIds((current)=>current.trim() ? `${current.trim()}, ${selectedSkillId}` : selectedSkillId)} className="rounded-lg border border-white/15 px-3 py-2 text-xs font-medium text-zinc-200 hover:bg-white/5 disabled:opacity-40">Add to rotation</button>
+          <label className="block text-xs text-zinc-400">Royal Guard rotation preset
+            <select value={rotationPreset} onChange={(e)=>e.target.value===""?setRotationPreset(""):applyRotationPreset(Number(e.target.value))} className={inputClass}>
+              <option value="">Manual / custom rotation</option>
+              {CLASS_PROFILES.royalguard.candidateRotations.map((preset: {name:string}, index: number)=><option key={preset.name} value={index}>{preset.name}</option>)}
+            </select>
+          </label>
           <label className="block text-xs text-zinc-400">Rotation SkillConfig IDs (priority order; duplicates allowed)
-            <input value={skillIds} onChange={(e)=>setSkillIds(e.target.value)} placeholder="Select skills above or enter IDs manually" className={inputClass}/>
+            <input value={skillIds} onChange={(e)=>{setSkillIds(e.target.value);setRotationPreset("");}} placeholder="Select skills above or enter IDs manually" className={inputClass}/>
           </label>
           <label className="block text-xs text-zinc-400">Disabled rotation SkillConfig IDs<input value={disabledRotationIds} onChange={(e)=>setDisabledRotationIds(e.target.value)} placeholder="IDs to skip, comma-separated" className={inputClass}/></label>
           {rotationEntries.length > 0 && <div className="space-y-1 rounded-lg border border-white/10 bg-zinc-950/40 p-2">
