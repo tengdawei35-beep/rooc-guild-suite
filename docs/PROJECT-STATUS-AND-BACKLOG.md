@@ -11,8 +11,8 @@ This document is the current engineering backlog snapshot. It separates reposito
 
 - PR #160 has merged. Its latest full CI run passed TypeScript, Prisma generation/migrations, combat-engine tests, the RO3 scoring/sensitivity suite, ESLint and production build. The main-branch CI and Vercel production deployment were still running at this audit snapshot.
 - The user confirmed that the applicant watchlist and both related production database migrations were applied and are working.
-- The production `/combat-simulator` page currently renders the native React workspace. The old migration notes below it in `docs/ro3-combat-simulator-native-migration.md` still describe the former iframe production path and must be reconciled.
-- The repository contains a substantial legacy pull-request backlog. Many PRs target historical base commits and are stacked on earlier feature branches; they must not be merged as a batch.
+- The production `/combat-simulator` page renders the native React workspace. `docs/ro3-combat-simulator-native-migration.md` now has a current-status correction at the top; older iframe-path checkpoints below it are historical and should be explicitly labeled during the next documentation cleanup.
+- The historical UX stack has been triaged. Only PRs #75 and #92 remain open from that sequence; both are intentionally deferred because they overlap the member-stat/OCR scope.
 - Admin pages, subscription administration, OCR endpoints, and member-stat update surfaces already exist in the current source tree. They should be audited for completeness rather than tracked as wholly unimplemented features.
 
 ## Confirmed completed
@@ -110,14 +110,14 @@ These issues are older than the current applicant and OCR implementations. Recon
 
 ### P2 — SaaS administration and billing
 
-Admin routes already exist for guilds, users, subscriptions, affiliates, guild creators, impersonation, Discord settings and combat-simulator access. The next task is a role/permission and workflow audit, not creating duplicate dashboards.
+The first authorization pass is complete: all nine `/admin` page routes use server-side `getPlatformAdmin()` guards, and the reviewed sensitive admin APIs enforce platform-admin authorization. Billing checkout/portal routes require a platform session and verify guild ownership where applicable; the Stripe webhook verifies signatures. PR #159 fixed complimentary-grant history/entitlement selection.
 
-Verify:
-- Platform-admin authorization is enforced server-side on every API, not just hidden in navigation.
-- Guild scoping prevents cross-guild data access.
-- Subscription state, Stripe checkout, portal, renewals, cancellations, failed payments and entitlement revocation stay synchronized.
-- Personal simulator subscriptions remain distinct from guild add-on subscriptions and base guild plans.
-- Admin impersonation is explicit, auditable and cannot bypass intended permission boundaries.
+Remaining validation:
+- Exercise guild scoping across all admin and billing APIs with multiple guild memberships.
+- Test Stripe checkout, portal, renewals, cancellations, failed payments, past-due recovery and entitlement revocation in a safe test environment.
+- Decide Issue #163: whether active complimentary access should be convertible to a paid subscription before expiry.
+- Verify personal simulator subscriptions remain distinct from guild add-on subscriptions and base guild plans.
+- Confirm impersonation audit records and permission boundaries in a real admin test session.
 
 ### P2 — UX and accessibility regression
 
@@ -125,7 +125,7 @@ The shared HMDL design system, branding and page-sizing work have been implement
 
 Cover management and member experiences at desktop, tablet and mobile widths; loading/empty/error states; keyboard navigation; focus visibility; dialogs; tables; and role-specific navigation.
 
-## Open pull-request triage
+## Pull-request disposition
 
 The GitHub repository currently has a large open-PR backlog. Several older PRs are based on historical commit SHAs rather than the current `main` commit. Open status does not mean work is missing from production.
 
@@ -188,6 +188,7 @@ For every open issue:
 - **PR #162** — merged; added the missing page-level authentication and `allocation.view` guard to `/guild/resources/history`, and refreshed the historical Phase 43/45 audit documents.
 - **PR #160** — merged after full CI passed; rebuilt the RO3 simulator-backed evaluation and experimental scoring framework from current `main`.
 - **PR #142** — closed as superseded by #160.
+- **PR #163** — open product-decision issue for complimentary-to-paid conversion.
 - **PR #106** remains the merged page-sizing implementation baseline. Browser screenshot QA at desktop/tablet/mobile widths remains outstanding.
 - The legacy UX stack **#55–#74, #76–#91, and #93–#96** was closed as superseded by current `main` and later merged workspace/design-system work. These stale phase branches were not merged directly.
 - **#102 and #105** were replaced by the refreshed historical audit snapshots in PR #162 and closed.
