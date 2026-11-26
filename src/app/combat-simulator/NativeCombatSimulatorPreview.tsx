@@ -129,6 +129,9 @@ export default function NativeCombatSimulatorPreview() {
     lv: numeric(talentLevel,0), prof: numeric(talentProf,0), picks: talentPicks, skills: parseTalentSkillLevels(talentSkillLevels),
   }), [engine.getTalentConfiguration, level, talentProf, talentLevel, talentPicks, talentSkillLevels]);
   const learnedSkillLevels = useMemo(() => parseTalentSkillLevels(skillLevels), [skillLevels]);
+  const rotationEntries = useMemo(() => skillIds.trim() ? skillIds.trim().split(/[\\s,;]+/).map(Number).filter((id)=>Number.isSafeInteger(id)&&id>0) : [], [skillIds]);
+  const disabledRotationSet = useMemo(() => new Set(parseIdList(disabledRotationIds)), [disabledRotationIds]);
+
   const learnedSkillEffects = useMemo(() => engine.deriveLearnedSkillEffectsForBuild(learnedSkillLevels, ridden), [engine.deriveLearnedSkillEffectsForBuild, learnedSkillLevels, ridden]);
   const effectivePassiveSkills = useMemo(() => [...new Set([...passiveSkillIds.split(/[ ,]+/).map(Number).filter((id)=>Number.isInteger(id)&&id>0), ...learnedSkillEffects.passiveSkillIds])], [passiveSkillIds, learnedSkillEffects]);
   const effectiveBuffIds = useMemo(() => [...new Set([...parseIdList(activeBuffIds), ...learnedSkillEffects.autoBuffIds, ...talentConfiguration.effects.buffs])], [activeBuffIds, learnedSkillEffects, talentConfiguration.effects.buffs]);
@@ -220,6 +223,24 @@ export default function NativeCombatSimulatorPreview() {
       setSelectedSavedBuildId(next[0]?.id ?? "");
       setSavedBuildMessage("Saved build deleted.");
     }
+  }
+
+  function moveRotationEntry(index: number, offset: number) {
+    const next = [...rotationEntries];
+    const target = index + offset;
+    if (target < 0 || target >= next.length) return;
+    [next[index], next[target]] = [next[target], next[index]];
+    setSkillIds(next.join(", "));
+  }
+
+  function removeRotationEntry(index: number) {
+    setSkillIds(rotationEntries.filter((_, i) => i !== index).join(", "));
+  }
+
+  function setRotationEntryDisabled(id: number, disabled: boolean) {
+    const next = new Set(disabledRotationSet);
+    if (disabled) next.add(id); else next.delete(id);
+    setDisabledRotationIds([...next].join(", "));
   }
 
   function runSimulation() {
@@ -457,6 +478,21 @@ export default function NativeCombatSimulatorPreview() {
             <input value={skillIds} onChange={(e)=>setSkillIds(e.target.value)} placeholder="Select skills above or enter IDs manually" className={inputClass}/>
           </label>
           <label className="block text-xs text-zinc-400">Disabled rotation SkillConfig IDs<input value={disabledRotationIds} onChange={(e)=>setDisabledRotationIds(e.target.value)} placeholder="IDs to skip, comma-separated" className={inputClass}/></label>
+          {rotationEntries.length > 0 && <div className="space-y-1 rounded-lg border border-white/10 bg-zinc-950/40 p-2">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Rotation priority</p>
+            {rotationEntries.map((id, index) => {
+              const skill = engine.skillOptions.find((item) => item.id === id);
+              const disabled = disabledRotationSet.has(id);
+              return <div key={`${id}-${index}`} className="flex items-center gap-2 rounded-md border border-white/5 px-2 py-1.5 text-xs">
+                <span className="w-4 text-zinc-500">{index + 1}.</span>
+                <span className={`min-w-0 flex-1 truncate ${disabled ? "text-zinc-600 line-through" : "text-zinc-200"}`}>{skill?.name ?? `Skill ${id}`} <span className="text-zinc-500">#{id}</span></span>
+                <label className="flex items-center gap-1 text-[10px] text-zinc-400"><input type="checkbox" checked={disabled} onChange={(e)=>setRotationEntryDisabled(id,e.target.checked)}/>Off</label>
+                <button type="button" aria-label={`Move skill ${id} up`} disabled={index===0} onClick={()=>moveRotationEntry(index,-1)} className="rounded px-1 text-zinc-300 disabled:opacity-25">↑</button>
+                <button type="button" aria-label={`Move skill ${id} down`} disabled={index===rotationEntries.length-1} onClick={()=>moveRotationEntry(index,1)} className="rounded px-1 text-zinc-300 disabled:opacity-25">↓</button>
+                <button type="button" aria-label={`Remove skill ${id}`} onClick={()=>removeRotationEntry(index)} className="rounded px-1 text-rose-300">×</button>
+              </div>;
+            })}
+          </div>}
         </div>
         <label className="text-xs text-zinc-400">Duration (ms)<input type="number" min="1000" max="300000" step="1000" value={duration} onChange={(e)=>setDuration(e.target.value)} className={inputClass}/></label>
       </div>
