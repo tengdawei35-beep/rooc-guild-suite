@@ -69,13 +69,14 @@ export function useCombatSimulatorEngine() {
           for (const entry of skill._kBuff1) if (Array.isArray(entry) && Number(entry[0]) > 0 && !buffSourceNames.has(Number(entry[0]))) buffSourceNames.set(Number(entry[0]), skillName + " effect");
         }
         const namedTable = (tableName: string, fallback: (id:number,index:number)=>string) => rawOptions(tableName).map(({row,id},index)=>({id,name:explicitName(row) ?? fallback(id,index)}));
+        const uiTotemSkills = (exported.ui?.totemSkills ?? {}) as Record<string, any>;
         setNamedOptions({
           elements: [{id:0,name:"Neutral"}, ...rawOptions("EleConfig").map(({row,id})=>({id,name:explicitName(row) ?? (["","Neutral","Wind","Earth","Fire","Water","Poison","Holy","Shadow","Ghost","Undead"][id] ?? "Element")}))],
           races: namedTable("RaceConfig",(id,index)=>raceNames[id] ?? `Race ${index+1}`),
           sizes: namedTable("SizeConfig",(id,index)=>sizeNames[id] ?? `Size ${index+1}`),
           buffs: namedTable("BuffConfig",(id,index)=>buffSourceNames.get(id) ?? `Combat buff ${index+1}`),
           totemSkills: rawOptions("TotemSkillConfig").map(({row,id},index)=>{
-            const uiSkill = exported.ui?.totemSkills?.[id] ?? exported.ui?.totemSkills?.[String(id)];
+            const uiSkill = uiTotemSkills[String(id)];
             const name = [uiSkill?.name,uiSkill?.label,explicitName(row)].find((value)=>typeof value === "string" && value.trim());
             return {id,name:String(name ?? `Totem skill ${index+1}`)};
           }),
