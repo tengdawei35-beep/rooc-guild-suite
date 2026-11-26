@@ -18,7 +18,7 @@ export function getCombatSkillOptions(
 
 import { BUFF_PROCS, RIDING_PASSIVES } from "./engine/ro3-damage-engine.mjs";
 
-const FX_ATTRS = new Set([1,2,3,4,5,6,102,103,104,109,111,114,115,209,211,213,215,227,229,235,1021,1022,1023,1031,1032,1033,1034,1041,1042,1043,1044,1091,1092,1093,1111,1112,1113,1141,1142,1211,1213,1215,1227,1229,1250,1252]);
+const FX_ATTRS = new Set([1,2,3,4,5,6,102,103,104,109,111,114,115,209,211,213,215,221,222,227,229,235,1021,1022,1023,1031,1032,1033,1034,1041,1042,1043,1044,1091,1092,1093,1111,1112,1113,1141,1142,1211,1213,1215,1227,1229,1250,1252]);
 const SKILL_FX_TYPES = new Set([0,21,23,24,25,26,27,29,30]);
 
 function hasModeledBuffEffect(id: number, buffTable: Record<string, Record<string, unknown>>): boolean {
@@ -91,7 +91,7 @@ export function getCombatSkillTreeOptions(
     }));
     const topBuffs = levels[levels.length - 1]?.buffs ?? [];
     const hasModeledBuff = topBuffs.some((buff) => buff.modeled);
-    const autoBuff = kind === "buff" && hasModeledBuff && topBuffs.some((buff) => buff.durationMs >= 60000 && buff.modeled);
+    const autoBuff = kind === "buff" && hasModeledBuff && topBuffs.some((buff) => buff.durationMs >= 60000);
     return {
       groupId, name: String(top.name ?? rows[0].name ?? `Skill ${groupId}`),
       jobId: groupJob.get(groupId)!, maxLevel: Number(top._iLevel), kind, levels,
