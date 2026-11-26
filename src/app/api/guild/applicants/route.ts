@@ -46,7 +46,7 @@ export async function GET() {
   // multiplying database work and delaying the entire response.
   const [guild, applicants, members] = await Promise.all([
     prisma.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true } }),
-    prisma.guildApplicant.findMany({ where: { guildId: auth.guild.id } }),
+    prisma.guildApplicant.findMany({ where: { guildId: auth.guild.id, status: "PENDING" } }),
     getActiveGuildMembers(auth.guild.id),
   ]);
   const gameType = guild?.gameType === "RO3" ? "RO3" : "ROOC";
@@ -75,6 +75,23 @@ export async function GET() {
   });
 
   return NextResponse.json({ gameType, applicants: rankedApplicants });
+}
+
+export async function PATCH(request: Request) {
+  const auth = await getCurrentAuth();
+  if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+  if (!hasPermission(auth.role, "applicants.manage")) return forbidden();
+  const body = (await request.json()) as { id?: string; watchlist?: "GREEN" | "YELLOW" | "RED" | null };
+  if (!body.id || !("watchlist" in body) || (body.watchlist !== null && !["GREEN", "YELLOW", "RED"].includes(body.watchlist ?? ""))) {
+    return NextResponse.json({ error: "Applicant ID and a valid watchlist colour are required." }, { status: 400 });
+  }
+  const result = await prisma.guildApplicant.updateMany({
+    where: { id: body.id, guildId: auth.guild.id, status: "PENDING" },
+    data: { watchlist: body.watchlist },
+  });
+  if (result.count !== 1) return NextResponse.json({ error: "Pending applicant not found." }, { status: 404 });
+  const applicant = await prisma.guildApplicant.findFirst({ where: { id: body.id, guildId: auth.guild.id }, select: { id: true, watchlist: true } });
+  return NextResponse.json({ applicant });
 }
 
 export async function POST(request: Request) {

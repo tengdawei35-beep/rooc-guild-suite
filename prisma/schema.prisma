@@ -127,6 +127,12 @@ enum BillingInterval {
   YEAR
 }
 
+enum ApplicantWatchlist {
+  GREEN
+  YELLOW
+  RED
+}
+
 enum ApplicantStatus {
   PENDING
   ACCEPTED
@@ -703,6 +709,7 @@ model GuildApplicant {
   characterName String
   job String?
   status ApplicantStatus @default(PENDING)
+  watchlist ApplicantWatchlist?
   remarks String?
   ro3Stats Json?
   pdef Float?

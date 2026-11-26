@@ -10,6 +10,7 @@ type Applicant = {
   characterName: string;
   job: string | null;
   status: "PENDING" | "ACCEPTED" | "DENIED";
+  watchlist: "GREEN" | "YELLOW" | "RED" | null;
   createdAt: string;
   ro3Stats: Record<string, number | null> | null;
   pdef: number | null;
@@ -86,6 +87,13 @@ export default function ApplicantsClient({ canManage }: { canManage: boolean }) 
     finally { setBusy(false); }
   }
 
+  async function updateWatchlist(id: string, watchlist: "GREEN" | "YELLOW" | "RED" | null) {
+    setBusy(true); setError("");
+    try { const response = await fetch("/api/guild/applicants", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, watchlist }) }); const data = await response.json(); if (!response.ok) throw new Error(data.error ?? "Failed to update watchlist."); await load(); }
+    catch (err) { setError(err instanceof Error ? err.message : "Failed to update watchlist."); }
+    finally { setBusy(false); }
+  }
+
   async function decide(id: string, decision: "ACCEPTED" | "DENIED") {
     const applicant = applicants.find(item => item.id === id);
     const action = decision === "ACCEPTED" ? "accept" : "deny";
@@ -114,13 +122,13 @@ export default function ApplicantsClient({ canManage }: { canManage: boolean }) 
   const acceptedCount = applicants.filter((applicant) => applicant.status === "ACCEPTED").length;
   const deniedCount = applicants.filter((applicant) => applicant.status === "DENIED").length;
   const activeInvites = invites.filter((invite) => invite.active);
-  const [statusFilter, setStatusFilter] = useState<"ALL" | Applicant["status"]>("ALL");
+  const [watchlistFilter, setWatchlistFilter] = useState<"ALL" | "GREEN" | "YELLOW" | "RED" | "UNSET">("ALL");
   const [search, setSearch] = useState("");
   const filteredApplicants = applicants.filter((applicant) => {
-    const matchesStatus = statusFilter === "ALL" || applicant.status === statusFilter;
+    const matchesWatchlist = watchlistFilter === "ALL" || (watchlistFilter === "UNSET" ? !applicant.watchlist : applicant.watchlist === watchlistFilter);
     const query = search.trim().toLowerCase();
     const matchesSearch = !query || [applicant.characterName, applicant.discordUsername, applicant.discordUserId, applicant.job ?? ""].some((value) => value.toLowerCase().includes(query));
-    return matchesStatus && matchesSearch;
+    return matchesWatchlist && matchesSearch;
   });
 
   return <main className="hmdl-management hmdl-recruitment-page">
@@ -129,7 +137,7 @@ export default function ApplicantsClient({ canManage }: { canManage: boolean }) 
         <div>
           <p className="hmdl-eyebrow">PEOPLE / RECRUITMENT</p>
           <h1 className="hmdl-page-title">Applicants</h1>
-          <p>Review {gameType} applications, compare character strength and manage recruitment decisions.</p>
+          <p>Review pending {gameType} applications, compare character strength and manage recruitment decisions. Accepted and denied applications are automatically removed from this queue.</p>
         </div>
         {canManage && <button onClick={generateInvite} disabled={busy} className="hmdl-btn hmdl-btn-primary">{busy ? "Working…" : "＋ Generate application link"}</button>}
       </header>
@@ -159,19 +167,20 @@ export default function ApplicantsClient({ canManage }: { canManage: boolean }) 
         <div className="hmdl-recruitment-panel-heading"><div><h2>Application queue</h2><p>{loading ? "Loading applications…" : `Showing ${filteredApplicants.length} of ${applicants.length} applications`}</p></div><span className="hmdl-badge">{gameType} applicants</span></div>
         <div className="hmdl-applicant-toolbar">
           <input aria-label="Search applicants" className="hmdl-field" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search character, Discord user or job…" />
-          <select aria-label="Filter by application status" className="hmdl-field" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as typeof statusFilter)}>
-            <option value="ALL">All statuses</option><option value="PENDING">Pending</option><option value="ACCEPTED">Accepted</option><option value="DENIED">Denied</option>
+          <select aria-label="Filter by watchlist colour" className="hmdl-field" value={watchlistFilter} onChange={(event) => setWatchlistFilter(event.target.value as typeof watchlistFilter)}>
+            <option value="ALL">All watchlist colours</option><option value="GREEN">Green · Prioritise</option><option value="YELLOW">Yellow · Review</option><option value="RED">Red · Reject</option><option value="UNSET">No watchlist</option>
           </select>
         </div>
         <div className="hmdl-applicant-list">
-          {loading ? <div className="hmdl-recruitment-empty">Loading applicants…</div> : filteredApplicants.length === 0 ? <div className="hmdl-recruitment-empty"><strong>{applicants.length === 0 ? "No applications yet" : "No matching applications"}</strong><span>{applicants.length === 0 ? "Applications submitted through your active recruitment link will appear here." : "Try another search or status filter."}</span></div> : filteredApplicants.map((applicant) => <article key={applicant.id} className={`hmdl-applicant-card ${expandedApplicantId === applicant.id ? "is-expanded" : ""}`}>
+          {loading ? <div className="hmdl-recruitment-empty">Loading applicants…</div> : filteredApplicants.length === 0 ? <div className="hmdl-recruitment-empty"><strong>{applicants.length === 0 ? "No applications yet" : "No matching applications"}</strong><span>{applicants.length === 0 ? "Applications submitted through your active recruitment link will appear here." : "Try another search or watchlist filter."}</span></div> : filteredApplicants.map((applicant) => <article key={applicant.id} className={`hmdl-applicant-card ${expandedApplicantId === applicant.id ? "is-expanded" : ""}`}>
             <div className="hmdl-applicant-summary">
               <button type="button" onClick={() => setExpandedApplicantId(expandedApplicantId === applicant.id ? null : applicant.id)} className="hmdl-applicant-toggle" aria-expanded={expandedApplicantId === applicant.id}>
                 <span className="hmdl-applicant-identity"><strong>{applicant.characterName}</strong><span>{applicant.job ?? "Job not specified"} · {applicant.discordUsername} · {applicant.discordUserId}</span><time dateTime={applicant.createdAt}>{new Date(applicant.createdAt).toLocaleDateString()}</time></span>
                 <span className={`hmdl-badge ${applicant.status === "PENDING" ? "hmdl-badge-warning" : applicant.status === "ACCEPTED" ? "hmdl-badge-success" : "hmdl-badge-danger"}`}>{applicant.status}</span>
+                {applicant.watchlist && <span className={`hmdl-applicant-watchlist-badge is-${applicant.watchlist.toLowerCase()}`}>{applicant.watchlist === "GREEN" ? "Green · Prioritise" : applicant.watchlist === "YELLOW" ? "Yellow · Review" : "Red · Reject"}</span>}
                 <span className="hmdl-applicant-expand">{expandedApplicantId === applicant.id ? "Hide details ↑" : "View details ↓"}</span>
               </button>
-              {canManage && applicant.status === "PENDING" && <div className="hmdl-applicant-actions"><button type="button" onClick={() => decide(applicant.id, "ACCEPTED")} disabled={busy} className="hmdl-btn hmdl-btn-primary">{processingApplicantId === applicant.id ? "Processing…" : "Accept"}</button><button type="button" onClick={() => decide(applicant.id, "DENIED")} disabled={busy} className="hmdl-btn hmdl-btn-danger">{processingApplicantId === applicant.id ? "Processing…" : "Deny"}</button></div>}
+              {canManage && applicant.status === "PENDING" && <div className="hmdl-applicant-actions">{canManage && <select aria-label={`Watchlist for ${applicant.characterName}`} className="hmdl-field hmdl-applicant-watchlist-select" value={applicant.watchlist ?? ""} onChange={(event) => void updateWatchlist(applicant.id, (event.target.value || null) as "GREEN" | "YELLOW" | "RED" | null)} disabled={busy}><option value="">No watchlist</option><option value="GREEN">🟢 Green — Prioritise</option><option value="YELLOW">🟡 Yellow — Review</option><option value="RED">🔴 Red — Reject</option></select>}<button type="button" onClick={() => decide(applicant.id, "ACCEPTED")} disabled={busy} className="hmdl-btn hmdl-btn-primary">{processingApplicantId === applicant.id ? "Processing…" : "Accept"}</button><button type="button" onClick={() => decide(applicant.id, "DENIED")} disabled={busy} className="hmdl-btn hmdl-btn-danger">{processingApplicantId === applicant.id ? "Processing…" : "Deny"}</button></div>}
             </div>
             {expandedApplicantId === applicant.id && <div className="hmdl-applicant-details">
               {gameType === "ROOC" && applicant.comparison && <div className="grid gap-4 lg:grid-cols-[1fr_1fr]"><ScorePanel title="Projected guild standing" scores={applicant.comparison.scores} /><div className="rounded-xl border border-zinc-800 bg-zinc-950 p-5"><h3 className="font-semibold">Closest current member</h3>{applicant.comparison.closest ? <><p className="mt-3 text-lg font-medium">{applicant.comparison.closest.characterName ?? "Unnamed"}</p><p className="text-xs text-zinc-500">{applicant.comparison.closest.job ?? "Job not specified"}</p><div className="mt-4 grid grid-cols-3 gap-3 text-center"><Metric label="PvP" value={applicant.comparison.closest.pvpScore} /><Metric label="DPS" value={applicant.comparison.closest.dpsScore} /><Metric label="Tank" value={applicant.comparison.closest.tankScore} /></div></> : <p className="mt-3 text-sm text-zinc-500">No active guild members available for comparison.</p>}</div></div>}
