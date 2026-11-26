@@ -124,7 +124,7 @@ export function useCombatSimulatorEngine() {
   }, [data]);
 
   const getTalentConfiguration = useCallback((career: number, level: number, prof: number, talents: Record<string, any>): { branches: Array<{ id: string; options: NativeTalentChoice[] }>; walk: Record<string, any> | null; effects: { attrs: Array<[number, number]>; buffs: number[] } } => {
-    if (!data) return { branches: [] as Array<{ id: string; options: Array<Record<string, any>> }>, walk: null, effects: { attrs: [], buffs: [] } };
+    if (!data) return { branches: [], walk: null, effects: { attrs: [], buffs: [] } };
     const digest = data.row("TalentDigest", 1);
     const branches: Array<{ id: string; options: NativeTalentChoice[] }> = digest?.branches && typeof digest.branches === "object"
       ? Object.keys(digest.branches as Record<string, unknown>).map((id) => ({
