@@ -2,14 +2,14 @@
 
 **Audit date:** 2026-11-27  
 **Audited branch:** `main`  
-**Audited commit:** `ff521ca28153742935e518c7fa9d5f40ebe55a18`  
+**Audited commit:** `b354d040c8cc02bd3357e97718bf07a28cab77f3`  
 **Production:** `https://hmdl.vercel.app`
 
 This document is the current engineering backlog snapshot. It separates repository evidence, user-confirmed production outcomes, and work that still needs validation. A route, component, or API existing in source does not by itself prove its end-to-end production workflow has been manually tested.
 
 ## Executive status
 
-- The latest documentation and applicant-link changes have passed GitHub Actions CI; the post-merge Vercel deployment status must still be checked separately.
+- PR #160 has merged. Its latest full CI run passed TypeScript, Prisma generation/migrations, combat-engine tests, the RO3 scoring/sensitivity suite, ESLint and production build. The main-branch CI and Vercel production deployment were still running at this audit snapshot.
 - The user confirmed that the applicant watchlist and both related production database migrations were applied and are working.
 - The production `/combat-simulator` page currently renders the native React workspace. The old migration notes below it in `docs/ro3-combat-simulator-native-migration.md` still describe the former iframe production path and must be reconciled.
 - The repository contains a substantial legacy pull-request backlog. Many PRs target historical base commits and are stacked on earlier feature branches; they must not be merged as a batch.
@@ -70,11 +70,11 @@ This document is the current engineering backlog snapshot. It separates reposito
 
 ### P1 — RO3 scoring: separate composition from calibration
 
-The current `main` scoring module is `RO3_PRELIMINARY_V1` and accepts normalized component inputs. It is not a complete raw-stat-to-score pipeline.
+The current `main` retains `RO3_PRELIMINARY_V1` and adds `RO3_MEMBER_V2_EXPERIMENTAL` in `scoring-v2-experimental.ts`. The experimental module accepts normalized component inputs only; it is not a complete raw-stat-to-score pipeline and is not used by production rankings.
 
-Open PR #142 contains a much larger `RO3_MEMBER_V2` scoring and calibration effort (92 commits, 28 files, 2,421 additions at audit time) and currently has merge conflicts against its historical base. It must not be merged as-is.
+Historical PR #142 (92 commits, 28 files) was rebuilt on current `main` and closed as superseded by merged PR #160. The new `scoring-v2-experimental.ts` module is isolated from production scoring; no final numeric DPS/Tank/PvP weights have been approved and no score is wired into rankings or persisted fields.
 
-Review it in a fresh branch against current `main`, with these guardrails:
+Retain these guardrails for all follow-up work:
 - Preserve the user's decision that the embedded simulator is authoritative for current damage-derived calculations until explicitly superseded.
 - Keep simulator-backed DPS evaluation, raw-stat normalization, Tank context, PvP composition, and presentation as separate layers.
 - Do not imply that synthetic fixtures or sensitivity reports validate live-game mechanics.
@@ -133,19 +133,19 @@ The GitHub repository currently has a large open-PR backlog. Several older PRs a
 |---|---|---|
 | #147 | Native simulator named controls / job selector | Closed as superseded by current native React implementation |
 | #146 | Simulator profile stat fallback | Closed as superseded by current main API implementation |
-| #142 | RO3 Tank/PvP scoring composition | Important candidate; rebuild/rebase and review, do not merge as-is |
+| #142 | RO3 Tank/PvP scoring composition | Closed; rebuilt and superseded by merged PR #160 |\n| #160 | Rebuilt experimental RO3 scoring framework | Merged after full CI passed; no production score integration |
 | #137 | Wallet extension errors in iframe | Closed; legacy iframe is not the production simulator UI |
 | #136 | Legacy iframe profile import rendering | Closed; current legacy asset already uses `refresh()` |
 | #132 | Discord role backfill diagnostics | Merged after CI and Vercel preview success |
 | #129 | Guild-specific applicant-link branding | Closed; replaced by merged #157 |
 | #157 | Guild-specific applicant-link branding | Merged after CI and Vercel preview success |
-| #105 | Page-sizing audit documentation | Historical audit; compare with merged sizing work |
-| #102 | Application UX audit documentation | Historical audit; compare with current audit docs |
-| #96 | Screenshot-led visual corrections | Compare each correction with current production before closing |
-| #95–#55 | Sequential UX/workspace phase PRs | Legacy stacked sequence; inspect changed paths and confirm whether changes were incorporated by later merged work before closing |
-| #30 | Discord-linked members in Call To Arms | Verify current identity matching in the live CTA workflow before deciding |
+| #105 | Page-sizing audit documentation | Closed; refreshed historical snapshot merged in PR #162 |
+| #102 | Application UX audit documentation | Closed; refreshed historical snapshot merged in PR #162 |
+| #96 | Screenshot-led visual corrections | Closed; all remaining styles were already present in current `main` |
+| #95–#55 | Sequential UX/workspace phase PRs | Closed as superseded, except #75 and #92 which remain open and deferred because they overlap the OCR/member-stat scope |
+| #30 | Discord-linked members in Call To Arms | Closed on 2026-11-26 |\n| #75 | Member Stat Update Workspace | Open; intentionally deferred with OCR/member-stat audit scope |\n| #92 | Member workflow and billing confirmation consistency | Open; intentionally deferred because it includes OCR/member-stat workflow changes |
 
-The legacy UX sequence (#55–#95) must be triaged individually or by exact changed-file/commit comparison. Do not close the entire sequence merely because PR #106 merged a later workspace-sizing consolidation.
+The legacy UX sequence has been triaged against current routes/components and later merged design-system work. The obsolete stacked PRs were closed rather than merged directly; #75 and #92 remain open for the deferred member-stat/OCR pass.
 
 ## Backlog hygiene procedure
 
@@ -165,19 +165,19 @@ For every open issue:
 
 ## Recommended execution order
 
-1. Finish PR and issue triage; update this document with final dispositions.
-2. Complete native combat simulator regression and documentation reconciliation.
-3. Rebuild/review RO3 scoring work from current `main`, without claiming live-game calibration.
-4. Audit Discord role synchronization and event interactions.
-5. Audit admin/billing permissions and lifecycle.
-6. Run the current-production UX/accessibility regression pass.
+1. Complete native React simulator browser regression and reconcile `docs/ro3-combat-simulator-native-migration.md`.
+2. Keep RO3 scoring experimental until the user approves numeric weights and the production cohort is meaningful; do not wire scores into rankings yet.
+3. Complete Discord role synchronization and event interaction QA.
+4. Complete live Stripe lifecycle testing and resolve Issue #163's complimentary-to-paid product decision.
+5. Run the current-production UX/accessibility regression pass at desktop, tablet and mobile widths.
+6. Resume the explicitly deferred OCR/member-stat workflow audit only when requested.
 
 ## Validation boundaries
 
 - CI success proves automated checks for that commit passed; it does not prove browser workflow, mobile layout, third-party integration or production data correctness.
 - A successful Vercel deployment status proves deployment completion; it does not prove every route is healthy.
 - The user confirmed the applicant watchlist works and its migrations were applied. Other production workflows in this document are not marked manually verified unless explicitly stated.
-- RO3 live-game formula validation remains blocked until the game is available and representative real gameplay data can be collected.
+- Under the current simulator-authority decision, live-game formula validation is not a prerequisite for engineering work. If a future product decision requires in-game calibration, wait until the game is available and representative gameplay data can be collected.
 
 
 ## Audit follow-up — 2026-11-27
@@ -186,6 +186,8 @@ For every open issue:
 - **PR #158** — merged; canonical backlog reconciled.
 - **PR #159** — merged; complimentary guild access no longer overwrites Stripe-managed subscription history. Grants are blocked while a Stripe subscription remains non-canceled, and entitlement resolution now prefers a currently active subscription over canceled historical rows.
 - **PR #162** — merged; added the missing page-level authentication and `allocation.view` guard to `/guild/resources/history`, and refreshed the historical Phase 43/45 audit documents.
+- **PR #160** — merged after full CI passed; rebuilt the RO3 simulator-backed evaluation and experimental scoring framework from current `main`.
+- **PR #142** — closed as superseded by #160.
 - **PR #106** remains the merged page-sizing implementation baseline. Browser screenshot QA at desktop/tablet/mobile widths remains outstanding.
 - The legacy UX stack **#55–#74, #76–#91, and #93–#96** was closed as superseded by current `main` and later merged workspace/design-system work. These stale phase branches were not merged directly.
 - **#102 and #105** were replaced by the refreshed historical audit snapshots in PR #162 and closed.
@@ -193,11 +195,11 @@ For every open issue:
 - Empty/no-op PR #161 was closed after confirming the Event Results action already uses the shared HMDL secondary button in current `main`.
 
 ### Native RO3 simulator and scoring rebuild
-- Historical **PR #142** is being rebuilt against current `main` in **PR #160**; do not merge the historical stacked branch.
+- Historical **PR #142** was closed as superseded by **merged PR #160**; the old stacked branch was not merged.
 - The rebuild keeps the composition model explicitly experimental (`RO3_MEMBER_V2_EXPERIMENTAL`). No final numeric DPS/Tank/PvP weights have been approved, and no score is wired into member rankings or persisted fields.
 - The embedded simulator remains authoritative for supported damage mechanics. Live-game validation is not a prerequisite for the current engineering work.
 - Only direct PATK/MATK inputs are eligible for offensive calibration until percentage-field source/aggregation semantics are verified. Penetration and incoming-damage mechanics remain excluded where the simulator does not model them.
-- Rotation evaluation refuses to substitute career-sheet attack defaults when the required persisted PATK/MATK value is missing. Royal Guard's simulator profile references a career ID without a matching `JobConfig` row; the evaluator reports this gap rather than falling back to another career.
+- Rotation evaluation refuses to substitute career-sheet attack defaults when the required persisted PATK/MATK value is missing. Royal Guard's simulator profile maps to the simulator's Royal Guard career, but career ID `1410` has no matching `JobConfig` row; the evaluator reports this gap rather than falling back to another career.
 - The defensive baseline exporter is restricted to active **and eligible** Archbishop, Royal Guard (Tank), and Rune Knight (Tank) characters across all RO3 guilds, with independent average PDEF/MDEF. It has not been run because the current RO3 database does not contain a meaningful sample.
 
 ### Admin permissions and billing audit
