@@ -126,6 +126,14 @@ The importer validates the source digest and every referenced buff, updates only
 
 The import must still be run with the current upstream HTML before the talent editor can be considered data-complete. The importer and its tests are now part of the migration branch; this commit does not fabricate or claim to have populated the live digest.
 
+### Native saved builds (local preview)
+
+The native React preview now supports a versioned, browser-local saved-build collection (up to eight entries). It stores the editable native inputs for the Royal Guard build: base stats, equipment/cards, pets, enchantments, emblems/totems, resonance, talents/passives, defender settings and skill rotation. Loading a saved build restores those inputs and clears the previous simulation report so stale results are not mistaken for the newly loaded setup.
+
+The storage format is versioned at `hmdl.ro3.native-builds.v1`, validates restored values, deduplicates IDs and safely ignores malformed or unsupported entries. Guild profile selections and simulation output are intentionally excluded. These native saved builds are local to the current browser; they are not synced across devices or stored in the guild database.
+
+This is the first native persistence layer, not a complete legacy-tab migration. The legacy iframe uses its own `ro3sim.builds.v1` state with broader class, skill, target and simulation settings. Importing those tabs remains gated on full field-by-field mapping and explicit reporting of any unsupported values; the migration must not silently discard typed attributes, rotations or advanced systems.
+
 ### Native report presentation checkpoint
 
 - Replaced the raw JSON cast-log dump with a structured, collapsible event list showing time, event type, name, hit count and lock/duration where supplied by the engine.
