@@ -390,7 +390,7 @@ export default function NativeCombatSimulatorPreview() {
             const selectedCard=choices.find((card)=>card.id===equipment.cards[index]?.id);
             const cardOptions=selectedCard ? engine.getCardCustomization(selectedCard.id,equipment.cards[index]?.star??3) : null;
             return <label key={socket.index} className="text-xs text-zinc-400">{socket.name} · Lv {socket.levelRequired}
-              <select value={equipment.cards[index]?.id??0} onChange={(e)=>setEquipment((old)=>({...old,cards:old.cards.map((slot,i)=>i===index?{...slot,id:Number(e.target.value)}:slot)}))} className={inputClass}>
+              <select value={equipment.cards[index]?.id??0} onChange={(e)=>setEquipment((old)=>{const id=Number(e.target.value);const selected=engine.equipmentCatalog?.cards.find((card)=>card.id===id);return {...old,cards:old.cards.map((slot,i)=>i===index?{...slot,id}:selected?.unique&&slot.id===id?{...slot,id:0,flash:false}:slot)};})} className={inputClass}>
                 <option value="0">Empty</option>{choices.map((card)=><option key={card.id} value={card.id}>{card.name} · Q{card.quality}</option>)}
               </select>
               {selectedCard&&cardOptions&&<div className="mt-2 grid grid-cols-3 gap-2">
