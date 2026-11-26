@@ -9,7 +9,7 @@ const defaults = {
     gear:Array.from({length:7},()=>({id:0,roll:5000,refine:0,enhance:0,affixes:[],stunts:[],offRefine:0,offEnhance:0})),
     cards:Array.from({length:18},()=>({id:0,star:3,level:15,flash:false})),
   },
-  pets:[null,null,null,null],assistPets:[null,null,null],enchantAttrs:[],extraAttrInput:"",petCollectionAttrInput:"",emblemAttrInput:"",totemLoadoutInput:"",totemLevel:"0",
+  pets:[null,null,null,null],assistPets:[null,null,null],enchantAttrs:[],extraAttrInput:"",petCollectionAttrInput:"",attackerElement:"1",bondBonusBp:"0",emblemAttrInput:"",totemLoadoutInput:"",totemLevel:"0",
   totemSkillIds:"",totemAttrInput:"",totemEnhanceBp:"0",resonanceRefine:"0",resonanceEnhance:"0",
   talentLevel:"0",talentProf:"0",talentPicks:{},passiveSkillIds:"",talentSkillLevels:"",
   activeBuffIds:"",skillLevels:"",rotationCycle:false,cancelBackswing:false,periodicOff:false,
@@ -19,7 +19,7 @@ const defaults = {
 
 test("imports current Royal Guard legacy state and maps supported inputs",()=>{
   const state={
-    v:15,job:1410,level:150,stats:[90,80,70,20,60,10],skills:{11608:5,11611:3},
+    v:15,job:1410,level:150,element:4,bonus:{boss:125},stats:[90,80,70,20,60,10],skills:{11608:5,11611:3},
     rotation:[11608,11611],disabledRotation:[11611],gear:[{id:9001,roll:7500,refine:10,enh:8,aff:[1,2],sp:[3,4]}],
     cards:[{id:7001,star:2,lv:10,flash:true}],pets:[{id:10,lv:99,star:4,stage:1}],
     assist:[{g:12,lv:80,star:3,stage:0}],res:{refine:15,enhance:20},
@@ -29,6 +29,8 @@ test("imports current Royal Guard legacy state and maps supported inputs",()=>{
   const result=importLegacyRoyalGuardBuild(state,defaults,[{groupId:11608,id:1160805,level:5},{groupId:11611,id:1161103,level:3}]);
   assert.ok(result.draft);
   assert.equal(result.draft.level,"150");
+  assert.equal(result.draft.attackerElement,"4");
+  assert.equal(result.draft.bondBonusBp,"12500");
   assert.deepEqual(result.draft.stats,["90","80","70","20","60","10"]);
   assert.equal(result.draft.equipment.gear[0].id,9001);
   assert.deepEqual(result.draft.equipment.gear[0].affixes,[1,2]);
@@ -70,7 +72,7 @@ test("legacy import golden fixture preserves legacy character-sheet attribute so
   assert.ok(imported.draft);
   const pairs=(value)=>value.split(",").filter(Boolean).map((entry)=>entry.trim().split(":").map(Number));
   const nativeBuild={
-    career:1410,level:Number(imported.draft.level),stats:imported.draft.stats.map(Number),
+    career:1410,level:Number(imported.draft.level),element:Number(imported.draft.attackerElement),bondBonusBp:Number(imported.draft.bondBonusBp),stats:imported.draft.stats.map(Number),
     equipmentAttrs:pairs(imported.draft.extraAttrInput),
     extraAttrs:pairs(imported.draft.petCollectionAttrInput),
     emblemAttrs:pairs(imported.draft.emblemAttrInput),
@@ -79,7 +81,7 @@ test("legacy import golden fixture preserves legacy character-sheet attribute so
   // Reference shape follows the upstream currentBuild() mapping: ex -> equipmentAttrs,
   // petCollect -> extraAttrs, Echo rolls -> emblemAttrs, and deployed Totems -> totems.
   const legacyReference={
-    career:1410,level:150,stats:[90,80,70,20,60,10],
+    career:1410,level:150,element:4,bondBonusBp:12500,stats:[90,80,70,20,60,10],
     equipmentAttrs:[[1,12],[103,100],[1031,450]],
     extraAttrs:[[104,50]],emblemAttrs:[[105,25]],
     totems:[{guid:1,id:7001,attrs:[[103,30]],skills:[9001],enhanceBp:0}],
