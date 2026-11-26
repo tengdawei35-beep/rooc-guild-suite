@@ -28,7 +28,7 @@ function requireTalentDigest(data, label) {
 
 /** Decode the generated data block embedded by upstream build-ro3-sim.mjs. */
 export function decodeLegacySimulatorData(html) {
-  const match = html.match(/<script\\b(?=[^>]*\\bid=["']ro3-data["'])[^>]*>([\\s\\S]*?)<\\/script>/i);
+  const match = html.match(/<script\b(?=[^>]*\bid=["']ro3-data["'])[^>]*>([\s\S]*?)<\/script>/i);
   if (!match) throw new Error('Source simulator HTML is missing its <script id="ro3-data"> payload.');
   const encoded = match[1].trim();
   if (!encoded || !/^[A-Za-z0-9+/=]+$/.test(encoded)) throw new Error("Source simulator data payload is not valid base64.");
@@ -44,7 +44,7 @@ export function decodeLegacySimulatorData(html) {
 
 /** Read and decode the compressed payload from Heimdall's TypeScript module. */
 export function decodeNativeGameData(source) {
-  const declaration = source.match(/const RO3_GAME_DATA_GZIP_BASE64\\s*=\\s*([\\s\\S]*?);/);
+  const declaration = source.match(/const RO3_GAME_DATA_GZIP_BASE64\s*=\s*([\s\S]*?);/);
   if (!declaration) throw new Error("Native game-data module is missing RO3_GAME_DATA_GZIP_BASE64.");
   const chunks = [...declaration[1].matchAll(/"([A-Za-z0-9+/=]+)"/g)].map((item) => item[1]);
   if (!chunks.length) throw new Error("Native game-data module has no compressed payload chunks.");
@@ -85,16 +85,16 @@ export function mergeTalentDigest(nativeData, sourceData) {
 
 /** Replace only the compressed payload and its byte-count metadata. */
 export function updateNativeGameDataSource(source, data) {
-  const declaration = source.match(/const RO3_GAME_DATA_GZIP_BASE64\\s*=\\s*([\\s\\S]*?);/);
+  const declaration = source.match(/const RO3_GAME_DATA_GZIP_BASE64\s*=\s*([\s\S]*?);/);
   if (!declaration) throw new Error("Native game-data module is missing RO3_GAME_DATA_GZIP_BASE64.");
   const json = JSON.stringify(data);
   const compressed = gzipSync(Buffer.from(json, "utf8"), { level: 9 });
   const base64 = compressed.toString("base64");
   const chunks = base64.match(/.{1,120}/g) ?? [];
-  const lines = chunks.map((chunk, index) => `  "${chunk}"${index < chunks.length - 1 ? " +" : ""}`).join("\\n");
-  const replacement = `const RO3_GAME_DATA_GZIP_BASE64 =\\n${lines};`;
+  const lines = chunks.map((chunk, index) => `  "${chunk}"${index < chunks.length - 1 ? " +" : ""}`).join("\n");
+  const replacement = `const RO3_GAME_DATA_GZIP_BASE64 =\n${lines};`;
   let updated = source.replace(declaration[0], replacement);
-  const byteCount = updated.match(/export const RO3_GAME_DATA_COMPRESSED_BYTES\\s*=\\s*\\d+;/);
+  const byteCount = updated.match(/export const RO3_GAME_DATA_COMPRESSED_BYTES\s*=\s*\d+;/);
   if (!byteCount) throw new Error("Native game-data module is missing RO3_GAME_DATA_COMPRESSED_BYTES.");
   updated = updated.replace(byteCount[0], `export const RO3_GAME_DATA_COMPRESSED_BYTES = ${compressed.length};`);
   return { source: updated, compressedBytes: compressed.length, jsonBytes: Buffer.byteLength(json) };
