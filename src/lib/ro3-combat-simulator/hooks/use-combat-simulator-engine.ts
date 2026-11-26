@@ -58,9 +58,10 @@ export function useCombatSimulatorEngine() {
           const id = Number(row._iID);
           const growthId = Number(row.g);
           const growth = store.row("PetGrowth", growthId);
-          const petName = row.main && typeof row.main === "object" ? String((row.main as Record<string, unknown>).name ?? "") : "";
-          const passiveName = row.pas && typeof row.pas === "object" ? String((row.pas as Record<string, unknown>).name ?? "") : "";
-          return { id, growthId, name: petName || passiveName || "Pet " + id, growthName: String(growth?.name ?? "Growth " + growthId), maxLevel: Number(store.row("PetRules", 1)?.maxLv ?? 100) };
+          const configuredPetName = [row.name, row.petName, row._sName, row._sPetName].find((value) => typeof value === "string" && value.trim());
+          const growthName = String(growth?.name ?? "Pet " + id);
+          // PetDigest.main/pas are skill payloads; never use their skill names as pet labels.
+          return { id, growthId, name: String(configuredPetName ?? growthName), growthName, maxLevel: Number(store.row("PetRules", 1)?.maxLv ?? 100) };
         }).filter((pet) => Number.isFinite(pet.id) && pet.id > 0 && Number.isFinite(pet.growthId) && pet.growthId > 0).sort((a, b) => a.name.localeCompare(b.name)));
         setAttributeOptions(Object.values(store.table("AttributeConfig")).map((row) => ({ id: Number(row._iID), name: String(row.name ?? `Attribute ${row._iID}`) })).filter((row) => Number.isFinite(row.id)).sort((a, b) => a.id - b.id));
         setEquipmentCatalog(getCombatEquipmentCatalog(
