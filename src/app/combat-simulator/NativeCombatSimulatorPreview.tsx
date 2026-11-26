@@ -641,7 +641,7 @@ export default function NativeCombatSimulatorPreview() {
     </section>
     <section className="rounded-xl border border-white/10 bg-zinc-900/70 p-4">
       <h2 className="text-sm font-semibold text-white">Skill rotation</h2>
-      <p className="mt-1 text-xs text-zinc-500">Enter simulator SkillConfig IDs in priority order. Repeated IDs are preserved for cycle mode; disabled IDs are skipped without deleting them from the saved priority list.</p>
+      <p className="mt-1 text-xs text-zinc-500">Build the rotation using named skills. Repeated selections are preserved for cycle mode; disabled skills can be toggled off without removing them.</p>
       <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,1fr)_180px]">
         <div className="space-y-2">
           <label className="block text-xs text-zinc-400">Add skill
@@ -651,12 +651,12 @@ export default function NativeCombatSimulatorPreview() {
             </select>
           </label>
           <button type="button" disabled={!selectedSkillId} onClick={()=>setSkillIds((current)=>current.trim() ? `${current.trim()}, ${selectedSkillId}` : selectedSkillId)} className="rounded-lg border border-white/15 px-3 py-2 text-xs font-medium text-zinc-200 hover:bg-white/5 disabled:opacity-40">Add to rotation</button>
-          <label className="block text-xs text-zinc-400">Royal Guard rotation preset
+          {careerId===1410 && <label className="block text-xs text-zinc-400">Royal Guard rotation preset
             <select value={rotationPreset} onChange={(e)=>e.target.value===""?setRotationPreset(""):applyRotationPreset(Number(e.target.value))} className={inputClass}>
               <option value="">Manual / custom rotation</option>
               {CLASS_PROFILES.royalguard.candidateRotations.map((preset: {name:string}, index: number)=><option key={preset.name} value={index}>{preset.name}</option>)}
             </select>
-          </label>
+          </label>}
           <p className="text-[11px] text-zinc-500">Rotation order is managed with the named skills and controls below.</p>
           {rotationEntries.length > 0 && <div className="space-y-1 rounded-lg border border-white/10 bg-zinc-950/40 p-2">
             <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Rotation priority</p>
