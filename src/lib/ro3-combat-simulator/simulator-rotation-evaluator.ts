@@ -240,8 +240,8 @@ export async function evaluateRo3Rotation(input: {
   for (const skillId of validSkillIds) {
     const row = simulator.data.row("SkillConfig", skillId);
     const damageType = Number(row?._iDmgType);
-    if (damageType === 1 && (typeof input.stats.patk !== "number" || !Number.isFinite(input.stats.patk))) missingAttackStats.add("PATK");
-    if (damageType === 2 && (typeof input.stats.matk !== "number" || !Number.isFinite(input.stats.matk))) missingAttackStats.add("MATK");
+    if (damageType === 1 && adapted.attributes[103] === undefined) missingAttackStats.add("PATK");
+    if (damageType === 2 && adapted.attributes[104] === undefined) missingAttackStats.add("MATK");
   }
   if (missingAttackStats.size) {
     throw new Error(`Rotation requires persisted attack stats: ${[...missingAttackStats].join(", ")}. Refusing to substitute career-sheet defaults.`);
