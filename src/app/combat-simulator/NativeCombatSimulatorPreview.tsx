@@ -120,7 +120,7 @@ export default function NativeCombatSimulatorPreview() {
       const validatedAttacker: CombatBuild = {
         career: 1410, level: validated.level, stats: validated.stats,
         enchantAttrs, resonance: { refine: numeric(resonanceRefine,0), enhance: numeric(resonanceEnhance,0) }, pets, assistPets,
-        talents: { lv: numeric(talentLevel,0), prof: numeric(talentProf,0), picks: talentPicks, skills: {} },
+        talents: { lv: numeric(talentLevel,0), prof: numeric(talentProf,0), picks: talentPicks, skills: parseTalentSkillLevels(talentSkillLevels) },
         passiveSkills: passiveSkillIds.split(/[ ,]+/).map(Number).filter((id)=>Number.isInteger(id)&&id>0),
         ...engineEquipment,
       };
