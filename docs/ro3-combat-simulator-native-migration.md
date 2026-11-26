@@ -101,7 +101,7 @@ Card advancement now follows the legacy `CARD_CAP` values (star 0–3: levels 5,
 - Pet stat mapping has a full-data regression test that checks deterministic output from the legacy `petStats` function.
 - Season talent level, profession and branch/cluster/talent picks are exposed through the existing `talentOptions`, `talentWalk` and `talentEffects` functions.
 - Passive SkillConfig row IDs can be supplied to the existing passive attribute pipeline.
-- Talent skill-level prerequisites are not yet exposed as editable native inputs; the current talent preview supplies an empty skill-level map. This is a known parity gap.
+- Talent skill-level prerequisites are exposed as editable `groupId:level` pairs and passed into the existing talent effects calculation.
 - Enchantment attributes and refine/enhance resonance are included in both the sheet and damage build inputs.
 
 These inputs remain part of the gated native preview. They do not change the production iframe or imply live-game verification.
