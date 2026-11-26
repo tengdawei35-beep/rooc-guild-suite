@@ -95,7 +95,7 @@ function ProfileCard({ title, kind, value, onChange, members }: {
       {members.map((m) => <option key={m.id} value={m.id}>{label(m)}{m.job ? ` · ${m.job}` : ""}</option>)}
     </select>
     {selected && <dl className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">{stats.map(([k,v]) => <div key={String(k)} className="rounded-lg bg-black/20 px-3 py-2"><dt className="text-[10px] uppercase text-zinc-500">{k}</dt><dd className="text-sm font-semibold text-zinc-100">{v == null ? "—" : Number(v).toLocaleString()}</dd></div>)}</dl>}
-    <p className="mt-2 text-xs text-zinc-500">Profile preview only. Values are not silently converted into simulator equipment or attributes.</p>
+    <p className="mt-2 text-xs text-zinc-500">Selected defender P.DEF and M.DEF are applied to the target configuration. Other profile fields remain informational.</p>
   </section>;
 }
 
@@ -181,6 +181,21 @@ export default function NativeCombatSimulatorPreview() {
       .finally(() => { if (active) setProfilesLoading(false); });
     return () => { active = false; };
   }, []);
+
+  // Apply selected guild-member defense values to the native target inputs.
+  useEffect(() => {
+    if (!defenderId) return;
+    const selected = members.find((member) => member.id === defenderId);
+    if (!selected) return;
+    const pdef = selected.pdef == null ? null : Number(selected.pdef);
+    const mdefValue = selected.mdef == null ? null : Number(selected.mdef);
+    const hasPdef = pdef !== null && Number.isFinite(pdef) && pdef >= 0;
+    const hasMdef = mdefValue !== null && Number.isFinite(mdefValue) && mdefValue >= 0;
+    if (hasPdef) setDef(String(pdef));
+    if (hasMdef) setMdef(String(mdefValue));
+    if (hasPdef || hasMdef) setProfilesError(null);
+    else setProfilesError('Selected defender profile has no usable P.DEF or M.DEF values. Enter them manually.');
+  }, [defenderId, members]);
 
   const talentConfiguration = useMemo(() => engine.getTalentConfiguration(1410, numeric(level,100), numeric(talentProf,0), {
     lv: numeric(talentLevel,0), prof: numeric(talentProf,0), picks: talentPicks, skills: parseTalentSkillLevels(talentSkillLevels),
