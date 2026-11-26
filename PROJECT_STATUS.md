@@ -44,7 +44,8 @@ This is the project-wide handoff file. Update it whenever implementation work ad
 - Preserved legacy `bonusPoints` as `bonusStatPoints` through import, native draft storage/load, and the engine build object. It is retained for future optimizer parity but does not affect the current fixed-stat damage simulation.
 - Added importer regression coverage for explicit bonus-point values and the legacy default adjustment, plus backward compatibility coverage for older browser-local native saved builds that predate this field.
 - Latest implementation commit: `f9907357092b13ee3f4524e320a20a907edca704` on `feat/combat-simulator-native-react-migration`.
-- CI run [#45782943763](https://github.com/tengdawei35-beep/rooc-guild-suite/actions/runs/45782943763) was still running at the last check; Vercel preview status was successful. Do not mark the implementation validated until CI completes.
+- CI run [#45782943763](https://github.com/tengdawei35-beep/rooc-guild-suite/actions/runs/45782943763) completed successfully on commit `f990735`; combat tests, Prisma generation/migrations, TypeScript, ESLint and production build all passed. Vercel preview was successful.
+- Added per-skill normal-hit and critical-hit damage histograms for the top six damage skills, consuming the extracted engine's existing `normalBins` / `critBins` arrays. Added tests reconciling histogram counts to hit/crit totals. Latest code/docs commits: `d041f49` and `b823970`; CI run [#45783407593](https://github.com/tengdawei35-beep/rooc-guild-suite/actions/runs/45783407593) was running at the last check; Vercel preview status was successful.
 
 ### Remaining work — ordered next steps
 
@@ -82,4 +83,5 @@ At the start of a new implementation session:
 ## Update log
 
 - **2026-11-26:** Initial project-wide status and handoff file created from the latest available implementation context and PR #144 summary.
-- **2026-11-26:** Updated after auditing legacy v15 build fields and preserving the stat-optimizer bonus-point budget; CI result pending.
+- **2026-11-26:** Updated after auditing legacy v15 build fields and preserving the stat-optimizer bonus-point budget; CI passed on `f990735`.
+- **2026-11-26:** Added per-skill damage histograms and count-reconciliation regression coverage; latest CI run pending.
