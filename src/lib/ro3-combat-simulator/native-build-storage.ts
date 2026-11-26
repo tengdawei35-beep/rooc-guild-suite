@@ -74,7 +74,7 @@ export function isNativeBuildDraft(value: unknown): value is NativeBuildDraft {
   const petArray = (v: unknown, key: "id" | "g") => Array.isArray(v) && v.every((slot) => slot === null || (isRecord(slot)
     && isNumber(slot[key]) && isNumber(slot.lv) && isNumber(slot.star) && isNumber(slot.stage)));
   const stringFields = [
-    "emblemAttrInput", "totemLoadoutInput", "totemLevel", "totemSkillIds", "totemAttrInput", "totemEnhanceBp", "resonanceRefine",
+    "emblemAttrInput", "totemSkillIds", "totemAttrInput", "totemEnhanceBp", "resonanceRefine",
     "resonanceEnhance", "talentLevel", "talentProf", "passiveSkillIds", "talentSkillLevels",
     "activeBuffIds", "skillLevels", "periodicStartSeconds",
     "def", "mdef", "targetLevel", "element", "race", "size", "skillIds", "disabledRotationIds", "duration",
