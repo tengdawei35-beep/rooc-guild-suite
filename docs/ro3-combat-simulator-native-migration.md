@@ -93,3 +93,15 @@ The new regression coverage inspects the full exported data for an equipment row
 The legacy UI derives each grid's maximum Refine and Enhance from `RefiningTable` and `StrengthenTable` `_iLev` requirements. The native hook now calculates those same seven per-grid caps from the exported tables, displays them as input maxima, and clamps mapped values before simulation. A two-handed weapon's off-hand grid levels use grid 2's own caps.
 
 Card advancement now follows the legacy `CARD_CAP` values (star 0–3: levels 5, 10, 15, 15). The native UI also queries the existing `cardParts()` breakdown to determine whether a selected card actually has Collection attributes; the Collection toggle is disabled when it does not. The adapter clamps card level to the selected star's cap. Tests cover gear cap mapping and card star-level clamping.
+
+## Native character-source inputs (current preview)
+
+- Deployed pet slots (primary plus utility slots) are selected from exported `PetDigest` data. Pet level, star and stage are passed to the existing pet attribute and combat-effect functions.
+- Support-pet slots use the matching `PetGrowth` identifiers and the existing support-pet stat-share calculation.
+- Pet stat mapping has a full-data regression test that checks deterministic output from the legacy `petStats` function.
+- Season talent level, profession and branch/cluster/talent picks are exposed through the existing `talentOptions`, `talentWalk` and `talentEffects` functions.
+- Passive SkillConfig row IDs can be supplied to the existing passive attribute pipeline.
+- Talent skill-level prerequisites are not yet exposed as editable native inputs; the current talent preview supplies an empty skill-level map. This is a known parity gap.
+- Enchantment attributes and refine/enhance resonance are included in both the sheet and damage build inputs.
+
+These inputs remain part of the gated native preview. They do not change the production iframe or imply live-game verification.
