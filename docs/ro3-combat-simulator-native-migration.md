@@ -29,7 +29,9 @@
 
 # RO3 Combat Simulator — native React migration
 
-## Migration guardrails
+## Historical migration guardrails (pre-native production cutover)
+
+The following guardrails describe the migration period before the native React workspace became the production route. They are retained as historical decision context, not as the current production routing status.
 
 - Keep the existing iframe implementation operational until the native implementation passes regression/equivalence checks.
 - Preserve the current calculation formulas and rounding behaviour. Formula changes require a separate, explicit review.
@@ -85,12 +87,12 @@ been migrated in this phase.
 | Regression/equivalence tests against current iframe | Legacy attribute-source/simulation fixture and seeded Monte Carlo determinism test added; full damage/report/timeline parity remains outstanding |
 | Remove iframe and legacy message bridge | Blocked until equivalence passes |
 
-The authenticated iframe route remains the production path throughout this work.
+At the time of this historical checkpoint, the authenticated iframe route remained the production path. This was superseded by the current-status correction at the top of this document: production now uses the native React workspace.
 
 
 ## Native preview checkpoint
 
-An authenticated, subscription-gated preview is available at `/combat-simulator/native-preview` on the migration branch. It loads the extracted engine/data through the React lifecycle hook and reads the same active-guild member profile API as the legacy workspace. Attacker and defender selections are displayed in native panels for profile-contract verification. The preview also runs an isolated Royal Guard simulation using editable native inputs. `/combat-simulator` continues to use the existing iframe; the preview is not a full feature-parity or equivalence claim.
+An authenticated, subscription-gated preview is available at `/combat-simulator/native-preview` on the migration branch. It loads the extracted engine/data through the React lifecycle hook and reads the same active-guild member profile API as the legacy workspace. Attacker and defender selections are displayed in native panels for profile-contract verification. The preview also runs an isolated Royal Guard simulation using editable native inputs. `/combat-simulator` still used the existing iframe at that checkpoint; the route has since switched to native React. The preview was not a full feature-parity or equivalence claim.
 
 
 ### Native baseline simulation checkpoint
@@ -103,7 +105,7 @@ Added `equipment-options.ts` as a data-only adapter over the exported `ItemConfi
 
 ### Native equipment and card build integration
 
-The isolated React preview now exposes the seven equipment grids and all 18 card sockets using the exported game-data catalogs. Equipment choices are filtered by Royal Guard's career ancestry, slot compatibility and the character's current level. The native selection adapter maps chosen items to the existing engine's `gear` and `cards` inputs; no damage formulas were changed. Basic refine/enhance levels, gear roll position (0–10000), card star/level, and the Collection/flash toggle are editable. Equipment and card socket level restrictions are enforced in both the UI and the native-to-engine adapter. The resulting character sheet displays P.ATK, M.ATK, P.DEF, M.DEF, HIT and CRIT. Selected equipment and cards are passed into both `buildCharacterStats` and the native damage simulation.
+At this historical preview checkpoint, the isolated React preview exposed the seven equipment grids and all 18 card sockets using the exported game-data catalogs. Equipment choices are filtered by Royal Guard's career ancestry, slot compatibility and the character's current level. The native selection adapter maps chosen items to the existing engine's `gear` and `cards` inputs; no damage formulas were changed. Basic refine/enhance levels, gear roll position (0–10000), card star/level, and the Collection/flash toggle are editable. Equipment and card socket level restrictions are enforced in both the UI and the native-to-engine adapter. The resulting character sheet displays P.ATK, M.ATK, P.DEF, M.DEF, HIT and CRIT. Selected equipment and cards are passed into both `buildCharacterStats` and the native damage simulation.
 
 The native preview now supports gear affix selection, random stunt selection, fixed-stunt display, two-handed off-hand grid levels, and the Collection/flash input. The remaining gap is full data-backed equivalence coverage for these combinations and other legacy build sources. No parity claim is made for the full build. Production remains on the iframe until full build and report equivalence are demonstrated.
 
