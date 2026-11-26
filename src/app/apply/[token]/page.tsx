@@ -1,7 +1,25 @@
+import type { Metadata } from "next";
 import { getApplicantSession } from "@/lib/auth/applicant";
 import { HMDL_MARK } from "@/lib/hmdl-brand";
 import { prisma } from "@/lib/prisma";
 import ApplicantApplyClient from "./ApplicantApplyClient";
+
+type ApplicantPageProps = { params: Promise<{ token: string }> };
+
+export async function generateMetadata({ params }: ApplicantPageProps): Promise<Metadata> {
+  const { token } = await params;
+  const invite = await prisma.applicantInvite.findFirst({
+    where: { token, active: true },
+    select: { guildId: true },
+  });
+  const guild = invite
+    ? await prisma.guild.findUnique({ where: { id: invite.guildId }, select: { name: true, gameType: true } })
+    : null;
+  if (!guild) return { title: "Application link unavailable | Heimdall", description: "This guild application link is invalid or has been revoked.", robots: { index: false, follow: false } };
+  const title = `Apply to ${guild.name} | Heimdall`;
+  const description = `Submit your ${guild.gameType === "RO3" ? "RO3" : "ROOC"} guild application to ${guild.name} through Heimdall.`;
+  return { title, description, openGraph: { title, description, type: "website", siteName: "Heimdall" }, twitter: { card: "summary", title, description }, robots: { index: false, follow: false } };
+}
 
 export default async function ApplicantApplyPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
