@@ -5,7 +5,7 @@ import { createRo3CombatDataStore } from "../create-data-store";
 import { loadRo3GameData } from "../data/ro3-game-data";
 import { getCombatSkillOptions, type CombatSkillOption } from "../skill-options";
 import { simulateCombatRotation } from "../simulate";
-import { buildCharacterStats, gearParts, cardParts } from "../engine/ro3-damage-engine.mjs";
+import { buildCharacterStats, gearParts, cardParts, talentOptions, talentWalk, talentEffects } from "../engine/ro3-damage-engine.mjs";
 import { getCombatEquipmentCatalog } from "../equipment-options";
 import type { NativeEquipmentSelection, GearLevelCaps } from "../build-input";
 import { toEngineEquipment } from "../build-input";
@@ -122,6 +122,19 @@ export function useCombatSimulatorEngine() {
     };
   }, [data]);
 
+  const getTalentConfiguration = useCallback((career: number, level: number, prof: number, talents: Record<string, any>) => {
+    if (!data) return { branches: [] as Array<{ id: string; options: Array<Record<string, any>> }>, walk: null, effects: { attrs: [], buffs: [] } };
+    const digest = data.row("TalentDigest", 1);
+    const branches = digest?.branches && typeof digest.branches === "object"
+      ? Object.keys(digest.branches as Record<string, unknown>).map((id) => ({
+          id,
+          options: talentOptions(id, career, prof, data),
+        })).filter((branch) => branch.options.length > 0)
+      : [];
+    const build = { career, level, talents };
+    return { branches, walk: talentWalk(build, data), effects: talentEffects(build, data) };
+  }, [data]);
+
   const simulate = useCallback((
     attacker: CombatBuild,
     defender: CombatDefender,
@@ -132,5 +145,5 @@ export function useCombatSimulatorEngine() {
     return simulateCombatRotation(attacker, defender, rotationSkillIds, durationMs, data);
   }, [data]);
 
-  return { status, error, ready: status === "ready", skillOptions, equipmentCatalog, attributeOptions, petOptions, getCharacterSheet, getGearCustomization, getGearLevelCaps, getCardCustomization, simulate };
+  return { status, error, ready: status === "ready", skillOptions, equipmentCatalog, attributeOptions, petOptions, getCharacterSheet, getGearCustomization, getGearLevelCaps, getCardCustomization, getTalentConfiguration, simulate };
 }
