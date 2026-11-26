@@ -9,7 +9,7 @@ This document is the current engineering backlog snapshot. It separates reposito
 
 ## Executive status
 
-- The latest `main` commit has a successful GitHub Actions CI run and successful Vercel status check.
+- The latest documentation and applicant-link changes have passed GitHub Actions CI; the post-merge Vercel deployment status must still be checked separately.
 - The user confirmed that the applicant watchlist and both related production database migrations were applied and are working.
 - The production `/combat-simulator` page currently renders the native React workspace. The old migration notes below it in `docs/ro3-combat-simulator-native-migration.md` still describe the former iframe production path and must be reconciled.
 - The repository contains a substantial legacy pull-request backlog. Many PRs target historical base commits and are stacked on earlier feature branches; they must not be merged as a batch.
@@ -28,9 +28,27 @@ This document is the current engineering backlog snapshot. It separates reposito
 | Applicant watchlist | Green / Yellow / Red labels and applicant filtering were merged in PR #154. | Production confirmed working |
 | Applicant watchlist presets | Admin/Manager preset page, guild-scoped IGN records and automatic case-insensitive matching for RO3/ROOC submissions were merged in PR #155. | Production confirmed working; migrations applied by user |
 | Admin workspaces | Admin dashboard, guilds, users, subscriptions, affiliates, creator management, impersonation and Discord settings routes exist. | Implemented surfaces; audit workflows/permissions |
-| OCR/stat entry | Member OCR API and page, applicant OCR API, RO3 and ROOC parsers exist. | Implemented foundation; extraction accuracy and workflow need review |
+| OCR/stat entry | Member OCR API and page, applicant OCR API, RO3 and ROOC parsers exist; RO3 jobs and the separate RO3 stat schema are present. | Implemented foundation; extraction accuracy and member self-service discoverability need review |
 | Combat simulator | Authenticated, entitlement-gated `/combat-simulator` currently renders `NativeCombatSimulatorPreview`; native engine, data adapters, profile API and tests exist. | Native route in production; parity/regression audit required |
 | Simulator entitlement/billing | Personal and guild simulator subscription routes and admin access controls exist. | Implemented surfaces; verify Stripe configuration and lifecycle |
+
+## Repository audit updates (2026-11-27 continuation)
+
+### PRs resolved
+- **#156** — project status/backlog and native simulator documentation correction; merged after CI passed.
+- **#132** — actionable Discord role-backfill diagnostics; merged after CI run #354 passed and Vercel preview status succeeded. The change now preserves safe Discord HTTP status/message details and identifies role assign/remove operations in backfill failures.
+- **#146** — closed as superseded; current `main` already contains the RO3 profile stat fallback.
+- **#147** — closed as superseded; current native React simulator already contains the named selectors, job selection and career-aware controls.
+- **#136** — closed as superseded; the retained legacy HTML already uses `refresh()` for both attacker and defender profile imports.
+- **#137** — closed as obsolete for the production UI; the production simulator is native React and does not embed the legacy iframe. The legacy source endpoint remains a compatibility asset, not the active simulator UI.
+- **#129** — historical PR closed after its TypeScript failure was traced to an invalid nested Prisma relation select. Its intended guild-specific metadata and authenticated-form branding were rebuilt correctly in **#157**.
+- **#157** — applicant-link guild branding rebuilt from current `main`; CI passed (run #750: combat engine tests, Prisma generation/migrations, TypeScript, ESLint and production build) and merged as `004176bc6f38180dbb7de99238245b4661034c63`. Vercel preview check was successful before merge.
+
+### Issue reconciliation
+- **#9 — RO3 jobs and stat schema:** the initial seven-job RO3 list, separate `RO3_STAT_FIELDS` schema, member edit/display fields, applicant snapshots and RO3 OCR parser are present. Keep open only for the remaining acceptance gaps: screenshot accuracy, hybrid role classification (Royal Guard/Rune Knight DPS vs Tank), and full end-to-end verification. The original issue is not fully complete merely because the schema exists.
+- **#8 — public applicant access/member OCR entry point:** app route and Discord authentication flow exist, as do the OCR page/API and member-scoped permission checks. However, the reported Vercel Deployment Protection setting cannot be verified or changed through this repository workflow, and a discoverable member self-service OCR entry point with identity prefill was not found in the members workspace. Keep open; user action is required to confirm/configure public access in Vercel.
+- **#2 — applicants and reusable ROO scoring:** applicant queue, reusable invite flow, review/accept/deny and ROOC stat/scoring primitives exist. Do not close until the remaining acceptance criteria (projected PVP/DPS/Tank percentiles and closest-member comparison) are verified against current code and UI.
+- **#1 — ROO OCR screenshot accuracy:** keep open. Parser code exists, but the requested screenshot-by-screenshot comparison against the roo-stats-bot reference and supplied screenshot layouts has not been reproduced in this audit.
 
 ## Immediate engineering priorities
 
@@ -113,13 +131,14 @@ The GitHub repository currently has a large open-PR backlog. Several older PRs a
 
 | PR | Subject | Audit disposition |
 |---|---|---|
-| #147 | Native simulator named controls / job selector | Review and port any still-missing native UI work |
-| #146 | Simulator profile stat fallback | Likely superseded; current main API already contains the fallback |
+| #147 | Native simulator named controls / job selector | Closed as superseded by current native React implementation |
+| #146 | Simulator profile stat fallback | Closed as superseded by current main API implementation |
 | #142 | RO3 Tank/PvP scoring composition | Important candidate; rebuild/rebase and review, do not merge as-is |
-| #137 | Wallet extension errors in iframe | Check whether legacy iframe remains active; likely obsolete |
-| #136 | Legacy iframe profile import rendering | Check whether legacy iframe remains active; likely obsolete |
-| #132 | Discord role backfill diagnostics | Review against current implementation and rebase if still needed |
-| #129 | Guild-specific applicant-link branding | Verify current applicant page metadata/UI; rebase if still missing |
+| #137 | Wallet extension errors in iframe | Closed; legacy iframe is not the production simulator UI |
+| #136 | Legacy iframe profile import rendering | Closed; current legacy asset already uses `refresh()` |
+| #132 | Discord role backfill diagnostics | Merged after CI and Vercel preview success |
+| #129 | Guild-specific applicant-link branding | Closed; replaced by merged #157 |
+| #157 | Guild-specific applicant-link branding | Merged after CI and Vercel preview success |
 | #105 | Page-sizing audit documentation | Historical audit; compare with merged sizing work |
 | #102 | Application UX audit documentation | Historical audit; compare with current audit docs |
 | #96 | Screenshot-led visual corrections | Compare each correction with current production before closing |
