@@ -81,6 +81,7 @@ export async function POST(request: Request, context: { params: Promise<{ token:
     const payload = {
       inviteId: invite.id, discordUserId: user.discordId, discordUsername: user.username,
       userId: user.id, characterName, job, ro3Stats,
+      ...(watchlistPreset ? { watchlist: watchlistPreset.watchlist } : {}),
       // Clear any legacy ROOC scalar values if this applicant previously applied
       // while the guild was configured for ROOC.
       pdef: null, mdef: null, pvpDamageBonus: null, pvpDamageReduction: null,
@@ -140,6 +141,7 @@ export async function POST(request: Request, context: { params: Promise<{ token:
     characterName,
     job,
     ...applicantStats,
+    ...(watchlistPreset ? { watchlist: watchlistPreset.watchlist } : {}),
     dpsScore: applicant.dpsScore,
     tankScore: applicant.tankScore,
     pvpScore: applicant.pvpScore,
