@@ -37,6 +37,9 @@ export function useCombatSimulatorEngine() {
   const [petOptions, setPetOptions] = useState<NativePetOption[]>([]);
   const [status, setStatus] = useState<CombatEngineStatus>("loading");
   const [error, setError] = useState<string | null>(null);
+  const [exportedData, setExportedData] = useState<any>(null);
+  const [careerOptions, setCareerOptions] = useState<Array<{id:number;name:string}>>([]);
+  const [namedOptions, setNamedOptions] = useState<{elements:Array<{id:number;name:string}>;races:Array<{id:number;name:string}>;sizes:Array<{id:number;name:string}>;buffs:Array<{id:number;name:string}>;totemSkills:Array<{id:number;name:string}>}>(()=>({elements:[],races:[],sizes:[],buffs:[],totemSkills:[]}));
 
   useEffect(() => {
     let active = true;
@@ -44,13 +47,34 @@ export function useCombatSimulatorEngine() {
       .then(([store, exported]) => {
         if (!active) return;
         setData(store);
+        setExportedData(exported);
+        const rawOptions = (tableName: string) => Object.values(exported.tables[tableName] ?? {}).map((row: any) => ({ row, id: Number(row._iID) })).filter((entry)=>Number.isFinite(entry.id)).sort((a,b)=>a.id-b.id);
+        const explicitName = (row: any) => [row.name, row.tx, row._sName, row._sDesc].find((value)=>typeof value === "string" && value.trim()) as string | undefined;
+        const raceNames: Record<number,string> = {1:"Formless",2:"Undead",3:"Brute",4:"Plant",5:"Insect",6:"Fish",7:"Demon",8:"Demi-Human",9:"Angel",10:"Dragon"};
+        const sizeNames: Record<number,string> = {1:"Small",2:"Medium",3:"Large"};
+        setCareerOptions(Object.values(exported.tables.JobConfig ?? {}).map((row: any)=>({id:Number(row._iID),name:String(explicitName(row) ?? "Unnamed job")})).filter((row)=>Number.isFinite(row.id)).sort((a,b)=>a.name.localeCompare(b.name)));
+        const buffSourceNames = new Map<number,string>();
+        for (const skill of Object.values(exported.tables.SkillConfig ?? {}) as any[]) {
+          const skillName = explicitName(skill);
+          if (!skillName || !Array.isArray(skill._kBuff1)) continue;
+          for (const entry of skill._kBuff1) if (Array.isArray(entry) && Number(entry[0]) > 0 && !buffSourceNames.has(Number(entry[0]))) buffSourceNames.set(Number(entry[0]), skillName + " effect");
+        }
+        const namedTable = (tableName: string, fallback: (id:number,index:number)=>string) => rawOptions(tableName).map(({row,id},index)=>({id,name:explicitName(row) ?? fallback(id,index)}));
+        setNamedOptions({
+          elements: [{id:0,name:"Neutral"}, ...rawOptions("EleConfig").map(({row,id})=>({id,name:explicitName(row) ?? (["","Neutral","Wind","Earth","Fire","Water","Poison","Holy","Shadow","Ghost","Undead"][id] ?? "Element")}))],
+          races: namedTable("RaceConfig",(id,index)=>raceNames[id] ?? `Race ${index+1}`),
+          sizes: namedTable("SizeConfig",(id,index)=>sizeNames[id] ?? `Size ${index+1}`),
+          buffs: namedTable("BuffConfig",(id,index)=>buffSourceNames.get(id) ?? `Combat buff ${index+1}`),
+          totemSkills: namedTable("TotemSkillConfig",(_id,index)=>`Totem effect ${index+1}`),
+        });
         setPetOptions(Object.values(store.table("PetDigest")).map((row) => {
           const id = Number(row._iID);
           const growthId = Number(row.g);
           const growth = store.row("PetGrowth", growthId);
-          const petName = row.main && typeof row.main === "object" ? String((row.main as Record<string, unknown>).name ?? "") : "";
-          const passiveName = row.pas && typeof row.pas === "object" ? String((row.pas as Record<string, unknown>).name ?? "") : "";
-          return { id, growthId, name: petName || passiveName || "Pet " + id, growthName: String(growth?.name ?? "Growth " + growthId), maxLevel: Number(store.row("PetRules", 1)?.maxLv ?? 100) };
+          const configuredPetName = [row.name, row.petName, row._sName, row._sPetName].find((value) => typeof value === "string" && value.trim());
+          const growthName = String(growth?.name ?? "Pet " + id);
+          // PetDigest.main/pas are skill payloads; never use their skill names as pet labels.
+          return { id, growthId, name: String(configuredPetName ?? growthName), growthName, maxLevel: Number(store.row("PetRules", 1)?.maxLv ?? 100) };
         }).filter((pet) => Number.isFinite(pet.id) && pet.id > 0 && Number.isFinite(pet.growthId) && pet.growthId > 0).sort((a, b) => a.name.localeCompare(b.name)));
         setAttributeOptions(Object.values(store.table("AttributeConfig")).map((row) => ({ id: Number(row._iID), name: String(row.name ?? `Attribute ${row._iID}`) })).filter((row) => Number.isFinite(row.id)).sort((a, b) => a.id - b.id));
         setEquipmentCatalog(getCombatEquipmentCatalog(
@@ -81,6 +105,13 @@ export function useCombatSimulatorEngine() {
       active = false;
     };
   }, []);
+
+  const configureCareer = useCallback((career: number) => {
+    if (!exportedData) return;
+    setEquipmentCatalog(getCombatEquipmentCatalog(exportedData.tables, exportedData.ui, career));
+    setSkillTreeOptions(getCombatSkillTreeOptions(exportedData.ui, exportedData.tables.SkillConfig ?? {}, career, exportedData.tables.BuffConfig ?? {}));
+    setSkillOptions(getCombatSkillOptions(exportedData.ui, exportedData.tables.SkillConfig ?? {}, career, exportedData.tables.BuffConfig ?? {}));
+  }, [exportedData]);
 
   const getCharacterSheet = useCallback((attacker: CombatBuild, selection: NativeEquipmentSelection) => {
     if (!data || !equipmentCatalog) throw new Error("Combat engine is not ready yet.");
@@ -180,5 +211,5 @@ export function useCombatSimulatorEngine() {
     return simulateCombatRotation(attacker, defender, rotationSkillIds, durationMs, data);
   }, [data]);
 
-  return { status, error, ready: status === "ready", skillOptions, skillTreeOptions, deriveLearnedSkillEffectsForBuild, equipmentCatalog, attributeOptions, petOptions, getCharacterSheet, getGearCustomization, getGearLevelCaps, getCardCustomization, getTotemEnhanceBp, getTotemLevelForEnhanceBp, getTalentConfiguration, simulate, simulateDistribution };
+  return { status, error, ready: status === "ready", careerOptions, namedOptions, configureCareer, skillOptions, skillTreeOptions, deriveLearnedSkillEffectsForBuild, equipmentCatalog, attributeOptions, petOptions, getCharacterSheet, getGearCustomization, getGearLevelCaps, getCardCustomization, getTotemEnhanceBp, getTotemLevelForEnhanceBp, getTalentConfiguration, simulate, simulateDistribution };
 }
