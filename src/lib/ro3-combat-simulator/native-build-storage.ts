@@ -21,6 +21,13 @@ export type NativeBuildDraft = {
   talentPicks: Record<string, [number, number]>;
   passiveSkillIds: string;
   talentSkillLevels: string;
+  activeBuffIds: string;
+  skillLevels: string;
+  rotationCycle: boolean;
+  cancelBackswing: boolean;
+  periodicOff: boolean;
+  periodicStartSeconds: string;
+  ridden: boolean;
   def: string;
   mdef: string;
   targetLevel: string;
@@ -65,9 +72,11 @@ export function isNativeBuildDraft(value: unknown): value is NativeBuildDraft {
   const stringFields = [
     "emblemAttrInput", "totemSkillIds", "totemAttrInput", "totemEnhanceBp", "resonanceRefine",
     "resonanceEnhance", "talentLevel", "talentProf", "passiveSkillIds", "talentSkillLevels",
+    "activeBuffIds", "skillLevels", "periodicStartSeconds",
     "def", "mdef", "targetLevel", "element", "race", "size", "skillIds", "duration",
   ];
   if (!stringFields.every((key) => isString(value[key]))) return false;
+  if (!["rotationCycle", "cancelBackswing", "periodicOff", "ridden"].every((key) => typeof value[key] === "boolean")) return false;
   if (!petArray(value.pets, "id") || !petArray(value.assistPets, "g") || !isPairArray(value.enchantAttrs)) return false;
   if (!isRecord(value.talentPicks)) return false;
   return Object.values(value.talentPicks).every((pick) => Array.isArray(pick) && pick.length === 2 && pick.every(isNumber));
