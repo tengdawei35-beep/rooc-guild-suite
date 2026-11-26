@@ -10,7 +10,7 @@ import {
 } from "../src/lib/ro3-combat-simulator/native-build-storage";
 
 const draft = {
-  level: "100", bonusStatPoints: "0", stats: ["80", "60", "50", "20", "80", "20"],
+  career: "1410", level: "100", bonusStatPoints: "0", stats: ["80", "60", "50", "20", "80", "20"],
   equipment: {
     gear: Array.from({ length: 7 }, () => ({ id: 0, roll: 5000, refine: 0, enhance: 0, affixes: [], stunts: [], offRefine: 0, offEnhance: 0 })),
     cards: Array.from({ length: 18 }, () => ({ id: 0, star: 3, level: 15, flash: false })),
