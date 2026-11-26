@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { sendEventAttendanceMessage, sendEventAttendanceReminder } from "@/lib/discord-event-attendance";
+import { sendEventAttendanceMessage, sendEventAttendanceReminder, sendEventTimeReminder } from "@/lib/discord-event-attendance";
 import { formatCalendarDate, getLocalCalendarDate, zonedDateTimeToUtc } from "@/lib/event-schedule";
 
 export async function GET(request: Request) {
@@ -88,5 +88,33 @@ export async function GET(request: Request) {
     } catch (error) { console.error("[EVENT CRON] Attendance reminder failed:", error); }
   }
 
-  return NextResponse.json({ success: true, created, skipped, attendanceMessagesSent, remindersSent, scannedEventTypes: eventTypes.length, generatedAt: now.toISOString() });
+  const oneHourStart = new Date(now.getTime() + 57.5 * 60 * 1000);
+  const oneHourEnd = new Date(now.getTime() + 62.5 * 60 * 1000);
+  const oneHourEvents = await prisma.event.findMany({
+    where: { date: { gte: oneHourStart, lte: oneHourEnd }, reminder1hMessageId: null, attendanceMessageId: { not: null } },
+    select: { id: true },
+  });
+  let oneHourRemindersSent = 0;
+  for (const event of oneHourEvents) {
+    try {
+      const result = await sendEventTimeReminder(event.id, 60);
+      if (result.sent) oneHourRemindersSent++;
+    } catch (error) { console.error("[EVENT CRON] 1-hour reminder failed:", error); }
+  }
+
+  const fifteenMinuteStart = new Date(now.getTime() + 12.5 * 60 * 1000);
+  const fifteenMinuteEnd = new Date(now.getTime() + 17.5 * 60 * 1000);
+  const fifteenMinuteEvents = await prisma.event.findMany({
+    where: { date: { gte: fifteenMinuteStart, lte: fifteenMinuteEnd }, reminder15mMessageId: null, attendanceMessageId: { not: null } },
+    select: { id: true },
+  });
+  let fifteenMinuteRemindersSent = 0;
+  for (const event of fifteenMinuteEvents) {
+    try {
+      const result = await sendEventTimeReminder(event.id, 15);
+      if (result.sent) fifteenMinuteRemindersSent++;
+    } catch (error) { console.error("[EVENT CRON] 15-minute reminder failed:", error); }
+  }
+
+  return NextResponse.json({ success: true, created, skipped, attendanceMessagesSent, remindersSent, oneHourRemindersSent, fifteenMinuteRemindersSent, scannedEventTypes: eventTypes.length, generatedAt: now.toISOString() });
 }
