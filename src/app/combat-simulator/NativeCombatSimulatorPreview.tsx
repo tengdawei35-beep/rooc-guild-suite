@@ -128,7 +128,7 @@ export default function NativeCombatSimulatorPreview() {
     lv: numeric(talentLevel,0), prof: numeric(talentProf,0), picks: talentPicks, skills: parseTalentSkillLevels(talentSkillLevels),
   }), [engine.getTalentConfiguration, level, talentProf, talentLevel, talentPicks, talentSkillLevels]);
   const learnedSkillLevels = useMemo(() => parseTalentSkillLevels(skillLevels), [skillLevels]);
-  const learnedSkillEffects = useMemo(() => engine.deriveLearnedSkillEffectsForBuild(learnedSkillLevels), [engine.deriveLearnedSkillEffectsForBuild, learnedSkillLevels]);
+  const learnedSkillEffects = useMemo(() => engine.deriveLearnedSkillEffectsForBuild(learnedSkillLevels, ridden), [engine.deriveLearnedSkillEffectsForBuild, learnedSkillLevels, ridden]);
   const effectivePassiveSkills = useMemo(() => [...new Set([...passiveSkillIds.split(/[ ,]+/).map(Number).filter((id)=>Number.isInteger(id)&&id>0), ...learnedSkillEffects.passiveSkillIds])], [passiveSkillIds, learnedSkillEffects]);
   const effectiveBuffIds = useMemo(() => [...new Set([...parseIdList(activeBuffIds), ...learnedSkillEffects.autoBuffIds, ...talentConfiguration.effects.buffs])], [activeBuffIds, learnedSkillEffects, talentConfiguration.effects.buffs]);
   const setLearnedSkillLevel = (groupId: number, value: number) => {
@@ -447,7 +447,7 @@ export default function NativeCombatSimulatorPreview() {
         <div className="space-y-2">
           <label className="block text-xs text-zinc-400">Add Royal Guard skill
             <select value={selectedSkillId} onChange={(e)=>setSelectedSkillId(e.target.value)} className={inputClass}>
-              <option value="">Select a learnable damage skill…</option>
+              <option value="">Select a learnable damage or modeled buff skill…</option>
               {engine.skillOptions.map((skill)=> <option key={skill.id} value={skill.id}>{skill.name} · Lv {skill.level} · ID {skill.id}</option>)}
             </select>
           </label>
@@ -460,7 +460,7 @@ export default function NativeCombatSimulatorPreview() {
       </div>
       <div className="mt-3 rounded-lg border border-white/10 bg-zinc-950/50 p-3">
         <div className="flex items-center justify-between gap-2"><h3 className="text-xs font-semibold text-zinc-200">Learned skill tree</h3><span className="text-[10px] text-zinc-500">{engine.skillTreeOptions.length} career skills</span></div>
-        <p className="mt-1 text-[11px] text-zinc-500">Set learned levels. Passive attributes and supported long-duration buffs are derived automatically from the selected skill rows.</p>
+        <p className="mt-1 text-[11px] text-zinc-500">Set learned levels. Passive rows, supported long-duration buffs and mounted-family passives are derived automatically. Short modeled buffs can also be added to the rotation.</p>
         <div className="mt-2 grid max-h-80 gap-2 overflow-y-auto sm:grid-cols-2">
           {engine.skillTreeOptions.filter((skill)=>skill.kind!=="utility").map((skill)=>(
             <label key={skill.groupId} className="flex items-center justify-between gap-2 rounded-md border border-white/5 px-2 py-1.5 text-xs">
@@ -484,7 +484,7 @@ export default function NativeCombatSimulatorPreview() {
         <label className="flex items-center gap-2"><input type="checkbox" checked={ridden} onChange={(e)=>setRidden(e.target.checked)}/>Mounted</label>
       </div>
       <label className="mt-3 block max-w-xs text-xs text-zinc-400">Periodic buff start (seconds)<input type="number" min="0" step="0.1" value={periodicStartSeconds} onChange={(e)=>setPeriodicStartSeconds(e.target.value)} className={inputClass}/></label>
-      <p className="mt-2 text-[11px] text-zinc-500">{engine.skillOptions.length} learnable damage skills found across Royal Guard's career progression. Empty rotation uses normal attacks only. Skill levels use group IDs, not SkillConfig row IDs.</p>
+      <p className="mt-2 text-[11px] text-zinc-500">{engine.skillOptions.length} learnable damage / short-buff rotation skills found across Royal Guard's career progression. Empty rotation uses normal attacks only. Skill levels use group IDs, not SkillConfig row IDs.</p>
       <button type="button" disabled={!engine.ready} onClick={runSimulation} className="mt-4 rounded-lg bg-cyan-400 px-4 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-40">{engine.ready ? "Run native simulation" : "Engine loading…"}</button>
       {simulationError && <p role="alert" className="mt-3 text-sm text-rose-300">{simulationError}</p>}
     </section>
