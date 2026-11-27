@@ -43,7 +43,9 @@ test("OCR image validation rejects bytes that are not a supported image", async 
 test("expired guild read-only role can view but cannot mutate guild data", () => {
   assert.equal(hasPermission("READ_ONLY", "members.view"), true);
   assert.equal(hasPermission("READ_ONLY", "events.view"), true);
-  assert.equal(hasPermission("READ_ONLY", "allocation.view"), true);
+  assert.equal(hasPermission("READ_ONLY", "allocation.view"), false);
+  assert.equal(hasPermission("READ_ONLY", "users.view"), false);
+  assert.equal(hasPermission("READ_ONLY", "applicants.view"), false);
   assert.equal(hasPermission("READ_ONLY", "members.edit"), false);
   assert.equal(hasPermission("READ_ONLY", "events.manage"), false);
   assert.equal(hasPermission("READ_ONLY", "leave.manageOwn"), false);
