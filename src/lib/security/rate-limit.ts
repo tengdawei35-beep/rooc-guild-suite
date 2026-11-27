@@ -53,6 +53,6 @@ export async function acquireOcrLease(scope: string, subject: string, ttlMs: num
   `;
   if (!rows.length) return null;
   return async () => {
-    await prisma.rateLimitBucket.deleteMany({ where: { key: digest } });
+    await prisma.rateLimitBucket.deleteMany({ where: { key: digest, updatedAt: now } });
   };
 }
