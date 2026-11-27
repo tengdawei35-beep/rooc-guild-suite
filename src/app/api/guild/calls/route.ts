@@ -19,7 +19,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const auth=await getCurrentAuth();
   if(!auth)return NextResponse.json({error:"Authentication required."},{status:401});
-  if(!hasPermission(auth.role,"events.manage"))return NextResponse.json({error:"You do not have permission to create calls."},{status:403});
+  if (!auth.subscriptionActive) return NextResponse.json({ error: "This guild is read-only until its subscription is renewed." }, { status: 403 }); if(!hasPermission(auth.role,"events.view"))return NextResponse.json({error:"You do not have permission to create calls."},{status:403});
   try {
     const body=await request.json(); const title=String(body.title??"").trim(); const description=String(body.description??"").trim()||null; const startAt=new Date(body.startAt); const requirements=Array.isArray(body.requirements)?body.requirements:[];
     if(!title||Number.isNaN(startAt.getTime()))return NextResponse.json({error:"Event name and a valid date/time are required."},{status:400});
