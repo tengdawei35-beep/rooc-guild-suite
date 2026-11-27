@@ -48,7 +48,10 @@ export default function RaidManagement({ eventId, rosterId, canEdit }: { eventId
     }
   }
 
-  useEffect(() => { load(); }, [eventId]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void load(); }, 0);
+    return () => window.clearTimeout(timer);
+  }, [eventId]);
 
   const partyMap = useMemo(() => {
     const map = new Map<string, Party>();
@@ -249,7 +252,7 @@ export default function RaidManagement({ eventId, rosterId, canEdit }: { eventId
         <span className="text-zinc-500 transition group-open:rotate-180">⌄</span>
       </summary>
       <div className="border-t border-zinc-800 p-3">
-        <p className="text-xs text-zinc-500">Group this roster's parties into larger raid groups.</p>
+        <p className="text-xs text-zinc-500">Group this roster&apos;s parties into larger raid groups.</p>
 
       {error && <div className="mt-4 rounded-lg border border-red-900 bg-red-950/40 px-4 py-3 text-sm text-red-400">{error}</div>}
 
