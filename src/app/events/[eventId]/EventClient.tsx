@@ -1194,7 +1194,7 @@ async function loadPreferredRoster() {
           </div>
         )}
 
-        <section className="mt-4 rounded-xl border border-zinc-800 bg-zinc-900/80 px-4 py-3">
+        <section data-event-rules="true" className="mt-4 rounded-xl border border-zinc-800 bg-zinc-900/80 px-4 py-3">
           <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
             <div className="min-w-0 flex-1">
               <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Event rules</p>
