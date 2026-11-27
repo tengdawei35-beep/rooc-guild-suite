@@ -18,7 +18,7 @@ export default async function NativeCombatSimulatorPreviewPage() {
       <header>
         <p className="hmdl-page-eyebrow">RO3 TOOLS · MIGRATION PREVIEW</p>
         <h1 className="hmdl-page-title">Combat Simulator — Native Preview</h1>
-        <p className="hmdl-page-description">A parallel native React workspace under development. The production simulator remains unchanged.</p>
+        <p className="hmdl-page-description">The native React combat simulator workspace. The main simulator route uses this same workspace.</p>
       </header>
       <NativeCombatSimulatorPreview />
     </section>
