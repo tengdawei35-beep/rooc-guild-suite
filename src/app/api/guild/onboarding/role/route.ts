@@ -23,7 +23,6 @@ const JOURNEYS = {
 export async function GET() {
   const auth = await getCurrentAuth();
   if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
-  if (!auth.subscriptionActive) return NextResponse.json({ error: "This guild is read-only until its subscription is renewed." }, { status: 403 });
   if (auth.originalRole !== "OFFICER" && auth.originalRole !== "MEMBER") {
     return NextResponse.json({ error: "This onboarding guide is for officers and members." }, { status: 403 });
   }
@@ -51,7 +50,8 @@ export async function GET() {
 export async function PATCH(request: Request) {
   const auth = await getCurrentAuth();
   if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
-  if (auth.role !== "OFFICER" && auth.role !== "MEMBER") {
+  if (!auth.subscriptionActive) return NextResponse.json({ error: "This guild is read-only until its subscription is renewed." }, { status: 403 });
+  if (auth.originalRole !== "OFFICER" && auth.originalRole !== "MEMBER") {
     return NextResponse.json({ error: "This onboarding guide is for officers and members." }, { status: 403 });
   }
 
@@ -60,7 +60,7 @@ export async function PATCH(request: Request) {
     dismissed?: unknown;
     reset?: unknown;
   };
-  const allowedIds = new Set(JOURNEYS[auth.role].map((task) => task.id));
+  const allowedIds = new Set(JOURNEYS[auth.originalRole].map((task) => task.id));
 
   if (body.reset === true) {
     await prisma.guildRoleOnboardingProgress.upsert({
