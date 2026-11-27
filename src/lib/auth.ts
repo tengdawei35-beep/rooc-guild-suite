@@ -9,7 +9,7 @@ import type { Permission, UserRole } from "@/lib/permissions";
 const SESSION_COOKIE = "rooc_session";
 const SESSION_MAX_AGE = 60 * 60 * 24 * 30;
 
-type SessionPayload = { userId: string; guildId: string; issuedAt: number; expiresAt: number };
+type SessionPayload = { userId: string; guildId: string; issuedAt: number; expiresAt: number; sessionVersion?: number };
 
 function getSessionSecret() {
   const secret = process.env.SESSION_SECRET;
@@ -32,18 +32,29 @@ function verifySessionToken(token: string): SessionPayload | null {
 }
 
 export async function createSession(userId: string, guildId: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { sessionVersion: true } });
+  if (!user) throw new Error("Cannot create a session for an unknown user.");
   const now = Date.now();
-  const token = createSessionToken({ userId, guildId, issuedAt: now, expiresAt: now + SESSION_MAX_AGE * 1000 });
+  const token = createSessionToken({ userId, guildId, issuedAt: now, expiresAt: now + SESSION_MAX_AGE * 1000, sessionVersion: user.sessionVersion });
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE, token, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: SESSION_MAX_AGE });
 }
 export async function destroySession() {
   const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE)?.value;
+  const session = token ? verifySessionToken(token) : null;
+  if (session) {
+    await prisma.user.updateMany({ where: { id: session.userId, sessionVersion: session.sessionVersion ?? 0 }, data: { sessionVersion: { increment: 1 } } });
+  }
   cookieStore.set(SESSION_COOKIE, "", { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 0 });
 }
 export async function getSession() {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
-  return token ? verifySessionToken(token) : null;
+  const session = token ? verifySessionToken(token) : null;
+  if (!session) return null;
+  const user = await prisma.user.findUnique({ where: { id: session.userId }, select: { sessionVersion: true } });
+  if (!user || user.sessionVersion !== (session.sessionVersion ?? 0)) return null;
+  return session;
 }
 
 async function getCurrentMembership() {
