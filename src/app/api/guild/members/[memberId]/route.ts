@@ -19,7 +19,7 @@ export async function GET(_request: Request, context: RouteContext) {
 
     const guild = await prisma.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true } });
     const isOwnProfile = member.userId === auth.user.id || member.discordUserId === auth.user.discordId;
-    const canViewCharacterStats = auth.role !== "MEMBER" || isOwnProfile;
+    const canViewCharacterStats = auth.originalRole !== "MEMBER" || isOwnProfile;
 
     const history = canViewCharacterStats && guild?.gameType !== "RO3" ? member.rosterAssignments.map((assignment) => ({ rosterMemberId: assignment.id, event: { id: assignment.party.roster.event.id, type: assignment.party.roster.event.type, date: assignment.party.roster.event.date }, battlefield: assignment.party.battlefield, partyNumber: assignment.party.partyNumber, slotNumber: assignment.slotNumber, guildPercentile: assignment.guildPercentile, tankScore: assignment.tankScore, dpsScore: assignment.dpsScore, pvpScore: assignment.pvpScore, createdAt: assignment.createdAt })) : [];
 
