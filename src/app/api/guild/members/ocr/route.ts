@@ -4,15 +4,26 @@ import { getCurrentAuth, hasPermission } from "@/lib/auth";
 import { readRooStats } from "@/lib/ocr/roo-stats";
 import { readRO3Stats } from "@/lib/ocr/ro3-stats";
 import { prisma } from "@/lib/prisma";
+import { consumeRateLimit } from "@/lib/security/rate-limit";
+import { normalizeOcrImage } from "@/lib/security/ocr-image";
 
 export const runtime = "nodejs";
 
 const MAX_FILE_BYTES = 8 * 1024 * 1024;
-const ALLOWED_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
+const MAX_REQUEST_BYTES = 24 * 1024 * 1024 + 256 * 1024;
 
 export async function POST(request: Request) {
   const auth = await getCurrentAuth();
   if (!auth) return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
+
+  if (!(await consumeRateLimit("member-ocr", auth.user.id, 6, 60_000))) {
+    return NextResponse.json({ error: "OCR limit reached. Please wait a minute before trying again." }, { status: 429 });
+  }
+
+  const declaredLength = Number(request.headers.get("content-length") ?? 0);
+  if (declaredLength > MAX_REQUEST_BYTES) {
+    return NextResponse.json({ error: "Combined screenshot size cannot exceed 24 MB." }, { status: 413 });
+  }
 
   try {
     const formData = await request.formData();
@@ -48,10 +59,7 @@ export async function POST(request: Request) {
 
     let totalBytes = 0;
     for (const file of files) {
-      if (!ALLOWED_TYPES.has(file.type)) {
-        return NextResponse.json({ error: `${file.name || "File"} is not a supported image type.` }, { status: 400 });
-      }
-      if (file.size > MAX_FILE_BYTES) {
+            if (file.size > MAX_FILE_BYTES) {
         return NextResponse.json({ error: `${file.name || "File"} is larger than 8 MB.` }, { status: 400 });
       }
       totalBytes += file.size;
@@ -60,16 +68,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Combined screenshot size cannot exceed 24 MB." }, { status: 400 });
     }
 
-    const buffers = await Promise.all(files.map(async (file) => Buffer.from(await file.arrayBuffer())));
+    const buffers = await Promise.all(files.map(async (file) => normalizeOcrImage(Buffer.from(await file.arrayBuffer()))));
     const guild = await prisma.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true } });
     if (!guild) return NextResponse.json({ error: "Guild not found." }, { status: 404 });
     const result = guild.gameType === "RO3" ? await readRO3Stats(buffers) : await readRooStats(buffers);
     return NextResponse.json(result);
   } catch (error) {
     console.error("[MEMBER OCR] Failed to read screenshots:", error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "OCR failed." },
-      { status: 500 },
-    );
+    const message = error instanceof Error ? error.message : "OCR failed.";
+    const validationError = /image|dimensions|format|unsupported|invalid/i.test(message);
+    return NextResponse.json({ error: message }, { status: validationError ? 400 : 500 });
   }
 }
