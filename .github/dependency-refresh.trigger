@@ -1,1 +1,1 @@
-Run the one-time security dependency refresh workflow.
+Run the one-time security dependency refresh workflow now.
