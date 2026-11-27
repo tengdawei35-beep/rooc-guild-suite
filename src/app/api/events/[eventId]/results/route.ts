@@ -5,10 +5,12 @@ import { getCurrentAuth } from "@/lib/auth";
 import { hasPermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { putPrivateBlob } from "@/lib/vercel-blob";
+import { readMultipartFormData, RequestBodyTooLargeError } from "@/lib/security/multipart";
 
 export const runtime = "nodejs";
 const allowed = new Set(["png", "jpeg", "webp"]);
 const MAX_FILE_SIZE = 4 * 1024 * 1024;
+const MAX_REQUEST_BYTES = MAX_FILE_SIZE + 256 * 1024;
 const MAX_PIXELS = 40_000_000;
 const MAX_REQUEST_BYTES = MAX_FILE_SIZE + 256 * 1024;
 
@@ -37,13 +39,8 @@ export async function POST(request: Request, context: Context) {
   const event = await prisma.event.findFirst({ where: { id: eventId, guildId: auth.guild.id }, select: { id: true } });
   if (!event) return NextResponse.json({ error: "Event not found." }, { status: 404 });
 
-  const declaredLength = Number(request.headers.get("content-length") ?? 0);
-  if (declaredLength > MAX_REQUEST_BYTES) {
-    return NextResponse.json({ error: "The upload exceeds the 4 MB limit." }, { status: 413 });
-  }
-
   try {
-    const form = await request.formData();
+    const form = await readMultipartFormData(request, MAX_REQUEST_BYTES);
     const file = form.get("file");
     if (!(file instanceof File)) return NextResponse.json({ error: "Choose an image to upload." }, { status: 400 });
     if (file.size < 1 || file.size > MAX_FILE_SIZE) return NextResponse.json({ error: "Each screenshot must be 4 MB or smaller." }, { status: 400 });
@@ -84,6 +81,7 @@ export async function POST(request: Request, context: Context) {
     return NextResponse.json({ image }, { status: 201 });
   } catch (error) {
     console.error("[EVENT RESULT UPLOAD]", error);
+    if (error instanceof RequestBodyTooLargeError) return NextResponse.json({ error: error.message }, { status: 413 });
     return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to upload event screenshot." }, { status: 400 });
   }
 }
