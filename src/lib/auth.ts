@@ -105,10 +105,10 @@ export async function getCurrentAuth() {
   const membership = await getCurrentMembership();
   if (!membership) return null;
   const subscriptionActive = await hasActiveGuildSubscription(membership.guild.id);
-  const role = subscriptionActive ? membership.role : "READ_ONLY";
+  const role: UserRole = subscriptionActive ? membership.role : `READ_ONLY_${membership.role}` as UserRole;
   const effectiveMembership = subscriptionActive
     ? membership
-    : { ...membership, role: "READ_ONLY" as typeof membership.role };
+    : { ...membership, role: `READ_ONLY_${membership.role}` as typeof membership.role };
   return { user: membership.user, guild: membership.guild, membership: effectiveMembership, role, originalRole: membership.role, subscriptionActive };
 }
 
