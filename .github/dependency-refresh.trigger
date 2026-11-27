@@ -1,1 +1,1 @@
-Run the one-time security dependency refresh workflow now.
+Rerun dependency refresh with the patched Effect override.
