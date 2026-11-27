@@ -4,13 +4,14 @@ import { readRO3Stats } from "@/lib/ocr/ro3-stats";
 import { getApplicantSession } from "@/lib/auth/applicant";
 import { prisma } from "@/lib/prisma";
 import { acquireOcrLease, consumeRateLimit } from "@/lib/security/rate-limit";
-import { normalizeOcrImage } from "@/lib/security/ocr-image";
+import { normalizeOcrImages } from "@/lib/security/ocr-image";
 import { readMultipartFormData, RequestBodyTooLargeError } from "@/lib/security/multipart";
 
 export const runtime = "nodejs";
 
 const MAX_FILE_BYTES = 8 * 1024 * 1024;
 const MAX_REQUEST_BYTES = 24 * 1024 * 1024 + 256 * 1024;
+const MAX_TOTAL_PIXELS = 40_000_000;
 
 export async function POST(
   request: Request,
@@ -43,7 +44,8 @@ export async function POST(
     const totalBytes = files.reduce((sum, file) => sum + file.size, 0);
     if (totalBytes > 24 * 1024 * 1024) return NextResponse.json({ error: "Combined screenshot size cannot exceed 24 MB." }, { status: 400 });
 
-    const buffers = await Promise.all(files.map(async (file) => normalizeOcrImage(Buffer.from(await file.arrayBuffer()))));
+    const inputs = await Promise.all(files.map(async (file) => Buffer.from(await file.arrayBuffer())));
+    const buffers = await normalizeOcrImages(inputs, MAX_TOTAL_PIXELS);
     const guild = await prisma.guild.findUnique({ where: { id: invite.guildId }, select: { gameType: true } });
     const result = guild?.gameType === "RO3" ? await readRO3Stats(buffers) : await readRooStats(buffers);
     return NextResponse.json(result);
