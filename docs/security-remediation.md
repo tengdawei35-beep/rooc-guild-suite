@@ -16,7 +16,7 @@ This document tracks the source-level remediation work associated with the Novem
 - Added atomic PostgreSQL-backed rate limits to member and applicant OCR endpoints.
 - Added bounded streaming multipart parsing, aggregate upload ceilings, image signature/decoder validation, pixel limits, and image normalization for OCR and event-result uploads.
 - Logout redirects now use the configured `APP_URL` origin rather than forwarded host/protocol headers.
-- CI now runs the full repository lint, production dependency audit, security upload/access-policy tests, CodeQL analysis, and pull-request dependency review.
+- CI now runs the full repository lint, production dependency audit, security upload/access-policy tests, and CodeQL analysis.
 
 ## Database migration required
 
@@ -30,7 +30,7 @@ The corresponding migrations are included under `prisma/migrations`. CI applies 
 
 ## Repository settings requiring an owner action
 
-GitHub secret scanning and push protection are repository security settings, not safely enabled by application code. Enable them under the repository's **Settings → Security → Code security and analysis** if supported by the repository plan. Review and resolve any existing secret alerts before enabling push protection.
+GitHub dependency graph, secret scanning and push protection are repository security settings, not safely enabled by application code. The dependency-review workflow was not retained because GitHub reports that dependency graph is currently disabled for this repository. Enable **Dependency graph** and **Secret scanning / push protection** under **Settings → Security → Code security and analysis** if supported by the repository plan. Review and resolve any existing secret alerts before enabling push protection.
 
 ## Validation status
 
