@@ -273,3 +273,12 @@ For every open issue:
 - This is a design-only change. No checkout behavior, Prisma schema, migration, production database, or Stripe configuration has been changed.
 - Next implementation step requires a Prisma schema change and generated SQL migration. The migration may be committed and CI-validated, but must not be applied to production without explicit operator approval. Stripe test-mode concurrency and lifecycle validation remain **UNVERIFIED / UNTESTED**.
 - Issue #163 (complimentary-to-paid conversion) remains separate and unchanged.
+
+### Complimentary guild onboarding — 2026-11-28
+
+- **PR #181** merged: fixed the complimentary guild creation advisory-lock query to select a scalar result (`SELECT 1 FROM pg_advisory_xact_lock(...)`) so Prisma 7 can deserialize it. CI passed. The user has confirmed that complimentary guild creation is now fixed in production.
+- **PR #182** merged: added a dedicated `/guild/create` onboarding flow for active platform guild creators. First-time eligible creators are routed there directly after Discord sign-in; existing eligible creators can reach it from guild selection. The form collects guild name, Discord server ID, game type and plan, explains the complimentary duration/allowance, and posts to the existing `/api/billing/complimentary` endpoint. Paid guild checkout remains separate.
+- PR #182 CI run **45973059248** passed, including combat engine and billing regression tests, Prisma generation/migration checks, TypeScript, RO3 scoring tests, ESLint and production build. No schema changes or migrations were introduced.
+- **Deployment boundary:** merge commit `f190342bed021214751c2aa2e0d9b78e3fefbc27`; Vercel deployment was still pending at the time of this update. Do not treat the new onboarding page as live until deployment succeeds.
+- New creator onboarding browser workflow remains **UNVERIFIED / UNTESTED**. Once deployed, verify first-time creator redirect, existing creator link, successful provisioning, and non-creator paid onboarding. No production guild was created as part of this change.
+- The complimentary provisioning API remains the authoritative eligibility and ownership-limit enforcement path; the page's displayed remaining allowance is informational and is rechecked inside the existing transaction.
