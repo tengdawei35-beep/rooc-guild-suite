@@ -60,7 +60,7 @@ export async function POST(request: Request) {
 
     let totalBytes = 0;
     for (const file of files) {
-            if (file.size > MAX_FILE_BYTES) {
+      if (file.size > MAX_FILE_BYTES) {
         return NextResponse.json({ error: `${file.name || "File"} is larger than 8 MB.` }, { status: 400 });
       }
       totalBytes += file.size;
