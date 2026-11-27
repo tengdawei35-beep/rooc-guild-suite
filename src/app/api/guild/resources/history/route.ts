@@ -9,7 +9,7 @@ export async function GET() {
     const auth = await getCurrentAuth();
     if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
     if (!(await isRoocGuild(auth.guild.id))) return NextResponse.json({ error: "The legacy resource allocation system is currently available to ROOC guilds only." }, { status: 409 });
-    if (!hasPermission(auth.role, "allocation.view")) return NextResponse.json({ error: "You do not have permission to view resource history." }, { status: 403 });
+    if (!hasPermission(auth.originalRole, "allocation.view")) return NextResponse.json({ error: "You do not have permission to view resource history." }, { status: 403 });
 
     const runs = await prisma.allocationRun.findMany({
       where: { guildId: auth.guild.id }, orderBy: { createdAt: "desc" }, take: 100,
