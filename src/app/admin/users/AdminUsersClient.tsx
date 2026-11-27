@@ -81,7 +81,8 @@ export default function AdminUsersClient({ users, total, page, pageSize, query }
             <thead><tr><th scope="col">Discord user</th><th scope="col">Guild affiliation(s)</th><th scope="col">Characters</th><th scope="col">Account created</th><th scope="col">Last account update</th><th scope="col"><span className="sr-only">Details</span></th></tr></thead>
             <tbody>{users.map((user) => {
               const expanded = expandedUserId === user.id;
-              return <tr key={user.id}>
+              return <>
+              <tr key={user.id}>
                 <td><div className="flex items-center gap-3">
                   {user.avatarUrl ? <img src={user.avatarUrl} alt="" className="h-9 w-9 rounded-full bg-zinc-800 object-cover" /> : <div aria-hidden="true" className="grid h-9 w-9 place-items-center rounded-full bg-zinc-800 text-sm font-semibold text-zinc-300">{user.username.slice(0, 1).toUpperCase()}</div>}
                   <div className="min-w-0"><div className="font-medium text-zinc-100">{user.username}</div><div className="mt-1 font-mono text-xs text-zinc-500">{user.discordId}</div></div>
@@ -94,11 +95,11 @@ export default function AdminUsersClient({ users, total, page, pageSize, query }
                 </td>
                 <td><div className="font-medium tabular-nums text-zinc-200">{user.activeCharacterCount} active</div><div className="mt-1 text-xs text-zinc-500">{user.characterCount} linked total</div></td>
                 <td className="text-zinc-400">{formatDate(user.createdAt)}</td><td className="text-zinc-400">{formatDate(user.updatedAt)}</td>
-                <td className="text-right"><button type="button" aria-expanded={expanded} aria-controls={`admin-user-details-${user.id}`} onClick={() => setExpandedUserId(expanded ? null : user.id)} className="rounded-md px-2 py-1 text-xs font-medium text-zinc-300 hover:bg-zinc-800">{expanded ? "Hide" : "Details"}</button></td>
+                <td className="text-right"><button type="button" aria-expanded={expanded} aria-controls={`admin-user-details-desktop-${user.id}`} onClick={() => setExpandedUserId(expanded ? null : user.id)} className="rounded-md px-2 py-1 text-xs font-medium text-zinc-300 hover:bg-zinc-800">{expanded ? "Hide" : "Details"}</button></td>
               </tr>
               {expanded && <tr key={user.id + "-details"} className="bg-zinc-950/50">
                 <td colSpan={6} className="border-b border-zinc-800 p-5">
-                  <div id={`admin-user-details-${user.id}`} className="space-y-4">
+                  <div id={`admin-user-details-desktop-${user.id}`} className="space-y-4">
                     <div className="flex flex-wrap items-start justify-between gap-3"><div><h3 className="font-semibold text-white">{user.username}</h3><p className="mt-1 font-mono text-xs text-zinc-500">HMDL user ID: {user.id}</p></div><div className="text-xs text-zinc-500">{user.membershipCount} guild membership record{user.membershipCount === 1 ? "" : "s"}</div></div>
                     {user.guilds.length === 0 ? <p className="text-sm text-zinc-500">This account is not currently linked to a guild.</p> : <div className="grid gap-3 md:grid-cols-2">
                       {user.guilds.map((guild) => <div key={guild.id} className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
@@ -112,7 +113,7 @@ export default function AdminUsersClient({ users, total, page, pageSize, query }
                   </div>
                 </td>
               </tr>}
-            ); })}</tbody>
+              </>; })}</tbody>
           </table>
         </div>
         </>
