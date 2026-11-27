@@ -86,6 +86,7 @@ export async function GET(_request: Request, context: Context) {
 export async function POST(request: Request, context: Context) {
   const auth = await getCurrentAuth();
   if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+  if (!auth.subscriptionActive) return NextResponse.json({ error: "This guild is read-only until its subscription is renewed." }, { status: 403 });
   const body = await request.json().catch(() => ({}));
   const status = body.status;
   if (!statuses.includes(status)) return NextResponse.json({ error: "Choose Available, Unavailable, or AFK / Busy." }, { status: 400 });
