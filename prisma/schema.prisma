@@ -1099,3 +1099,12 @@ model DiscordInteractionReceipt {
   receivedAt DateTime @default(now())
   @@index([receivedAt])
 }
+
+
+model RateLimitBucket {
+  key String @id
+  windowStart DateTime
+  count Int @default(0)
+  updatedAt DateTime @updatedAt
+  @@index([updatedAt])
+}
