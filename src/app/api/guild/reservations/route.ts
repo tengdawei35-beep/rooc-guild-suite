@@ -24,7 +24,7 @@ export async function GET() {
     if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
     const gameGuard = await requireRoocGuild(auth.guild.id);
     if (gameGuard) return gameGuard;
-    if (!hasPermission(auth.role, "allocation.view")) return NextResponse.json({ error: "You do not have permission to view reservations." }, { status: 403 });
+    if (!hasPermission(auth.originalRole, "allocation.view")) return NextResponse.json({ error: "You do not have permission to view reservations." }, { status: 403 });
     const guild = await prisma.guild.findUnique({ where: { id: auth.guild.id }, include: { members: { where: { active: true }, orderBy: { characterName: "asc" }, select: { id: true, characterName: true, eligible: true } }, resources: { where: { active: true }, orderBy: { name: "asc" }, select: { id: true, name: true, type: true, total: true, hardCap: true, perPlayerLimit: true } }, reservedAllocations: { include: { member: { select: { characterName: true } }, resource: { select: { name: true, type: true, total: true } } }, orderBy: { member: { characterName: "asc" } } } } });
     if (!guild) return NextResponse.json({ error: "Guild not found." }, { status: 404 });
     return NextResponse.json({ canEdit: hasPermission(auth.role, "allocation.run"), members: guild.members, resources: guild.resources, reservations: guild.reservedAllocations.map((r) => ({ id: r.id, memberId: r.memberId, resourceId: r.resourceId, quantity: r.quantity, memberName: r.member.characterName, resourceName: r.resource.name, resourceType: r.resource.type, resourceTotal: r.resource.total })) });
