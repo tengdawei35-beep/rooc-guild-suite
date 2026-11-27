@@ -41,7 +41,7 @@ function buildComparison(
 export async function GET() {
   const auth = await getCurrentAuth();
   if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
-  if (!hasPermission(auth.role, "applicants.view")) return forbidden();
+  if (!hasPermission(auth.originalRole, "applicants.view")) return forbidden();
   // Load the guild roster once. Previously this query ran once per applicant,
   // multiplying database work and delaying the entire response.
   const [guild, applicants, members] = await Promise.all([
