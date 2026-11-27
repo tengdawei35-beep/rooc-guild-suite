@@ -11,7 +11,7 @@ export async function GET(request: Request) {
 
   const now = new Date();
   const eventTypes = await prisma.guildEventType.findMany({
-    where: { active: true, guild: { gameType: "RO3" } },
+    where: { active: true, guild: { is: { gameType: "RO3", subscriptions: { some: { status: { in: ["ACTIVE", "TRIALING"] }, OR: [{ currentPeriodEnd: null }, { currentPeriodEnd: { gt: now } }] } } } } },
     select: { id: true, guildId: true, name: true, weekdays: true, startTime: true, timeZone: true, battlefieldCount: true, partiesPerBattlefield: true },
   });
 
@@ -63,7 +63,7 @@ export async function GET(request: Request) {
   }
 
   const pendingAttendanceMessages = await prisma.event.findMany({
-    where: { date: { gt: now, lte: new Date(now.getTime() + 30 * 86400000) }, attendanceMessageId: null },
+    where: { date: { gt: now, lte: new Date(now.getTime() + 30 * 86400000) }, attendanceMessageId: null, guild: { is: { subscriptions: { some: { status: { in: ["ACTIVE", "TRIALING"] }, OR: [{ currentPeriodEnd: null }, { currentPeriodEnd: { gt: now } }] } } } } },
     select: { id: true },
   });
   let attendanceMessagesSent = 0;
@@ -77,7 +77,7 @@ export async function GET(request: Request) {
   const reminderStart = new Date(now.getTime() + 47.5 * 60 * 60 * 1000);
   const reminderEnd = new Date(now.getTime() + 48.5 * 60 * 60 * 1000);
   const reminders = await prisma.event.findMany({
-    where: { date: { gte: reminderStart, lte: reminderEnd }, reminderMessageId: null, attendanceMessageId: { not: null } },
+    where: { date: { gte: reminderStart, lte: reminderEnd }, reminderMessageId: null, attendanceMessageId: { not: null }, guild: { is: { subscriptions: { some: { status: { in: ["ACTIVE", "TRIALING"] }, OR: [{ currentPeriodEnd: null }, { currentPeriodEnd: { gt: now } }] } } } } },
     select: { id: true },
   });
   let remindersSent = 0;
@@ -91,7 +91,7 @@ export async function GET(request: Request) {
   const oneHourStart = new Date(now.getTime() + 57.5 * 60 * 1000);
   const oneHourEnd = new Date(now.getTime() + 62.5 * 60 * 1000);
   const oneHourEvents = await prisma.event.findMany({
-    where: { date: { gte: oneHourStart, lte: oneHourEnd }, reminder1hMessageId: null, attendanceMessageId: { not: null } },
+    where: { date: { gte: oneHourStart, lte: oneHourEnd }, reminder1hMessageId: null, attendanceMessageId: { not: null }, guild: { is: { subscriptions: { some: { status: { in: ["ACTIVE", "TRIALING"] }, OR: [{ currentPeriodEnd: null }, { currentPeriodEnd: { gt: now } }] } } } } },
     select: { id: true },
   });
   let oneHourRemindersSent = 0;
@@ -105,7 +105,7 @@ export async function GET(request: Request) {
   const fifteenMinuteStart = new Date(now.getTime() + 12.5 * 60 * 1000);
   const fifteenMinuteEnd = new Date(now.getTime() + 17.5 * 60 * 1000);
   const fifteenMinuteEvents = await prisma.event.findMany({
-    where: { date: { gte: fifteenMinuteStart, lte: fifteenMinuteEnd }, reminder15mMessageId: null, attendanceMessageId: { not: null } },
+    where: { date: { gte: fifteenMinuteStart, lte: fifteenMinuteEnd }, reminder15mMessageId: null, attendanceMessageId: { not: null }, guild: { is: { subscriptions: { some: { status: { in: ["ACTIVE", "TRIALING"] }, OR: [{ currentPeriodEnd: null }, { currentPeriodEnd: { gt: now } }] } } } } },
     select: { id: true },
   });
   let fifteenMinuteRemindersSent = 0;
