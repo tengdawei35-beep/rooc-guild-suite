@@ -4,8 +4,10 @@ import { prisma } from "@/lib/prisma";
 import { hasActiveGuildSubscription } from "@/lib/auth";
 import { updateDiscordAttendanceMessage } from "@/lib/discord-event-attendance";
 import { syncEventAttendanceAndLeave } from "@/lib/events/attendance-leave-sync";
+import { readBoundedRequestText, RequestBodyTooLargeError } from "@/lib/security/multipart";
 
 export const runtime = "nodejs";
+const MAX_DISCORD_BODY_BYTES = 256 * 1024;
 
 function verifyDiscordSignature(body: string, signature: string | null, timestamp: string | null) {
   const publicKey = process.env.DISCORD_PUBLIC_KEY;
@@ -29,7 +31,15 @@ function ephemeral(content: string) {
 }
 
 export async function POST(request: Request) {
-  const rawBody = await request.text();
+  let rawBody: string;
+  try {
+    rawBody = await readBoundedRequestText(request, MAX_DISCORD_BODY_BYTES);
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return NextResponse.json({ error: "Discord interaction payload is too large." }, { status: 413 });
+    }
+    throw error;
+  }
   if (!verifyDiscordSignature(rawBody, request.headers.get("x-signature-ed25519"), request.headers.get("x-signature-timestamp"))) {
     return NextResponse.json({ error: "Invalid Discord request signature." }, { status: 401 });
   }
