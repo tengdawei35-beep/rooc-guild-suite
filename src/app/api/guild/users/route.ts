@@ -73,9 +73,7 @@ export async function GET() {
       );
     }
 
-    const isMember =
-      auth.role ===
-      "MEMBER";
+    const isMember = auth.originalRole === "MEMBER";
 
     const memberships =
       await prisma.guildMembership.findMany(
@@ -156,7 +154,8 @@ export async function GET() {
           auth.user.id,
 
         role:
-          auth.role,
+          auth.originalRole,
+        readOnly: !auth.subscriptionActive,
       },
 
       users:
