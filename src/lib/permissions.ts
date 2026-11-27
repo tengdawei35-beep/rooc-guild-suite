@@ -9,13 +9,14 @@ export const USER_ROLES = [
   "MEMBER",
 ] as const;
 
-export type UserRole = (typeof USER_ROLES)[number];
+export type UserRole = (typeof USER_ROLES)[number] | "READ_ONLY";
 
 export const ROLE_LABELS: Record<UserRole, string> = {
   ADMIN: "Admin",
   MANAGER: "Manager",
   OFFICER: "Officer",
   MEMBER: "Member",
+  READ_ONLY: "Read only",
 };
 
 export const ROLE_DESCRIPTIONS: Record<UserRole, string> = {
@@ -23,6 +24,7 @@ export const ROLE_DESCRIPTIONS: Record<UserRole, string> = {
   MANAGER: "Manage guild members, users, events, rosters and allocation.",
   OFFICER: "Manage guild members, events, rosters and allocation operations.",
   MEMBER: "View guild data and edit their own profile.",
+  READ_ONLY: "View existing guild data. Changes are disabled until the subscription is renewed.",
 };
 
 export type Permission =
@@ -46,6 +48,7 @@ export type Permission =
   | "applicants.manage";
 
 export function hasPermission(role: UserRole, permission: Permission): boolean {
+  if (role === "READ_ONLY") return ["members.view", "events.view", "rosters.view", "allocation.view", "users.view", "applicants.view"].includes(permission);
   if (role === "ADMIN") return true;
 
   if (role === "MANAGER") {
@@ -104,6 +107,7 @@ export const ROLE_LEVEL: Record<UserRole, number> = {
   MANAGER: 3,
   OFFICER: 2,
   MEMBER: 1,
+  READ_ONLY: 0,
 };
 
 export function canManageTarget(
