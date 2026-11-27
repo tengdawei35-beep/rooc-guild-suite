@@ -217,3 +217,11 @@ For every open issue:
 
 ### Deferred scope
 - OCR accuracy, member stat entry/self-service workflows and their related PRs/issues were not audited or changed in this continuation, as requested. Keep Issues #1/#8/#9 and PRs #75/#92 in their existing open state until that work is resumed.
+
+
+### QA status update — 2026-11-27 (simulator browser checks deferred)
+- The user explicitly deferred individual production browser testing due to time constraints. **Do not mark the native simulator end-to-end workflow as verified.**
+- The following remain **implemented in source but unverified/untested in an authenticated browser session**: attacker/defender profile import, job switching and career-specific selectors, saved-build save/load/delete, legacy build import, talent/pet/card/totem configuration, simulation execution, report generation, and error/empty-state behavior.
+- Automated CI passing is not a substitute for these manual production checks. No live-game formula validation was attempted or required.
+- PR **#166** corrected obsolete native-preview messaging and was merged. PR **#167** corrects a second stale comment in the native engine hook; its CI is pending at this snapshot.
+- With simulator browser QA explicitly parked, continue with repository-side Discord integration QA and safe automated billing regression coverage. Keep live Discord permission/role-hierarchy tests and live Stripe lifecycle transactions explicitly **unverified/untested** until a test server or Stripe test environment is available.
