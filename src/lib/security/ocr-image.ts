@@ -18,3 +18,25 @@ export async function normalizeOcrImage(input: Buffer): Promise<Buffer> {
     .webp({ quality: 88 })
     .toBuffer();
 }
+
+
+/**
+ * Normalize OCR screenshots sequentially and enforce a request-wide decoded
+ * pixel budget. Per-file byte limits alone do not prevent decompression bombs.
+ */
+export async function normalizeOcrImages(inputs: Buffer[], maxTotalPixels = MAX_PIXELS): Promise<Buffer[]> {
+  const normalized: Buffer[] = [];
+  let totalPixels = 0;
+  for (const input of inputs) {
+    const metadata = await sharp(input, { limitInputPixels: MAX_PIXELS, failOn: "error" }).metadata();
+    if (!metadata.width || !metadata.height) {
+      throw new Error("Image dimensions are invalid.");
+    }
+    totalPixels += metadata.width * metadata.height;
+    if (totalPixels > maxTotalPixels) {
+      throw new Error("Combined screenshot dimensions exceed the supported pixel limit.");
+    }
+    normalized.push(await normalizeOcrImage(input));
+  }
+  return normalized;
+}
