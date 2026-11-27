@@ -15,7 +15,7 @@ This document tracks the source-level remediation work associated with the Novem
 - Added Discord interaction timestamp freshness checks and unique interaction receipts to reject stale/replayed attendance interactions.
 - Added atomic PostgreSQL-backed rate limits to member and applicant OCR endpoints.
 - Added bounded streaming multipart parsing, aggregate upload ceilings, image signature/decoder validation, pixel limits, and image normalization for OCR and event-result uploads.
-- Added a hard streaming body ceiling to the public Discord interactions endpoint to prevent unbounded buffering of unauthenticated webhook requests.
+- Added hard streaming body ceilings to the public Discord interactions and Stripe billing webhook endpoints to prevent unbounded buffering of unauthenticated webhook requests (256 KiB and 1 MiB respectively).
 - Added a request-wide decoded-pixel budget for OCR screenshots and sequential normalization to limit decompression-bomb memory amplification.
 - Logout redirects now use the configured `APP_URL` origin rather than forwarded host/protocol headers.
 - CI now runs the full repository lint, production dependency audit, security upload/access-policy tests, and CodeQL analysis.
@@ -36,4 +36,4 @@ GitHub dependency graph, secret scanning and push protection are repository secu
 
 ## Validation status
 
-Automated checks are added to CI, but must pass on the pull request before merge. Production behavior, Stripe billing flows, Discord interactions, upload limits at the Vercel edge, and read-only UX still require deployment and manual verification. No penetration test or unauthorized production access test was performed.
+Automated checks are added to CI. CodeQL passed on the preceding branch head. The full-repository ESLint step currently fails on a large set of existing lint violations across unrelated application files; changed security endpoints are being checked and corrected separately. CI must pass before merge. Production behavior, Stripe billing flows, Discord interactions, upload limits at the Vercel edge, and read-only UX still require deployment and manual verification. No penetration test or unauthorized production access test was performed.
