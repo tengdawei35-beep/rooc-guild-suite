@@ -14,7 +14,7 @@ async function authorize(requireManage = false): Promise<{ auth: AuthContext; re
   if (!auth) return { response: NextResponse.json({ error: "Authentication required." }, { status: 401 }) };
   if (await isRoocGuild(auth.guild.id)) return { response: NextResponse.json({ error: "RO3 resource pools are only available to RO3 guilds." }, { status: 409 }) };
   if (!(await hasGuildModule(auth.guild.id, RESOURCE_SUITE_MODULE))) return { response: NextResponse.json({ error: "The Resource Suite is not subscribed for this guild." }, { status: 403 }) };
-  if (!hasPermission(auth.role, requireManage ? "allocation.run" : "allocation.view")) return { response: NextResponse.json({ error: requireManage ? "You do not have permission to manage resources." : "You do not have permission to view resources." }, { status: 403 }) };
+  if (!hasPermission(requireManage ? auth.role : auth.originalRole, requireManage ? "allocation.run" : "allocation.view")) return { response: NextResponse.json({ error: requireManage ? "You do not have permission to manage resources." : "You do not have permission to view resources." }, { status: 403 }) };
   return { auth };
 }
 

@@ -142,6 +142,7 @@ enum ApplicantStatus {
 model User {
   id String @id @default(cuid())
   discordId String @unique
+  sessionVersion Int @default(0)
   username String
   avatarUrl String?
   guildMemberships GuildMembership[]
@@ -1090,4 +1091,20 @@ model DiscordSubscriptionRoleMapping {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@index([enabled])
+}
+
+
+model DiscordInteractionReceipt {
+  id String @id
+  receivedAt DateTime @default(now())
+  @@index([receivedAt])
+}
+
+
+model RateLimitBucket {
+  key String @id
+  windowStart DateTime
+  count Int @default(0)
+  updatedAt DateTime @updatedAt
+  @@index([updatedAt])
 }

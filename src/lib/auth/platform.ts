@@ -11,6 +11,7 @@ type PlatformSessionPayload = {
   userId: string;
   issuedAt: number;
   expiresAt: number;
+  sessionVersion?: number;
 };
 
 function getSessionSecret() {
@@ -49,11 +50,14 @@ function verifyToken(token: string): PlatformSessionPayload | null {
 }
 
 export async function setPlatformUserSession(userId: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { sessionVersion: true } });
+  if (!user) throw new Error("Cannot create a platform session for an unknown user.");
   const now = Date.now();
   const token = createToken({
     userId,
     issuedAt: now,
     expiresAt: now + PLATFORM_SESSION_MAX_AGE * 1000,
+    sessionVersion: user.sessionVersion,
   });
 
   const cookieStore = await cookies();
@@ -75,11 +79,18 @@ export async function getCurrentPlatformUser() {
   const session = verifyToken(token);
   if (!session) return null;
 
-  return prisma.user.findUnique({ where: { id: session.userId } });
+  const user = await prisma.user.findUnique({ where: { id: session.userId } });
+  if (!user || user.sessionVersion !== (session.sessionVersion ?? 0)) return null;
+  return user;
 }
 
 export async function destroyPlatformUserSession() {
   const cookieStore = await cookies();
+  const token = cookieStore.get(PLATFORM_SESSION_COOKIE)?.value;
+  const session = token ? verifyToken(token) : null;
+  if (session) {
+    await prisma.user.updateMany({ where: { id: session.userId, sessionVersion: session.sessionVersion ?? 0 }, data: { sessionVersion: { increment: 1 } } });
+  }
   cookieStore.set(PLATFORM_SESSION_COOKIE, "", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",

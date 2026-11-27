@@ -7,10 +7,11 @@ const COLOURS: Colour[] = ["GREEN", "YELLOW", "RED"];
 const canManagePresets = (role: string) => role === "ADMIN" || role === "MANAGER";
 const normalizeName = (value: string) => value.trim().toLocaleLowerCase();
 
-async function authorize() {
+async function authorize(requireManage = false) {
   const auth = await getCurrentAuth();
   if (!auth) return { response: NextResponse.json({ error: "Authentication required." }, { status: 401 }) };
-  if (!canManagePresets(auth.role)) return { response: NextResponse.json({ error: "Only guild admins and managers can manage applicant watchlist presets." }, { status: 403 }) };
+  if (!canManagePresets(auth.originalRole)) return { response: NextResponse.json({ error: "Only guild admins and managers can manage applicant watchlist presets." }, { status: 403 }) };
+  if (requireManage && !auth.subscriptionActive) return { response: NextResponse.json({ error: "This guild is read-only until its subscription is renewed." }, { status: 403 }) };
   return { auth };
 }
 
@@ -25,7 +26,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const result = await authorize();
+  const result = await authorize(true);
   if (result.response) return result.response;
   let body: { characterName?: string; watchlist?: Colour; notes?: string | null };
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid request body." }, { status: 400 }); }
@@ -48,7 +49,7 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const result = await authorize();
+  const result = await authorize(true);
   if (result.response) return result.response;
   let body: { id?: string; characterName?: string; watchlist?: Colour; notes?: string | null };
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid request body." }, { status: 400 }); }
@@ -70,7 +71,7 @@ export async function PATCH(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const result = await authorize();
+  const result = await authorize(true);
   if (result.response) return result.response;
   const id = new URL(request.url).searchParams.get("id");
   if (!id) return NextResponse.json({ error: "Entry ID is required." }, { status: 400 });

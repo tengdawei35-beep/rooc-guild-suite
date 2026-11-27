@@ -3,7 +3,9 @@ import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
 import { stripePaymentProvider } from "@/lib/payments/stripe";
 import { syncGuildSubscriptionDiscordRoles } from "@/lib/discord/subscription-roles";
+import { readBoundedRequestText, RequestBodyTooLargeError } from "@/lib/security/multipart";
 export const runtime = "nodejs";
+const MAX_STRIPE_WEBHOOK_BODY_BYTES = 1024 * 1024;
 function subscriptionStatus(status: Stripe.Subscription.Status) { switch (status) { case "active": return "ACTIVE" as const; case "trialing": return "TRIALING" as const; case "past_due": case "unpaid": return "PAST_DUE" as const; case "canceled": return "CANCELED" as const; default: return "INCOMPLETE" as const; } }
 function subscriptionIsEntitled(status: Stripe.Subscription.Status) { return status === "active" || status === "trialing"; }
 async function syncSubscription(tx: Parameters<Parameters<typeof prisma.$transaction>[0]>[0], subscription: Stripe.Subscription) {
@@ -11,7 +13,7 @@ async function syncSubscription(tx: Parameters<Parameters<typeof prisma.$transac
   const status = subscriptionStatus(subscription.status); const entitled = subscriptionIsEntitled(subscription.status); const item = subscription.items.data[0];
   await tx.guildSubscription.update({ where: { id: existing.id }, data: { status, cancelAtPeriodEnd: subscription.cancel_at_period_end, currentPeriodStart: item?.current_period_start ? new Date(item.current_period_start * 1000) : existing.currentPeriodStart, currentPeriodEnd: item?.current_period_end ? new Date(item.current_period_end * 1000) : existing.currentPeriodEnd } });
   await tx.guildModuleEntitlement.updateMany({ where: { guildId: existing.guildId }, data: { enabled: false } });
-  for (const module of existing.plan.modules) await tx.guildModuleEntitlement.upsert({ where: { guildId_module: { guildId: existing.guildId, module: module.module } }, create: { guildId: existing.guildId, module: module.module, enabled: entitled }, update: { enabled: entitled } });
+  for (const entitlementModule of existing.plan.modules) await tx.guildModuleEntitlement.upsert({ where: { guildId_module: { guildId: existing.guildId, module: entitlementModule.module } }, create: { guildId: existing.guildId, module: entitlementModule.module, enabled: entitled }, update: { enabled: entitled } });
 }
 async function recordAffiliateReferral(guildId: string, subscriptionId: string, affiliateId: string) {
   await prisma.$executeRawUnsafe('INSERT INTO "AffiliateReferral" ("id", "affiliateId", "guildId", "stripeSubscriptionId") VALUES ($1,$2,$3,$4) ON CONFLICT ("guildId") DO UPDATE SET "stripeSubscriptionId" = EXCLUDED."stripeSubscriptionId", "updatedAt" = NOW()', crypto.randomUUID(), affiliateId, guildId, subscriptionId);
@@ -31,7 +33,17 @@ async function recordAffiliateCommission(invoice: Stripe.Invoice) {
   await prisma.$executeRawUnsafe('INSERT INTO "AffiliateCommission" ("id", "affiliateId", "referralId", "stripeInvoiceId", "amountCents", "currency", "status") VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT ("stripeInvoiceId") DO NOTHING', crypto.randomUUID(), referral.affiliateId, referral.id, invoice.id, amountCents, invoice.currency, "PENDING");
 }
 export async function POST(request: Request) {
-  const payload = await request.text(); const signature = request.headers.get("stripe-signature"); if (!signature) return NextResponse.json({ error: "MISSING_STRIPE_SIGNATURE" }, { status: 400 });
+  let payload: string;
+  try {
+    payload = await readBoundedRequestText(request, MAX_STRIPE_WEBHOOK_BODY_BYTES);
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return NextResponse.json({ error: "STRIPE_WEBHOOK_PAYLOAD_TOO_LARGE" }, { status: 413 });
+    }
+    throw error;
+  }
+  const signature = request.headers.get("stripe-signature");
+  if (!signature) return NextResponse.json({ error: "MISSING_STRIPE_SIGNATURE" }, { status: 400 });
   let event: Stripe.Event; try { event = await stripePaymentProvider.verifyWebhook(payload, signature) as Stripe.Event; } catch (error) { console.error("[STRIPE WEBHOOK] Invalid signature", error); return NextResponse.json({ error: "INVALID_STRIPE_SIGNATURE" }, { status: 400 }); }
   try {
     if (event.type === "checkout.session.completed") {
@@ -82,8 +94,8 @@ export async function POST(request: Request) {
         // Stripe can retry checkout.session.completed after downstream work fails. Resolve the already-created subscription first so onboarding retries do not collide with the guild unique constraint.
         const existingSubscription = await tx.guildSubscription.findUnique({ where: { providerSubscriptionId: subscriptionId }, select: { guildId: true } });
         if (existingSubscription) { createdGuildId = existingSubscription.guildId; return; }
-        if (guildId) { const guild = await tx.guild.findUnique({ where: { id: guildId } }); if (!guild || guild.ownerUserId !== user.id) throw new Error("GUILD_NOT_OWNED"); const active = await tx.guildSubscription.findFirst({ where: { guildId, status: { in: ["ACTIVE", "TRIALING"] }, OR: [{ currentPeriodEnd: null }, { currentPeriodEnd: { gt: new Date() } }] }, select: { id: true } }); if (active) throw new Error("GUILD_ALREADY_SUBSCRIBED"); await tx.guildMembership.upsert({ where: { userId_guildId: { userId: user.id, guildId } }, update: { role: "ADMIN" }, create: { userId: user.id, guildId, role: "ADMIN" } }); await tx.guildSubscription.create({ data: { guildId, planId: plan.id, status: "ACTIVE", provider: "stripe", providerCustomerId: customerId, providerSubscriptionId: subscriptionId } }); await tx.guildModuleEntitlement.updateMany({ where: { guildId }, data: { enabled: false } }); await tx.guildModuleEntitlement.createMany({ data: plan.modules.map((module) => ({ guildId, module: module.module, enabled: true })), skipDuplicates: true }); return; }
-        const existingGuild = await tx.guild.findUnique({ where: { discordGuildId: discordGuildId! } }); if (existingGuild) throw new Error("DISCORD_GUILD_ALREADY_REGISTERED"); const guild = await tx.guild.create({ data: { name: guildName!, discordGuildId: discordGuildId!, ownerUserId: user.id, gameType } }); createdGuildId = guild.id; await tx.guildMembership.create({ data: { guildId: guild.id, userId: user.id, role: "ADMIN" } }); await tx.guildSubscription.create({ data: { guildId: guild.id, planId: plan.id, status: "ACTIVE", provider: "stripe", providerCustomerId: customerId, providerSubscriptionId: subscriptionId } }); await tx.guildModuleEntitlement.createMany({ data: plan.modules.map((module) => ({ guildId: guild.id, module: module.module, enabled: true })) });
+        if (guildId) { const guild = await tx.guild.findUnique({ where: { id: guildId } }); if (!guild || guild.ownerUserId !== user.id) throw new Error("GUILD_NOT_OWNED"); const active = await tx.guildSubscription.findFirst({ where: { guildId, status: { in: ["ACTIVE", "TRIALING"] }, OR: [{ currentPeriodEnd: null }, { currentPeriodEnd: { gt: new Date() } }] }, select: { id: true } }); if (active) throw new Error("GUILD_ALREADY_SUBSCRIBED"); await tx.guildMembership.upsert({ where: { userId_guildId: { userId: user.id, guildId } }, update: { role: "ADMIN" }, create: { userId: user.id, guildId, role: "ADMIN" } }); await tx.guildSubscription.create({ data: { guildId, planId: plan.id, status: "ACTIVE", provider: "stripe", providerCustomerId: customerId, providerSubscriptionId: subscriptionId } }); await tx.guildModuleEntitlement.updateMany({ where: { guildId }, data: { enabled: false } }); await tx.guildModuleEntitlement.createMany({ data: plan.modules.map((entitlementModule) => ({ guildId, module: entitlementModule.module, enabled: true })), skipDuplicates: true }); return; }
+        const existingGuild = await tx.guild.findUnique({ where: { discordGuildId: discordGuildId! } }); if (existingGuild) throw new Error("DISCORD_GUILD_ALREADY_REGISTERED"); const guild = await tx.guild.create({ data: { name: guildName!, discordGuildId: discordGuildId!, ownerUserId: user.id, gameType } }); createdGuildId = guild.id; await tx.guildMembership.create({ data: { guildId: guild.id, userId: user.id, role: "ADMIN" } }); await tx.guildSubscription.create({ data: { guildId: guild.id, planId: plan.id, status: "ACTIVE", provider: "stripe", providerCustomerId: customerId, providerSubscriptionId: subscriptionId } }); await tx.guildModuleEntitlement.createMany({ data: plan.modules.map((entitlementModule) => ({ guildId: guild.id, module: entitlementModule.module, enabled: true })) });
       });
       if (affiliateId && createdGuildId) await recordAffiliateReferral(createdGuildId, subscriptionId, affiliateId);
       if (createdGuildId) await syncGuildSubscriptionDiscordRoles(createdGuildId);

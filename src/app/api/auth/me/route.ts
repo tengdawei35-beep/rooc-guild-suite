@@ -49,5 +49,7 @@ export async function GET() {
 
     role:
       auth.role,
+    originalRole: auth.originalRole,
+    readOnly: !auth.subscriptionActive,
   });
 }

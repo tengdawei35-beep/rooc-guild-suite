@@ -8,6 +8,7 @@ type Payload = {
   userId: string;
   issuedAt: number;
   expiresAt: number;
+  sessionVersion?: number;
 };
 
 function secret() {
@@ -24,9 +25,9 @@ function encode(payload: Payload) {
   return Buffer.from(JSON.stringify(payload)).toString("base64url");
 }
 
-function createToken(userId: string) {
+function createToken(userId: string, sessionVersion: number) {
   const now = Date.now();
-  const encoded = encode({ userId, issuedAt: now, expiresAt: now + MAX_AGE * 1000 });
+  const encoded = encode({ userId, issuedAt: now, expiresAt: now + MAX_AGE * 1000, sessionVersion });
   return `${encoded}.${sign(encoded)}`;
 }
 
@@ -45,8 +46,11 @@ function verify(token: string) {
 }
 
 export async function setApplicantSession(userId: string) {
+  const { prisma } = await import("@/lib/prisma");
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { sessionVersion: true } });
+  if (!user) throw new Error("Cannot create an applicant session for an unknown user.");
   const store = await cookies();
-  store.set(COOKIE, createToken(userId), {
+  store.set(COOKIE, createToken(userId, user.sessionVersion), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
@@ -57,11 +61,22 @@ export async function setApplicantSession(userId: string) {
 
 export async function getApplicantSession() {
   const token = (await cookies()).get(COOKIE)?.value;
-  return token ? verify(token) : null;
+  const session = token ? verify(token) : null;
+  if (!session) return null;
+  const { prisma } = await import("@/lib/prisma");
+  const user = await prisma.user.findUnique({ where: { id: session.userId }, select: { sessionVersion: true } });
+  if (!user || user.sessionVersion !== (session.sessionVersion ?? 0)) return null;
+  return session;
 }
 
 export async function clearApplicantSession() {
+  const { prisma } = await import("@/lib/prisma");
   const store = await cookies();
+  const token = store.get(COOKIE)?.value;
+  const session = token ? verify(token) : null;
+  if (session) {
+    await prisma.user.updateMany({ where: { id: session.userId, sessionVersion: session.sessionVersion ?? 0 }, data: { sessionVersion: { increment: 1 } } });
+  }
   store.set(COOKIE, "", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",

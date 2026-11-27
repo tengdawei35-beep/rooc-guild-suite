@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 type EventType = { id: string; name: string };
 type LinkData = {
@@ -16,8 +16,7 @@ export default function Ro3EventResourceLink({ eventId }: { eventId: string }) {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
 
-  async function load() {
-    setLoading(true);
+  const load = useCallback(async () => {
     try {
       const response = await fetch(`/api/events/${eventId}/ro3-resource-type`, { cache: "no-store" });
       const result = await response.json();
@@ -32,9 +31,12 @@ export default function Ro3EventResourceLink({ eventId }: { eventId: string }) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [eventId]);
 
-  useEffect(() => { void load(); }, [eventId]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void load(); }, 0);
+    return () => window.clearTimeout(timer);
+  }, [load]);
 
   async function save() {
     setSaving(true);
@@ -59,40 +61,46 @@ export default function Ro3EventResourceLink({ eventId }: { eventId: string }) {
   if (loading || !data) return null;
   const locked = data.event.locked || data.event.hasOptIns;
   return (
-    <section className="mb-6 rounded-2xl border border-indigo-900/70 bg-indigo-950/20 p-5">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h2 className="font-semibold text-white">RO3 Resource Event</h2>
-          <p className="mt-1 text-sm text-zinc-400">
-            Link this event to an event type in the active Resources pool so members can see its Event Opt-ins.
-          </p>
-          <p className="mt-1 text-xs text-zinc-500">
-            {data.season ? `Active pool: ${data.season.name}` : "No active Resources pool is configured."}
-          </p>
+    <section className="mb-4 rounded-xl border border-zinc-800 bg-zinc-900/40 px-3 py-2.5">
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="mr-auto flex min-w-0 items-center gap-2">
+          <span className="text-xs font-medium text-zinc-400">Resource pool</span>
+          {data.season ? (
+            <span className="max-w-40 truncate text-xs text-zinc-500" title={data.season.name}>
+              {data.season.name}
+            </span>
+          ) : (
+            <span className="text-xs text-amber-300">No active pool</span>
+          )}
         </div>
-        <div className="flex min-w-64 flex-1 flex-wrap gap-2 sm:max-w-xl">
-          <select
-            value={selectedId}
-            onChange={event => setSelectedId(event.target.value)}
-            disabled={locked || !data.season || saving}
-            className="min-w-0 flex-1 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white disabled:opacity-50"
-          >
-            <option value="">Not linked</option>
-            {data.eventTypes.map(type => <option key={type.id} value={type.id}>{type.name}</option>)}
-          </select>
-          <button
-            type="button"
-            onClick={save}
-            disabled={locked || !data.season || saving || selectedId === (data.event.ro3EventTypeId ?? "")}
-            className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {saving ? "Saving..." : "Save"}
-          </button>
-        </div>
+        <select
+          aria-label="Link event to resource type"
+          value={selectedId}
+          onChange={event => setSelectedId(event.target.value)}
+          disabled={locked || !data.season || saving}
+          className="min-w-0 flex-1 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-1.5 text-sm text-white disabled:opacity-50 sm:max-w-xs"
+        >
+          <option value="">Not linked</option>
+          {data.eventTypes.map(type => <option key={type.id} value={type.id}>{type.name}</option>)}
+        </select>
+        <button
+          type="button"
+          onClick={save}
+          disabled={locked || !data.season || saving || selectedId === (data.event.ro3EventTypeId ?? "")}
+          className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-200 hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {saving ? "Saving..." : "Save"}
+        </button>
       </div>
-      {locked && <p className="mt-3 text-xs text-amber-300">This event already has Event Opt-ins or has been locked, so its resource type cannot be changed.</p>}
-      {!data.eventTypes.length && data.season && <p className="mt-3 text-xs text-amber-300">No active event types are configured in this pool. Add one under Guild Resources first.</p>}
-      {message && <p className="mt-3 text-sm text-zinc-300">{message}</p>}
+      {(locked || (!data.eventTypes.length && data.season) || message) && (
+        <p className={`mt-2 text-xs ${locked || !data.eventTypes.length ? "text-amber-300" : "text-emerald-300"}`}>
+          {locked
+            ? "Locked: resource type cannot be changed after opt-ins or event lock."
+            : !data.eventTypes.length && data.season
+              ? "No event types configured. Add one under Guild Resources."
+              : message}
+        </p>
+      )}
     </section>
   );
 }

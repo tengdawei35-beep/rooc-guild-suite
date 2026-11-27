@@ -9,7 +9,7 @@ import type { Permission, UserRole } from "@/lib/permissions";
 const SESSION_COOKIE = "rooc_session";
 const SESSION_MAX_AGE = 60 * 60 * 24 * 30;
 
-type SessionPayload = { userId: string; guildId: string; issuedAt: number; expiresAt: number };
+type SessionPayload = { userId: string; guildId: string; issuedAt: number; expiresAt: number; sessionVersion?: number };
 
 function getSessionSecret() {
   const secret = process.env.SESSION_SECRET;
@@ -32,18 +32,29 @@ function verifySessionToken(token: string): SessionPayload | null {
 }
 
 export async function createSession(userId: string, guildId: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { sessionVersion: true } });
+  if (!user) throw new Error("Cannot create a session for an unknown user.");
   const now = Date.now();
-  const token = createSessionToken({ userId, guildId, issuedAt: now, expiresAt: now + SESSION_MAX_AGE * 1000 });
+  const token = createSessionToken({ userId, guildId, issuedAt: now, expiresAt: now + SESSION_MAX_AGE * 1000, sessionVersion: user.sessionVersion });
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE, token, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: SESSION_MAX_AGE });
 }
 export async function destroySession() {
   const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE)?.value;
+  const session = token ? verifySessionToken(token) : null;
+  if (session) {
+    await prisma.user.updateMany({ where: { id: session.userId, sessionVersion: session.sessionVersion ?? 0 }, data: { sessionVersion: { increment: 1 } } });
+  }
   cookieStore.set(SESSION_COOKIE, "", { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 0 });
 }
 export async function getSession() {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
-  return token ? verifySessionToken(token) : null;
+  const session = token ? verifySessionToken(token) : null;
+  if (!session) return null;
+  const user = await prisma.user.findUnique({ where: { id: session.userId }, select: { sessionVersion: true } });
+  if (!user || user.sessionVersion !== (session.sessionVersion ?? 0)) return null;
+  return session;
 }
 
 async function getCurrentMembership() {
@@ -76,7 +87,7 @@ async function getCurrentMembership() {
   });
 }
 
-async function hasActiveSubscription(guildId: string) {
+export async function hasActiveGuildSubscription(guildId: string) {
   const subscription = await prisma.guildSubscription.findFirst({
     where: { guildId, status: { in: ["ACTIVE", "TRIALING"] }, OR: [{ currentPeriodEnd: null }, { currentPeriodEnd: { gt: new Date() } }] },
     select: { id: true },
@@ -84,18 +95,28 @@ async function hasActiveSubscription(guildId: string) {
   return subscription !== null;
 }
 
-/** Returns authenticated session + guild membership without requiring billing entitlement. */
+/**
+ * Returns authenticated membership while preserving read access after expiry.
+ * Expired guilds receive an effective READ_ONLY role; both the top-level role
+ * and membership role are downgraded so route handlers cannot accidentally
+ * authorize writes by inspecting either field.
+ */
 export async function getCurrentAuth() {
   const membership = await getCurrentMembership();
   if (!membership) return null;
-  return { user: membership.user, guild: membership.guild, membership, role: membership.role };
+  const subscriptionActive = await hasActiveGuildSubscription(membership.guild.id);
+  const role: UserRole = subscriptionActive ? membership.role : `READ_ONLY_${membership.role}` as UserRole;
+  const effectiveMembership = subscriptionActive
+    ? membership
+    : { ...membership, role: `READ_ONLY_${membership.role}` as typeof membership.role };
+  return { user: membership.user, guild: membership.guild, membership: effectiveMembership, role, originalRole: membership.role, subscriptionActive };
 }
 
 /** API/business-operation authentication: requires an active subscription. */
 export async function requireAuth() {
   const auth = await getCurrentAuth();
   if (!auth) throw new Error("UNAUTHORIZED");
-  if (!(await hasActiveSubscription(auth.guild.id))) throw new Error("SUBSCRIPTION_INACTIVE");
+  if (!auth.subscriptionActive) throw new Error("SUBSCRIPTION_INACTIVE");
   return auth;
 }
 

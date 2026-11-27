@@ -1,14 +1,19 @@
 import { NextResponse } from "next/server";
 import { createPublicKey, verify } from "node:crypto";
 import { prisma } from "@/lib/prisma";
+import { hasActiveGuildSubscription } from "@/lib/auth";
 import { updateDiscordAttendanceMessage } from "@/lib/discord-event-attendance";
 import { syncEventAttendanceAndLeave } from "@/lib/events/attendance-leave-sync";
+import { readBoundedRequestText, RequestBodyTooLargeError } from "@/lib/security/multipart";
 
 export const runtime = "nodejs";
+const MAX_DISCORD_BODY_BYTES = 256 * 1024;
 
 function verifyDiscordSignature(body: string, signature: string | null, timestamp: string | null) {
   const publicKey = process.env.DISCORD_PUBLIC_KEY;
   if (!publicKey || !signature || !timestamp || !/^[0-9a-f]{128}$/i.test(signature) || !/^\d+$/.test(timestamp)) return false;
+  const timestampMs = Number(timestamp) * 1000;
+  if (!Number.isFinite(timestampMs) || Date.now() - timestampMs > 5 * 60 * 1000 || timestampMs - Date.now() > 60 * 1000) return false;
   try {
     const key = createPublicKey({
       key: Buffer.concat([Buffer.from("302a300506032b6570032100", "hex"), Buffer.from(publicKey, "hex")]),
@@ -26,19 +31,47 @@ function ephemeral(content: string) {
 }
 
 export async function POST(request: Request) {
-  const rawBody = await request.text();
+  let rawBody: string;
+  try {
+    rawBody = await readBoundedRequestText(request, MAX_DISCORD_BODY_BYTES);
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return NextResponse.json({ error: "Discord interaction payload is too large." }, { status: 413 });
+    }
+    throw error;
+  }
   if (!verifyDiscordSignature(rawBody, request.headers.get("x-signature-ed25519"), request.headers.get("x-signature-timestamp"))) {
     return NextResponse.json({ error: "Invalid Discord request signature." }, { status: 401 });
   }
 
-  let interaction: any;
-  try { interaction = JSON.parse(rawBody); } catch { return NextResponse.json({ error: "Invalid interaction payload." }, { status: 400 }); }
+  type DiscordInteraction = {
+    id?: unknown;
+    type?: unknown;
+    data?: { custom_id?: unknown };
+    member?: { user?: { id?: unknown } };
+    user?: { id?: unknown };
+    guild_id?: unknown;
+    channel_id?: unknown;
+    message?: { id?: unknown };
+  };
+  let interaction: DiscordInteraction;
+  try {
+    const parsed: unknown = JSON.parse(rawBody);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return NextResponse.json({ error: "Invalid interaction payload." }, { status: 400 });
+    }
+    interaction = parsed as DiscordInteraction;
+  } catch {
+    return NextResponse.json({ error: "Invalid interaction payload." }, { status: 400 });
+  }
   if (interaction.type === 1) return NextResponse.json({ type: 1 });
   if (interaction.type !== 3 || typeof interaction.data?.custom_id !== "string") return ephemeral("This HMDL interaction is not supported.");
 
-  const [prefix, eventId, status] = interaction.data.custom_id.split(":");
-  if (prefix !== "att" || !eventId || !["AVAILABLE", "UNAVAILABLE", "AFK_BUSY"].includes(status)) return ephemeral("This attendance button is invalid.");
+  const [prefix, eventId, statusValue] = interaction.data.custom_id.split(":");
+  if (prefix !== "att" || !eventId || !["AVAILABLE", "UNAVAILABLE", "AFK_BUSY"].includes(statusValue)) return ephemeral("This attendance button is invalid.");
+  const status = statusValue as "AVAILABLE" | "UNAVAILABLE" | "AFK_BUSY";
 
+  if (typeof interaction.id !== "string" || !/^\d{17,20}$/.test(interaction.id)) return ephemeral("This attendance interaction is invalid.");
   const discordUserId = interaction.member?.user?.id || interaction.user?.id;
   const guildId = interaction.guild_id;
   if (!discordUserId || !guildId) return ephemeral("This attendance button must be used inside your guild server.");
@@ -48,6 +81,7 @@ export async function POST(request: Request) {
     include: { guild: { select: { id: true, discordGuildId: true } } },
   });
   if (!event || event.guild.discordGuildId !== guildId) return ephemeral("This event does not belong to this Discord server.");
+  if (!(await hasActiveGuildSubscription(event.guildId))) return ephemeral("This guild is currently read-only. Please contact a guild manager.");
   const clickedMessageId = interaction.message?.id;
   if (!event.attendanceChannelId || event.attendanceChannelId !== interaction.channel_id || !clickedMessageId || (clickedMessageId !== event.attendanceMessageId && clickedMessageId !== event.reminderMessageId)) {
     return ephemeral("This attendance message is no longer valid for this event.");
@@ -68,6 +102,18 @@ export async function POST(request: Request) {
     });
   }
   if (!member) return ephemeral("Your Discord account is not linked to an active HMDL guild member.");
+
+  // Persist a unique receipt before mutating attendance. The unique interaction
+  // ID makes concurrent delivery and replay attempts single-use.
+  try {
+    await prisma.discordInteractionReceipt.create({ data: { id: interaction.id } });
+  } catch (error) {
+    if (error && typeof error === "object" && "code" in error && error.code === "P2002") {
+      return ephemeral("This attendance interaction has already been processed.");
+    }
+    throw error;
+  }
+  await prisma.discordInteractionReceipt.deleteMany({ where: { receivedAt: { lt: new Date(Date.now() - 24 * 60 * 60 * 1000) } } });
 
   const savedAttendance = await syncEventAttendanceAndLeave({ eventId, memberId: member.id, eventDate: event.date, timeZone: event.scheduleTimeZone, status });
   const persistedAttendance = await prisma.eventAttendance.findUnique({
@@ -91,8 +137,8 @@ export async function POST(request: Request) {
     return ephemeral("HMDL could not verify the saved attendance response. Please contact a guild manager.");
   }
 
-  const channelId = interaction.channel_id;
-  const messageId = interaction.message?.id;
+  const channelId = typeof interaction.channel_id === "string" ? interaction.channel_id : null;
+  const messageId = typeof interaction.message?.id === "string" ? interaction.message.id : null;
   if (channelId && messageId) {
     try { await updateDiscordAttendanceMessage(eventId, channelId, messageId); }
     catch (error) { console.error("[DISCORD ATTENDANCE] Failed to update message:", error); }

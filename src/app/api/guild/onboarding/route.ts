@@ -7,7 +7,7 @@ import { getNotificationConfig } from "@/lib/discord-notifications";
 export async function GET() {
   const auth = await getCurrentAuth();
   if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
-  if (!hasPermission(auth.role, "guild.manage")) return NextResponse.json({ error: "You do not have permission to view guild onboarding." }, { status: 403 });
+  if (!hasPermission(auth.originalRole, "guild.manage")) return NextResponse.json({ error: "You do not have permission to view guild onboarding." }, { status: 403 });
 
   const guildId = auth.guild.id;
   const [members, managers, events, resources, activeInvites, config, callRows, progress] = await Promise.all([
