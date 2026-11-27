@@ -25,8 +25,8 @@ export type NativeTalentChoice = { id: number; name: string; text?: string; sim?
 
 /**
  * Client-side lifecycle for the extracted combat engine.
- * This hook is deliberately not wired into the production page yet; the iframe
- * remains the live UI until all native workflows pass parity checks.
+ * This hook powers the production native React combat-simulator workspace.
+ * The legacy HTML/iframe assets remain only as compatibility and reference inputs.
  */
 export function useCombatSimulatorEngine() {
   const [data, setData] = useState<Ro3MemoryDataStore | null>(null);
