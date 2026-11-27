@@ -28,6 +28,7 @@ jobs:
           npm pkg set "dependencies.next=16.4.6"
           npm pkg set "devDependencies.eslint-config-next=16.4.6"
           npm pkg set "dependencies.sharp=^0.35.5"
+          npm pkg set "overrides.effect=^3.22.1"
       - name: Regenerate lockfile and apply compatible security updates
         run: |
           npm install
