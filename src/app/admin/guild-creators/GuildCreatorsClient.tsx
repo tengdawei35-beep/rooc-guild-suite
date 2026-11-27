@@ -121,14 +121,14 @@ export default function GuildCreatorsClient({
       <form onSubmit={addCreator} className="rounded-xl border border-zinc-800 bg-zinc-900 p-4 sm:p-5">
         <h2 className="text-lg font-semibold">Add Guild Creator</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_130px_150px_auto]">
-          <input value={discordUserId} onChange={(event) => setDiscordUserId(event.target.value)} placeholder="Discord User ID" className={inputClass} required />
-          <input value={discordUsername} onChange={(event) => setDiscordUsername(event.target.value)} placeholder="Discord username" className={inputClass} required />
+          <label className="text-xs text-zinc-400">Discord User ID<input value={discordUserId} onChange={(event) => setDiscordUserId(event.target.value)} placeholder="Discord User ID" className={`mt-1 w-full ${inputClass}`} required /></label>
+          <label className="text-xs text-zinc-400">Discord username<input value={discordUsername} onChange={(event) => setDiscordUsername(event.target.value)} placeholder="Discord username" className={`mt-1 w-full ${inputClass}`} required /></label>
           <label className="text-xs text-zinc-400">Max guilds<input value={maxGuilds} onChange={(event) => setMaxGuilds(event.target.value)} type="number" min="1" className={`mt-1 w-full ${inputClass}`} required /></label>
           <label className="text-xs text-zinc-400">Free duration (months)<input value={freeMonths} onChange={(event) => setFreeMonths(event.target.value)} type="number" min="1" className={`mt-1 w-full ${inputClass}`} required /></label>
           <button disabled={saving} className="hmdl-btn hmdl-btn-primary min-h-10 self-end rounded-lg px-5 py-2 text-sm font-medium disabled:opacity-50">{saving ? "Adding…" : "Add"}</button>
         </div>
         <p className="mt-3 text-xs text-zinc-500">The duration applies when this creator provisions a complimentary guild subscription.</p>
-        {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
+        {error && <p role="alert" aria-live="polite" className="mt-4 text-sm text-red-400">{error}</p>}
       </form>
 
       <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
@@ -144,11 +144,11 @@ export default function GuildCreatorsClient({
           {guilds.length === 0 ? <p className="px-5 py-8 text-center text-sm text-zinc-500">No guilds configured.</p> : guilds.map((guild) => (
             <div key={guild.id} className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
               <div><p className="font-medium">{guild.name}</p><p className="mt-1 text-xs text-zinc-500">{guild.discordGuildId} • {accessLabel(guild)}</p></div>
-              <button disabled={grantingGuildId === guild.id || !selectedPlan} onClick={() => void grantAccess(guild)} className="hmdl-btn hmdl-btn-primary min-h-10 shrink-0 rounded-lg px-4 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50">{grantingGuildId === guild.id ? "Applying…" : guild.provider === "complimentary" ? "Grant / Extend" : "Grant complimentary"}</button>
+              <button type="button" aria-label={`${guild.provider === "complimentary" ? "Grant or extend" : "Grant"} complimentary access for ${guild.name}`} disabled={grantingGuildId === guild.id || !selectedPlan} onClick={() => void grantAccess(guild)} className="hmdl-btn hmdl-btn-primary min-h-10 shrink-0 rounded-lg px-4 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50">{grantingGuildId === guild.id ? "Applying…" : guild.provider === "complimentary" ? "Grant / Extend" : "Grant complimentary"}</button>
             </div>
           ))}
         </div>
-        {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
+        {error && <p role="alert" aria-live="polite" className="mt-4 text-sm text-red-400">{error}</p>}
       </section>
 
       <section className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900">
@@ -159,8 +159,8 @@ export default function GuildCreatorsClient({
             <div className="text-sm"><p className="text-zinc-400">Guilds</p><p className="mt-1 font-medium">{creator.guildCount} / {creator.maxGuilds}</p></div>
             <label className="text-sm text-zinc-400">Max guilds<input type="number" min="1" value={creator.maxGuilds} onChange={(event) => void updateCreator(creator, { maxGuilds: Number(event.target.value) })} className={`mt-1 w-full ${inputClass}`} /></label>
             <label className="text-sm text-zinc-400">Free months<input type="number" min="1" value={creator.freeMonths} onChange={(event) => void updateCreator(creator, { freeMonths: Number(event.target.value) })} className={`mt-1 w-full ${inputClass}`} /></label>
-            <button onClick={() => void updateCreator(creator, { active: !creator.active })} className={`rounded-lg border px-3 py-2 text-sm ${creator.active ? "border-emerald-900 text-emerald-400" : "border-zinc-700 text-zinc-500"}`}>{creator.active ? "Active" : "Disabled"}</button>
-            <button onClick={() => void removeCreator(creator.id)} className="text-sm text-red-400 hover:text-red-300">Remove</button>
+            <button type="button" aria-pressed={creator.active} aria-label={`${creator.active ? "Disable" : "Enable"} ${creator.discordUsername}`} onClick={() => void updateCreator(creator, { active: !creator.active })} className={`rounded-lg border px-3 py-2 text-sm ${creator.active ? "border-emerald-900 text-emerald-400" : "border-zinc-700 text-zinc-500"}`}>{creator.active ? "Active" : "Disabled"}</button>
+            <button type="button" aria-label={`Remove ${creator.discordUsername}`} onClick={() => void removeCreator(creator.id)} className="text-sm text-red-400 hover:text-red-300">Remove</button>
           </div>)}
         </div>}
       </section>
