@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createPublicKey, verify } from "node:crypto";
 import { prisma } from "@/lib/prisma";
+import { hasActiveGuildSubscription } from "@/lib/auth";
 import { updateDiscordAttendanceMessage } from "@/lib/discord-event-attendance";
 import { syncEventAttendanceAndLeave } from "@/lib/events/attendance-leave-sync";
 
@@ -51,6 +52,7 @@ export async function POST(request: Request) {
     include: { guild: { select: { id: true, discordGuildId: true } } },
   });
   if (!event || event.guild.discordGuildId !== guildId) return ephemeral("This event does not belong to this Discord server.");
+  if (!(await hasActiveGuildSubscription(event.guildId))) return ephemeral("This guild is currently read-only. Please contact a guild manager.");
   const clickedMessageId = interaction.message?.id;
   if (!event.attendanceChannelId || event.attendanceChannelId !== interaction.channel_id || !clickedMessageId || (clickedMessageId !== event.attendanceMessageId && clickedMessageId !== event.reminderMessageId)) {
     return ephemeral("This attendance message is no longer valid for this event.");
