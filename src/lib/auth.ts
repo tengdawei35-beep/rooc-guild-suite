@@ -109,7 +109,7 @@ export async function getCurrentAuth() {
   const effectiveMembership = subscriptionActive
     ? membership
     : { ...membership, role: "READ_ONLY" as typeof membership.role };
-  return { user: membership.user, guild: membership.guild, membership: effectiveMembership, role, subscriptionActive };
+  return { user: membership.user, guild: membership.guild, membership: effectiveMembership, role, originalRole: membership.role, subscriptionActive };
 }
 
 /** API/business-operation authentication: requires an active subscription. */
