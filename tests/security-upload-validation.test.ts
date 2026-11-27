@@ -58,8 +58,8 @@ test("expired guilds retain only their original role's read permissions", () => 
 
 
 test("bounded request reader accepts small webhook payloads", async () => {
-  const request = new Request("https://example.test/webhook", { method: "POST", body: "{\\"type\\":1}" });
-  assert.equal(await readBoundedRequestText(request, 64), "{\\"type\\":1}");
+  const request = new Request("https://example.test/webhook", { method: "POST", body: "ping" });
+  assert.equal(await readBoundedRequestText(request, 64), "ping");
 });
 
 test("bounded request reader rejects oversized webhook payloads", async () => {
