@@ -24,7 +24,10 @@ export default function EventResultsUploader({ eventId, canManage }: { eventId: 
   }
 
   useEffect(() => {
-    load().catch(e => setError(e instanceof Error ? e.message : "Unable to load screenshots."));
+    const timer = window.setTimeout(() => {
+      void load().catch(e => setError(e instanceof Error ? e.message : "Unable to load screenshots."));
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [eventId]);
 
   function handleFileSelection(selected: File[]) {
