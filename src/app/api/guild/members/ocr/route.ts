@@ -4,7 +4,7 @@ import { getCurrentAuth, hasPermission } from "@/lib/auth";
 import { readRooStats } from "@/lib/ocr/roo-stats";
 import { readRO3Stats } from "@/lib/ocr/ro3-stats";
 import { prisma } from "@/lib/prisma";
-import { consumeRateLimit } from "@/lib/security/rate-limit";
+import { acquireOcrLease, consumeRateLimit } from "@/lib/security/rate-limit";
 import { normalizeOcrImage } from "@/lib/security/ocr-image";
 import { readMultipartFormData, RequestBodyTooLargeError } from "@/lib/security/multipart";
 
@@ -20,11 +20,8 @@ export async function POST(request: Request) {
   if (!(await consumeRateLimit("member-ocr", auth.user.id, 6, 60_000))) {
     return NextResponse.json({ error: "OCR limit reached. Please wait a minute before trying again." }, { status: 429 });
   }
-
-  const declaredLength = Number(request.headers.get("content-length") ?? 0);
-  if (declaredLength > MAX_REQUEST_BYTES) {
-    return NextResponse.json({ error: "Combined screenshot size cannot exceed 24 MB." }, { status: 413 });
-  }
+  const releaseLease = await acquireOcrLease("member-ocr", auth.user.id, 150_000);
+  if (!releaseLease) return NextResponse.json({ error: "An OCR request is already being processed for this account." }, { status: 429 });
 
   try {
     const formData = await readMultipartFormData(request, MAX_REQUEST_BYTES);
@@ -80,5 +77,8 @@ export async function POST(request: Request) {
     if (error instanceof RequestBodyTooLargeError) return NextResponse.json({ error: message }, { status: 413 });
     const validationError = /image|dimensions|format|unsupported|invalid/i.test(message);
     return NextResponse.json({ error: message }, { status: validationError ? 400 : 500 });
+  } finally {
+    try { await releaseLease(); }
+    catch (releaseError) { console.error("[OCR] Failed to release processing lease:", releaseError); }
   }
 }
