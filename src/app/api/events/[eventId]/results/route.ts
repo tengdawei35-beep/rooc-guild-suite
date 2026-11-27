@@ -81,6 +81,8 @@ export async function POST(request: Request, context: Context) {
   } catch (error) {
     console.error("[EVENT RESULT UPLOAD]", error);
     if (error instanceof RequestBodyTooLargeError) return NextResponse.json({ error: error.message }, { status: 413 });
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to upload event screenshot." }, { status: 400 });
+    const message = error instanceof Error ? error.message : "Failed to upload event screenshot.";
+    const validationError = /image|dimensions|format|unsupported|invalid/i.test(message);
+    return NextResponse.json({ error: message }, { status: validationError ? 400 : 500 });
   }
 }
