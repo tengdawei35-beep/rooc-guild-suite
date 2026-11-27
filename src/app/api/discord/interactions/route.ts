@@ -9,6 +9,8 @@ export const runtime = "nodejs";
 function verifyDiscordSignature(body: string, signature: string | null, timestamp: string | null) {
   const publicKey = process.env.DISCORD_PUBLIC_KEY;
   if (!publicKey || !signature || !timestamp || !/^[0-9a-f]{128}$/i.test(signature) || !/^\d+$/.test(timestamp)) return false;
+  const timestampMs = Number(timestamp) * 1000;
+  if (!Number.isFinite(timestampMs) || Date.now() - timestampMs > 5 * 60 * 1000 || timestampMs - Date.now() > 60 * 1000) return false;
   try {
     const key = createPublicKey({
       key: Buffer.concat([Buffer.from("302a300506032b6570032100", "hex"), Buffer.from(publicKey, "hex")]),
@@ -39,6 +41,7 @@ export async function POST(request: Request) {
   const [prefix, eventId, status] = interaction.data.custom_id.split(":");
   if (prefix !== "att" || !eventId || !["AVAILABLE", "UNAVAILABLE", "AFK_BUSY"].includes(status)) return ephemeral("This attendance button is invalid.");
 
+  if (typeof interaction.id !== "string" || !/^\\d{17,20}$/.test(interaction.id)) return ephemeral("This attendance interaction is invalid.");
   const discordUserId = interaction.member?.user?.id || interaction.user?.id;
   const guildId = interaction.guild_id;
   if (!discordUserId || !guildId) return ephemeral("This attendance button must be used inside your guild server.");
@@ -68,6 +71,18 @@ export async function POST(request: Request) {
     });
   }
   if (!member) return ephemeral("Your Discord account is not linked to an active HMDL guild member.");
+
+  // Persist a unique receipt before mutating attendance. The unique interaction
+  // ID makes concurrent delivery and replay attempts single-use.
+  try {
+    await prisma.discordInteractionReceipt.create({ data: { id: interaction.id } });
+  } catch (error) {
+    if (error && typeof error === "object" && "code" in error && error.code === "P2002") {
+      return ephemeral("This attendance interaction has already been processed.");
+    }
+    throw error;
+  }
+  await prisma.discordInteractionReceipt.deleteMany({ where: { receivedAt: { lt: new Date(Date.now() - 24 * 60 * 60 * 1000) } } });
 
   const savedAttendance = await syncEventAttendanceAndLeave({ eventId, memberId: member.id, eventDate: event.date, timeZone: event.scheduleTimeZone, status });
   const persistedAttendance = await prisma.eventAttendance.findUnique({
