@@ -31,3 +31,28 @@ export async function consumeRateLimit(
 
   return Number(rows[0]?.count ?? limit + 1) <= limit;
 }
+
+
+/**
+ * Acquires one in-flight OCR lease per authenticated subject. The lease is
+ * stored in the same table as rate-limit buckets but uses a distinct scope.
+ */
+export async function acquireOcrLease(scope: string, subject: string, ttlMs: number): Promise<(() => Promise<void>) | null> {
+  const digest = createHash("sha256").update("lease:").update(scope).update(":").update(subject).digest("hex");
+  const now = new Date();
+  const leaseUntil = new Date(now.getTime() + ttlMs);
+  const rows = await prisma.$queryRaw<Array<{ key: string }>>`
+    INSERT INTO "RateLimitBucket" ("key", "windowStart", "count", "updatedAt")
+    VALUES (${digest}, ${leaseUntil}, 1, ${now})
+    ON CONFLICT ("key") DO UPDATE SET
+      "windowStart" = EXCLUDED."windowStart",
+      "count" = 1,
+      "updatedAt" = EXCLUDED."updatedAt"
+    WHERE "RateLimitBucket"."windowStart" <= ${now}
+    RETURNING "key"
+  `;
+  if (!rows.length) return null;
+  return async () => {
+    await prisma.rateLimitBucket.deleteMany({ where: { key: digest } });
+  };
+}
