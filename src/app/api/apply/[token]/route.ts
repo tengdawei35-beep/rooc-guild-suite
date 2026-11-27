@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { getApplicantSession } from "@/lib/auth/applicant";
 import { prisma } from "@/lib/prisma";
+import { hasActiveGuildSubscription } from "@/lib/auth";
 import { scoreRooPlayers } from "@/lib/scoring/roo-scoring";
 import { RO3_JOBS, ROOC_JOBS } from "@/lib/constants/jobs";
 import { RO3_STAT_KEYS } from "@/lib/constants/ro3-stats";
@@ -37,6 +38,7 @@ export async function POST(request: Request, context: { params: Promise<{ token:
   const { token } = await context.params;
   const invite = await prisma.applicantInvite.findFirst({ where: { token, active: true } });
   if (!invite) return NextResponse.json({ error: "This application link is invalid or has been revoked." }, { status: 404 });
+  if (!(await hasActiveGuildSubscription(invite.guildId))) return NextResponse.json({ error: "This guild is not currently accepting applications." }, { status: 403 });
 
   const user = await prisma.user.findUnique({ where: { id: session.userId } });
   if (!user) return NextResponse.json({ error: "Discord identity could not be found." }, { status: 401 });
