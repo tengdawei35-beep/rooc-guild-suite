@@ -21,7 +21,8 @@ async function setMemberRole(discordId: string, roleId: string, shouldHaveRole: 
     if (response.status !== 429) break;
 
     const detail = await response.text().catch(() => "");
-    let retryAfterSeconds = Number(response.headers.get("retry-after"));
+    const retryAfterHeader = response.headers.get("retry-after");
+    let retryAfterSeconds = retryAfterHeader === null ? Number.NaN : Number(retryAfterHeader);
     try {
       const payload = JSON.parse(detail) as { retry_after?: number };
       if (Number.isFinite(payload.retry_after)) retryAfterSeconds = payload.retry_after!;
