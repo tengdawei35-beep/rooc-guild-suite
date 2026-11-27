@@ -8,15 +8,33 @@ async function setMemberRole(discordId: string, roleId: string, shouldHaveRole: 
   const officialGuildId = process.env.DISCORD_OFFICIAL_GUILD_ID;
   if (!token || !officialGuildId) throw new Error("Discord subscription role sync is not configured.");
 
-  const response = await fetch(
-    `${DISCORD_API}/guilds/${officialGuildId}/members/${discordId}/roles/${roleId}`,
-    {
-      method: shouldHaveRole ? "PUT" : "DELETE",
-      headers: { Authorization: `Bot ${token}` },
-      cache: "no-store",
-    },
-  );
+  let response: Response | null = null;
+  for (let attempt = 0; attempt < 4; attempt++) {
+    response = await fetch(
+      `${DISCORD_API}/guilds/${officialGuildId}/members/${discordId}/roles/${roleId}`,
+      {
+        method: shouldHaveRole ? "PUT" : "DELETE",
+        headers: { Authorization: `Bot ${token}` },
+        cache: "no-store",
+      },
+    );
+    if (response.status !== 429) break;
 
+    const detail = await response.text().catch(() => "");
+    let retryAfterSeconds = Number(response.headers.get("retry-after"));
+    try {
+      const payload = JSON.parse(detail) as { retry_after?: number };
+      if (Number.isFinite(payload.retry_after)) retryAfterSeconds = payload.retry_after!;
+    } catch {
+      // Fall back to the Retry-After response header.
+    }
+    if (attempt === 3 || !Number.isFinite(retryAfterSeconds) || retryAfterSeconds < 0 || retryAfterSeconds > 30) {
+      throw new Error(`HTTP 429: Discord rate limit reached; retry after ${Number.isFinite(retryAfterSeconds) ? retryAfterSeconds : "an unknown interval"} seconds.`);
+    }
+    await new Promise((resolve) => setTimeout(resolve, Math.ceil(retryAfterSeconds * 1000)));
+  }
+
+  if (!response) throw new Error("Discord role request did not execute.");
   // A user who has not joined the official community server cannot receive a role.
   if (response.status === 404) return;
   if (!response.ok) {
@@ -95,18 +113,32 @@ export async function syncGuildSubscriptionDiscordRoles(guildId: string) {
     uniqueUsers.set(user.discordId, { desiredRoleIds });
   }
 
-  const operations: Array<{ label: string; promise: Promise<void> }> = [];
+  const operations: Array<{ label: string; run: () => Promise<void> }> = [];
   for (const [discordId, { desiredRoleIds }] of uniqueUsers) {
     for (const mapping of mappings) {
       const shouldHaveRole = mapping.enabled && desiredRoleIds.has(mapping.discordRoleId);
       operations.push({
         label: `role ${mapping.discordRoleId} (${shouldHaveRole ? "assign" : "remove"})`,
-        promise: setMemberRole(discordId, mapping.discordRoleId, shouldHaveRole),
+        run: () => setMemberRole(discordId, mapping.discordRoleId, shouldHaveRole),
       });
     }
   }
 
-  const results = await Promise.allSettled(operations.map((operation) => operation.promise));
+  // Keep requests bounded across large guilds to avoid flooding the Discord API.
+  const results: PromiseSettledResult<void>[] = new Array(operations.length);
+  let nextOperation = 0;
+  const worker = async () => {
+    while (nextOperation < operations.length) {
+      const index = nextOperation++;
+      try {
+        await operations[index].run();
+        results[index] = { status: "fulfilled", value: undefined };
+      } catch (reason) {
+        results[index] = { status: "rejected", reason };
+      }
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(5, operations.length) }, () => worker()));
   const failures = results.flatMap((result, index) =>
     result.status === "rejected"
       ? [`${operations[index].label}: ${result.reason instanceof Error ? result.reason.message : "Unknown Discord API error"}`]
