@@ -48,7 +48,7 @@ export type Permission =
   | "applicants.manage";
 
 export function hasPermission(role: UserRole, permission: Permission): boolean {
-  if (role === "READ_ONLY") return ["members.view", "events.view", "rosters.view", "allocation.view", "users.view", "applicants.view"].includes(permission);
+  if (role === "READ_ONLY") return ["members.view", "events.view", "rosters.view"].includes(permission);
   if (role === "ADMIN") return true;
 
   if (role === "MANAGER") {
