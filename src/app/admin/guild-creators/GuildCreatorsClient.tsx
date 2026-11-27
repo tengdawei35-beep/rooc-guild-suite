@@ -148,7 +148,7 @@ export default function GuildCreatorsClient({
             </div>
           ))}
         </div>
-        {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
+        {error && <p role="alert" aria-live="polite" className="mt-4 text-sm text-red-400">{error}</p>}
       </section>
 
       <section className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900">
