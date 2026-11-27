@@ -88,7 +88,10 @@ export default function ApplicantsClient({ canManage }: { canManage: boolean }) 
     finally { setLoading(false); }
   }
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => {
+    const timeout = window.setTimeout(() => { void load(); }, 0);
+    return () => window.clearTimeout(timeout);
+  }, []);
 
   async function generateInvite() {
     setBusy(true); setError("");
