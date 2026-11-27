@@ -25,40 +25,50 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "INVALID_DISCORD_GUILD_ID" }, { status: 400 });
     }
 
-    const creator = await prisma.platformGuildCreator.findUnique({
-      where: { discordUserId: user.discordId },
-      select: { active: true, maxGuilds: true, freeMonths: true },
-    });
-    if (!creator?.active) return NextResponse.json({ error: "COMPLIMENTARY_ACCESS_NOT_AVAILABLE" }, { status: 403 });
+    const result = await prisma.$transaction(async (tx) => {
+      // Serialize complimentary guild creation per owner. The transaction-scoped
+      // advisory lock prevents concurrent requests from both passing maxGuilds.
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(87241, hashtext(${user.id}))`;
 
-    const [ownedGuildCount, existingGuild, plan] = await Promise.all([
-      prisma.guild.count({ where: { ownerUserId: user.id } }),
-      prisma.guild.findUnique({ where: { discordGuildId } }),
-      prisma.plan.findFirst({ where: { id: planId, active: true }, include: { modules: true } }),
-    ]);
+      const creator = await tx.platformGuildCreator.findUnique({
+        where: { discordUserId: user.discordId },
+        select: { active: true, maxGuilds: true, freeMonths: true },
+      });
+      if (!creator?.active) {
+        return { error: "COMPLIMENTARY_ACCESS_NOT_AVAILABLE", status: 403 } as const;
+      }
 
-    if (ownedGuildCount >= creator.maxGuilds) {
-      return NextResponse.json({ error: "GUILD_CREATION_LIMIT_REACHED" }, { status: 403 });
-    }
-    if (existingGuild) return NextResponse.json({ error: "DISCORD_GUILD_ALREADY_REGISTERED" }, { status: 409 });
-    if (!plan) return NextResponse.json({ error: "INVALID_PLAN" }, { status: 400 });
+      const [ownedGuildCount, existingGuild, plan] = await Promise.all([
+        tx.guild.count({ where: { ownerUserId: user.id } }),
+        tx.guild.findUnique({ where: { discordGuildId } }),
+        tx.plan.findFirst({ where: { id: planId, active: true }, include: { modules: true } }),
+      ]);
 
-    const currentPeriodStart = new Date();
-    const currentPeriodEnd = new Date(currentPeriodStart);
-    currentPeriodEnd.setMonth(currentPeriodEnd.getMonth() + creator.freeMonths);
+      if (ownedGuildCount >= creator.maxGuilds) {
+        return { error: "GUILD_CREATION_LIMIT_REACHED", status: 403 } as const;
+      }
+      if (existingGuild) {
+        return { error: "DISCORD_GUILD_ALREADY_REGISTERED", status: 409 } as const;
+      }
+      if (!plan) {
+        return { error: "INVALID_PLAN", status: 400 } as const;
+      }
 
-    const guild = await prisma.$transaction(async (tx) => {
-      const createdGuild = await tx.guild.create({
+      const currentPeriodStart = new Date();
+      const currentPeriodEnd = new Date(currentPeriodStart);
+      currentPeriodEnd.setMonth(currentPeriodEnd.getMonth() + creator.freeMonths);
+
+      const guild = await tx.guild.create({
         data: { name: guildName, discordGuildId, ownerUserId: user.id, gameType },
       });
 
       await tx.guildMembership.create({
-        data: { guildId: createdGuild.id, userId: user.id, role: "ADMIN" },
+        data: { guildId: guild.id, userId: user.id, role: "ADMIN" },
       });
 
       await tx.guildSubscription.create({
         data: {
-          guildId: createdGuild.id,
+          guildId: guild.id,
           planId: plan.id,
           status: "ACTIVE",
           provider: "complimentary",
@@ -69,17 +79,23 @@ export async function POST(request: Request) {
 
       await tx.guildModuleEntitlement.createMany({
         data: plan.modules.map((module) => ({
-          guildId: createdGuild.id,
+          guildId: guild.id,
           module: module.module,
           enabled: true,
         })),
       });
 
-      return createdGuild;
+      return { guildId: guild.id } as const;
     });
 
-    return NextResponse.json({ success: true, guildId: guild.id });
+    if ("error" in result) {
+      return NextResponse.json({ error: result.error }, { status: result.status });
+    }
+    return NextResponse.json({ success: true, guildId: result.guildId });
   } catch (error) {
+    if (typeof error === "object" && error !== null && "code" in error && error.code === "P2002") {
+      return NextResponse.json({ error: "DISCORD_GUILD_ALREADY_REGISTERED" }, { status: 409 });
+    }
     console.error("[BILLING COMPLIMENTARY]", error);
     return NextResponse.json({ error: "COMPLIMENTARY_PROVISIONING_FAILED" }, { status: 500 });
   }
