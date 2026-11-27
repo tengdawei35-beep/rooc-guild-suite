@@ -1,8 +1,53 @@
 # Heimdall Project Status
 
-_Last updated: 2026-11-26 (Asia/Kuala_Lumpur)_
+_Last updated: 2026-11-28 (Asia/Kuala_Lumpur)_
 
 This is the project-wide handoff file. Update it whenever implementation work advances, a decision changes, a validation run completes, or work is paused. Keep it concise enough to scan, but specific enough that a new ChatGPT conversation can resume without relying on chat history.
+
+## Platform / production progress — 2026-11-28
+
+**Current production branch:** `main`  
+**Latest confirmed application merge:** PR #185, merge commit `4c7572232a23d46db8b29b7944b8bc05b1a656a2`.  
+**Production URL:** `https://hmdl.vercel.app`
+
+### Completed since the previous status update
+
+- **PR #184 — Security remediation** merged to `main` as `347671b55e6207b51e9ae3d23b069c665c984cb4`. CI and CodeQL passed. Remediated security audit findings #2–#8: subscription expiry/read-only enforcement, session revocation, Discord interaction freshness and replay protection, OCR rate/concurrency controls, upload/body/image hardening, configured APP_URL logout redirects, and security CI coverage.
+- **Security finding #1 — Discord guild ownership verification — remains intentionally unmodified**, per explicit instruction. Do not change it unless separately authorized.
+- **Production database migrations applied:** after updating the local checkout to include the PR #184 migrations, Prisma reported three pending migrations: `20261128010000_add_session_revocation_version`, `20261128020000_add_discord_interaction_replay_receipts`, and `20261128030000_add_rate_limit_buckets`. The user ran `prisma migrate deploy` against the production Railway database and confirmed the site works. No further migration is required for PR #185.
+- **PR #185 — Compact event resource pool selector** merged to `main` as `4c7572232a23d46db8b29b7944b8bc05b1a656a2`. Replaced the full-width top resource-pool bar on `/events/[eventId]` with a compact button inside Event Rules; selector and Save action expand on demand. Existing event-type linking, lock protection, and no-pool/configuration messaging are retained. UI-only; no migration.
+- **Automation:** the hourly PR #185 CI/CodeQL watcher was disabled after the PR completed. It must not be restarted.
+
+### Current production / validation state
+
+- User confirmed production recovered and works after the three PR #184 migrations were deployed.
+- PR #185 was merged after CI and CodeQL succeeded.
+- The Vercel production deployment for PR #185 was reported as pending immediately after merge. **Do not mark the deployment as verified until the live deployment reports Ready and a production smoke test succeeds.**
+- No live-game damage validation is available; this remains separate from production web-app validation.
+
+### Outstanding issues and security follow-ups
+
+1. Verify the latest Vercel production deployment for merge commit `4c7572232a23d46db8b29b7944b8bc05b1a656a2` is Ready, then smoke-test login/session behavior, guild pages, event detail, and the compact resource-pool selector (including locked-event behavior).
+2. Complete manual security verification / penetration testing for the PR #184 changes, especially subscription read-only enforcement, session invalidation, Discord interaction replay rejection, OCR/upload limits, and logout redirect handling.
+3. Review long-term cleanup/retention for `RateLimitBucket` rows; accumulation was identified as a low-priority operational follow-up.
+4. Review Discord interaction receipt retry semantics: a receipt created before downstream handling may prevent replay of that same interaction if handling subsequently fails; retry should use a newly generated interaction.
+5. Consider a Stripe webhook event-receipt/idempotency table. Current operations are largely idempotent, but duplicate events can repeat Discord role synchronization.
+6. Keep the explicit exception for security finding #1. Do not include it in automated remediation batches.
+
+### Next steps — ordered
+
+1. **Production release verification:** confirm Vercel Ready for the PR #185 merge, then perform the smoke tests above. Record the deployment URL/ID and result here.
+2. **Security close-out:** perform manual security/penetration checks for findings #2–#8; log any concrete defects as separate fixes. Do not touch finding #1.
+3. **Resume the native RO3 combat simulator migration** using the existing PR #144 status and parity gates below. The production iframe must remain unchanged until equivalence evidence is reviewed and the user explicitly approves cutover.
+4. **Revisit deferred backlog only after the above:** rate-limit retention cleanup and Stripe webhook event idempotency. Do not treat these as blockers for the already merged UI change.
+
+### Recent PR references
+
+- [PR #184 — Security remediation](https://github.com/tengdawei35-beep/rooc-guild-suite/pull/184) — merged.
+- [PR #185 — Compact event resource pool selector](https://github.com/tengdawei35-beep/rooc-guild-suite/pull/185) — merged.
+- [PR #144 — Native combat simulator migration](https://github.com/tengdawei35-beep/rooc-guild-suite/pull/144) — draft; not merged.
+
+---
 
 ## Current focus: RO3 Combat Simulator — iframe to native React
 
