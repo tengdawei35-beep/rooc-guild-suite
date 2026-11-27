@@ -1094,13 +1094,6 @@ async function loadPreferredRoster() {
     return (
       <main className="hmdl-management hmdl-event-detail min-h-screen bg-zinc-950 text-white">
         <div className="hmdl-page">
-          <Link
-            href="/events"
-            className="text-sm text-zinc-500 hover:text-white"
-          >
-            ← Events
-          </Link>
-
           <div className="mt-8 rounded-2xl border border-zinc-800 bg-zinc-900 p-8">
             <p className="text-sm text-zinc-500">
               Loading event...
@@ -1115,13 +1108,6 @@ async function loadPreferredRoster() {
     return (
       <main className="hmdl-management hmdl-event-detail min-h-screen bg-zinc-950 text-white">
         <div className="hmdl-page">
-          <Link
-            href="/events"
-            className="text-sm text-zinc-500 hover:text-white"
-          >
-            ← Events
-          </Link>
-
           <div className="mt-8 rounded-xl border border-red-900 bg-red-950/40 p-5 text-red-400">
             {error}
           </div>
@@ -1137,49 +1123,39 @@ async function loadPreferredRoster() {
   return (
     <main className="hmdl-management hmdl-event-detail min-h-screen bg-zinc-950 text-white">
       <div className="hmdl-page">
-        <Link
-          href="/events"
-          className="text-sm text-zinc-500 transition hover:text-white"
-        >
-          ← Events
-        </Link>
-
-        <header className="mt-6">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+        <header className="mt-2">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <div className="flex flex-wrap items-center gap-3">
                 <span className="rounded-full border border-zinc-700 bg-zinc-900 px-3 py-1 text-xs text-zinc-400">
                   {formatEventType(data.event.type, data.event.eventTypeName)}
                 </span>
 
-                <span className="rounded-full bg-emerald-950 px-3 py-1 text-xs text-emerald-400">
-                  Event
-                </span>
               </div>
 
-              <h1 className="hmdl-page-title mt-4">
+              <h1 className="hmdl-page-title mt-2">
                 {formatEventDate(data.event.date, data.event.type === "RO3_CUSTOM" ? data.event.scheduleTimeZone ?? "Asia/Bangkok" : "Asia/Bangkok", data.event.type === "RO3_CUSTOM")}
               </h1>
 
-              <p className="mt-2 text-zinc-500">
+              <p className="mt-1 text-sm text-zinc-500">
                 {data.event.guild.name}
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2">
               {canManageEvents && (
                 <>
                 <button
                   type="button"
                   onClick={sendAttendancePromptAgain}
                   disabled={sendingAttendancePrompt}
-                  className="rounded-lg border border-indigo-700/70 bg-indigo-950/40 px-4 py-2.5 text-sm font-medium text-indigo-300 transition hover:border-indigo-500 hover:bg-indigo-950 disabled:cursor-wait disabled:opacity-50"
+                  className="rounded-lg border border-indigo-700/70 bg-indigo-950/40 px-3 py-2 text-xs font-medium text-indigo-300 transition hover:border-indigo-500 hover:bg-indigo-950 disabled:cursor-wait disabled:opacity-50"
                 >
-                  {sendingAttendancePrompt ? "Sending..." : "Send Attendance Prompt Again"}
+                  {sendingAttendancePrompt ? "Sending..." : "Send Attendance"}
                 </button>
                 <Link
                   href={`/allocation?eventId=${data.event.id}`}
-                  className="rounded-lg border border-zinc-700 px-4 py-2.5 text-sm font-medium text-zinc-300 transition hover:border-zinc-500 hover:text-white"
+                  className="rounded-lg border border-zinc-700 px-3 py-2 text-xs font-medium text-zinc-300 transition hover:border-zinc-500 hover:text-white"
                 >
                   Allocation
                 </Link>
@@ -1189,7 +1165,7 @@ async function loadPreferredRoster() {
               <button
                 type="button"
                 onClick={loadEvent}
-                className="rounded-lg border border-zinc-700 px-4 py-2.5 text-sm font-medium text-zinc-300 transition hover:border-zinc-500 hover:text-white"
+                className="rounded-lg border border-zinc-700 px-3 py-2 text-xs font-medium text-zinc-300 transition hover:border-zinc-500 hover:text-white"
               >
                 Refresh
               </button>
@@ -1210,7 +1186,6 @@ async function loadPreferredRoster() {
         )}
 
         <EventAttendancePanel eventId={eventId} />
-        <EventResultsUploader eventId={eventId} canManage={canManageEvents} />
 
         {preferredSaved && (
           <div className="mt-5 rounded-lg border border-emerald-900 bg-emerald-950/40 px-4 py-3 text-sm text-emerald-400">
@@ -1219,50 +1194,23 @@ async function loadPreferredRoster() {
           </div>
         )}
 
-        <section className="mt-8 rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
-          <h2 className="text-lg font-semibold">
-            Event Rules
-          </h2>
-
-          <div className="mt-5">
-            <EventRules
-              type={data.event.type}
-            />
+        <section className="mt-4 rounded-xl border border-zinc-800 bg-zinc-900/80 px-4 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+            <div className="min-w-0 flex-1">
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Event rules</p>
+              <EventRules type={data.event.type} />
+            </div>
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-l border-zinc-800 pl-0 sm:pl-5">
+              <CompactStat label="Members" value={data.stats.totalMembers} />
+              <CompactStat label="Available" value={data.stats.availableMembers} />
+              <CompactStat label="On leave" value={data.stats.onLeaveMembers} />
+              <CompactStat label="Rosters" value={data.stats.rosterCount} />
+            </div>
           </div>
         </section>
 
-        <section className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            label="Guild Members"
-            value={
-              data.stats.totalMembers
-            }
-          />
-
-          <StatCard
-            label="Available"
-            value={
-              data.stats.availableMembers
-            }
-          />
-
-          <StatCard
-            label="On Leave"
-            value={
-              data.stats.onLeaveMembers
-            }
-          />
-
-          <StatCard
-            label="Rosters"
-            value={
-              data.stats.rosterCount
-            }
-          />
-        </section>
-
-        <section className="mt-10">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <section className="mt-6">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <h2 className="text-xl font-semibold">
                 Rosters
@@ -1274,9 +1222,9 @@ async function loadPreferredRoster() {
             </div>
 
             {canEditRosters && (
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-2">
                 {data.event.type === "RO3_CUSTOM" ? (
-                  <button type="button" onClick={createManualRoster} disabled={creatingManualRoster} className="hmdl-btn hmdl-btn-primary rounded-lg px-5 py-2.5 text-sm font-medium transition disabled:cursor-wait disabled:opacity-50">
+                  <button type="button" onClick={createManualRoster} disabled={creatingManualRoster} className="hmdl-btn hmdl-btn-primary rounded-lg px-3 py-2 text-xs font-medium transition disabled:cursor-wait disabled:opacity-50">
                     {creatingManualRoster ? "Creating..." : "Create Manual Roster"}
                   </button>
                 ) : (
@@ -1288,7 +1236,7 @@ async function loadPreferredRoster() {
                     savingPreferred ||
                     data.rosters.length === 0
                   }
-                  className="rounded-lg border border-zinc-700 bg-zinc-900 px-5 py-2.5 text-sm font-medium text-zinc-300 transition hover:border-zinc-500 hover:bg-zinc-800 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-xs font-medium text-zinc-300 transition hover:border-zinc-500 hover:bg-zinc-800 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {savingPreferred
                     ? "Saving..."
@@ -1304,7 +1252,7 @@ async function loadPreferredRoster() {
                     loadingPreferred ||
                     generatingRoster
                   }
-                  className="rounded-lg border border-zinc-700 bg-zinc-900 px-5 py-2.5 text-sm font-medium text-zinc-300 transition hover:border-zinc-500 hover:bg-zinc-800 hover:text-white disabled:cursor-wait disabled:opacity-50"
+                  className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-xs font-medium text-zinc-300 transition hover:border-zinc-500 hover:bg-zinc-800 hover:text-white disabled:cursor-wait disabled:opacity-50"
                 >
                   {loadingPreferred
                     ? "Loading..."
@@ -1318,7 +1266,7 @@ async function loadPreferredRoster() {
                     generatingRoster ||
                     loadingPreferred
                   }
-                  className="hmdl-btn hmdl-btn-primary rounded-lg px-5 py-2.5 text-sm font-medium transition disabled:cursor-wait disabled:opacity-50"
+                  className="hmdl-btn hmdl-btn-primary rounded-lg px-3 py-2 text-xs font-medium transition disabled:cursor-wait disabled:opacity-50"
                 >
                   {generatingRoster
                     ? "Generating..."
@@ -1343,11 +1291,12 @@ async function loadPreferredRoster() {
                 </p>
               </div>
             ) : (
-              <div className="space-y-6">
+              <div className="space-y-3">
                 {data.rosters.map(
                   (roster) => (
                     <>
                     <RosterCard
+                      defaultExpanded={data.rosters[0]?.id === roster.id}
                       key={
                         roster.id
                       }
@@ -1448,18 +1397,16 @@ async function loadPreferredRoster() {
         </section>
 
       {canManageEvents && (
-        <section className="mt-10 pb-12">
-          <div>
-            <h2 className="text-xl font-semibold">
-              Allocation
-            </h2>
-
-            <p className="mt-1 text-sm text-zinc-500">
-              Resource allocation runs associated with this event.
-            </p>
-          </div>
-
-          <div className="mt-5">
+        <section className="mt-5 pb-8">
+          <details className="group rounded-xl border border-zinc-800 bg-zinc-900/80">
+            <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3 px-4 py-3">
+              <span className="font-semibold">Allocation</span>
+              <span className="flex items-center gap-3 text-xs text-zinc-500">
+                <span>{data.allocationRuns.length} {data.allocationRuns.length === 1 ? "run" : "runs"}</span>
+                <span className="transition group-open:rotate-180">⌄</span>
+              </span>
+            </summary>
+            <div className="border-t border-zinc-800 p-4">
             {data.allocationRuns.length ===
             0 ? (
               <div className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/50 px-6 py-12 text-center">
@@ -1510,9 +1457,13 @@ async function loadPreferredRoster() {
                 )}
               </div>
             )}
-          </div>
+            </div>
+          </details>
         </section>
         )}
+        <div className="mt-5">
+          <EventResultsUploader eventId={eventId} canManage={canManageEvents} />
+        </div>
       </div>
 
       {addMemberTarget && (
@@ -1646,8 +1597,10 @@ function RosterCard({
   onMoveMember,
   rosterJobOverrides,
   onRosterJobSaved,
+  defaultExpanded,
 }: {
   roster: RosterSummary;
+  defaultExpanded: boolean;
   eventId: string;
   canEdit: boolean;
   editing: boolean;
@@ -1669,22 +1622,22 @@ function RosterCard({
     overrideJob: string | null
   ) => void;
 }) {
+  const [expanded, setExpanded] = useState(defaultExpanded);
+  useEffect(() => { if (editing) setExpanded(true); }, [editing]);
   const parties = roster.parties ?? [];
   const battlefields = Array.from(new Set(parties.map((party) => party.battlefield)));
 
   return (
-    <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold">{roster.name}</h3>
-            {editing && <span className="rounded-full bg-blue-950 px-2.5 py-1 text-xs text-blue-400">Editing</span>}
-          </div>
-          <p className="mt-1 text-sm text-zinc-600">{roster.generationMode === "AUTOMATIC" ? "Automatic" : "Manual"}</p>
-        </div>
+    <div className="rounded-xl border border-zinc-800 bg-zinc-900/80 p-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <button type="button" aria-expanded={expanded} onClick={() => setExpanded(value => !value)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
+          <span className="text-xs text-violet-400">{expanded ? "▾" : "▸"}</span>
+          <span className="font-semibold text-zinc-100">{roster.name}</span>
+          {editing && <span className="rounded-full bg-blue-950 px-2 py-0.5 text-[10px] text-blue-300">Editing</span>}
+          <span className="text-xs text-zinc-500">{roster.memberCount} members · {roster.partyCount} parties</span>
+        </button>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-full border border-zinc-700 bg-zinc-950 px-3 py-1 text-xs text-zinc-500">{roster.memberCount} members</span>
-          <span className="rounded-full border border-zinc-700 bg-zinc-950 px-3 py-1 text-xs text-zinc-500">{roster.partyCount} parties</span>
+        <div className="flex flex-wrap items-center gap-2">
           {canEdit && (
             <>
               <button type="button" onClick={onEdit} className={`rounded-lg border px-3 py-2 text-xs font-medium transition ${editing ? "border-white bg-white text-black" : "border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-white"}`}>
@@ -1696,6 +1649,9 @@ function RosterCard({
         </div>
       </div>
 
+      {expanded && <>
+      <p className="mt-2 pl-5 text-[11px] text-zinc-600">{roster.generationMode === "AUTOMATIC" ? "Automatic" : "Manual"}</p>
+
       {editing && (
         <div className="mt-4 rounded-lg border border-blue-900/50 bg-blue-950/20 px-4 py-3 text-xs text-blue-400">
           Drag members between slots, or use each member’s Move to selector to move or swap them without dragging. Click an empty slot to add an unassigned member. Use Remove member to take someone out of the roster. Manual changes override the automatic composition.
@@ -1703,13 +1659,13 @@ function RosterCard({
       )}
 
       {roster.parties ? (
-        <div className="mt-6 space-y-8">
+        <div className="mt-3 space-y-4">
           {battlefields.map((battlefield) => {
             const battlefieldParties = parties.filter((party) => party.battlefield === battlefield);
             return (
               <div key={battlefield}>
-                <h4 className="mb-3 text-sm font-semibold text-zinc-300">{formatBattlefield(battlefield)}</h4>
-                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                <h4 className="mb-2 text-xs font-semibold text-zinc-400">{formatBattlefield(battlefield)}</h4>
+                <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
                   {battlefieldParties.map((party) => (
                     <PartyCard
                       key={party.id}
@@ -1743,6 +1699,7 @@ function RosterCard({
           <div><p className="text-zinc-600">Created</p><p className="mt-1 font-semibold">{formatDateTime(roster.createdAt)}</p></div>
         </div>
       )}
+      </>}
     </div>
   );
 }
@@ -1899,17 +1856,17 @@ function PartyCard({
 
 function EventRules({ type }: { type: EventType }) {
   if (type === "GUILD_LEAGUE") {
-    return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"><Rule label="Schedule" value="Tuesday / Thursday" /><Rule label="Battlefields" value="2" /><Rule label="Players" value="40 / battlefield" /><Rule label="Parties" value="8 / battlefield" /></div>;
+    return <div className="flex flex-wrap gap-x-5 gap-y-2"><Rule label="Schedule" value="Tuesday / Thursday" /><Rule label="Battlefields" value="2" /><Rule label="Players" value="40 / battlefield" /><Rule label="Parties" value="8 / battlefield" /></div>;
   }
-  return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"><Rule label="Schedule" value="Sunday" /><Rule label="Players" value="80" /><Rule label="Parties" value="16" /><Rule label="Party Size" value="5" /></div>;
+  return <div className="flex flex-wrap gap-x-5 gap-y-2"><Rule label="Schedule" value="Sunday" /><Rule label="Players" value="80" /><Rule label="Parties" value="16" /><Rule label="Party Size" value="5" /></div>;
 }
 
 function Rule({ label, value }: { label: string; value: string }) {
-  return <div><p className="text-xs uppercase tracking-wider text-zinc-600">{label}</p><p className="mt-1 font-medium text-zinc-300">{value}</p></div>;
+  return <div className="min-w-20"><p className="text-[10px] uppercase tracking-wider text-zinc-600">{label}</p><p className="mt-0.5 text-xs font-medium text-zinc-300">{value}</p></div>;
 }
 
-function StatCard({ label, value }: { label: string; value: number }) {
-  return <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5"><p className="text-sm text-zinc-500">{label}</p><p className="mt-2 text-3xl font-bold">{value}</p></div>;
+function CompactStat({ label, value }: { label: string; value: number }) {
+  return <div className="min-w-14"><p className="text-lg font-semibold leading-none text-zinc-100">{value}</p><p className="mt-1 text-[10px] text-zinc-500">{label}</p></div>;
 }
 
 function getPartyNumber(data: EventResponse, partyId: string) {
