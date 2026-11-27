@@ -3,6 +3,7 @@ import { test } from "node:test";
 import sharp from "sharp";
 import { normalizeOcrImage } from "../src/lib/security/ocr-image";
 import { readMultipartFormData, RequestBodyTooLargeError } from "../src/lib/security/multipart";
+import { hasPermission } from "../src/lib/permissions";
 
 test("multipart reader parses a bounded form upload", async () => {
   const form = new FormData();
@@ -37,4 +38,14 @@ test("OCR image validation normalizes real image bytes to WebP", async () => {
 
 test("OCR image validation rejects bytes that are not a supported image", async () => {
   await assert.rejects(() => normalizeOcrImage(Buffer.from("not an image")));
+});
+
+test("expired guild read-only role can view but cannot mutate guild data", () => {
+  assert.equal(hasPermission("READ_ONLY", "members.view"), true);
+  assert.equal(hasPermission("READ_ONLY", "events.view"), true);
+  assert.equal(hasPermission("READ_ONLY", "allocation.view"), true);
+  assert.equal(hasPermission("READ_ONLY", "members.edit"), false);
+  assert.equal(hasPermission("READ_ONLY", "events.manage"), false);
+  assert.equal(hasPermission("READ_ONLY", "leave.manageOwn"), false);
+  assert.equal(hasPermission("READ_ONLY", "users.manage"), false);
 });
