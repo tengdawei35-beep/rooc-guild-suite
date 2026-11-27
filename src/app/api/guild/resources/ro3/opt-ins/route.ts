@@ -113,6 +113,7 @@ export async function POST(request: Request) {
     const access = await authorize();
     if ("error" in access) return access.error;
     const { auth, member, season } = access;
+    if (!auth.subscriptionActive) return NextResponse.json({ error: "This guild is read-only until its subscription is renewed." }, { status: 403 });
     const body = await request.json() as { action?: string; resourceId?: string; eventId?: string; selected?: boolean };
     if (typeof body.resourceId !== "string" || typeof body.selected !== "boolean") return NextResponse.json({ error: "A resource and selection state are required." }, { status: 400 });
 
