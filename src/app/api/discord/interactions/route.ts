@@ -41,7 +41,7 @@ export async function POST(request: Request) {
   const [prefix, eventId, status] = interaction.data.custom_id.split(":");
   if (prefix !== "att" || !eventId || !["AVAILABLE", "UNAVAILABLE", "AFK_BUSY"].includes(status)) return ephemeral("This attendance button is invalid.");
 
-  if (typeof interaction.id !== "string" || !/^\\d{17,20}$/.test(interaction.id)) return ephemeral("This attendance interaction is invalid.");
+  if (typeof interaction.id !== "string" || !/^\d{17,20}$/.test(interaction.id)) return ephemeral("This attendance interaction is invalid.");
   const discordUserId = interaction.member?.user?.id || interaction.user?.id;
   const guildId = interaction.guild_id;
   if (!discordUserId || !guildId) return ephemeral("This attendance button must be used inside your guild server.");
