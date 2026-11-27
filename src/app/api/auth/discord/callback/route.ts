@@ -139,7 +139,28 @@ export async function GET(request: Request) {
       return NextResponse.redirect(new URL("/guild/select", appBaseUrl));
     }
 
-    if (!membership) return NextResponse.redirect(new URL("/billing/new", appBaseUrl));
+    if (!membership) {
+      const creator = await prisma.platformGuildCreator.findUnique({
+        where: { discordUserId: discordUserId },
+        select: { active: true, maxGuilds: true },
+      });
+      const ownedGuildCount = creator?.active
+        ? await prisma.guild.count({ where: { ownerUserId: user.id } })
+        : 0;
+
+      cookieStore.set(GUILD_SELECTION_COOKIE, createGuildSelectionToken(user.id), {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        maxAge: 5 * 60,
+      });
+
+      if (creator?.active && ownedGuildCount < creator.maxGuilds) {
+        return NextResponse.redirect(new URL("/guild/create", appBaseUrl));
+      }
+      return NextResponse.redirect(new URL("/billing/new", appBaseUrl));
+    }
 
     cookieStore.set(GUILD_SELECTION_COOKIE, createGuildSelectionToken(user.id), {
       httpOnly: true,

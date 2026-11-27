@@ -93,7 +93,7 @@ export default async function GuildSelectionPage() {
         {canCreateGuild && (
           <div className="mt-6 border-t border-zinc-800 pt-6">
             <Link
-              href="/billing/new"
+              href="/guild/create"
               className="flex w-full items-center justify-center rounded-lg hmdl-btn hmdl-btn-primary px-4 py-3 text-sm font-semibold transition"
             >
               Create another guild
