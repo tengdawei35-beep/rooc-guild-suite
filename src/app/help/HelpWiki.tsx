@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import type { UserRole } from "@/lib/permissions";
 
@@ -70,11 +70,10 @@ export default function HelpWiki({ role, isPlatformAdmin }: { role: UserRole; is
   const visibleTabs = (["admins", "managers", "members"] as const).filter(key => key !== "admins" || role === "ADMIN" || role.startsWith("READ_ONLY_ADMIN") || isPlatformAdmin);
   const guide = guides[tab];
   const roleSections = tab === "admins" && !isPlatformAdmin ? guide.sections.filter(section => section.title !== "Platform administration") : guide.sections;
-  const sections = useMemo(() => {
-    const needle = query.trim().toLowerCase();
-    if (!needle) return roleSections;
-    return roleSections.filter(section => [section.title, section.intro, ...section.steps, section.example ?? "", ...(section.links ?? []).map(link => link.label)].join(" ").toLowerCase().includes(needle));
-  }, [guide, query, roleSections]);
+  const needle = query.trim().toLowerCase();
+  const sections = needle
+    ? roleSections.filter(section => [section.title, section.intro, ...section.steps, section.example ?? "", ...(section.links ?? []).map(link => link.label)].join(" ").toLowerCase().includes(needle))
+    : roleSections;
 
   return (
     <main className="hmdl-management min-h-screen bg-zinc-950 text-white">
