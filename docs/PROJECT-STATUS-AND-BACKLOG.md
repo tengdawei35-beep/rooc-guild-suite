@@ -282,3 +282,10 @@ For every open issue:
 - **Deployment boundary:** merge commit `f190342bed021214751c2aa2e0d9b78e3fefbc27`; Vercel deployment was still pending at the time of this update. Do not treat the new onboarding page as live until deployment succeeds.
 - New creator onboarding browser workflow remains **UNVERIFIED / UNTESTED**. Once deployed, verify first-time creator redirect, existing creator link, successful provisioning, and non-creator paid onboarding. No production guild was created as part of this change.
 - The complimentary provisioning API remains the authoritative eligibility and ownership-limit enforcement path; the page's displayed remaining allowance is informational and is rechecked inside the existing transaction.
+
+
+### Admin user directory inline details — 2026-11-28
+
+- **PR #183** merged: desktop **Details** now expands a secondary table row immediately beneath the selected user instead of rendering one detached details panel at the bottom of the directory. Mobile card expansion remains unchanged, with desktop-specific `aria-controls` wiring.
+- GitHub Actions verification passed and the Vercel preview deployment succeeded. Merge commit: `7df03a7685965ea87291064a8bc19c88b2f0757c`.
+- Production deployment status for the merge commit has not yet been confirmed. The authenticated browser interaction remains **UNVERIFIED / UNTESTED** until manually checked in production.
