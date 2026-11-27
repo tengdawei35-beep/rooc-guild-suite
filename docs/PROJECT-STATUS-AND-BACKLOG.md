@@ -264,3 +264,12 @@ For every open issue:
 - **PR #174** removed GET/render-time plan catalog writes. Plan provisioning remains a controlled seed operation; no production seed was run.
 - **Issue #163** remains open as a product decision for complimentary-to-paid conversion. No change made.
 - Live Stripe lifecycle tests, Discord integration tests, and authenticated simulator browser tests remain **UNVERIFIED / UNTESTED** as previously recorded. No production Stripe transactions, Discord actions, or database migrations were performed in this continuation.
+
+
+### Durable checkout reservation design — 2026-11-27
+
+- Added `docs/billing-checkout-reservation-design.md` to specify a shared durable reservation/idempotency protocol for base guild checkout, new-guild onboarding, personal simulator add-on, and guild simulator add-on.
+- The design covers unique purchase scopes, request fingerprints, persisted Stripe idempotency keys, attempt/lease recovery, Checkout Session metadata, and duplicate/out-of-order `checkout.session.completed` / `checkout.session.expired` handling.
+- This is a design-only change. No checkout behavior, Prisma schema, migration, production database, or Stripe configuration has been changed.
+- Next implementation step requires a Prisma schema change and generated SQL migration. The migration may be committed and CI-validated, but must not be applied to production without explicit operator approval. Stripe test-mode concurrency and lifecycle validation remain **UNVERIFIED / UNTESTED**.
+- Issue #163 (complimentary-to-paid conversion) remains separate and unchanged.
