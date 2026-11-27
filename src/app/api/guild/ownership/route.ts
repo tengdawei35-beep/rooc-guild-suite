@@ -13,6 +13,7 @@ export async function POST(request: Request) {
         { status: 401 }
       );
     }
+    if (!auth.subscriptionActive) return NextResponse.json({ error: "This guild is read-only until its subscription is renewed." }, { status: 403 });
 
     const guild = await prisma.guild.findUnique({
       where: { id: auth.guild.id },
