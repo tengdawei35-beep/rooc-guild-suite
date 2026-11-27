@@ -28,7 +28,9 @@ export async function POST(request: Request) {
     const result = await prisma.$transaction(async (tx) => {
       // Serialize complimentary guild creation per owner. The transaction-scoped
       // advisory lock prevents concurrent requests from both passing maxGuilds.
-      await tx.$queryRaw`SELECT pg_advisory_xact_lock(87241, hashtext(${user.id}))`;
+      // Select a supported scalar instead of the lock function's PostgreSQL void
+      // return type, which Prisma's query adapter cannot deserialize.
+      await tx.$queryRaw`SELECT 1 FROM pg_advisory_xact_lock(87241, hashtext(${user.id}))`;
 
       const creator = await tx.platformGuildCreator.findUnique({
         where: { discordUserId: user.discordId },
