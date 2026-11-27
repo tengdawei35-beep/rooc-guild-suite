@@ -3,7 +3,9 @@ import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
 import { stripePaymentProvider } from "@/lib/payments/stripe";
 import { syncGuildSubscriptionDiscordRoles } from "@/lib/discord/subscription-roles";
+import { readBoundedRequestText, RequestBodyTooLargeError } from "@/lib/security/multipart";
 export const runtime = "nodejs";
+const MAX_STRIPE_WEBHOOK_BODY_BYTES = 1024 * 1024;
 function subscriptionStatus(status: Stripe.Subscription.Status) { switch (status) { case "active": return "ACTIVE" as const; case "trialing": return "TRIALING" as const; case "past_due": case "unpaid": return "PAST_DUE" as const; case "canceled": return "CANCELED" as const; default: return "INCOMPLETE" as const; } }
 function subscriptionIsEntitled(status: Stripe.Subscription.Status) { return status === "active" || status === "trialing"; }
 async function syncSubscription(tx: Parameters<Parameters<typeof prisma.$transaction>[0]>[0], subscription: Stripe.Subscription) {
@@ -31,7 +33,17 @@ async function recordAffiliateCommission(invoice: Stripe.Invoice) {
   await prisma.$executeRawUnsafe('INSERT INTO "AffiliateCommission" ("id", "affiliateId", "referralId", "stripeInvoiceId", "amountCents", "currency", "status") VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT ("stripeInvoiceId") DO NOTHING', crypto.randomUUID(), referral.affiliateId, referral.id, invoice.id, amountCents, invoice.currency, "PENDING");
 }
 export async function POST(request: Request) {
-  const payload = await request.text(); const signature = request.headers.get("stripe-signature"); if (!signature) return NextResponse.json({ error: "MISSING_STRIPE_SIGNATURE" }, { status: 400 });
+  let payload: string;
+  try {
+    payload = await readBoundedRequestText(request, MAX_STRIPE_WEBHOOK_BODY_BYTES);
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return NextResponse.json({ error: "STRIPE_WEBHOOK_PAYLOAD_TOO_LARGE" }, { status: 413 });
+    }
+    throw error;
+  }
+  const signature = request.headers.get("stripe-signature");
+  if (!signature) return NextResponse.json({ error: "MISSING_STRIPE_SIGNATURE" }, { status: 400 });
   let event: Stripe.Event; try { event = await stripePaymentProvider.verifyWebhook(payload, signature) as Stripe.Event; } catch (error) { console.error("[STRIPE WEBHOOK] Invalid signature", error); return NextResponse.json({ error: "INVALID_STRIPE_SIGNATURE" }, { status: 400 }); }
   try {
     if (event.type === "checkout.session.completed") {
