@@ -87,6 +87,7 @@ export default function AppShell({
       items: [
         { label: "Home", href: "/", icon: "⌂" },
         { label: "Events", href: "/events", icon: "▦" },
+        { label: "Call To Arms", href: "/guild/calls", icon: "⌁" },
         { label: "Guild members", href: "/guild/members", icon: "♧" },
         ...(ownMemberId ? [{ label: "My profile", href: `/guild/members/${ownMemberId}`, icon: "◎" }] : []),
       ],
