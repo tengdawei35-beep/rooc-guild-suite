@@ -137,8 +137,8 @@ export async function POST(request: Request) {
     return ephemeral("HMDL could not verify the saved attendance response. Please contact a guild manager.");
   }
 
-  const channelId = interaction.channel_id;
-  const messageId = interaction.message?.id;
+  const channelId = typeof interaction.channel_id === "string" ? interaction.channel_id : null;
+  const messageId = typeof interaction.message?.id === "string" ? interaction.message.id : null;
   if (channelId && messageId) {
     try { await updateDiscordAttendanceMessage(eventId, channelId, messageId); }
     catch (error) { console.error("[DISCORD ATTENDANCE] Failed to update message:", error); }
