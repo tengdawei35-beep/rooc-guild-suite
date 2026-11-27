@@ -58,7 +58,7 @@ export async function GET() {
 
     if (
       !hasPermission(
-        auth.role,
+        auth.originalRole,
         "users.view"
       )
     ) {
