@@ -46,9 +46,10 @@ export async function GET(_request: Request, context: Context) {
       select: { id: true },
     });
   }
-  const canManage = hasPermission(auth.role, "events.manage");
+  const canViewAll = hasPermission(auth.originalRole, "events.manage");
+  const canManage = auth.subscriptionActive && canViewAll;
   const visibleMembers = await prisma.guildMember.findMany({
-    where: { guildId: auth.guild.id, active: true, ...(canManage ? {} : { id: ownMember?.id ?? "__none__" }) },
+    where: { guildId: auth.guild.id, active: true, ...(canViewAll ? {} : { id: ownMember?.id ?? "__none__" }) },
     select: { id: true, characterName: true, job: true, user: { select: { username: true } } },
     orderBy: { characterName: "asc" },
   });
@@ -64,7 +65,7 @@ export async function GET(_request: Request, context: Context) {
       job: member.job,
       status: onLeave ? "UNAVAILABLE" : response?.status ?? null,
       respondedAt: response?.respondedAt ?? null,
-      discordUsername: canManage ? member.user?.username ?? null : null,
+      discordUsername: canViewAll ? member.user?.username ?? null : null,
     };
   });
   const counts = {
@@ -79,7 +80,7 @@ export async function GET(_request: Request, context: Context) {
     ownStatus: ownMember ? (memberLeaveIds.has(ownMember.id) ? "UNAVAILABLE" : event.attendance.find(item => item.memberId === ownMember.id)?.status ?? null) : null,
     locked: event.date.getTime() - Date.now() <= 30 * 60 * 1000,
     canManage,
-    ...(canManage ? { attendanceDiagnostics: directAttendanceRows.map(row => ({ memberId: row.memberId, characterName: row.member.characterName, active: row.member.active, status: row.status, respondedAt: row.respondedAt })) } : {}),
+    ...(canViewAll ? { attendanceDiagnostics: directAttendanceRows.map(row => ({ memberId: row.memberId, characterName: row.member.characterName, active: row.member.active, status: row.status, respondedAt: row.respondedAt })) } : {}),
   }, { headers: { "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0" } });
 }
 
