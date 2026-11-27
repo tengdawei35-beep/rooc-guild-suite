@@ -23,7 +23,7 @@ type Props = {
 type NavItem = { label: string; href: string; icon: string };
 type NavGroup = { label: string; items: NavItem[] };
 
-const PUBLIC_PATHS = ["/login", "/landing", "/pricing", "/apply", "/billing", "/guild/select", "/guild/switch"];
+const PUBLIC_PATHS = ["/login", "/landing", "/pricing", "/apply", "/billing", "/guild/select", "/guild/switch", "/guild/create"];
 
 function isActive(pathname: string, href: string, searchParams: URLSearchParams) {
   const [targetPath, targetQuery] = href.split("?");
