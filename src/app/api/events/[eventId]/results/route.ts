@@ -12,7 +12,6 @@ const allowed = new Set(["png", "jpeg", "webp"]);
 const MAX_FILE_SIZE = 4 * 1024 * 1024;
 const MAX_REQUEST_BYTES = MAX_FILE_SIZE + 256 * 1024;
 const MAX_PIXELS = 40_000_000;
-const MAX_REQUEST_BYTES = MAX_FILE_SIZE + 256 * 1024;
 
 type Context = { params: Promise<{ eventId: string }> };
 
