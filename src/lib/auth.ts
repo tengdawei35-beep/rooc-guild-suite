@@ -87,7 +87,7 @@ async function getCurrentMembership() {
   });
 }
 
-async function hasActiveSubscription(guildId: string) {
+export async function hasActiveGuildSubscription(guildId: string) {
   const subscription = await prisma.guildSubscription.findFirst({
     where: { guildId, status: { in: ["ACTIVE", "TRIALING"] }, OR: [{ currentPeriodEnd: null }, { currentPeriodEnd: { gt: new Date() } }] },
     select: { id: true },
@@ -104,7 +104,7 @@ async function hasActiveSubscription(guildId: string) {
 export async function getCurrentAuth() {
   const membership = await getCurrentMembership();
   if (!membership) return null;
-  const subscriptionActive = await hasActiveSubscription(membership.guild.id);
+  const subscriptionActive = await hasActiveGuildSubscription(membership.guild.id);
   const role = subscriptionActive ? membership.role : "READ_ONLY";
   const effectiveMembership = subscriptionActive
     ? membership
