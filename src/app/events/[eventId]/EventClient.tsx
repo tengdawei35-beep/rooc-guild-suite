@@ -227,7 +227,8 @@ export default function EventClient({
   }
 
   useEffect(() => {
-    loadEvent();
+    const timer = window.setTimeout(() => { void loadEvent(); }, 0);
+    return () => window.clearTimeout(timer);
   }, [eventId]);
 
   // Keep roster assignments in sync with attendance changes made in HMDL
@@ -1623,15 +1624,15 @@ function RosterCard({
   ) => void;
 }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
-  useEffect(() => { if (editing) setExpanded(true); }, [editing]);
+  const isExpanded = expanded || editing;
   const parties = roster.parties ?? [];
   const battlefields = Array.from(new Set(parties.map((party) => party.battlefield)));
 
   return (
     <div className="rounded-xl border border-zinc-800 bg-zinc-900/80 p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <button type="button" aria-expanded={expanded} onClick={() => setExpanded(value => !value)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
-          <span className="text-xs text-violet-400">{expanded ? "▾" : "▸"}</span>
+        <button type="button" aria-expanded={isExpanded} onClick={() => setExpanded(value => !value)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
+          <span className="text-xs text-violet-400">{isExpanded ? "▾" : "▸"}</span>
           <span className="font-semibold text-zinc-100">{roster.name}</span>
           {editing && <span className="rounded-full bg-blue-950 px-2 py-0.5 text-[10px] text-blue-300">Editing</span>}
           <span className="text-xs text-zinc-500">{roster.memberCount} members · {roster.partyCount} parties</span>
@@ -1648,7 +1649,7 @@ function RosterCard({
         </div>
       </div>
 
-      {expanded && <>
+      {isExpanded && <>
       <p className="mt-2 pl-5 text-[11px] text-zinc-600">{roster.generationMode === "AUTOMATIC" ? "Automatic" : "Manual"}</p>
 
       {editing && (
