@@ -5,32 +5,9 @@ import { getPlatformAdmin } from "@/lib/platform-admin";
 import ManagementPageHeader from "@/app/ManagementPageHeader";
 import GuildCreatorsClient from "./GuildCreatorsClient";
 
-async function ensureAdminPlans() {
-  const definitions = [
-    { name: "Basic", description: "Basic Guild Suite subscription", modules: ["CORE"] as const },
-    { name: "Total", description: "Total Guild Suite subscription", modules: ["CORE", "RESOURCE_SUITE"] as const },
-  ];
-
-  for (const definition of definitions) {
-    const plan = await prisma.plan.upsert({
-      where: { name: definition.name },
-      create: {
-        name: definition.name,
-        description: definition.description,
-        priceCents: 0,
-        currency: "usd",
-        billingInterval: "MONTH",
-        active: true,
-      },
-      update: { active: true, description: definition.description },
-    });
-
-    await prisma.planModule.createMany({
-      data: definition.modules.map((module) => ({ planId: plan.id, module })),
-      skipDuplicates: true,
-    });
-  }
-
+async function getActiveAdminPlans() {
+  // Plan creation and Stripe price synchronization belong to the controlled seed process,
+  // not to a read-only admin page request.
   return prisma.plan.findMany({
     where: { active: true },
     orderBy: [{ priceCents: "asc" }, { name: "asc" }],
@@ -44,7 +21,7 @@ export default async function GuildCreatorsAdminPage() {
 
   const [creators, plans, guilds] = await Promise.all([
     prisma.platformGuildCreator.findMany({ orderBy: { discordUsername: "asc" } }),
-    ensureAdminPlans(),
+    getActiveAdminPlans(),
     prisma.guild.findMany({
       orderBy: { name: "asc" },
       select: {
