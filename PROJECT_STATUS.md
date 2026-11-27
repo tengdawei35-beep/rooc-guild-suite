@@ -4,6 +4,49 @@ _Last updated: 2026-11-28 (Asia/Kuala_Lumpur)_
 
 This is the project-wide handoff file. Update it whenever implementation work advances, a decision changes, a validation run completes, or work is paused. Keep it concise enough to scan, but specific enough that a new ChatGPT conversation can resume without relying on chat history.
 
+## Event detail page design audit — 2026-11-28
+
+**Route:** `/events/[eventId]`  
+**Status:** Audit complete; implementation not yet started.  
+**User feedback:** The page requires excessive scrolling, several UI blocks consume more space than their importance warrants, and there must be no back-navigation button on this page.
+
+### Findings from the current implementation
+
+1. **Back navigation is redundant and unwanted.** `EventClient.tsx` renders a `← Events` link in all three states: loading, load error, and normal event view. Remove all three. Keep contextual navigation elsewhere (e.g. global sidebar); do not replace it with another back control.
+2. **Results content appears too early.** `EventResultsUploader` is rendered immediately after attendance. Its screenshot grid can become very tall and pushes event rules and rosters further down. Move it below the primary roster workflow and make the results area collapsed by default.
+3. **Attendance card is oversized for its task.** It uses a large full-width panel, three tall response buttons with explanatory copy, then four separate statistic tiles. Keep the response actions easy to find, but compress them into a compact horizontal control group and render the four counts as a single compact summary strip. Member response details already have a disclosure and pagination; retain that behavior.
+4. **Event rules and event statistics use too much vertical space.** Rules are inside a large padded card and the four statistics are rendered as separate large cards with 3xl numbers. Convert rules and counts into compact metadata/metric rows. Avoid repeating information already obvious from the event header.
+5. **Roster controls are spread out.** The roster heading, description, and action buttons use a tall responsive header. Keep actions grouped in a compact toolbar and avoid excessive vertical margins.
+6. **Roster cards have generous nested spacing.** The outer card uses large padding; party groups use `mt-6 space-y-8`, and party cards use additional padding and slot spacing. Tighten card and section spacing while preserving readable member rows and drag/drop targets.
+7. **Raid management adds a second large card per roster.** It renders as a separate full-width panel with generous margins even when no raids exist. Put raid configuration behind a collapsed “Raids” disclosure, showing a compact count/status summary when closed. Keep all existing create/edit/delete/manage-party functionality.
+8. **Allocation duplicates navigation.** The header already has an Allocation action, while the page also renders a large Allocation section and empty-state card. Keep allocation accessible, but reduce the section to a compact status row or collapsed disclosure; do not remove access to existing runs.
+9. **Event header has room to tighten.** Reduce excess top spacing and simplify action labels/sizing. Preserve event type, date/time, guild identity and the important actions (send attendance prompt, allocation, refresh).
+
+### Recommended page hierarchy
+
+- **Compact event header:** event type + date/time + guild; small action toolbar. No back button.
+- **Event metadata strip:** compact event rules and member/availability/roster counts.
+- **Attendance:** compact response buttons and count strip; member response list remains expandable.
+- **Rosters (primary content):** compact heading/action toolbar; roster summary headers; keep the currently active/first roster visible and allow other rosters to collapse; tighten party/battlefield spacing without shrinking touch targets.
+- **Raids:** collapsed configuration disclosure per roster.
+- **Allocation:** compact status/disclosure.
+- **Event results:** collapsed by default and placed after roster operations.
+
+### Implementation constraints
+
+- UI/layout only unless a defect is discovered; do not change event, attendance, roster, allocation, raid, or resource-pool business logic.
+- Preserve all permission gates, loading/error states, polling/refresh behavior, attendance lock behavior, and mobile responsiveness.
+- Preserve the compact resource-pool selector introduced in PR #185 inside Event Rules, but reposition it naturally within the compact metadata area if needed.
+- Keep the roster editing interactions and slot targets usable on touch devices.
+- No database migration expected.
+- Validate with TypeScript, lint on changed files, tests, and production build. Do not merge/deploy until checks pass and the user approves the release.
+
+### Next task
+
+Implement the hierarchy above in a focused UI PR, starting with removal of all three back links, moving/collapsing Event Results, compacting attendance/rules/metrics, and then reducing roster/raid/allocation vertical density. Update this audit after implementation and report any trade-offs.
+
+---
+
 ## Platform / production progress — 2026-11-28
 
 **Current production branch:** `main`  
