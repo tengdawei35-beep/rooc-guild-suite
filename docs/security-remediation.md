@@ -8,7 +8,7 @@ This document tracks the source-level remediation work associated with the Novem
 
 ## Implemented in this branch
 
-- Expired guild subscriptions now produce an effective `READ_ONLY` role in guild-scoped authentication. Read permissions remain available; write permissions are denied. Billing/platform authentication remains separate so owners can renew.
+- Expired guild subscriptions now produce an role-specific `READ_ONLY_*` role in guild-scoped authentication. Read permissions remain available; write permissions are denied. Billing/platform authentication remains separate so owners can renew.
 - Preserved original role information for read-only data visibility, including member-directory filtering, user directory visibility, onboarding guide visibility, attendance visibility, and watchlist reads.
 - Added explicit inactive-subscription guards to self-service mutations that do not use normal role permissions: event attendance, RO3 opt-ins, Call To Arms actions, ownership transfer, Discord attendance interactions, and applicant submissions.
 - Added database-backed session-version revocation for guild, platform, and applicant sessions. Logging out increments the user's session version and invalidates previously issued tokens.
