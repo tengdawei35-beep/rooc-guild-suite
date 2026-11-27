@@ -49,10 +49,7 @@ export default function Ro3EventResourceLink({ eventId }: { eventId: string }) {
 
     const attach = () => {
       if (cancelled) return;
-      const heading = Array.from(document.querySelectorAll("h2")).find(
-        node => node.textContent?.trim() === "Event Rules"
-      );
-      const section = heading?.closest("section");
+      const section = document.querySelector<HTMLElement>("[data-event-rules]");
       if (section) {
         const target = document.createElement("div");
         target.dataset.ro3ResourcePoolControl = "true";
