@@ -31,7 +31,7 @@ async function getEventChannel(guildId: string) {
 export async function GET(){
   const auth=await getCurrentAuth();
   if(!auth)return NextResponse.json({error:"Authentication required."},{status:401});
-  if(!hasPermission(auth.role,"guild.manage"))return NextResponse.json({error:"You do not have permission to manage guild settings."},{status:403});
+  if(!hasPermission(auth.originalRole,"guild.manage"))return NextResponse.json({error:"You do not have permission to view guild settings."},{status:403});
   const config=await getNotificationConfig(auth.guild.id);
   return NextResponse.json({configured:{roster:!!config?.rosterWebhookUrl,bid:!!config?.bidWebhookUrl,stats:!!config?.statsWebhookUrl,calls:!!await getCallWebhook(auth.guild.id),eventChannelId:await getEventChannel(auth.guild.id)}});
 }
