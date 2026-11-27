@@ -1092,3 +1092,10 @@ model DiscordSubscriptionRoleMapping {
   updatedAt DateTime @updatedAt
   @@index([enabled])
 }
+
+
+model DiscordInteractionReceipt {
+  id String @id
+  receivedAt DateTime @default(now())
+  @@index([receivedAt])
+}
