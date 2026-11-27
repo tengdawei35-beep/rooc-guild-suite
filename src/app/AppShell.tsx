@@ -95,6 +95,7 @@ export default function AppShell({
       label: "MY ACTIVITY",
       items: [
         { label: "Apply leave", href: "/guild/members/leave", icon: "◷" },
+        { label: "Help & Wiki", href: "/help", icon: "?" },
       ],
     },
   ];
@@ -102,7 +103,7 @@ export default function AppShell({
   const managementGroups: NavGroup[] = [
     {
       label: "OVERVIEW",
-      items: [{ label: "Dashboard", href: "/", icon: "⌂" }],
+      items: [{ label: "Dashboard", href: "/", icon: "⌂" }, { label: "Help & Wiki", href: "/help", icon: "?" }],
     },
     {
       label: "PEOPLE",
