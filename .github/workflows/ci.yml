@@ -79,13 +79,3 @@ jobs:
           fi
       - name: Production build
         run: npm run build
- || true
-          )
-
-          if (( ${#changed_files[@]} > 0 )); then
-            npx eslint "${changed_files[@]}"
-          else
-            echo "No changed JavaScript or TypeScript files to lint."
-          fi
-      - name: Production build
-        run: npm run build
