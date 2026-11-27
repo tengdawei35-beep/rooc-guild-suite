@@ -23,7 +23,8 @@ const JOURNEYS = {
 export async function GET() {
   const auth = await getCurrentAuth();
   if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
-  if (auth.role !== "OFFICER" && auth.role !== "MEMBER") {
+  if (!auth.subscriptionActive) return NextResponse.json({ error: "This guild is read-only until its subscription is renewed." }, { status: 403 });
+  if (auth.originalRole !== "OFFICER" && auth.originalRole !== "MEMBER") {
     return NextResponse.json({ error: "This onboarding guide is for officers and members." }, { status: 403 });
   }
 
@@ -32,11 +33,12 @@ export async function GET() {
     select: { completedStepIds: true, dismissedAt: true },
   });
   const completedIds = new Set(progress?.completedStepIds ?? []);
-  const tasks = JOURNEYS[auth.role].map((task) => ({ ...task, complete: completedIds.has(task.id) }));
+  const tasks = JOURNEYS[auth.originalRole].map((task) => ({ ...task, complete: completedIds.has(task.id) }));
   return NextResponse.json({
-    role: auth.role,
-    title: auth.role === "OFFICER" ? "Your officer journey" : "Your member journey",
-    description: auth.role === "OFFICER"
+    role: auth.originalRole,
+    readOnly: !auth.subscriptionActive,
+    title: auth.originalRole === "OFFICER" ? "Your officer journey" : "Your member journey",
+    description: auth.originalRole === "OFFICER"
       ? "A practical introduction to the tools you will use to support guild operations."
       : "A quick guide to the features that help you stay connected with your guild.",
     tasks,
