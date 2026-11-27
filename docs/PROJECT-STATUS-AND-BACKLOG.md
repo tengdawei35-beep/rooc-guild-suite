@@ -252,3 +252,15 @@ For every open issue:
 - No production database writes, migrations, Stripe transactions, or live Discord actions were performed as part of these changes.
 - Stripe checkout/portal/webhook lifecycle behavior remains **UNVERIFIED / UNTESTED** in a Stripe test environment. The new webhook change has automated CI coverage but no simulated Stripe event replay test.
 - Issue #163 remains open for the complimentary-to-paid conversion product decision; no behavior change was made there.
+
+### Billing and production QA continuation — 2026-11-27 (latest)
+
+- **PR #177** merged: subscription lifecycle webhook handlers now retrieve the current Stripe subscription before synchronizing state, preventing an out-of-order event snapshot from overwriting newer subscription status or billing-period values. CI passed; live Stripe event-ordering/lifecycle validation remains **UNVERIFIED / UNTESTED**.
+- **PR #178** merged: complimentary guild provisioning now uses a transaction-scoped PostgreSQL advisory lock per owner. Creator eligibility, owned-guild count, Discord guild uniqueness and plan validity are checked inside the locked transaction, preventing concurrent requests from bypassing `maxGuilds`. CI passed; concurrent-request behavior has not been load-tested against a live PostgreSQL environment. No schema migration or production database write was performed.
+- **Latest main commit:** `c8cec52bbe04a4cdd66801bd841f0e09a4d398be`. Vercel deployment was pending at the time of this update; verify deployment status before claiming this commit is live.
+- **New checkout risk retained for investigation:** both base-plan checkout and combat-simulator add-on checkout perform active-subscription checks before creating Stripe Checkout Sessions, but do not persist a pending-checkout reservation. Concurrent requests may therefore create multiple sessions before a subscription becomes active. Do not add a superficial in-memory/transaction-only lock: a safe fix needs a durable idempotency/reservation design that handles abandoned or expired sessions and legitimate retries. No behavior change has been made; Stripe checkout concurrency remains **UNVERIFIED / UNTESTED**.
+- The base checkout webhook's duplicate-delivery recovery from **PR #175** is distinct from preventing multiple separate Stripe subscriptions from concurrent sessions; the former does not eliminate the latter.
+- **PR #172** accessibility changes remain source-reviewed only; keyboard and screen-reader browser QA is **UNVERIFIED / UNTESTED**.
+- **PR #174** removed GET/render-time plan catalog writes. Plan provisioning remains a controlled seed operation; no production seed was run.
+- **Issue #163** remains open as a product decision for complimentary-to-paid conversion. No change made.
+- Live Stripe lifecycle tests, Discord integration tests, and authenticated simulator browser tests remain **UNVERIFIED / UNTESTED** as previously recorded. No production Stripe transactions, Discord actions, or database migrations were performed in this continuation.
