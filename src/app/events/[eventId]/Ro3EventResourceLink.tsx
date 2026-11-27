@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 type EventType = { id: string; name: string };
 type LinkData = {
@@ -16,8 +16,7 @@ export default function Ro3EventResourceLink({ eventId }: { eventId: string }) {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
 
-  async function load() {
-    setLoading(true);
+  const load = useCallback(async () => {
     try {
       const response = await fetch(`/api/events/${eventId}/ro3-resource-type`, { cache: "no-store" });
       const result = await response.json();
@@ -32,9 +31,12 @@ export default function Ro3EventResourceLink({ eventId }: { eventId: string }) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [eventId]);
 
-  useEffect(() => { void load(); }, [eventId]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void load(); }, 0);
+    return () => window.clearTimeout(timer);
+  }, [load]);
 
   async function save() {
     setSaving(true);
