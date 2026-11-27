@@ -1,0 +1,49 @@
+name: Refresh Security Dependencies
+
+on:
+  push:
+    branches: [security/remediation-audit-findings]
+    paths:
+      - ".github/dependency-refresh.trigger"
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    if: github.event.head_commit.message == 'security: trigger dependency refresh'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout remediation branch
+        uses: actions/checkout@v4
+        with:
+          ref: security/remediation-audit-findings
+          persist-credentials: true
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Upgrade vulnerable direct dependencies
+        run: |
+          npm pkg set "dependencies.next=16.4.6"
+          npm pkg set "devDependencies.eslint-config-next=16.4.6"
+          npm pkg set "dependencies.sharp=^0.35.5"
+      - name: Regenerate lockfile and apply compatible security updates
+        run: |
+          npm install
+          npm audit fix
+      - name: Verify production dependency audit
+        run: npm audit --omit=dev --audit-level=high
+      - name: Commit refreshed dependency graph
+        run: |
+          rm -f .github/dependency-refresh.trigger
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          if git diff --cached --quiet; then
+            echo "No dependency changes to commit."
+            exit 0
+          fi
+          git commit -m "security: refresh vulnerable dependencies"
+          git push origin HEAD:security/remediation-audit-findings
