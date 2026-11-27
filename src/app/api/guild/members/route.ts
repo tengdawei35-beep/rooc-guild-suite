@@ -206,7 +206,7 @@ export async function GET(request: Request) {
     }
 
     const url = new URL(request.url);
-    const canFilterMembers = ["ADMIN", "MANAGER", "OFFICER"].includes(auth.role);
+    const canFilterMembers = ["ADMIN", "MANAGER", "OFFICER"].includes(auth.originalRole);
     const requestedPage = Number(url.searchParams.get("page") ?? "1");
     const page = Number.isSafeInteger(requestedPage) && requestedPage > 0 ? Math.min(requestedPage, 1_000_000) : 1;
     const pageSize = 50;
