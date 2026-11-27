@@ -15,6 +15,8 @@ This document tracks the source-level remediation work associated with the Novem
 - Added Discord interaction timestamp freshness checks and unique interaction receipts to reject stale/replayed attendance interactions.
 - Added atomic PostgreSQL-backed rate limits to member and applicant OCR endpoints.
 - Added bounded streaming multipart parsing, aggregate upload ceilings, image signature/decoder validation, pixel limits, and image normalization for OCR and event-result uploads.
+- Added a hard streaming body ceiling to the public Discord interactions endpoint to prevent unbounded buffering of unauthenticated webhook requests.
+- Added a request-wide decoded-pixel budget for OCR screenshots and sequential normalization to limit decompression-bomb memory amplification.
 - Logout redirects now use the configured `APP_URL` origin rather than forwarded host/protocol headers.
 - CI now runs the full repository lint, production dependency audit, security upload/access-policy tests, and CodeQL analysis.
 
