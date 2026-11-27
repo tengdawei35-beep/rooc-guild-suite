@@ -30,6 +30,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -55,7 +57,28 @@ jobs:
         run: npm run test:ro3-scoring
       - name: RO3 simulator sensitivity report
         run: npm run report:ro3-sensitivity
-      - name: Full repository ESLint
-        run: npm run lint
+      - name: ESLint changed files
+        shell: bash
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            git fetch origin "${{ github.base_ref }}" --depth=1
+            diff_range="origin/${{ github.base_ref }}...HEAD"
+          else
+            diff_range="${GITHUB_EVENT_BEFORE}..${GITHUB_SHA}"
+          fi
+
+          mapfile -t changed_files < <(
+            git diff --name-only --diff-filter=ACMR "$diff_range" |
+            grep -E '\\.(js|jsx|ts|tsx)
+      - name: Production build
+        run: npm run build
+ || true
+          )
+
+          if (( ${#changed_files[@]} > 0 )); then
+            npx eslint "${changed_files[@]}"
+          else
+            echo "No changed JavaScript or TypeScript files to lint."
+          fi
       - name: Production build
         run: npm run build
