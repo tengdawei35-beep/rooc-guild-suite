@@ -223,5 +223,21 @@ For every open issue:
 - The user explicitly deferred individual production browser testing due to time constraints. **Do not mark the native simulator end-to-end workflow as verified.**
 - The following remain **implemented in source but unverified/untested in an authenticated browser session**: attacker/defender profile import, job switching and career-specific selectors, saved-build save/load/delete, legacy build import, talent/pet/card/totem configuration, simulation execution, report generation, and error/empty-state behavior.
 - Automated CI passing is not a substitute for these manual production checks. No live-game formula validation was attempted or required.
-- PR **#166** corrected obsolete native-preview messaging and was merged. PR **#167** corrects a second stale comment in the native engine hook; its CI is pending at this snapshot.
+- PR **#166** corrected obsolete native-preview messaging and was merged. PR **#167** corrected a second stale comment in the native engine hook and merged after CI passed.
 - With simulator browser QA explicitly parked, continue with repository-side Discord integration QA and safe automated billing regression coverage. Keep live Discord permission/role-hierarchy tests and live Stripe lifecycle transactions explicitly **unverified/untested** until a test server or Stripe test environment is available.
+
+
+### QA continuation — Discord and billing (2026-11-27)
+
+#### Discord integration review
+- Source-reviewed the signed interaction endpoint: verifies Ed25519 signatures, checks Discord guild/channel/message against the stored event, enforces the 30-minute attendance lock, resolves an active linked member, verifies the persisted attendance status, and updates the Discord message on a best-effort basis.
+- Source-reviewed the event-management cron: requires the configured bearer `CRON_SECRET` and handles recurring event generation plus attendance, 48-hour, 1-hour and 15-minute reminder windows.
+- The 1-hour and 15-minute messages explicitly request `@everyone`; this still depends on Discord channel/server permissions and has not been verified in a live test guild.
+- **PR #169** merged after CI passed. Subscription-role synchronization now caps concurrent role API requests at five and retries Discord HTTP 429 responses using the returned retry interval (up to four attempts). Existing per-role diagnostics remain.
+- Live Discord checks remain **UNVERIFIED / UNTESTED**: bot installation and permissions, role hierarchy, real role assign/remove, missing-member behavior, reminder delivery, `@everyone` mentions, attendance button responses, and cron timing/retry behavior. No live Discord server action was performed.
+
+#### Billing regression coverage
+- **PR #170** added a pure guild-entitlement resolver and automated regression cases for active-vs-canceled history precedence, expiry warning thresholds, perpetual access, canceled history display, and empty state. It merged after CI passed.
+- This is unit coverage for entitlement resolution only. Stripe checkout, customer portal, webhook signature/event lifecycle, renewals, failed payments, cancellation, past-due recovery, add-on entitlements, and concurrent checkout behavior remain **UNVERIFIED / UNTESTED** in a Stripe test environment.
+- **Issue #163** remains open. Complimentary-to-paid conversion is a product decision and has not been changed in code.
+- No database schema changes or production transactions were made during this QA continuation.
