@@ -89,7 +89,10 @@ export async function POST(request: Request) {
       if (createdGuildId) await syncGuildSubscriptionDiscordRoles(createdGuildId);
     }
     if (event.type === "customer.subscription.created" || event.type === "customer.subscription.updated" || event.type === "customer.subscription.deleted") {
-      const subscription = event.data.object as Stripe.Subscription;
+      // Stripe may deliver subscription events out of order. Fetch the current object
+      // instead of applying a potentially stale event snapshot over newer billing state.
+      const eventSubscription = event.data.object as Stripe.Subscription;
+      const subscription = await stripePaymentProvider.getSubscription(eventSubscription.id) as Stripe.Subscription;
       const item = subscription.items.data[0];
       const common = {
         status: subscriptionStatus(subscription.status),
