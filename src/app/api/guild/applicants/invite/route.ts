@@ -11,7 +11,7 @@ function forbidden() {
 export async function GET() {
   const auth = await getCurrentAuth();
   if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
-  if (!hasPermission(auth.role, "applicants.view")) return forbidden();
+  if (!hasPermission(auth.originalRole, "applicants.view")) return forbidden();
 
   const invites = await prisma.applicantInvite.findMany({
     where: { guildId: auth.guild.id },
