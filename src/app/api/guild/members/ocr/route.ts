@@ -6,6 +6,7 @@ import { readRO3Stats } from "@/lib/ocr/ro3-stats";
 import { prisma } from "@/lib/prisma";
 import { consumeRateLimit } from "@/lib/security/rate-limit";
 import { normalizeOcrImage } from "@/lib/security/ocr-image";
+import { readMultipartFormData, RequestBodyTooLargeError } from "@/lib/security/multipart";
 
 export const runtime = "nodejs";
 
@@ -26,7 +27,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const formData = await request.formData();
+    const formData = await readMultipartFormData(request, MAX_REQUEST_BYTES);
     const memberIdValue = formData.get("memberId");
     const memberId = typeof memberIdValue === "string" ? memberIdValue : null;
 
@@ -76,6 +77,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("[MEMBER OCR] Failed to read screenshots:", error);
     const message = error instanceof Error ? error.message : "OCR failed.";
+    if (error instanceof RequestBodyTooLargeError) return NextResponse.json({ error: message }, { status: 413 });
     const validationError = /image|dimensions|format|unsupported|invalid/i.test(message);
     return NextResponse.json({ error: message }, { status: validationError ? 400 : 500 });
   }
