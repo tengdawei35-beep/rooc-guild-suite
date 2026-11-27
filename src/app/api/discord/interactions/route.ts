@@ -44,13 +44,32 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid Discord request signature." }, { status: 401 });
   }
 
-  let interaction: any;
-  try { interaction = JSON.parse(rawBody); } catch { return NextResponse.json({ error: "Invalid interaction payload." }, { status: 400 }); }
+  type DiscordInteraction = {
+    id?: unknown;
+    type?: unknown;
+    data?: { custom_id?: unknown };
+    member?: { user?: { id?: unknown } };
+    user?: { id?: unknown };
+    guild_id?: unknown;
+    channel_id?: unknown;
+    message?: { id?: unknown };
+  };
+  let interaction: DiscordInteraction;
+  try {
+    const parsed: unknown = JSON.parse(rawBody);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return NextResponse.json({ error: "Invalid interaction payload." }, { status: 400 });
+    }
+    interaction = parsed as DiscordInteraction;
+  } catch {
+    return NextResponse.json({ error: "Invalid interaction payload." }, { status: 400 });
+  }
   if (interaction.type === 1) return NextResponse.json({ type: 1 });
   if (interaction.type !== 3 || typeof interaction.data?.custom_id !== "string") return ephemeral("This HMDL interaction is not supported.");
 
-  const [prefix, eventId, status] = interaction.data.custom_id.split(":");
-  if (prefix !== "att" || !eventId || !["AVAILABLE", "UNAVAILABLE", "AFK_BUSY"].includes(status)) return ephemeral("This attendance button is invalid.");
+  const [prefix, eventId, statusValue] = interaction.data.custom_id.split(":");
+  if (prefix !== "att" || !eventId || !["AVAILABLE", "UNAVAILABLE", "AFK_BUSY"].includes(statusValue)) return ephemeral("This attendance button is invalid.");
+  const status = statusValue as "AVAILABLE" | "UNAVAILABLE" | "AFK_BUSY";
 
   if (typeof interaction.id !== "string" || !/^\d{17,20}$/.test(interaction.id)) return ephemeral("This attendance interaction is invalid.");
   const discordUserId = interaction.member?.user?.id || interaction.user?.id;
