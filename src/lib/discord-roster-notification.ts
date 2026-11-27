@@ -93,7 +93,7 @@ function buildRosterSvg(input: {
   </svg>`;
 }
 
-let sharpWithBundledFonts: Promise<typeof import("sharp")> | undefined;
+let sharpWithBundledFonts: Promise<typeof import("sharp").default> | undefined;
 
 async function getSharpWithBundledFonts() {
   if (!sharpWithBundledFonts) {
@@ -117,7 +117,7 @@ async function getSharpWithBundledFonts() {
       );
       process.env.FONTCONFIG_FILE = configPath;
       const sharpModule = await import("sharp");
-      return sharpModule.default as unknown as typeof import("sharp");
+      return sharpModule.default;
     })();
   }
   return sharpWithBundledFonts;
