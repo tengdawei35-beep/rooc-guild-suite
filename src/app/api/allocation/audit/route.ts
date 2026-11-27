@@ -62,7 +62,7 @@ export async function GET() {
     if (!auth) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
     if (!(await isRoocGuild(auth.guild.id))) return NextResponse.json({ error: "The legacy resource allocation system is currently available to ROOC guilds only." }, { status: 409 });
     if (!(await hasGuildModule(auth.guild.id, RESOURCE_SUITE_MODULE))) return NextResponse.json({ error: "The Resource Suite is not subscribed for this guild." }, { status: 403 });
-    if (!hasPermission(auth.role, "allocation.run")) return NextResponse.json({ error: "You do not have permission to audit allocations." }, { status: 403 });
+    if (!hasPermission(auth.role, "allocation.view")) return NextResponse.json({ error: "You do not have permission to audit allocations." }, { status: 403 });
 
     const guild = await prisma.guild.findUnique({
       where: { id: auth.guild.id },
