@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import sharp from "sharp";
-import { normalizeOcrImage } from "../src/lib/security/ocr-image";
-import { readMultipartFormData, RequestBodyTooLargeError } from "../src/lib/security/multipart";
+import { normalizeOcrImage, normalizeOcrImages } from "../src/lib/security/ocr-image";
+import { readBoundedRequestText, readMultipartFormData, RequestBodyTooLargeError } from "../src/lib/security/multipart";
 import { hasPermission } from "../src/lib/permissions";
 
 test("multipart reader parses a bounded form upload", async () => {
@@ -54,4 +54,28 @@ test("expired guilds retain only their original role's read permissions", () => 
   assert.equal(hasPermission("READ_ONLY_ADMIN", "events.manage"), false);
   assert.equal(hasPermission("READ_ONLY_ADMIN", "leave.manageOwn"), false);
   assert.equal(hasPermission("READ_ONLY_ADMIN", "users.manage"), false);
+});
+
+
+test("bounded request reader accepts small webhook payloads", async () => {
+  const request = new Request("https://example.test/webhook", { method: "POST", body: "{\\"type\\":1}" });
+  assert.equal(await readBoundedRequestText(request, 64), "{\\"type\\":1}");
+});
+
+test("bounded request reader rejects oversized webhook payloads", async () => {
+  const request = new Request("https://example.test/webhook", { method: "POST", body: "x".repeat(1024) });
+  await assert.rejects(
+    () => readBoundedRequestText(request, 128),
+    (error: unknown) => error instanceof RequestBodyTooLargeError,
+  );
+});
+
+test("OCR normalization enforces an aggregate decoded pixel budget", async () => {
+  const png = await sharp({
+    create: { width: 32, height: 24, channels: 3, background: { r: 10, g: 20, b: 30 } },
+  }).png().toBuffer();
+  await assert.rejects(
+    () => normalizeOcrImages([png, png], 1000),
+    /Combined screenshot dimensions exceed/,
+  );
 });
