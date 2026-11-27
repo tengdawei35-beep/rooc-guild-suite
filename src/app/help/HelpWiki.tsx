@@ -64,16 +64,17 @@ function SectionCard({ section }: { section: Section }) {
 }
 
 export default function HelpWiki({ role, isPlatformAdmin }: { role: UserRole; isPlatformAdmin: boolean }) {
-  const initialTab = role === "MEMBER" || role.startsWith("READ_ONLY_MEMBER") ? "members" : role === "OFFICER" || role.startsWith("READ_ONLY_OFFICER") ? "managers" : "admins";
+  const initialTab = role === "ADMIN" || role.startsWith("READ_ONLY_ADMIN") || isPlatformAdmin ? "admins" : role === "MEMBER" || role.startsWith("READ_ONLY_MEMBER") ? "members" : "managers";
   const [tab, setTab] = useState<"admins" | "managers" | "members">(initialTab);
   const [query, setQuery] = useState("");
   const visibleTabs = (["admins", "managers", "members"] as const).filter(key => key !== "admins" || role === "ADMIN" || role.startsWith("READ_ONLY_ADMIN") || isPlatformAdmin);
   const guide = guides[tab];
+  const roleSections = tab === "admins" && !isPlatformAdmin ? guide.sections.filter(section => section.title !== "Platform administration") : guide.sections;
   const sections = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    if (!needle) return guide.sections;
-    return guide.sections.filter(section => [section.title, section.intro, ...section.steps, section.example ?? "", ...(section.links ?? []).map(link => link.label)].join(" ").toLowerCase().includes(needle));
-  }, [guide, query]);
+    if (!needle) return roleSections;
+    return roleSections.filter(section => [section.title, section.intro, ...section.steps, section.example ?? "", ...(section.links ?? []).map(link => link.label)].join(" ").toLowerCase().includes(needle));
+  }, [guide, query, roleSections]);
 
   return (
     <main className="hmdl-management min-h-screen bg-zinc-950 text-white">
