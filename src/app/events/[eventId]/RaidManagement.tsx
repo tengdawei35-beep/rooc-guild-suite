@@ -48,7 +48,10 @@ export default function RaidManagement({ eventId, rosterId, canEdit }: { eventId
     }
   }
 
-  useEffect(() => { load(); }, [eventId]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void load(); }, 0);
+    return () => window.clearTimeout(timer);
+  }, [eventId]);
 
   const partyMap = useMemo(() => {
     const map = new Map<string, Party>();
@@ -218,7 +221,7 @@ export default function RaidManagement({ eventId, rosterId, canEdit }: { eventId
     finally { setSaving(false); }
   }
 
-  if (loading) return <div className="mt-5 rounded-xl border border-zinc-800 bg-zinc-900 px-5 py-4 text-sm text-zinc-600">Loading raids...</div>;
+  if (loading) return <div className="mt-2 px-3 py-2 text-xs text-zinc-600">Loading raid settings…</div>;
   if (!data) return null;
 
   const currentRoster = data.rosters.find(
@@ -243,13 +246,13 @@ export default function RaidManagement({ eventId, rosterId, canEdit }: { eventId
     }));
 
   return (
-    <div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h3 className="font-semibold">Raids</h3>
-          <p className="mt-1 text-sm text-zinc-600">Group this roster's parties into larger raid groups.</p>
-        </div>
-      </div>
+    <details className="group mt-2 rounded-lg border border-zinc-800/80 bg-zinc-950/40">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2 text-xs">
+        <span className="font-medium text-zinc-300">Raids <span className="ml-2 text-zinc-500">{data.raids.length} configured · {ungrouped.length} unassigned parties</span></span>
+        <span className="text-zinc-500 transition group-open:rotate-180">⌄</span>
+      </summary>
+      <div className="border-t border-zinc-800 p-3">
+        <p className="text-xs text-zinc-500">Group this roster&apos;s parties into larger raid groups.</p>
 
       {error && <div className="mt-4 rounded-lg border border-red-900 bg-red-950/40 px-4 py-3 text-sm text-red-400">{error}</div>}
 
@@ -325,6 +328,7 @@ export default function RaidManagement({ eventId, rosterId, canEdit }: { eventId
           {ungrouped.length === 0 && <p className="mt-3 text-xs text-zinc-700">All roster parties are currently assigned to a raid.</p>}
         </div>
       )}
-    </div>
+      </div>
+    </details>
   );
 }

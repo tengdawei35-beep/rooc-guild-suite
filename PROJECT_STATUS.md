@@ -179,3 +179,38 @@ At the start of a new implementation session:
 - **2026-11-26:** Extended the seeded full-build fixture to multiple gear grids/card sockets with actual engine-resolved affix and stunt pools; regression tests passed in run [#45805317314](https://github.com/tengdawei35-beep/rooc-guild-suite/actions/runs/45805317314) while full CI validation continued. Migration documentation updated in PR #144.
 
 - **2026-11-26:** Added Collection flash, multi-pet/assist and cyclic rotation/backswing coverage to the seeded legacy-import fixture. Run [#45806056154](https://github.com/tengdawei35-beep/rooc-guild-suite/actions/runs/45806056154) passed full CI; run [#45806246782](https://github.com/tengdawei35-beep/rooc-guild-suite/actions/runs/45806246782) passed combat regression tests, Prisma generation/migrations, TypeScript and ESLint while production build was running. Documentation updated in PR #144.
+
+
+## Event detail page compact layout — PR #186
+
+**Status:** Implementation opened for review; validation running.  
+**Branch:** `ui/compact-event-detail-layout`  
+**PR:** https://github.com/tengdawei35-beep/rooc-guild-suite/pull/186
+
+### Implemented
+
+- Removed the `← Events` link from loading, error, and loaded states. The event detail page has no back-navigation control.
+- Tightened the event header, event title spacing, and action toolbar.
+- Combined event rules and guild/availability/roster counts into a compact metadata strip.
+- Reworked attendance into a compact row of response controls and counts. Preserved response locking, own-response state, polling, and expandable/paginated member responses.
+- Reduced roster card and battlefield spacing. First roster is expanded by default; additional rosters can be collapsed. Editing automatically expands its roster. Slot rows retain their existing minimum height and interaction targets.
+- Changed each roster's raid controls to a collapsed disclosure with raid and unassigned-party counts.
+- Changed allocation history to a collapsed disclosure.
+- Moved Event Results below roster/allocation operations and collapsed the screenshot uploader/gallery by default.
+- No API, business logic, or database schema changes intended.
+
+### Validation
+
+- PR #186 opened against `main`.
+- GitHub Actions CI run: `46077771383` — in progress at the time of this update.
+- CodeQL run: `46077771409` — in progress at the time of this update.
+- Do not merge or deploy until CI/CodeQL pass and the page is reviewed at desktop and mobile widths.
+
+### Review notes
+
+- Verify the compact resource-pool selector from PR #185 remains visible and usable in the Event Rules area on RO3 custom events.
+- Verify roster expand/collapse and edit interactions, especially after a roster refresh.
+- Verify raid highlighting still locates PartyCard elements after the spacing class changes.
+- Verify Event Results upload and image preview interactions inside the disclosure.
+- UI-only; no migration expected.
+
