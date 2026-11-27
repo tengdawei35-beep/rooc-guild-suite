@@ -95,18 +95,28 @@ async function hasActiveSubscription(guildId: string) {
   return subscription !== null;
 }
 
-/** Returns authenticated session + guild membership without requiring billing entitlement. */
+/**
+ * Returns authenticated membership while preserving read access after expiry.
+ * Expired guilds receive an effective READ_ONLY role; both the top-level role
+ * and membership role are downgraded so route handlers cannot accidentally
+ * authorize writes by inspecting either field.
+ */
 export async function getCurrentAuth() {
   const membership = await getCurrentMembership();
   if (!membership) return null;
-  return { user: membership.user, guild: membership.guild, membership, role: membership.role };
+  const subscriptionActive = await hasActiveSubscription(membership.guild.id);
+  const role = subscriptionActive ? membership.role : "READ_ONLY";
+  const effectiveMembership = subscriptionActive
+    ? membership
+    : { ...membership, role: "READ_ONLY" as typeof membership.role };
+  return { user: membership.user, guild: membership.guild, membership: effectiveMembership, role, subscriptionActive };
 }
 
 /** API/business-operation authentication: requires an active subscription. */
 export async function requireAuth() {
   const auth = await getCurrentAuth();
   if (!auth) throw new Error("UNAUTHORIZED");
-  if (!(await hasActiveSubscription(auth.guild.id))) throw new Error("SUBSCRIPTION_INACTIVE");
+  if (!auth.subscriptionActive) throw new Error("SUBSCRIPTION_INACTIVE");
   return auth;
 }
 
