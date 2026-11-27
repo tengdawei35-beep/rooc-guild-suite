@@ -67,6 +67,15 @@ export async function readRO3Stats(
   if (images.length > 12) throw new Error("A maximum of 12 screenshots can be read at once.");
 
   const worker = await createWorker("eng", 1);
+  let workerTerminated = false;
+  const terminateWorker = async () => {
+    if (workerTerminated) return;
+    workerTerminated = true;
+    await worker.terminate();
+  };
+  const timeout = setTimeout(() => {
+    void terminateWorker().catch((error) => console.error("[RO3 OCR] Worker timeout termination failed:", error));
+  }, 120_000);
   try {
     const texts: string[] = [];
     for (const image of images) {
@@ -97,6 +106,7 @@ export async function readRO3Stats(
     const rawText = texts.join("\n");
     return { stats: parseLines(rawText), rawText };
   } finally {
-    await worker.terminate();
+    clearTimeout(timeout);
+    await terminateWorker();
   }
 }
