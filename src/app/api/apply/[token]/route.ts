@@ -6,6 +6,12 @@ import { hasActiveGuildSubscription } from "@/lib/auth";
 import { scoreRooPlayers } from "@/lib/scoring/roo-scoring";
 import { RO3_JOBS, ROOC_JOBS } from "@/lib/constants/jobs";
 import { RO3_STAT_KEYS } from "@/lib/constants/ro3-stats";
+import { consumeRateLimit } from "@/lib/security/rate-limit";
+import { readBoundedRequestText, RequestBodyTooLargeError } from "@/lib/security/multipart";
+
+const MAX_APPLICATION_BODY_BYTES = 64 * 1024;
+const APPLICATION_RATE_LIMIT = 10;
+const APPLICATION_RATE_WINDOW_MS = 15 * 60 * 1000;
 
 const STAT_FIELDS = [
   "pdef", "mdef", "pvpDamageBonus", "pvpDamageReduction", "pdmgPercent", "mdmgPercent",
@@ -46,9 +52,27 @@ export async function POST(request: Request, context: { params: Promise<{ token:
   const existingMember = await prisma.guildMember.findFirst({ where: { guildId: invite.guildId, discordUserId: user.discordId }, select: { id: true } });
   if (existingMember) return NextResponse.json({ error: "You are already a member of this guild." }, { status: 409 });
 
+  if (!(await consumeRateLimit("applicant-submission", user.id, APPLICATION_RATE_LIMIT, APPLICATION_RATE_WINDOW_MS))) {
+    return NextResponse.json({ error: "Too many application attempts. Please try again later." }, { status: 429 });
+  }
+
+  let body: Record<string, unknown>;
+  try {
+    const rawBody = await readBoundedRequestText(request, MAX_APPLICATION_BODY_BYTES);
+    const parsed: unknown = JSON.parse(rawBody);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return NextResponse.json({ error: "Invalid application payload." }, { status: 400 });
+    }
+    body = parsed as Record<string, unknown>;
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return NextResponse.json({ error: "Application payload is too large." }, { status: 413 });
+    }
+    return NextResponse.json({ error: "Invalid application payload." }, { status: 400 });
+  }
+
   const guild = await prisma.guild.findUnique({ where: { id: invite.guildId }, select: { gameType: true } });
   const isRO3 = guild?.gameType === "RO3";
-  const body = (await request.json()) as Record<string, unknown>;
   const characterName = String(body.characterName ?? "").trim();
   const job = String(body.job ?? "").trim();
   const normalizedCharacterName = characterName.toLocaleLowerCase();
