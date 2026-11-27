@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { createHmac, timingSafeEqual } from "crypto";
 import { prisma } from "@/lib/prisma";
-import type { UserRole } from "@/lib/permissions";
+import type { BaseUserRole } from "@/lib/permissions";
 
 const COOKIE = "rooc_admin_impersonation";
 const MAX_DURATION_MS = 30 * 60 * 1000;
@@ -36,7 +36,7 @@ export async function getActiveImpersonation() {
   if (!session || session.adminUserId !== payload.adminUserId || session.endedAt || session.expiresAt.getTime() <= Date.now()) return null;
   return session;
 }
-export async function startImpersonation(input: { adminUserId: string; targetUserId: string; guildId: string; role: UserRole; mode: "USER" | "ROLE" }) {
+export async function startImpersonation(input: { adminUserId: string; targetUserId: string; guildId: string; role: BaseUserRole; mode: "USER" | "ROLE" }) {
   const expiresAt = new Date(Date.now() + MAX_DURATION_MS);
   const session = await prisma.adminImpersonationSession.create({ data: { ...input, expiresAt } });
   await prisma.adminImpersonationAuditLog.create({ data: {
@@ -57,6 +57,6 @@ export async function stopImpersonation(reason = "ADMIN_EXIT") {
   (await cookies()).set(COOKIE, "", { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 0 });
 }
 export function getImpersonationCookieName() { return COOKIE; }
-export function isImpersonationRole(value: unknown): value is UserRole {
+export function isImpersonationRole(value: unknown): value is BaseUserRole {
   return value === "ADMIN" || value === "MANAGER" || value === "OFFICER" || value === "MEMBER";
 }
