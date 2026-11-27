@@ -69,7 +69,14 @@ jobs:
 
           mapfile -t changed_files < <(
             git diff --name-only --diff-filter=ACMR "$diff_range" |
-            grep -E '\\.(js|jsx|ts|tsx)
+            grep -E '[.]((js)|(jsx)|(ts)|(tsx))$' || true
+          )
+
+          if (( ${#changed_files[@]} > 0 )); then
+            npx eslint "${changed_files[@]}"
+          else
+            echo "No changed JavaScript or TypeScript files to lint."
+          fi
       - name: Production build
         run: npm run build
  || true
