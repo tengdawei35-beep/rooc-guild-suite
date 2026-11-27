@@ -9,14 +9,18 @@ export const USER_ROLES = [
   "MEMBER",
 ] as const;
 
-export type UserRole = (typeof USER_ROLES)[number] | "READ_ONLY";
+export type BaseUserRole = (typeof USER_ROLES)[number];
+export type UserRole = BaseUserRole | `READ_ONLY_${BaseUserRole}`;
 
 export const ROLE_LABELS: Record<UserRole, string> = {
   ADMIN: "Admin",
   MANAGER: "Manager",
   OFFICER: "Officer",
   MEMBER: "Member",
-  READ_ONLY: "Read only",
+  READ_ONLY_ADMIN: "Read only",
+  READ_ONLY_MANAGER: "Read only",
+  READ_ONLY_OFFICER: "Read only",
+  READ_ONLY_MEMBER: "Read only",
 };
 
 export const ROLE_DESCRIPTIONS: Record<UserRole, string> = {
@@ -24,7 +28,10 @@ export const ROLE_DESCRIPTIONS: Record<UserRole, string> = {
   MANAGER: "Manage guild members, users, events, rosters and allocation.",
   OFFICER: "Manage guild members, events, rosters and allocation operations.",
   MEMBER: "View guild data and edit their own profile.",
-  READ_ONLY: "View existing guild data. Changes are disabled until the subscription is renewed.",
+  READ_ONLY_ADMIN: "View existing guild data. Changes are disabled until the subscription is renewed.",
+  READ_ONLY_MANAGER: "View existing guild data. Changes are disabled until the subscription is renewed.",
+  READ_ONLY_OFFICER: "View existing guild data. Changes are disabled until the subscription is renewed.",
+  READ_ONLY_MEMBER: "View existing guild data. Changes are disabled until the subscription is renewed.",
 };
 
 export type Permission =
@@ -48,7 +55,10 @@ export type Permission =
   | "applicants.manage";
 
 export function hasPermission(role: UserRole, permission: Permission): boolean {
-  if (role === "READ_ONLY") return ["members.view", "events.view", "rosters.view"].includes(permission);
+  if (role.startsWith("READ_ONLY_")) {
+    const originalRole = role.slice("READ_ONLY_".length) as BaseUserRole;
+    return permission.endsWith(".view") && hasPermission(originalRole, permission);
+  }
   if (role === "ADMIN") return true;
 
   if (role === "MANAGER") {
@@ -107,7 +117,10 @@ export const ROLE_LEVEL: Record<UserRole, number> = {
   MANAGER: 3,
   OFFICER: 2,
   MEMBER: 1,
-  READ_ONLY: 0,
+  READ_ONLY_ADMIN: 0,
+  READ_ONLY_MANAGER: 0,
+  READ_ONLY_OFFICER: 0,
+  READ_ONLY_MEMBER: 0,
 };
 
 export function canManageTarget(
