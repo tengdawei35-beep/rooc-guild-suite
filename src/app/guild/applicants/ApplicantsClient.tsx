@@ -88,7 +88,10 @@ export default function ApplicantsClient({ canManage }: { canManage: boolean }) 
     finally { setLoading(false); }
   }
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => {
+    const timeout = window.setTimeout(() => { void load(); }, 0);
+    return () => window.clearTimeout(timeout);
+  }, []);
 
   async function generateInvite() {
     setBusy(true); setError("");
@@ -156,7 +159,7 @@ export default function ApplicantsClient({ canManage }: { canManage: boolean }) 
           <h1 className="hmdl-page-title">Applicants</h1>
           <p>Review pending {gameType} applications, compare character strength and manage recruitment decisions. Accepted and denied applications are automatically removed from this queue.</p>
         </div>
-        {canManage && <button onClick={generateInvite} disabled={busy} className="hmdl-btn hmdl-btn-primary">{busy ? "Working…" : "＋ Generate application link"}</button>}
+        {canManage && activeInvites.length === 0 && <button onClick={generateInvite} disabled={busy} className="hmdl-btn hmdl-btn-primary">{busy ? "Working…" : "＋ Generate application link"}</button>}
       </header>
 
       {error && <p role="alert" className="hmdl-recruitment-error">{error}</p>}
