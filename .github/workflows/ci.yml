@@ -9,7 +9,7 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     services:
       postgres:
         image: postgres:16
@@ -37,6 +37,8 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
+      - name: Production dependency vulnerability audit
+        run: npm audit --omit=dev --audit-level=high
       - name: Combat engine regression tests
         run: npm run test:combat-engine
       - name: Billing entitlement regression tests
@@ -51,7 +53,7 @@ jobs:
         run: npm run test:ro3-scoring
       - name: RO3 simulator sensitivity report
         run: npm run report:ro3-sensitivity
-      - name: ESLint
-        run: npx eslint "src/app/api/apply/[token]/route.ts" "src/app/api/apply/[token]/ocr/route.ts" "src/app/api/guild/applicants/route.ts" "src/app/api/guild/members/route.ts" "src/app/api/guild/members/[memberId]/route.ts" "src/app/api/guild/members/ocr/route.ts" "src/app/apply/[token]/ApplicantApplyClient.tsx" "src/lib/ocr/ro3-stats.ts"
+      - name: Full repository ESLint
+        run: npm run lint
       - name: Production build
         run: npm run build
