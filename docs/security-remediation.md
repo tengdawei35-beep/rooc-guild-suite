@@ -13,8 +13,8 @@ This document tracks the source-level remediation work associated with the Novem
 - Added explicit inactive-subscription guards to self-service mutations that do not use normal role permissions: event attendance, RO3 opt-ins, Call To Arms actions, ownership transfer, Discord attendance interactions, and applicant submissions.
 - Added database-backed session-version revocation for guild, platform, and applicant sessions. Logging out increments the user's session version and invalidates previously issued tokens.
 - Added Discord interaction timestamp freshness checks and unique interaction receipts to reject stale/replayed attendance interactions.
-- Added atomic PostgreSQL-backed rate limits to member and applicant OCR endpoints.
-- Added bounded streaming multipart parsing, aggregate upload ceilings, image signature/decoder validation, pixel limits, and image normalization for OCR and event-result uploads.
+- Added atomic PostgreSQL-backed rate limits to member and applicant OCR endpoints, plus applicant submission throttling (10 attempts per 15 minutes per authenticated applicant).
+- Added bounded streaming multipart parsing, aggregate upload ceilings, image signature/decoder validation, pixel limits, and image normalization for OCR and event-result uploads. Applicant JSON submissions are also capped at 64 KiB.
 - Added hard streaming body ceilings to the public Discord interactions and Stripe billing webhook endpoints to prevent unbounded buffering of unauthenticated webhook requests (256 KiB and 1 MiB respectively).
 - Added a request-wide decoded-pixel budget for OCR screenshots and sequential normalization to limit decompression-bomb memory amplification.
 - Logout redirects now use the configured `APP_URL` origin rather than forwarded host/protocol headers.
