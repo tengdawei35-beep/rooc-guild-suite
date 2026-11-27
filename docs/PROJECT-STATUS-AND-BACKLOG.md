@@ -241,3 +241,14 @@ For every open issue:
 - This is unit coverage for entitlement resolution only. Stripe checkout, customer portal, webhook signature/event lifecycle, renewals, failed payments, cancellation, past-due recovery, add-on entitlements, and concurrent checkout behavior remain **UNVERIFIED / UNTESTED** in a Stripe test environment.
 - **Issue #163** remains open. Complimentary-to-paid conversion is a product decision and has not been changed in code.
 - No database schema changes or production transactions were made during this QA continuation.
+
+### QA continuation — admin and billing hardening (2026-11-27)
+
+- **PR #172** merged: added accessible labels and contextual names to Guild Creators admin controls, exposed toggle state, and announced errors. This was a source-level improvement only; keyboard, screen-reader and visual browser QA remain **UNVERIFIED / UNTESTED**.
+- **PR #174** merged after full CI passed: removed plan/module upserts from the `/admin/guild-creators` page render. The page now reads active plans without mutating the database during a GET/render. The existing `prisma/seed.ts` remains the controlled plan provisioning path and requires the configured Stripe price IDs; no seed command or production database write was run during this work. If the plan catalog is empty, complimentary grant options will be unavailable until plans are provisioned.
+- **PR #175** merged after full CI passed: made base guild checkout webhook processing idempotent by resolving an existing `GuildSubscription` using Stripe's subscription ID before attempting guild creation. Duplicate `checkout.session.completed` deliveries now reuse the existing guild ID and can retry downstream affiliate/Discord synchronization without trying to create the guild again.
+- Automated CI for #174 and #175 passed: combat-engine tests, billing entitlement tests, Prisma generation/migration checks, TypeScript, scoring tests, ESLint and production build.
+- Latest `main` commit: `af3327c2463a86e654cf56c3afda1f0a5bde62a1`. Vercel deployment status was still pending at the time of this update; do not claim the latest changes are deployed until that status succeeds.
+- No production database writes, migrations, Stripe transactions, or live Discord actions were performed as part of these changes.
+- Stripe checkout/portal/webhook lifecycle behavior remains **UNVERIFIED / UNTESTED** in a Stripe test environment. The new webhook change has automated CI coverage but no simulated Stripe event replay test.
+- Issue #163 remains open for the complimentary-to-paid conversion product decision; no behavior change was made there.
