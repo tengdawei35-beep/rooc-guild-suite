@@ -39,6 +39,8 @@ jobs:
         run: npm ci
       - name: Production dependency vulnerability audit
         run: npm audit --omit=dev --audit-level=high
+      - name: Security upload validation tests
+        run: npm run test:security
       - name: Combat engine regression tests
         run: npm run test:combat-engine
       - name: Billing entitlement regression tests
