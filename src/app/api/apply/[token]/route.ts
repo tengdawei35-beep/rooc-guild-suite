@@ -95,7 +95,7 @@ export async function POST(request: Request, context: { params: Promise<{ token:
     try {
       ro3Stats = Object.fromEntries(RO3_STAT_KEYS.map((key) => [key, cleanRO3Number(body[key], key)]));
       const missingStats = RO3_STAT_KEYS.filter((key) => ro3Stats[key] === null);
-      if (missingStats.length) {
+      if (missingStats.length && !isCasual) {
         return NextResponse.json({ error: `All RO3 stats are required. Missing: ${missingStats.join(", ")}.` }, { status: 400 });
       }
     } catch (error) {
