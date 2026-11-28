@@ -29,7 +29,8 @@ export default async function ApplicantApplyPage({ params }: { params: Promise<{
     return <main className="hmdl-applicant-portal min-h-screen bg-zinc-950 p-6 text-white"><div className="hmdl-page mx-auto max-w-xl rounded-2xl border border-zinc-800 bg-zinc-900 p-8"><img src={HMDL_MARK} alt="HMDL — Heimdall" className="mb-5 h-20 w-20 object-contain" /><h1 className="text-2xl font-bold">Application link unavailable</h1><p className="mt-3 text-zinc-400">This guild application link is invalid or has been revoked.</p></div></main>;
   }
 
-  const guild = await prisma.guild.findUnique({ where: { id: invite.guildId }, select: { name: true, gameType: true } });
+  const guild = await prisma.guild.findUnique({ where: { id: invite.guildId }, select: { name: true, gameType: true, subscriptions: { where: { status: { in: ["ACTIVE", "TRIALING"] }, OR: [{ currentPeriodEnd: null }, { currentPeriodEnd: { gt: new Date() } }] }, orderBy: { createdAt: "desc" }, take: 1, select: { plan: { select: { name: true } } } } } });
+  const isCasual = guild?.subscriptions[0]?.plan.name.toLowerCase() === "casual";
   const session = await getApplicantSession();
   const user = session ? await prisma.user.findUnique({ where: { id: session.userId } }) : null;
 
@@ -56,6 +57,7 @@ export default async function ApplicantApplyPage({ params }: { params: Promise<{
     guildId={invite.guildId}
     guildName={guild?.name ?? "this guild"}
     gameType={guild?.gameType === "RO3" ? "RO3" : "ROOC"}
+    isCasual={isCasual}
     discordUserId={user.discordId}
     discordUsername={user.username}
     existingApplication={existing ? {
