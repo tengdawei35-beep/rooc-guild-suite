@@ -81,12 +81,22 @@ export function useCombatSimulatorEngine() {
             return {id,name:String(name ?? `Totem skill ${index+1}`)};
           }),
         });
+        const petFactionNames: Record<number, string> = { 1: "Destiny", 2: "Growth", 3: "Order", 4: "Perception" };
+        const petQualityNames: Record<number, string> = { 3: "B", 4: "A", 5: "S" };
+        const getPetGrowthName = (growth: any, growthId: number) => {
+          if (!growth) return `Unknown growth group ${growthId}`;
+          // Match the legacy simulator's PetGrowth labels: quality rank + faction.
+          // PetGrowth rows do not provide a reliable display-name field.
+          const quality = petQualityNames[Number(growth.q)];
+          const faction = petFactionNames[Number(growth.camp)];
+          return quality && faction ? `${quality} · ${faction}` : `Unknown growth group ${growthId}`;
+        };
         setPetOptions(Object.values(store.table("PetDigest")).map((row) => {
           const id = Number(row._iID);
           const growthId = Number(row.g);
           const growth = store.row("PetGrowth", growthId);
           const configuredPetName = [row.name, row.petName, row._sName, row._sPetName].find((value) => typeof value === "string" && value.trim());
-          const growthName = String(growth?.name ?? "Pet " + id);
+          const growthName = getPetGrowthName(growth, growthId);
           // PetDigest.main/pas are skill payloads; never use their skill names as pet labels.
           return { id, growthId, name: String(configuredPetName ?? growthName), growthName, maxLevel: Number(store.row("PetRules", 1)?.maxLv ?? 100) };
         }).filter((pet) => Number.isFinite(pet.id) && pet.id > 0 && Number.isFinite(pet.growthId) && pet.growthId > 0).sort((a, b) => a.name.localeCompare(b.name)));
