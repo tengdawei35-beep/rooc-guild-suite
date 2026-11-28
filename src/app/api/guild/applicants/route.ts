@@ -191,7 +191,7 @@ export async function POST(request: Request) {
       guildId: auth.guild.id, userId, discordUserId: currentApplicant.discordUserId,
       discordUsername: currentApplicant.discordUsername?.trim() || null,
       characterName: currentCharacterName, job: currentJob, active: true, eligible: true,
-      ro3Stats: gameType === "RO3" ? currentApplicant.ro3Stats as Prisma.InputJsonValue : Prisma.DbNull,
+      ro3Stats: gameType === "RO3" && currentApplicant.ro3Stats != null ? currentApplicant.ro3Stats as Prisma.InputJsonValue : Prisma.DbNull,
       pdef: gameType === "ROOC" ? currentApplicant.pdef : null,
       mdef: gameType === "ROOC" ? currentApplicant.mdef : null,
       pvpDamageBonus: gameType === "ROOC" ? currentApplicant.pvpDamageBonus : null,
