@@ -44,15 +44,30 @@ export async function GET() {
   if (!hasPermission(auth.originalRole, "applicants.view")) return forbidden();
   // Load the guild roster once. Previously this query ran once per applicant,
   // multiplying database work and delaying the entire response.
-  const [guild, applicants, members] = await Promise.all([
+  const [guild, applicants, members, activeSubscription] = await Promise.all([
     prisma.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true } }),
     prisma.guildApplicant.findMany({ where: { guildId: auth.guild.id, status: "PENDING" } }),
     getActiveGuildMembers(auth.guild.id),
+    prisma.guildSubscription.findFirst({
+      where: {
+        guildId: auth.guild.id,
+        status: { in: ["ACTIVE", "TRIALING"] },
+        OR: [
+          { currentPeriodEnd: null },
+          { currentPeriodEnd: { gt: new Date() } },
+        ],
+      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      select: { plan: { select: { name: true } } },
+    }),
   ]);
   const gameType = guild?.gameType === "RO3" ? "RO3" : "ROOC";
+  const isCasual = activeSubscription?.plan.name.toLowerCase() === "casual";
   const rankedApplicants = applicants.map((applicant) => ({
     ...applicant,
-    comparison: gameType === "ROOC" ? buildComparison(applicant, members) : null,
+    // Casual applications may intentionally omit stats. Do not calculate or
+    // display misleading zero-valued ROOC comparisons for those applicants.
+    comparison: gameType === "ROOC" && !isCasual ? buildComparison(applicant, members) : null,
   }));
 
   const statusOrder = { PENDING: 0, ACCEPTED: 1, DENIED: 2 } as const;
