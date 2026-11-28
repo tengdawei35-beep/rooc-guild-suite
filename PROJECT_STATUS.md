@@ -214,3 +214,32 @@ At the start of a new implementation session:
 - Verify Event Results upload and image preview interactions inside the disclosure.
 - UI-only; no migration expected.
 
+## Casual plan — 2026-11-28
+
+**Branch:** `feat/casual-plan-199`  
+**PR:** #193 (draft; do not merge without explicit approval)  
+**Price:** USD $1.99/month only. No discounts or alternate billing terms.
+
+### Implemented in this branch
+- Casual plan catalog migration adds the plan at 199 cents/month with CORE only.
+- Checkout enforces monthly billing and excludes launch and affiliate discounts.
+- Casual recruitment accepts character name and job without mandatory stats; stat entry and OCR remain optional.
+- Casual ROOC applications skip score calculation, and Casual guilds are excluded from scheduled stat reminders.
+- Automatic and preferred roster generation endpoint rejects Casual with `403 PLAN_UPGRADE_REQUIRED`; manual roster creation/editing remains available.
+- Applicant review API suppresses ROOC score comparisons for Casual, avoiding misleading zero-valued scores when stats are intentionally omitted.
+- Legacy Resource Suite resource creation/update/deletion endpoint is gated through the existing Resource Suite module entitlement check.
+
+### Still required before production activation
+- Audit every preferred-roster configuration endpoint and every Resource Suite surface (reservations, allocation, bidding, history) for server-side module enforcement.
+- Audit RO3 resource opt-in APIs and any related write endpoints.
+- Verify all Casual feature-matrix restrictions and UI upgrade messaging.
+- Verify Basic and Total behavior remains unchanged.
+- Run CI, CodeQL, tests, and production build after all changes.
+- User must configure the Stripe Casual monthly Price ID before checkout can be activated.
+- Do not apply the migration to production or change Stripe environment variables without explicit authorization.
+
+### Latest changes
+- `b330aca`: enforce Basic-tier access for automatic/preferred roster generation.
+- `ac4959c`: skip applicant score comparisons for Casual guilds.
+- CI and CodeQL for latest commit were still running at handoff.
+
