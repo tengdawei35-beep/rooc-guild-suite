@@ -35,6 +35,8 @@ export async function POST(request: Request) {
     if (!planId) return NextResponse.json({ error: "PLAN_REQUIRED" }, { status: 400 });
     const plan = await prisma.plan.findFirst({ where: { id: planId, active: true }, include: { modules: true } });
     if (!plan) return NextResponse.json({ error: "INVALID_PLAN" }, { status: 400 });
+    const isCasualPlan = plan.name.toLowerCase() === "casual";
+    if (isCasualPlan && billingTerm !== "monthly") return NextResponse.json({ error: "CASUAL_MONTHLY_ONLY" }, { status: 400 });
 
     let onboarding: { guildName: string; discordGuildId: string; gameType: "ROOC" | "RO3" } | undefined;
     if (guildId) {
@@ -51,7 +53,7 @@ export async function POST(request: Request) {
     }
 
     let affiliate: { id: string; code: string; discountPercent: number } | undefined;
-    if (body.referralCode?.trim()) {
+    if (body.referralCode?.trim() && !isCasualPlan) {
       const code = body.referralCode.trim().toUpperCase();
       const rows = await prisma.$queryRaw<Array<{ id: string; code: string; discountPercent: number }>>`
         SELECT "id", "code", "discountPercent"
