@@ -6,6 +6,7 @@ import {
 } from "@/lib/auth";
 
 import { prisma } from "@/lib/prisma";
+import { hasGuildModule, RESOURCE_SUITE_MODULE } from "@/lib/auth/modules";
 
 type RouteContext = {
   params: Promise<{
@@ -25,6 +26,12 @@ export async function POST(
         { error: "Authentication required." },
         { status: 401 }
       );
+    }
+
+    // Saving a preferred roster is a Basic-tier feature, even though
+    // manual roster editing remains available on Casual.
+    if (!(await hasGuildModule(auth.guild.id, RESOURCE_SUITE_MODULE))) {
+      return NextResponse.json({ error: "PLAN_UPGRADE_REQUIRED", feature: "preferred_rosters", requiredPlan: "Basic" }, { status: 403 });
     }
 
     if (!hasPermission(auth.role, "rosters.edit")) {
