@@ -11,6 +11,12 @@ ON CONFLICT ("name") DO UPDATE SET
   "active" = true,
   "updatedAt" = CURRENT_TIMESTAMP;
 
+-- Ensure Casual never inherits Resource Suite or other paid modules if a
+-- same-named plan was created manually before this migration.
+DELETE FROM "PlanModule"
+WHERE "planId" = (SELECT "id" FROM "Plan" WHERE "name" = 'Casual')
+  AND "module" <> 'CORE';
+
 INSERT INTO "PlanModule" ("id", "planId", "module", "createdAt")
 SELECT 'casual_core_module', p."id", 'CORE', CURRENT_TIMESTAMP
 FROM "Plan" p
