@@ -3,7 +3,7 @@ import { hasPermission, requirePageAuth } from "@/lib/auth";
 import { calculateRawPdef, calculateRawMdef } from "@/lib/scoring/roo-scoring";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import Link from "next/link";
+import ManagementPageHeader from "@/app/ManagementPageHeader";
 
 type PageProps = { params: Promise<{ memberId: string }> };
 
@@ -47,8 +47,8 @@ export default async function MemberProfilePage({ params }: PageProps) {
   if (!canViewCharacterStats) {
     return (
       <main className="hmdl-management hmdl-member-profile-workspace min-h-screen bg-zinc-950 text-white">
-        <div className="mx-auto max-w-4xl p-6">
-          <Link href="/guild/members" className="text-sm text-zinc-500 transition hover:text-white">← Guild Members</Link>
+        <div className="hmdl-page mx-auto max-w-7xl p-6">
+          <ManagementPageHeader eyebrow="Guild / Members" title={member.characterName || "Member Profile"} description={member.job ? `Character profile · ${member.job}` : "Character profile"} />
           <div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
             <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
               <div>
