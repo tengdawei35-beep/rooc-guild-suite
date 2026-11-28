@@ -31,7 +31,7 @@ export default async function NewGuildBillingPage() {
 
   const [plans, ownedGuilds, creator] = await Promise.all([
     prisma.plan.findMany({ where: { active: true }, include: { modules: true }, orderBy: [{ priceCents: "asc" }, { name: "asc" }] }),
-    prisma.guild.findMany({ where: { ownerUserId: user.id }, orderBy: { createdAt: "asc" }, include: { subscriptions: { orderBy: { createdAt: "desc" }, take: 1, include: { plan: true } } } }),
+    prisma.guild.findMany({ where: { ownerUserId: user.id }, orderBy: { createdAt: "asc" }, include: { subscriptions: { orderBy: { createdAt: "desc" }, include: { plan: true } } } }),
     prisma.platformGuildCreator.findUnique({ where: { discordUserId: user.discordId }, select: { active: true, maxGuilds: true, freeMonths: true } }),
   ]);
 
@@ -62,10 +62,13 @@ export default async function NewGuildBillingPage() {
 
   const now = new Date();
   const guilds = ownedGuilds.map((guild) => {
-    const subscription = guild.subscriptions[0] ?? null;
+    const subscription = guild.subscriptions.find((item) =>
+      (item.status === "ACTIVE" || item.status === "TRIALING") &&
+      (!item.currentPeriodEnd || item.currentPeriodEnd > now)
+    ) ?? guild.subscriptions[0] ?? null;
     const active = subscription?.status === "ACTIVE" || subscription?.status === "TRIALING";
     const periodActive = !subscription?.currentPeriodEnd || subscription.currentPeriodEnd > now;
-    return { id: guild.id, name: guild.name, discordGuildId: guild.discordGuildId, planName: subscription?.plan.name ?? null, active: active && periodActive, expiresAt: subscription?.currentPeriodEnd?.toISOString() ?? null, providerCustomerId: subscription?.providerCustomerId ?? null, cancelAtPeriodEnd: subscription?.cancelAtPeriodEnd ?? false };
+    return { id: guild.id, name: guild.name, discordGuildId: guild.discordGuildId, planName: subscription?.plan.name ?? null, active: active && periodActive, expiresAt: subscription?.currentPeriodEnd?.toISOString() ?? null, provider: subscription?.provider ?? null, providerCustomerId: subscription?.providerCustomerId ?? null, cancelAtPeriodEnd: subscription?.cancelAtPeriodEnd ?? false };
   });
 
   const complimentaryAvailable = creator?.active === true && ownedGuilds.length < creator.maxGuilds;
