@@ -145,7 +145,7 @@ export async function POST(request: Request, context: { params: Promise<{ token:
     }
   }
 
-  const applicantStats = Object.fromEntries(STAT_FIELDS.map((field) => [field, cleanNumber(body[field])])) as Record<(typeof STAT_FIELDS)[number], number>;
+  const applicantStats = Object.fromEntries(STAT_FIELDS.map((field) => [field, isCasual && !String(body[field] ?? "").trim() ? null : cleanNumber(body[field])])) as Record<(typeof STAT_FIELDS)[number], number | null>;
   const members = await prisma.guildMember.findMany({
     where: { guildId: invite.guildId, active: true },
     select: {
