@@ -125,12 +125,12 @@ export async function POST(request: Request) {
     // Re-read mutable records inside the transaction so a concurrent game switch
     // or second acceptance cannot create a member using stale application state.
     const [currentGuild, currentApplicant] = await Promise.all([
-      tx.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true } }),
+      tx.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true, subscriptions: { where: { status: { in: ["ACTIVE", "TRIALING"] }, OR: [{ currentPeriodEnd: null }, { currentPeriodEnd: { gt: new Date() } }] }, orderBy: { createdAt: "desc" }, take: 1, select: { plan: { select: { name: true } } } } } }),
       tx.guildApplicant.findFirst({ where: { id: applicant.id, guildId: auth.guild.id } }),
     ]);
     if (!currentGuild || !currentApplicant) throw new Error("Guild or applicant not found.");
     if (currentApplicant.status !== "PENDING") throw new Error("This application has already been decided.");
-    const gameType = currentGuild.gameType === "RO3" ? "RO3" : "ROOC";
+    const gameType = currentGuild.gameType === "RO3" ? "RO3" : "ROOC";\n    const isCasual = currentGuild.subscriptions[0]?.plan.name.toLowerCase() === "casual";
     const validJobs = gameType === "RO3" ? RO3_JOBS : ROOC_JOBS;
     const currentJob = currentApplicant.job?.trim();
     const currentCharacterName = currentApplicant.characterName?.trim();
