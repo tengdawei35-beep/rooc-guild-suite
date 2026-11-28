@@ -265,3 +265,12 @@ At the start of a new implementation session:
 - Hardened the Casual catalog migration: if a same-named Casual plan already exists, remove any non-CORE PlanModule rows before ensuring CORE is present. This prevents an old/manual plan row from inheriting Resource Suite or another paid module.
 - Latest branch commit: `2913226` (migration hardening). Await CI/CodeQL for this commit.
 - Still do not merge, deploy, apply the production migration, or configure Stripe without explicit approval. The production Stripe price must be configured as `STRIPE_PRICE_CASUAL_MONTHLY` (or one of the supported aliases) before checkout can work.
+
+### Casual plan audit continuation — 2026-11-28 (latest validation)
+
+- Fixed stat-free Casual RO3 applicant acceptance: missing stats are now stored as database NULL rather than passed to Prisma as a JSON value. Commit: `83dde83`.
+- Latest commit `83dde833bbcf46cd1b83b0f31f1ffea6f54105b1` passed the complete CI workflow: dependency vulnerability audit, security upload validation, combat regression tests, billing entitlement regression tests, Prisma Client generation, migration application in CI, TypeScript, RO3 scoring tests/reports, changed-file ESLint, and production build.
+- CodeQL passed with no new alerts in changed code.
+- Vercel Preview Comments reports no unresolved feedback. The Vercel deployment status itself says “Canceled by Ignored Build Step”; this is not a preview deployment success and should not be represented as one.
+- Branch-level implementation and automated validation are complete for this iteration. Remaining production-readiness actions are configuration/operational: configure the Stripe Casual monthly Price ID, review the preview manually, obtain explicit merge approval, then separately authorize production migration/deployment.
+- PR #193 remains draft and unmerged. No production migration, production environment change, or deployment has been performed.
