@@ -6,6 +6,7 @@ import {
 import {
   hasPermission,
 } from "@/lib/permissions";
+import { hasGuildModule, RESOURCE_SUITE_MODULE } from "@/lib/auth/modules";
 
 import {
   prisma,
@@ -16,6 +17,19 @@ import ReservationsClient from "./ReservationsClient";
 export default async function ReservationsPage() {
   const auth =
     await requirePageAuth();
+
+  if (!(await hasGuildModule(auth.guild.id, RESOURCE_SUITE_MODULE))) {
+    return (
+      <main className="hmdl-management hmdl-reservations-workspace min-h-screen bg-zinc-950 text-white">
+        <div className="hmdl-page mx-auto max-w-7xl px-6 py-10">
+          <div className="rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/50 p-10 text-center">
+            <h1 className="text-xl font-semibold">Resource Suite required</h1>
+            <p className="mt-2 text-sm text-zinc-400">Reservations are part of the Resource Suite and are not enabled for this guild.</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   if (
     !hasPermission(

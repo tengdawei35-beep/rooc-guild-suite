@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentAuth } from "@/lib/auth";
-import { isRoocGuild } from "@/lib/auth/modules";
+import { hasGuildModule, isRoocGuild, RESOURCE_SUITE_MODULE } from "@/lib/auth/modules";
 import { hasPermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 
@@ -15,7 +15,11 @@ function roocOnlyError() {
 }
 
 async function requireRoocGuild(guildId: string) {
-  return (await isRoocGuild(guildId)) ? null : roocOnlyError();
+  if (!(await isRoocGuild(guildId))) return roocOnlyError();
+  if (!(await hasGuildModule(guildId, RESOURCE_SUITE_MODULE))) {
+    return NextResponse.json({ error: "The Resource Suite is not subscribed for this guild." }, { status: 403 });
+  }
+  return null;
 }
 
 export async function GET() {

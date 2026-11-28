@@ -44,15 +44,30 @@ export async function GET() {
   if (!hasPermission(auth.originalRole, "applicants.view")) return forbidden();
   // Load the guild roster once. Previously this query ran once per applicant,
   // multiplying database work and delaying the entire response.
-  const [guild, applicants, members] = await Promise.all([
+  const [guild, applicants, members, activeSubscription] = await Promise.all([
     prisma.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true } }),
     prisma.guildApplicant.findMany({ where: { guildId: auth.guild.id, status: "PENDING" } }),
     getActiveGuildMembers(auth.guild.id),
+    prisma.guildSubscription.findFirst({
+      where: {
+        guildId: auth.guild.id,
+        status: { in: ["ACTIVE", "TRIALING"] },
+        OR: [
+          { currentPeriodEnd: null },
+          { currentPeriodEnd: { gt: new Date() } },
+        ],
+      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      select: { plan: { select: { name: true } } },
+    }),
   ]);
   const gameType = guild?.gameType === "RO3" ? "RO3" : "ROOC";
+  const isCasual = activeSubscription?.plan.name.toLowerCase() === "casual";
   const rankedApplicants = applicants.map((applicant) => ({
     ...applicant,
-    comparison: gameType === "ROOC" ? buildComparison(applicant, members) : null,
+    // Casual applications may intentionally omit stats. Do not calculate or
+    // display misleading zero-valued ROOC comparisons for those applicants.
+    comparison: gameType === "ROOC" && !isCasual ? buildComparison(applicant, members) : null,
   }));
 
   const statusOrder = { PENDING: 0, ACCEPTED: 1, DENIED: 2 } as const;
@@ -125,12 +140,13 @@ export async function POST(request: Request) {
     // Re-read mutable records inside the transaction so a concurrent game switch
     // or second acceptance cannot create a member using stale application state.
     const [currentGuild, currentApplicant] = await Promise.all([
-      tx.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true } }),
+      tx.guild.findUnique({ where: { id: auth.guild.id }, select: { gameType: true, subscriptions: { where: { status: { in: ["ACTIVE", "TRIALING"] }, OR: [{ currentPeriodEnd: null }, { currentPeriodEnd: { gt: new Date() } }] }, orderBy: { createdAt: "desc" }, take: 1, select: { plan: { select: { name: true } } } } } }),
       tx.guildApplicant.findFirst({ where: { id: applicant.id, guildId: auth.guild.id } }),
     ]);
     if (!currentGuild || !currentApplicant) throw new Error("Guild or applicant not found.");
     if (currentApplicant.status !== "PENDING") throw new Error("This application has already been decided.");
     const gameType = currentGuild.gameType === "RO3" ? "RO3" : "ROOC";
+    const isCasual = currentGuild.subscriptions[0]?.plan.name.toLowerCase() === "casual";
     const validJobs = gameType === "RO3" ? RO3_JOBS : ROOC_JOBS;
     const currentJob = currentApplicant.job?.trim();
     const currentCharacterName = currentApplicant.characterName?.trim();
@@ -139,22 +155,27 @@ export async function POST(request: Request) {
     }
     if (gameType === "RO3") {
       const stats = currentApplicant.ro3Stats;
-      if (!stats || typeof stats !== "object" || Array.isArray(stats)) {
-        throw new Error("RO3 character stats are missing from this application.");
-      }
-      const statsRecord = stats as Record<string, unknown>;
-      const missingStats = RO3_STAT_KEYS.filter((key) =>
-        !(key in statsRecord) || statsRecord[key] === null || statsRecord[key] === undefined
-      );
-      if (missingStats.length) {
-        throw new Error(`RO3 character stats are incomplete. Ask the applicant to resubmit. Missing: ${missingStats.join(", ")}.`);
-      }
-      for (const [key, value] of Object.entries(statsRecord)) {
-        if (!RO3_STAT_KEYS.includes(key as (typeof RO3_STAT_KEYS)[number]) || (value !== null && (typeof value !== "number" || !Number.isFinite(value) || value < 0))) {
-          throw new Error("RO3 character stats are invalid. Ask the applicant to resubmit.");
+      if (!isCasual) {
+        if (!stats || typeof stats !== "object" || Array.isArray(stats)) {
+          throw new Error("RO3 character stats are missing from this application.");
         }
-        if (["bladeCrystal", "shieldCrystal", "manaCrystal", "magicDefCrystal"].includes(key) && typeof value === "number" && value > 50) {
-          throw new Error("RO3 crystal values must be between 0 and 50.");
+        const statsRecord = stats as Record<string, unknown>;
+        const missingStats = RO3_STAT_KEYS.filter((key) =>
+          !(key in statsRecord) || statsRecord[key] === null || statsRecord[key] === undefined
+        );
+        if (missingStats.length) {
+          throw new Error(`RO3 character stats are incomplete. Ask the applicant to resubmit. Missing: ${missingStats.join(", ")}.`);
+        }
+      }
+      if (stats && typeof stats === "object" && !Array.isArray(stats)) {
+        const statsRecord = stats as Record<string, unknown>;
+        for (const [key, value] of Object.entries(statsRecord)) {
+          if (!RO3_STAT_KEYS.includes(key as (typeof RO3_STAT_KEYS)[number]) || (value !== null && (typeof value !== "number" || !Number.isFinite(value) || value < 0))) {
+            throw new Error("RO3 character stats are invalid. Ask the applicant to resubmit.");
+          }
+          if (["bladeCrystal", "shieldCrystal", "manaCrystal", "magicDefCrystal"].includes(key) && typeof value === "number" && value > 50) {
+            throw new Error("RO3 crystal values must be between 0 and 50.");
+          }
         }
       }
     }
@@ -170,7 +191,7 @@ export async function POST(request: Request) {
       guildId: auth.guild.id, userId, discordUserId: currentApplicant.discordUserId,
       discordUsername: currentApplicant.discordUsername?.trim() || null,
       characterName: currentCharacterName, job: currentJob, active: true, eligible: true,
-      ro3Stats: gameType === "RO3" ? currentApplicant.ro3Stats as Prisma.InputJsonValue : Prisma.DbNull,
+      ro3Stats: gameType === "RO3" && currentApplicant.ro3Stats != null ? currentApplicant.ro3Stats as Prisma.InputJsonValue : Prisma.DbNull,
       pdef: gameType === "ROOC" ? currentApplicant.pdef : null,
       mdef: gameType === "ROOC" ? currentApplicant.mdef : null,
       pvpDamageBonus: gameType === "ROOC" ? currentApplicant.pvpDamageBonus : null,

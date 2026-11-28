@@ -214,3 +214,63 @@ At the start of a new implementation session:
 - Verify Event Results upload and image preview interactions inside the disclosure.
 - UI-only; no migration expected.
 
+## Casual plan — 2026-11-28
+
+**Branch:** `feat/casual-plan-199`  
+**PR:** #193 (draft; do not merge without explicit approval)  
+**Price:** USD $1.99/month only. No discounts or alternate billing terms.
+
+### Implemented in this branch
+- Casual plan catalog migration adds the plan at 199 cents/month with CORE only.
+- Checkout enforces monthly billing and excludes launch and affiliate discounts.
+- Casual recruitment accepts character name and job without mandatory stats; stat entry and OCR remain optional.
+- Casual ROOC applications skip score calculation, and Casual guilds are excluded from scheduled stat reminders.
+- Automatic and preferred roster generation endpoint rejects Casual with `403 PLAN_UPGRADE_REQUIRED`; manual roster creation/editing remains available.
+- Applicant review API suppresses ROOC score comparisons for Casual, avoiding misleading zero-valued scores when stats are intentionally omitted.
+- Legacy Resource Suite resource creation/update/deletion endpoint is gated through the existing Resource Suite module entitlement check.
+
+### Endpoint audit completed in this branch
+- Preferred roster template save endpoint now checks the active guild plan and permits Basic/Total only; Casual receives `403 PLAN_UPGRADE_REQUIRED`.
+- ROOC reservations GET/POST/PUT/DELETE now all require the Resource Suite module entitlement, in addition to the ROOC and role checks.
+- ROOC allocation history GET now requires the Resource Suite module entitlement.
+- Allocation preview, run/commit, reset, rotation audit, audit correction and audit backfill endpoints were inspected; each already enforces Resource Suite entitlement server-side.
+- RO3 resource pool configuration and RO3 opt-in GET/POST endpoints were inspected; both already enforce Resource Suite entitlement server-side.
+- Event RO3 resource-type linking endpoint was inspected; it already enforces Resource Suite entitlement server-side.
+- Legacy resource create/update/delete endpoint was inspected; it already enforces Resource Suite entitlement server-side.
+- Resource Suite page-level gates added to Reservations, Allocation History, and RO3 Member Opt-ins. This prevents Casual users from receiving server-rendered reservation data and gives all three routes a consistent upgrade-required state before client/API loading.
+
+### Still required before production activation
+- Verify all Casual feature-matrix restrictions and UI upgrade messaging, including any indirect entry points to preferred roster actions. The Resource Suite page-level gates have now been added for Reservations, Allocation History, and RO3 Member Opt-ins.
+- Verify Basic and Total behavior remains unchanged.
+- Audit remaining billing edge cases and verify the plan migration against schema constraints.
+- Complete CI, CodeQL, tests, and production build validation.
+- User must configure the Stripe Casual monthly Price ID before checkout can be activated.
+- Do not apply the migration to production or change Stripe environment variables without explicit authorization.
+
+### Latest changes
+- `b330aca`: enforce Basic-tier access for automatic/preferred roster generation.
+- `ac4959c`: suppress applicant comparisons for Casual guilds.
+- `976b10e` and `1600ac2`: fix Casual application subscription lookup and skip ROOC scoring for stat-optional Casual applicants.
+- `8ee8561`: initial preferred-roster endpoint gate; corrected immediately in `4fc8e62` to check Basic/Total plan entitlement rather than Resource Suite module entitlement.
+- `d30c085`: gate all ROOC reservation operations behind Resource Suite entitlement.
+- `b3ef6f0`: gate allocation history behind Resource Suite entitlement.
+- Latest CI run `46127751453` and CodeQL run `46127751552` are in progress on `4fc8e62`.
+
+### Casual plan audit continuation — 2026-11-28
+
+- CI and CodeQL passed on commit `4c4f390`; the PR remains draft and unmerged.
+- Fixed the RO3 applicant form so Casual applicants can submit with only character name and job; RO3 stats are optional for Casual, while Basic/Total retain mandatory stats and OCR.
+- Confirmed the billing UI hides non-monthly terms and referral entry for Casual; server checkout independently rejects non-monthly terms and excludes affiliate and launch discounts. Existing Basic/Total launch/affiliate discount behavior remains the default.
+- Confirmed the Stripe webhook creates guild module entitlements from the selected plan and subsequent subscription sync refreshes them from the plan's module catalog.
+- Hardened the Casual catalog migration: if a same-named Casual plan already exists, remove any non-CORE PlanModule rows before ensuring CORE is present. This prevents an old/manual plan row from inheriting Resource Suite or another paid module.
+- Latest branch commit: `2913226` (migration hardening). Await CI/CodeQL for this commit.
+- Still do not merge, deploy, apply the production migration, or configure Stripe without explicit approval. The production Stripe price must be configured as `STRIPE_PRICE_CASUAL_MONTHLY` (or one of the supported aliases) before checkout can work.
+
+### Casual plan audit continuation — 2026-11-28 (latest validation)
+
+- Fixed stat-free Casual RO3 applicant acceptance: missing stats are now stored as database NULL rather than passed to Prisma as a JSON value. Commit: `83dde83`.
+- Latest commit `83dde833bbcf46cd1b83b0f31f1ffea6f54105b1` passed the complete CI workflow: dependency vulnerability audit, security upload validation, combat regression tests, billing entitlement regression tests, Prisma Client generation, migration application in CI, TypeScript, RO3 scoring tests/reports, changed-file ESLint, and production build.
+- CodeQL passed with no new alerts in changed code.
+- Vercel Preview Comments reports no unresolved feedback. The Vercel deployment status itself says “Canceled by Ignored Build Step”; this is not a preview deployment success and should not be represented as one.
+- Branch-level implementation and automated validation are complete for this iteration. Remaining production-readiness actions are configuration/operational: configure the Stripe Casual monthly Price ID, review the preview manually, obtain explicit merge approval, then separately authorize production migration/deployment.
+- PR #193 remains draft and unmerged. No production migration, production environment change, or deployment has been performed.

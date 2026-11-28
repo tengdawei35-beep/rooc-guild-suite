@@ -212,6 +212,33 @@ export async function POST(
       );
     }
 
+    // Casual includes manual roster management only. Automatic and preferred
+    // roster generation are Basic-tier features, so enforce this server-side.
+    const activeSubscription = await prisma.guildSubscription.findFirst({
+      where: {
+        guildId: event.guildId,
+        status: { in: ["ACTIVE", "TRIALING"] },
+        OR: [
+          { currentPeriodEnd: null },
+          { currentPeriodEnd: { gt: new Date() } },
+        ],
+      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      select: { plan: { select: { name: true } } },
+    });
+
+    if (activeSubscription?.plan.name.toLowerCase() === "casual") {
+      return NextResponse.json(
+        {
+          error: "PLAN_UPGRADE_REQUIRED",
+          feature: mode === "PREFERRED" ? "preferred_rosters" : "automatic_rosters",
+          requiredPlan: "Basic",
+          message: "Automatic and preferred roster generation require the Basic plan. Manual roster creation and editing remain available.",
+        },
+        { status: 403 }
+      );
+    }
+
     // Automatic/preferred roster generation depends on ROOC-only scoring.
     // Never run those formulas against RO3 member records.
     if (event.guild.gameType === "RO3") {

@@ -71,7 +71,22 @@ export async function POST(request: Request, context: { params: Promise<{ token:
     return NextResponse.json({ error: "Invalid application payload." }, { status: 400 });
   }
 
-  const guild = await prisma.guild.findUnique({ where: { id: invite.guildId }, select: { gameType: true } });
+  const [guild, activeSubscription] = await Promise.all([
+    prisma.guild.findUnique({ where: { id: invite.guildId }, select: { gameType: true } }),
+    prisma.guildSubscription.findFirst({
+      where: {
+        guildId: invite.guildId,
+        status: { in: ["ACTIVE", "TRIALING"] },
+        OR: [
+          { currentPeriodEnd: null },
+          { currentPeriodEnd: { gt: new Date() } },
+        ],
+      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      select: { plan: { select: { name: true } } },
+    }),
+  ]);
+  const isCasual = activeSubscription?.plan.name.toLowerCase() === "casual";
   const isRO3 = guild?.gameType === "RO3";
   const characterName = String(body.characterName ?? "").trim();
   const job = String(body.job ?? "").trim();
@@ -95,7 +110,7 @@ export async function POST(request: Request, context: { params: Promise<{ token:
     try {
       ro3Stats = Object.fromEntries(RO3_STAT_KEYS.map((key) => [key, cleanRO3Number(body[key], key)]));
       const missingStats = RO3_STAT_KEYS.filter((key) => ro3Stats[key] === null);
-      if (missingStats.length) {
+      if (missingStats.length && !isCasual) {
         return NextResponse.json({ error: `All RO3 stats are required. Missing: ${missingStats.join(", ")}.` }, { status: 400 });
       }
     } catch (error) {
@@ -145,7 +160,7 @@ export async function POST(request: Request, context: { params: Promise<{ token:
     }
   }
 
-  const applicantStats = Object.fromEntries(STAT_FIELDS.map((field) => [field, cleanNumber(body[field])])) as Record<(typeof STAT_FIELDS)[number], number>;
+  const applicantStats = Object.fromEntries(STAT_FIELDS.map((field) => [field, isCasual && !String(body[field] ?? "").trim() ? null : cleanNumber(body[field])])) as Record<(typeof STAT_FIELDS)[number], number | null>;
   const members = await prisma.guildMember.findMany({
     where: { guildId: invite.guildId, active: true },
     select: {
@@ -157,8 +172,8 @@ export async function POST(request: Request, context: { params: Promise<{ token:
       patk: true, matk: true, hp: true,
     },
   });
-  const scored = scoreRooPlayers([...members, { ...applicantStats, job }]);
-  const applicant = scored[scored.length - 1];
+  const scored = isCasual ? null : scoreRooPlayers([...members, { ...applicantStats, job }]);
+  const applicant = scored?.[scored.length - 1] ?? null;
   const payload = {
     inviteId: invite.id,
     discordUserId: user.discordId,
@@ -168,12 +183,12 @@ export async function POST(request: Request, context: { params: Promise<{ token:
     job,
     ...applicantStats,
     ...(watchlistPreset ? { watchlist: watchlistPreset.watchlist } : {}),
-    dpsScore: applicant.dpsScore,
-    tankScore: applicant.tankScore,
-    pvpScore: applicant.pvpScore,
-    dpsPercentile: applicant.dpsPercentile,
-    tankPercentile: applicant.tankPercentile,
-    pvpPercentile: applicant.pvpPercentile,
+    dpsScore: applicant?.dpsScore ?? null,
+    tankScore: applicant?.tankScore ?? null,
+    pvpScore: applicant?.pvpScore ?? null,
+    dpsPercentile: applicant?.dpsPercentile ?? null,
+    tankPercentile: applicant?.tankPercentile ?? null,
+    pvpPercentile: applicant?.pvpPercentile ?? null,
     status: "PENDING" as const,
     reviewedAt: null,
     reviewedByUserId: null,

@@ -35,6 +35,8 @@ export async function POST(request: Request) {
     if (!planId) return NextResponse.json({ error: "PLAN_REQUIRED" }, { status: 400 });
     const plan = await prisma.plan.findFirst({ where: { id: planId, active: true }, include: { modules: true } });
     if (!plan) return NextResponse.json({ error: "INVALID_PLAN" }, { status: 400 });
+    const isCasualPlan = plan.name.toLowerCase() === "casual";
+    if (isCasualPlan && billingTerm !== "monthly") return NextResponse.json({ error: "CASUAL_MONTHLY_ONLY" }, { status: 400 });
 
     let onboarding: { guildName: string; discordGuildId: string; gameType: "ROOC" | "RO3" } | undefined;
     if (guildId) {
@@ -51,7 +53,7 @@ export async function POST(request: Request) {
     }
 
     let affiliate: { id: string; code: string; discountPercent: number } | undefined;
-    if (body.referralCode?.trim()) {
+    if (body.referralCode?.trim() && !isCasualPlan) {
       const code = body.referralCode.trim().toUpperCase();
       const rows = await prisma.$queryRaw<Array<{ id: string; code: string; discountPercent: number }>>`
         SELECT "id", "code", "discountPercent"
@@ -67,7 +69,7 @@ export async function POST(request: Request) {
     const stripePriceId = getStripePriceId(plan.name, billingTerm);
     if (!stripePriceId) return NextResponse.json({ error: `STRIPE_PRICE_NOT_CONFIGURED_FOR_PLAN_AND_TERM:${plan.name}:${billingTerm}` }, { status: 500 });
     const appUrl = process.env.APP_URL ?? new URL(request.url).origin;
-    const session = await stripePaymentProvider.createCheckout({ ...(guildId ? { guildId } : {}), planId, stripePriceId, billingTerm, customer: { discordUserId: user.discordId, username: user.username }, onboarding, affiliate, successUrl: `${appUrl}/billing/success?session_id={CHECKOUT_SESSION_ID}`, cancelUrl: `${appUrl}/billing/new?canceled=1` });
+    const session = await stripePaymentProvider.createCheckout({ ...(guildId ? { guildId } : {}), planId, stripePriceId, billingTerm, applyLaunchDiscount: !isCasualPlan, customer: { discordUserId: user.discordId, username: user.username }, onboarding, affiliate, successUrl: `${appUrl}/billing/success?session_id={CHECKOUT_SESSION_ID}`, cancelUrl: `${appUrl}/billing/new?canceled=1` });
     return NextResponse.json({ checkoutUrl: session.url, sessionId: session.id, affiliateDiscountPercent: affiliate?.discountPercent ?? 0 });
   } catch (error) { console.error("[BILLING CHECKOUT]", error); return NextResponse.json({ error: "CHECKOUT_FAILED" }, { status: 500 }); }
 }
