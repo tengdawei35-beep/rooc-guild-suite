@@ -130,7 +130,8 @@ export async function POST(request: Request) {
     ]);
     if (!currentGuild || !currentApplicant) throw new Error("Guild or applicant not found.");
     if (currentApplicant.status !== "PENDING") throw new Error("This application has already been decided.");
-    const gameType = currentGuild.gameType === "RO3" ? "RO3" : "ROOC";\n    const isCasual = currentGuild.subscriptions[0]?.plan.name.toLowerCase() === "casual";
+    const gameType = currentGuild.gameType === "RO3" ? "RO3" : "ROOC";
+    const isCasual = currentGuild.subscriptions[0]?.plan.name.toLowerCase() === "casual";
     const validJobs = gameType === "RO3" ? RO3_JOBS : ROOC_JOBS;
     const currentJob = currentApplicant.job?.trim();
     const currentCharacterName = currentApplicant.characterName?.trim();
@@ -139,22 +140,27 @@ export async function POST(request: Request) {
     }
     if (gameType === "RO3") {
       const stats = currentApplicant.ro3Stats;
-      if (!stats || typeof stats !== "object" || Array.isArray(stats)) {
-        throw new Error("RO3 character stats are missing from this application.");
-      }
-      const statsRecord = stats as Record<string, unknown>;
-      const missingStats = RO3_STAT_KEYS.filter((key) =>
-        !(key in statsRecord) || statsRecord[key] === null || statsRecord[key] === undefined
-      );
-      if (missingStats.length) {
-        throw new Error(`RO3 character stats are incomplete. Ask the applicant to resubmit. Missing: ${missingStats.join(", ")}.`);
-      }
-      for (const [key, value] of Object.entries(statsRecord)) {
-        if (!RO3_STAT_KEYS.includes(key as (typeof RO3_STAT_KEYS)[number]) || (value !== null && (typeof value !== "number" || !Number.isFinite(value) || value < 0))) {
-          throw new Error("RO3 character stats are invalid. Ask the applicant to resubmit.");
+      if (!isCasual) {
+        if (!stats || typeof stats !== "object" || Array.isArray(stats)) {
+          throw new Error("RO3 character stats are missing from this application.");
         }
-        if (["bladeCrystal", "shieldCrystal", "manaCrystal", "magicDefCrystal"].includes(key) && typeof value === "number" && value > 50) {
-          throw new Error("RO3 crystal values must be between 0 and 50.");
+        const statsRecord = stats as Record<string, unknown>;
+        const missingStats = RO3_STAT_KEYS.filter((key) =>
+          !(key in statsRecord) || statsRecord[key] === null || statsRecord[key] === undefined
+        );
+        if (missingStats.length) {
+          throw new Error(`RO3 character stats are incomplete. Ask the applicant to resubmit. Missing: ${missingStats.join(", ")}.`);
+        }
+      }
+      if (stats && typeof stats === "object" && !Array.isArray(stats)) {
+        const statsRecord = stats as Record<string, unknown>;
+        for (const [key, value] of Object.entries(statsRecord)) {
+          if (!RO3_STAT_KEYS.includes(key as (typeof RO3_STAT_KEYS)[number]) || (value !== null && (typeof value !== "number" || !Number.isFinite(value) || value < 0))) {
+            throw new Error("RO3 character stats are invalid. Ask the applicant to resubmit.");
+          }
+          if (["bladeCrystal", "shieldCrystal", "manaCrystal", "magicDefCrystal"].includes(key) && typeof value === "number" && value > 50) {
+            throw new Error("RO3 crystal values must be between 0 and 50.");
+          }
         }
       }
     }
