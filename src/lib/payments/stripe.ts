@@ -34,9 +34,9 @@ export class StripePaymentProvider implements PaymentProvider {
     if (request.affiliate) { metadata.affiliateId = request.affiliate.id; metadata.affiliateCode = request.affiliate.code; metadata.affiliateDiscountPercent = String(request.affiliate.discountPercent); }
 
     const affiliateDiscount = getAffiliateDiscount(request);
-    const launchDiscount = request.billingTerm === "monthly" ? getLaunchDiscount() : null;
+    const launchDiscount = request.billingTerm === "monthly" && request.applyLaunchDiscount !== false ? getLaunchDiscount() : null;
     const discounts = affiliateDiscount ?? launchDiscount;
-    if (request.billingTerm === "monthly" && !discounts) throw new Error("STRIPE_LAUNCH_COUPON_ID or STRIPE_LAUNCH_PROMOTION_CODE_ID is not configured.");
+    if (request.billingTerm === "monthly" && request.applyLaunchDiscount !== false && !affiliateDiscount && !discounts) throw new Error("STRIPE_LAUNCH_COUPON_ID or STRIPE_LAUNCH_PROMOTION_CODE_ID is not configured.");
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription", line_items: [{ price: request.stripePriceId, quantity: 1 }], success_url: request.successUrl, cancel_url: request.cancelUrl,
