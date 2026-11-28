@@ -144,7 +144,7 @@ export async function POST(request: Request) {
         const user = await tx.user.findUnique({ where: { discordId: discordUserId } }); const plan = await tx.plan.findFirst({ where: { id: planId, active: true }, include: { modules: true } }); if (!user || !plan) throw new Error("CHECKOUT_USER_OR_PLAN_INVALID");
         // Stripe can retry checkout.session.completed after downstream work fails. Resolve the already-created subscription first so onboarding retries do not collide with the guild unique constraint.
         const existingSubscription = await tx.guildSubscription.findUnique({ where: { providerSubscriptionId: subscriptionId }, select: { guildId: true } });
-        if (existingSubscription) { createdGuildId = existingSubscription.guildId; return; }
+        if (existingSubscription) { createdGuildId = existingSubscription.guildId; await syncSubscription(tx, stripeSubscription); return; }
         if (guildId) {
           const guild = await tx.guild.findUnique({ where: { id: guildId } });
           if (!guild || guild.ownerUserId !== user.id) throw new Error("GUILD_NOT_OWNED");
