@@ -241,5 +241,8 @@ At the start of a new implementation session:
 ### Latest changes
 - `b330aca`: enforce Basic-tier access for automatic/preferred roster generation.
 - `ac4959c`: skip applicant score comparisons for Casual guilds.
-- CI and CodeQL for latest commit were still running at handoff.
+- `976b10e`: resolve the missing Casual subscription lookup in the public application submission API.
+- `1600ac2`: skip ROOC applicant score calculation for Casual submissions with optional stats; score fields remain null.
+- CI run `46123229013` failed TypeScript because the application route referenced `isCasual` before defining it. This was fixed in `976b10e`; a new CI run was observed on that commit, but the latest follow-up commit `1600ac2` has no workflow run visible yet. Recheck validation before review.
+- CodeQL run `46123229018` passed on the prior head `53d8a44`; CodeQL for `976b10e` was still running at last check.
 
