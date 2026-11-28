@@ -56,7 +56,7 @@ export default function ApplicantApplyClient({ token, guildId, guildName, gameTy
 
   async function submit() {
     if (!characterName.trim() || !job.trim()) return setError("Character Name and Job are required.");
-    if (gameType === "RO3") {
+    if (!isCasual && gameType === "RO3") {
       const missing = RO3_FIELDS.filter(([key]) => !stats[key]?.trim());
       if (missing.length) return setError(`Complete all required RO3 fields before submitting: ${missing.map(([, label]) => label).join(", ")}.`);
     }
