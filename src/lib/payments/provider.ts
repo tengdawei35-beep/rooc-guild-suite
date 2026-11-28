@@ -3,6 +3,7 @@ export type CheckoutRequest = {
   planId: string;
   stripePriceId: string;
   billingTerm?: "monthly" | "quarterly" | "semiannual" | "annual";
+  applyLaunchDiscount?: boolean;
   customer: {
     discordUserId: string;
     username: string;
