@@ -237,9 +237,10 @@ At the start of a new implementation session:
 - RO3 resource pool configuration and RO3 opt-in GET/POST endpoints were inspected; both already enforce Resource Suite entitlement server-side.
 - Event RO3 resource-type linking endpoint was inspected; it already enforces Resource Suite entitlement server-side.
 - Legacy resource create/update/delete endpoint was inspected; it already enforces Resource Suite entitlement server-side.
+- Resource Suite page-level gates added to Reservations, Allocation History, and RO3 Member Opt-ins. This prevents Casual users from receiving server-rendered reservation data and gives all three routes a consistent upgrade-required state before client/API loading.
 
 ### Still required before production activation
-- Verify all Casual feature-matrix restrictions and UI upgrade messaging, including any indirect entry points to preferred roster actions.
+- Verify all Casual feature-matrix restrictions and UI upgrade messaging, including any indirect entry points to preferred roster actions. The Resource Suite page-level gates have now been added for Reservations, Allocation History, and RO3 Member Opt-ins.
 - Verify Basic and Total behavior remains unchanged.
 - Audit remaining billing edge cases and verify the plan migration against schema constraints.
 - Complete CI, CodeQL, tests, and production build validation.
