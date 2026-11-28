@@ -255,3 +255,13 @@ At the start of a new implementation session:
 - `d30c085`: gate all ROOC reservation operations behind Resource Suite entitlement.
 - `b3ef6f0`: gate allocation history behind Resource Suite entitlement.
 - Latest CI run `46127751453` and CodeQL run `46127751552` are in progress on `4fc8e62`.
+
+### Casual plan audit continuation — 2026-11-28
+
+- CI and CodeQL passed on commit `4c4f390`; the PR remains draft and unmerged.
+- Fixed the RO3 applicant form so Casual applicants can submit with only character name and job; RO3 stats are optional for Casual, while Basic/Total retain mandatory stats and OCR.
+- Confirmed the billing UI hides non-monthly terms and referral entry for Casual; server checkout independently rejects non-monthly terms and excludes affiliate and launch discounts. Existing Basic/Total launch/affiliate discount behavior remains the default.
+- Confirmed the Stripe webhook creates guild module entitlements from the selected plan and subsequent subscription sync refreshes them from the plan's module catalog.
+- Hardened the Casual catalog migration: if a same-named Casual plan already exists, remove any non-CORE PlanModule rows before ensuring CORE is present. This prevents an old/manual plan row from inheriting Resource Suite or another paid module.
+- Latest branch commit: `2913226` (migration hardening). Await CI/CodeQL for this commit.
+- Still do not merge, deploy, apply the production migration, or configure Stripe without explicit approval. The production Stripe price must be configured as `STRIPE_PRICE_CASUAL_MONTHLY` (or one of the supported aliases) before checkout can work.
