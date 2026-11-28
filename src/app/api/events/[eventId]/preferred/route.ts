@@ -6,7 +6,7 @@ import {
 } from "@/lib/auth";
 
 import { prisma } from "@/lib/prisma";
-import { hasGuildModule, RESOURCE_SUITE_MODULE } from "@/lib/auth/modules";
+
 
 type RouteContext = {
   params: Promise<{
@@ -30,7 +30,17 @@ export async function POST(
 
     // Saving a preferred roster is a Basic-tier feature, even though
     // manual roster editing remains available on Casual.
-    if (!(await hasGuildModule(auth.guild.id, RESOURCE_SUITE_MODULE))) {
+    const activeSubscription = await prisma.guildSubscription.findFirst({
+      where: {
+        guildId: auth.guild.id,
+        status: { in: ["ACTIVE", "TRIALING"] },
+        OR: [{ currentPeriodEnd: null }, { currentPeriodEnd: { gt: new Date() } }],
+      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      select: { plan: { select: { name: true } } },
+    });
+    const planName = activeSubscription?.plan.name.toLowerCase();
+    if (planName !== "basic" && planName !== "total") {
       return NextResponse.json({ error: "PLAN_UPGRADE_REQUIRED", feature: "preferred_rosters", requiredPlan: "Basic" }, { status: 403 });
     }
 
