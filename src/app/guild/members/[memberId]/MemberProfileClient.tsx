@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import ManagementPageHeader from "@/app/ManagementPageHeader";
 import { RO3_STAT_LABELS, type RO3StatKey } from "@/lib/constants/ro3-stats";
 
 type MemberProfile = {
@@ -98,7 +98,7 @@ export default function MemberProfileClient({ memberId, rawPdef, rawMdef }: { me
 
   if (loading) return <main className="hmdl-management hmdl-member-profile-workspace min-h-screen bg-zinc-950 text-white"><div className="hmdl-page mx-auto max-w-7xl p-6"><div className="text-sm text-zinc-500">Loading member profile...</div></div></main>;
 
-  if (error) return <main className="hmdl-management hmdl-member-profile-workspace min-h-screen bg-zinc-950 text-white"><div className="hmdl-page mx-auto max-w-7xl p-6"><div className="rounded-lg border border-red-900 bg-red-950/40 p-4 text-sm text-red-400">{error}</div><Link href="/guild/members" className="mt-4 inline-block text-sm text-zinc-500 transition hover:text-white">← Back to members</Link></div></main>;
+  if (error) return <main className="hmdl-management hmdl-member-profile-workspace min-h-screen bg-zinc-950 text-white"><div className="hmdl-page mx-auto max-w-7xl p-6"><div className="rounded-lg border border-red-900 bg-red-950/40 p-4 text-sm text-red-400">{error}</div></div></main>;
   if (!data) return null;
 
   const { member, current, history, gameType } = data;
@@ -107,14 +107,12 @@ export default function MemberProfileClient({ memberId, rawPdef, rawMdef }: { me
     <main className="hmdl-management hmdl-member-profile-workspace min-h-screen bg-zinc-950 text-white">
       <div className="hmdl-page mx-auto max-w-7xl p-6">
         <div className="mb-8">
-          <Link href="/guild/members" className="text-sm text-zinc-500 transition hover:text-white">← Guild Members</Link>
-          <div className="mt-5 flex flex-col justify-between gap-5 md:flex-row md:items-end">
-            <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">People / Member Profile</p><h1 className="text-3xl font-semibold tracking-tight text-white">{member.characterName}</h1>
-              <div className="mt-2 text-sm text-zinc-500">{member.characterName}{member.job ? ` • ${member.job}` : ""}</div>
-            </div>
-            <div className="flex gap-2"><StatusBadge active={member.active} label={member.active ? "Active" : "Inactive"} /><StatusBadge active={member.eligible} label={member.eligible ? "Eligible" : "Ineligible"} /></div>
-          </div>
+          <ManagementPageHeader
+            eyebrow="Guild / Members"
+            title={member.characterName || "Member Profile"}
+            description={member.job ? `Character profile · ${member.job}` : "Character profile"}
+            actions={<div className="flex flex-wrap gap-2"><StatusBadge active={member.active} label={member.active ? "Active" : "Inactive"} /><StatusBadge active={member.eligible} label={member.eligible ? "Eligible" : "Ineligible"} /></div>}
+          />
         </div>
 
         {gameType === "ROOC" && <section className="mb-8">
@@ -155,7 +153,6 @@ export default function MemberProfileClient({ memberId, rawPdef, rawMdef }: { me
 
         <section className="mb-8"><SectionTitle>Leave / Unavailability</SectionTitle>{member.leaveDates.length === 0 ? <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-5 text-sm text-zinc-500">No leave dates recorded.</div> : <div className="hmdl-table-wrap overflow-hidden"><table className="hmdl-table w-full text-sm"><thead className="border-b border-zinc-800 bg-zinc-950"><tr><th className="px-4 py-3 text-left font-medium text-zinc-400">Date</th><th className="px-4 py-3 text-left font-medium text-zinc-400">Reason</th></tr></thead><tbody>{member.leaveDates.map((leave) => <tr key={leave.id} className="border-b border-zinc-800 last:border-0"><td className="px-4 py-3 text-zinc-300">{formatDate(leave.date)}</td><td className="px-4 py-3 text-zinc-400">{leave.reason || "—"}</td></tr>)}</tbody></table></div>}</section>
 
-        <Link href="/guild/members" className="inline-block text-sm text-zinc-500 transition hover:text-white">← Back to members</Link>
       </div>
     </main>
   );
