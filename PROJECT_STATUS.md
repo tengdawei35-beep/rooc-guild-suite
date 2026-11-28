@@ -1,3 +1,31 @@
+## Complimentary-to-paid conversion — 2026-11-28
+
+**Issue:** #163 — Define paid conversion path for guilds with complimentary access.  
+**Status:** Implementation prepared on `fix/complimentary-paid-conversion`; PR validation pending. No migration required.
+
+### Approved behavior
+- Guild owners may start a paid plan checkout while their only active guild subscription is a complimentary grant.
+- Checkout does not modify the complimentary subscription.
+- Abandoned, failed, incomplete, or canceled checkout leaves complimentary access and its expiry unchanged.
+- Only after Stripe confirms the paid subscription is `ACTIVE` or `TRIALING` is the complimentary row marked `CANCELED`; it is retained as history.
+- Paid plan modules become the active entitlements after confirmation. Webhook retries remain idempotent.
+- Existing active paid subscriptions still block another guild-plan checkout.
+- Admin subscription history already lists every subscription row, so both the complimentary grant and subsequent paid subscription remain visible.
+
+### Implementation
+- Billing UI now exposes **Upgrade to paid plan** for an active complimentary guild and routes checkout against that existing guild.
+- The checkout API permits active complimentary subscriptions, but rejects an active paid or unknown-provider subscription.
+- Stripe webhook handling retrieves the current Stripe subscription status and period before recording it. It preserves complimentary entitlements for non-entitled Stripe states and supersedes the complimentary record only when Stripe confirms an entitled state.
+- The billing page resolves the active entitlement across subscription history, so an incomplete checkout record cannot hide still-valid complimentary access.
+- Added unit tests for checkout eligibility and complimentary supersession rules; included them in `npm run test:billing`.
+
+### Release gates
+- No Prisma schema or database migration changes.
+- Run billing tests, TypeScript, lint on changed files, and production build.
+- Do not merge or deploy until checks pass and the user explicitly approves release.
+
+---
+
 # Heimdall Project Status
 
 _Last updated: 2026-11-28 (Asia/Kuala_Lumpur)_
