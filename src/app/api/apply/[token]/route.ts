@@ -172,8 +172,8 @@ export async function POST(request: Request, context: { params: Promise<{ token:
       patk: true, matk: true, hp: true,
     },
   });
-  const scored = scoreRooPlayers([...members, { ...applicantStats, job }]);
-  const applicant = scored[scored.length - 1];
+  const scored = isCasual ? null : scoreRooPlayers([...members, { ...applicantStats, job }]);
+  const applicant = scored?.[scored.length - 1] ?? null;
   const payload = {
     inviteId: invite.id,
     discordUserId: user.discordId,
@@ -183,12 +183,12 @@ export async function POST(request: Request, context: { params: Promise<{ token:
     job,
     ...applicantStats,
     ...(watchlistPreset ? { watchlist: watchlistPreset.watchlist } : {}),
-    dpsScore: applicant.dpsScore,
-    tankScore: applicant.tankScore,
-    pvpScore: applicant.pvpScore,
-    dpsPercentile: applicant.dpsPercentile,
-    tankPercentile: applicant.tankPercentile,
-    pvpPercentile: applicant.pvpPercentile,
+    dpsScore: applicant?.dpsScore ?? null,
+    tankScore: applicant?.tankScore ?? null,
+    pvpScore: applicant?.pvpScore ?? null,
+    dpsPercentile: applicant?.dpsPercentile ?? null,
+    tankPercentile: applicant?.tankPercentile ?? null,
+    pvpPercentile: applicant?.pvpPercentile ?? null,
     status: "PENDING" as const,
     reviewedAt: null,
     reviewedByUserId: null,
