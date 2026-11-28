@@ -229,20 +229,28 @@ At the start of a new implementation session:
 - Applicant review API suppresses ROOC score comparisons for Casual, avoiding misleading zero-valued scores when stats are intentionally omitted.
 - Legacy Resource Suite resource creation/update/deletion endpoint is gated through the existing Resource Suite module entitlement check.
 
+### Endpoint audit completed in this branch
+- Preferred roster template save endpoint now checks the active guild plan and permits Basic/Total only; Casual receives `403 PLAN_UPGRADE_REQUIRED`.
+- ROOC reservations GET/POST/PUT/DELETE now all require the Resource Suite module entitlement, in addition to the ROOC and role checks.
+- ROOC allocation history GET now requires the Resource Suite module entitlement.
+- Allocation preview, run/commit, reset, rotation audit, audit correction and audit backfill endpoints were inspected; each already enforces Resource Suite entitlement server-side.
+- RO3 resource pool configuration and RO3 opt-in GET/POST endpoints were inspected; both already enforce Resource Suite entitlement server-side.
+- Event RO3 resource-type linking endpoint was inspected; it already enforces Resource Suite entitlement server-side.
+- Legacy resource create/update/delete endpoint was inspected; it already enforces Resource Suite entitlement server-side.
+
 ### Still required before production activation
-- Audit every preferred-roster configuration endpoint and every Resource Suite surface (reservations, allocation, bidding, history) for server-side module enforcement.
-- Audit RO3 resource opt-in APIs and any related write endpoints.
-- Verify all Casual feature-matrix restrictions and UI upgrade messaging.
+- Verify all Casual feature-matrix restrictions and UI upgrade messaging, including any indirect entry points to preferred roster actions.
 - Verify Basic and Total behavior remains unchanged.
-- Run CI, CodeQL, tests, and production build after all changes.
+- Audit remaining billing edge cases and verify the plan migration against schema constraints.
+- Complete CI, CodeQL, tests, and production build validation.
 - User must configure the Stripe Casual monthly Price ID before checkout can be activated.
 - Do not apply the migration to production or change Stripe environment variables without explicit authorization.
 
 ### Latest changes
 - `b330aca`: enforce Basic-tier access for automatic/preferred roster generation.
-- `ac4959c`: skip applicant score comparisons for Casual guilds.
-- `976b10e`: resolve the missing Casual subscription lookup in the public application submission API.
-- `1600ac2`: skip ROOC applicant score calculation for Casual submissions with optional stats; score fields remain null.
-- CI run `46123229013` failed TypeScript because the application route referenced `isCasual` before defining it. This was fixed in `976b10e`; a new CI run was observed on that commit, but the latest follow-up commit `1600ac2` has no workflow run visible yet. Recheck validation before review.
-- CodeQL run `46123229018` passed on the prior head `53d8a44`; CodeQL for `976b10e` was still running at last check.
-
+- `ac4959c`: suppress applicant comparisons for Casual guilds.
+- `976b10e` and `1600ac2`: fix Casual application subscription lookup and skip ROOC scoring for stat-optional Casual applicants.
+- `8ee8561`: initial preferred-roster endpoint gate; corrected immediately in `4fc8e62` to check Basic/Total plan entitlement rather than Resource Suite module entitlement.
+- `d30c085`: gate all ROOC reservation operations behind Resource Suite entitlement.
+- `b3ef6f0`: gate allocation history behind Resource Suite entitlement.
+- Latest CI run `46127751453` and CodeQL run `46127751552` are in progress on `4fc8e62`.
